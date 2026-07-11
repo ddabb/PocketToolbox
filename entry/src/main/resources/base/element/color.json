@@ -1,0 +1,72 @@
+{
+  "color": [
+    {
+      "name": "start_window_background",
+      "value": "#F8F6F2"
+    },
+    {
+      "name": "page_background",
+      "value": "#f5f5f5"
+    },
+    {
+      "name": "card_background",
+      "value": "#ffffff"
+    },
+    {
+      "name": "primary_text",
+      "value": "#333333"
+    },
+    {
+      "name": "secondary_text",
+      "value": "#666666"
+    },
+    {
+      "name": "tertiary_text",
+      "value": "#999999"
+    },
+    {
+      "name": "hint_text",
+      "value": "#bbbbbb"
+    },
+    {
+      "name": "border_color",
+      "value": "#eeeeee"
+    },
+    {
+      "name": "poetry_green",
+      "value": "#2d7d46"
+    },
+    {
+      "name": "idiom_blue",
+      "value": "#2980b9"
+    },
+    {
+      "name": "idiom_orange",
+      "value": "#e67e22"
+    },
+    {
+      "name": "danger_red",
+      "value": "#e74c3c"
+    },
+    {
+      "name": "success_green",
+      "value": "#27ae60"
+    },
+    {
+      "name": "error_red",
+      "value": "#ff4d4f"
+    },
+    {
+      "name": "poetry_card_bg",
+      "value": "#f0f7f0"
+    },
+    {
+      "name": "idiom_card_bg",
+      "value": "#e8f4fd"
+    },
+    {
+      "name": "xiehouyu_card_bg",
+      "value": "#fdf2e9"
+    }
+  ]
+}

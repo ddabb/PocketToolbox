@@ -1,0 +1,34 @@
+{
+  "routerMap": [
+    {
+      "name": "PoetryQueryPage",
+      "pageSourceFile": "src/main/ets/pages/PoetryQueryPage.ets",
+      "buildFunction": "PoetryQueryPageBuilder"
+    },
+    {
+      "name": "IdiomQueryPage",
+      "pageSourceFile": "src/main/ets/pages/IdiomQueryPage.ets",
+      "buildFunction": "IdiomQueryPageBuilder"
+    },
+    {
+      "name": "XiehouyuQueryPage",
+      "pageSourceFile": "src/main/ets/pages/XiehouyuQueryPage.ets",
+      "buildFunction": "XiehouyuQueryPageBuilder"
+    },
+    {
+      "name": "PoetryDetailPage",
+      "pageSourceFile": "src/main/ets/pages/PoetryDetailPage.ets",
+      "buildFunction": "PoetryDetailPageBuilder"
+    },
+    {
+      "name": "PoemContentPage",
+      "pageSourceFile": "src/main/ets/pages/PoemContentPage.ets",
+      "buildFunction": "PoemContentPageBuilder"
+    },
+    {
+      "name": "FavoritesPage",
+      "pageSourceFile": "src/main/ets/pages/FavoritesPage.ets",
+      "buildFunction": "FavoritesPageBuilder"
+    }
+  ]
+}

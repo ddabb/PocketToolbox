@@ -1,0 +1,44 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "文字之美主模块"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "文字之美应用入口"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "文字之美"
+    },
+    {
+      "name": "page_poetry_query",
+      "value": "诗词查询"
+    },
+    {
+      "name": "page_poetry_detail",
+      "value": "诗人详情"
+    },
+    {
+      "name": "page_poem_content",
+      "value": "诗词详情"
+    },
+    {
+      "name": "page_idiom_query",
+      "value": "成语查询"
+    },
+    {
+      "name": "page_xiehouyu_query",
+      "value": "歇后语查询"
+    },
+    {
+      "name": "page_favorites",
+      "value": "我的收藏"
+    },
+    {
+      "name": "permission_internet_reason",
+      "value": "用于获取诗词、成语等数据内容"
+    }
+  ]
+}
