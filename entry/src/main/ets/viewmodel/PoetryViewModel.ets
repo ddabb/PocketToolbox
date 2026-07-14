@@ -210,6 +210,7 @@ export class PoetryViewModel {
       item.subtitle = poem.a + ' \u00B7 ' + poem.d;
       item.poetInitial = '';
       item.poetDynasty = poem.d;
+      item.poetName = poem.a;
       results.push(item);
     }
 

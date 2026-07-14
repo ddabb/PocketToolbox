@@ -2,15 +2,15 @@
   "string": [
     {
       "name": "module_desc",
-      "value": "文字之美主模块"
+      "value": "解语珠玑主模块"
     },
     {
       "name": "EntryAbility_desc",
-      "value": "文字之美应用入口"
+      "value": "解语珠玑应用入口"
     },
     {
       "name": "EntryAbility_label",
-      "value": "文字之美"
+      "value": "解语珠玑"
     },
     {
       "name": "page_poetry_query",

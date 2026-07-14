@@ -12,16 +12,8 @@ export function PoetryDetailPageBuilder(param: Object) {
   }
   .title((param as Record<string, Object>)['name'] as string || '诗人详情')
   .hideTitleBar(false)
-  .menus([
-    {
-      value: '首页',
-      icon: $r('sys.symbol.house'),
-      action: () => {
-        let stack: NavPathStack = AppStorage.get('AppNavPathStack') as NavPathStack;
-        stack.clear();
-      }
-    }
-  ])
+  .backButtonIcon($r('sys.symbol.chevron_left'))
+  .menus([])
 }
 
 @Component

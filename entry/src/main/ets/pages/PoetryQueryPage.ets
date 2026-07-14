@@ -9,6 +9,7 @@ export function PoetryQueryPageBuilder() {
     PoetryQueryContent()
   }
   .title('诗词查询')
+  .backButtonIcon($r('sys.symbol.chevron_left'))
 }
 
 @Component
@@ -124,6 +125,21 @@ struct PoetryQueryContent {
         this.onPoetTap(poet);
       } else {
         console.warn('[PoetryQuery] poet not found: ' + result.title);
+      }
+    } else if (result.type === 'poem') {
+      let poet: PoetItem | null = this.viewModel.getPoetByName(result.poetName);
+      if (poet) {
+        let detail: PoetDetail = this.viewModel.loadPoetDetail(
+          this.uiContext.getHostContext() as Context, poet.n, poet.i, poet.d);
+        for (let i = 0; i < detail.poems.length; i++) {
+          if (detail.poems[i].n === result.title) {
+            this.navPathStack.pushPathByName('PoemContentPage', detail.poems[i]);
+            return;
+          }
+        }
+        this.uiContext.getPromptAction().showToast({ message: '未找到诗词详情', duration: 1500 });
+      } else {
+        this.uiContext.getPromptAction().showToast({ message: '未找到诗人信息', duration: 1500 });
       }
     } else {
       this.uiContext.getPromptAction().showToast({ message: '请搜索诗人姓名查看详情', duration: 1500 });

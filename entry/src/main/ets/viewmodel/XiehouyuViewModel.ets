@@ -7,6 +7,7 @@ export class XiehouyuViewModel {
   private allItems: XiehouyuItem[] = [];
   private isLoaded: boolean = false;
   private categoryCache: XiehouyuCategory[] = [];
+  private categoryMap: Record<string, XiehouyuItem[]> = {};
 
   private constructor() {}
 
@@ -48,26 +49,38 @@ export class XiehouyuViewModel {
   }
 
   private buildCategories(): void {
-    let categoryMap: Record<string, XiehouyuItem[]> = {};
-    let categoryOrder: string[] = [];
+    this.categoryMap = {};
+    let order: string[] = [];
     for (let i = 0; i < this.allItems.length; i++) {
       let item: XiehouyuItem = this.allItems[i];
       let key: string = this.extractCategoryKey(item.riddle);
-      if (!categoryMap[key]) {
-        categoryMap[key] = [];
-        categoryOrder.push(key);
+      if (!this.categoryMap[key]) {
+        this.categoryMap[key] = [];
+        order.push(key);
       }
-      categoryMap[key].push(item);
+      this.categoryMap[key].push(item);
     }
     this.categoryCache = [];
-    for (let i = 0; i < categoryOrder.length; i++) {
-      let key: string = categoryOrder[i];
+    for (let i = 0; i < order.length; i++) {
+      let key: string = order[i];
       let cat: XiehouyuCategory = new XiehouyuCategory();
       cat.key = key;
       cat.label = this.getCategoryLabel(key);
-      cat.items = categoryMap[key];
+      cat.items = this.categoryMap[key];
       this.categoryCache.push(cat);
     }
+  }
+
+  getCategoryItems(key: string): XiehouyuItem[] {
+    if (this.categoryMap && this.categoryMap[key]) {
+      return this.categoryMap[key];
+    }
+    for (let i = 0; i < this.categoryCache.length; i++) {
+      if (this.categoryCache[i].key === key) {
+        return this.categoryCache[i].items;
+      }
+    }
+    return [];
   }
 
   private extractCategoryKey(riddle: string): string {

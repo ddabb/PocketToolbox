@@ -226,22 +226,106 @@ export class IdiomViewModel {
       return [];
     }
     let q: string = pinyin.trim().toLowerCase();
-    let results: IdiomDetailItem[] = [];
+    let syllables: string[] = this.splitPinyin(q);
+    let firstPy: string = syllables[0];
     let matchedWords: string[] = [];
     for (let i = 0; i < this.firstIndexKeys.length; i++) {
-      if (this.firstIndexKeys[i] === q || this.firstIndexKeys[i].indexOf(q) === 0) {
+      if (this.firstIndexKeys[i] === firstPy || this.firstIndexKeys[i].indexOf(firstPy) === 0) {
         matchedWords = matchedWords.concat(this.firstIndexValues[i]);
       }
     }
-    for (let i = 0; i < matchedWords.length && i < 100; i++) {
-      let item: IdiomDetailItem = new IdiomDetailItem();
-      item.word = matchedWords[i];
-      let py: string = this.wordToFirstPy[matchedWords[i]] || '';
-      item.pinyin = py;
-      results.push(item);
+    let results: IdiomDetailItem[] = [];
+    let limit: number = 100;
+    if (syllables.length <= 1) {
+      for (let i = 0; i < matchedWords.length && i < limit; i++) {
+        let item: IdiomDetailItem = new IdiomDetailItem();
+        item.word = matchedWords[i];
+        item.pinyin = this.wordToFirstPy[matchedWords[i]] || '';
+        results.push(item);
+      }
+    } else {
+      let context: Context | null = this.getCachedContext();
+      for (let i = 0; i < matchedWords.length && results.length < limit; i++) {
+        let word: string = matchedWords[i];
+        let fullPy: string = this.getFullPinyin(word, context);
+        if (this.pinyinMatches(fullPy, syllables)) {
+          let item: IdiomDetailItem = new IdiomDetailItem();
+          item.word = word;
+          item.pinyin = fullPy;
+          results.push(item);
+        }
+      }
     }
-    console.info('[Idiom] searchByPinyin q=' + q + ', results=' + results.length.toString());
+    console.info('[Idiom] searchByPinyin q=' + q + ', syllables=' + syllables.length.toString() + ', results=' + results.length.toString());
     return results;
+  }
+
+  private splitPinyin(input: string): string[] {
+    let result: string[] = [];
+    let i: number = 0;
+    while (i < input.length) {
+      let matched: string = '';
+      for (let len: number = Math.min(6, input.length - i); len >= 1; len--) {
+        let sub: string = input.substring(i, i + len);
+        let isKey: boolean = false;
+        for (let k: number = 0; k < this.firstIndexKeys.length; k++) {
+          if (this.firstIndexKeys[k] === sub) {
+            isKey = true;
+            break;
+          }
+        }
+        if (isKey) {
+          matched = sub;
+          break;
+        }
+      }
+      if (matched.length > 0) {
+        result.push(matched);
+        i += matched.length;
+      } else {
+        if (result.length > 0) {
+          result[result.length - 1] = result[result.length - 1] + input.charAt(i);
+        } else {
+          result.push(input.charAt(i));
+        }
+        i++;
+      }
+    }
+    return result;
+  }
+
+  private getFullPinyin(word: string, context: Context | null): string {
+    if (context) {
+      let detail: IdiomDetailItem | null = this.findIdiomDetail(context, word);
+      if (detail && detail.pinyin) {
+        return detail.pinyin.toLowerCase().replace(new RegExp('\\s+', 'g'), '');
+      }
+    }
+    return this.wordToFirstPy[word] || '';
+  }
+
+  private pinyinMatches(fullPy: string, syllables: string[]): boolean {
+    let py: string = fullPy.toLowerCase().replace(new RegExp('\\s+', 'g'), '');
+    let pos: number = 0;
+    for (let i: number = 0; i < syllables.length; i++) {
+      let syl: string = syllables[i].toLowerCase();
+      let idx: number = py.indexOf(syl, pos);
+      if (idx < 0) {
+        return false;
+      }
+      pos = idx + syl.length;
+    }
+    return true;
+  }
+
+  private cachedContext: Context | null = null;
+
+  private getCachedContext(): Context | null {
+    return this.cachedContext;
+  }
+
+  setContext(context: Context): void {
+    this.cachedContext = context;
   }
 
   getFirstLetter(word: string): string {

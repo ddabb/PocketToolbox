@@ -9,16 +9,8 @@ export function FavoritesPageBuilder() {
     FavoritesContent()
   }
   .title('我的收藏')
-  .menus([
-    {
-      value: '首页',
-      icon: $r('sys.symbol.house'),
-      action: () => {
-        let stack: NavPathStack = AppStorage.get('AppNavPathStack') as NavPathStack;
-        stack.clear();
-      }
-    }
-  ])
+  .backButtonIcon($r('sys.symbol.chevron_left'))
+  .menus([])
 }
 
 @Component
@@ -30,6 +22,11 @@ struct FavoritesContent {
   navPathStack: NavPathStack = AppStorage.get('AppNavPathStack') as NavPathStack;
 
   aboutToAppear(): void {
+    this.loadFavorites();
+  }
+
+  onPageShow(): void {
+    FavoritesUtil.invalidateCache();
     this.loadFavorites();
   }
 

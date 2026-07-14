@@ -34,6 +34,7 @@ export struct DetailModal {
       this.isFav = true;
       this.uiContext.getPromptAction().showToast({ message: '已收藏', duration: 1000 });
     }
+    FavoritesUtil.invalidateCache();
   }
 
   build() {
@@ -90,6 +91,7 @@ export struct DetailModal {
                     .padding({ left: 8, right: 8, top: 2, bottom: 2 })
                     .onClick(() => {
                       ClipboardUtil.copy(this.detailItem!.explanation);
+                      this.uiContext.getPromptAction().showToast({ message: '已复制到剪贴板', duration: 1000 });
                     })
                 }
                 .width('100%')
@@ -119,6 +121,7 @@ export struct DetailModal {
                     .padding({ left: 8, right: 8, top: 2, bottom: 2 })
                     .onClick(() => {
                       ClipboardUtil.copy(this.detailItem!.derivation);
+                      this.uiContext.getPromptAction().showToast({ message: '已复制到剪贴板', duration: 1000 });
                     })
                 }
                 .width('100%')
@@ -177,6 +180,7 @@ export struct DetailModal {
                     all += '\n\u3010\u4F8B\u53E5\u3011' + this.detailItem!.example;
                   }
                   ClipboardUtil.copy(all);
+                  this.uiContext.getPromptAction().showToast({ message: '已复制到剪贴板', duration: 1000 });
                 })
             }
             .width('100%')

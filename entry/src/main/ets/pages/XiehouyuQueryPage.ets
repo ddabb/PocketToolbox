@@ -10,16 +10,8 @@ export function XiehouyuQueryPageBuilder() {
     XiehouyuQueryContent()
   }
   .title('歇后语查询')
-  .menus([
-    {
-      value: '首页',
-      icon: $r('sys.symbol.house'),
-      action: () => {
-        let stack: NavPathStack = AppStorage.get('AppNavPathStack') as NavPathStack;
-        stack.clear();
-      }
-    }
-  ])
+  .backButtonIcon($r('sys.symbol.chevron_left'))
+  .menus([])
 }
 
 @Component
@@ -85,12 +77,7 @@ struct XiehouyuQueryContent {
 
   private onCategoryTap(key: string): void {
     this.activeCategory = key;
-    for (let i = 0; i < this.categories.length; i++) {
-      if (this.categories[i].key === key) {
-        this.categoryItems = this.categories[i].items;
-        break;
-      }
-    }
+    this.categoryItems = this.viewModel.getCategoryItems(key);
   }
 
   private startNewGuess(): void {
@@ -137,6 +124,7 @@ struct XiehouyuQueryContent {
 
   private onCopyItem(item: XiehouyuItem): void {
     ClipboardUtil.copy(item.riddle + '——' + item.answer);
+    this.uiContext.getPromptAction().showToast({ message: '已复制到剪贴板', duration: 1000 });
   }
 
   private toggleFav(item: XiehouyuItem): void {
@@ -155,6 +143,7 @@ struct XiehouyuQueryContent {
       this.isFav = true;
       this.uiContext.getPromptAction().showToast({ message: '已收藏', duration: 1000 });
     }
+    FavoritesUtil.invalidateCache();
   }
 
   build() {
@@ -361,8 +350,8 @@ struct XiehouyuQueryContent {
             ForEach(this.categories, (cat: XiehouyuCategory) => {
               Text(cat.label)
             .fontSize(13)
-            .fontColor(this.activeCategory === cat.key ? '#ffffff' : $r('app.color.secondary_text'))
-            .backgroundColor(this.activeCategory === cat.key ? $r('app.color.idiom_orange') : $r('app.color.border_color'))
+            .fontColor(this.activeCategory === cat.key ? '#ffffff' : $r('app.color.primary_text'))
+            .backgroundColor(this.activeCategory === cat.key ? $r('app.color.idiom_orange') : $r('app.color.card_background'))
                 .borderRadius(8)
                 .padding({ left: 10, right: 10, top: 5, bottom: 5 })
                 .margin({ left: 4, right: 4, top: 3, bottom: 3 })
@@ -608,6 +597,7 @@ struct XiehouyuDetailModal {
       this.isFav = true;
       this.uiContext.getPromptAction().showToast({ message: '已收藏', duration: 1000 });
     }
+    FavoritesUtil.invalidateCache();
   }
 
   build() {
@@ -686,6 +676,7 @@ struct XiehouyuDetailModal {
                 .padding({ left: 16, right: 16, top: 8, bottom: 8 })
                 .onClick(() => {
                   ClipboardUtil.copy(this.detailItem!.riddle + '——' + this.detailItem!.answer);
+                  this.uiContext.getPromptAction().showToast({ message: '已复制到剪贴板', duration: 1000 });
                 })
             }
             .width('100%')

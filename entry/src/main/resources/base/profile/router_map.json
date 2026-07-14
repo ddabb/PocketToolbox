@@ -29,6 +29,11 @@
       "name": "FavoritesPage",
       "pageSourceFile": "src/main/ets/pages/FavoritesPage.ets",
       "buildFunction": "FavoritesPageBuilder"
+    },
+    {
+      "name": "MinePage",
+      "pageSourceFile": "src/main/ets/pages/MinePage.ets",
+      "buildFunction": "MinePageBuilder"
     }
   ]
 }

@@ -4,13 +4,14 @@ import { XiehouyuQueryPageBuilder } from './XiehouyuQueryPage';
 import { PoetryDetailPageBuilder } from './PoetryDetailPage';
 import { PoemContentPageBuilder } from './PoemContentPage';
 import { FavoritesPageBuilder } from './FavoritesPage';
+import { MinePageBuilder } from './MinePage';
 import { PoetryViewModel } from '../viewmodel/PoetryViewModel';
 import { IdiomViewModel } from '../viewmodel/IdiomViewModel';
 import { XiehouyuViewModel } from '../viewmodel/XiehouyuViewModel';
 import { PoemItem, PoetDetail, PoetItem } from '../model/PoetryModels';
 import { IdiomDetailItem } from '../model/IdiomModels';
 import { XiehouyuItem } from '../model/XiehouyuModels';
-import { ClipboardUtil } from '../common/utils/ClipboardUtil';
+import { FavoritesUtil } from '../common/utils/FavoritesUtil';
 
 class ToolCategory {
   id: string = '';
@@ -33,12 +34,13 @@ class ToolCategory {
 @Entry
 @Component
 struct Index {
-  pageStack: NavPathStack = new NavPathStack();
+  homeStack: NavPathStack = new NavPathStack();
+  mineStack: NavPathStack = new NavPathStack();
+  @State currentTab: number = 0;
   @State categories: ToolCategory[] = [
     new ToolCategory('poetry', '诗词查询', '唐诗宋词，按朝代浏览', '\uD83C\uDF3C', '#2d7d46', 'PoetryQueryPage'),
     new ToolCategory('idiom', '成语查询', '成语接龙，顺查逆查', '\uD83D\uDCD6', '#2980b9', 'IdiomQueryPage'),
-    new ToolCategory('xiehouyu', '歇后语', '趣味歇后语，猜谜玩法', '\uD83E\uDD14', '#e67e22', 'XiehouyuQueryPage'),
-    new ToolCategory('favorites', '我的收藏', '收藏的诗词和成语', '\u2665', '#e74c3c', 'FavoritesPage')
+    new ToolCategory('xiehouyu', '歇后语', '趣味歇后语，猜谜玩法', '\uD83E\uDD14', '#bf5b04', 'XiehouyuQueryPage')
   ];
   @State dailyPoemTitle: string = '';
   @State dailyPoemAuthor: string = '';
@@ -47,15 +49,28 @@ struct Index {
   @State dailyIdiomMeaning: string = '';
   @State dailyXiehouyu: string = '';
   @State dailyXiehouyuAnswer: string = '';
+  @State favCount: number = 0;
   private poetryVm: PoetryViewModel = PoetryViewModel.getInstance();
   private idiomVm: IdiomViewModel = IdiomViewModel.getInstance();
   private xiehouyuVm: XiehouyuViewModel = XiehouyuViewModel.getInstance();
 
   aboutToAppear(): void {
-    AppStorage.setOrCreate('AppNavPathStack', this.pageStack);
+    AppStorage.setOrCreate('AppNavPathStack', this.homeStack);
     AppStorage.setOrCreate('AppHostContext', this.getUIContext().getHostContext() as Context);
     AppStorage.setOrCreate('AppUIContext', this.getUIContext());
     this.loadDailyContent();
+    this.loadFavCount();
+  }
+
+  onPageShow(): void {
+    this.loadFavCount();
+  }
+
+  private loadFavCount(): void {
+    let ctx: Context = this.getUIContext().getHostContext() as Context;
+    FavoritesUtil.invalidateCache();
+    let favs = FavoritesUtil.load(ctx);
+    this.favCount = favs.length;
   }
 
   private loadDailyContent(): void {
@@ -149,39 +164,102 @@ struct Index {
       PoemContentPageBuilder(param)
     } else if (name === 'FavoritesPage') {
       FavoritesPageBuilder()
+    } else if (name === 'MinePage') {
+      MinePageBuilder()
     }
   }
 
   build() {
-    Navigation(this.pageStack) {
+    Column() {
+      Tabs({ index: this.currentTab }) {
+        TabContent() {
+          this.HomeContent()
+        }
+        .tabBar(this.TabBarItem(0, '\uD83C\uDFE0', '首页'))
+
+        TabContent() {
+          this.MineContent()
+        }
+        .tabBar(this.TabBarItem(1, '\uD83D\uDC64', '我的'))
+      }
+      .barPosition(BarPosition.End)
+      .scrollable(false)
+      .onChange((index: number) => {
+        this.currentTab = index;
+        if (index === 0) {
+          this.homeStack.clear();
+          AppStorage.setOrCreate('AppNavPathStack', this.homeStack);
+        } else {
+          this.mineStack.clear();
+          AppStorage.setOrCreate('AppNavPathStack', this.mineStack);
+          this.loadFavCount();
+        }
+      })
+    }
+    .width('100%')
+    .height('100%')
+  }
+
+  @Builder
+  TabBarItem(index: number, icon: string, label: string) {
+    Column() {
+      Text(icon)
+        .fontSize(22)
+      Text(label)
+        .fontSize(11)
+        .fontColor(this.currentTab === index ? $r('app.color.poetry_green') : $r('app.color.tertiary_text'))
+        .margin({ top: 2 })
+    }
+    .width('100%')
+    .height('100%')
+    .justifyContent(FlexAlign.Center)
+    .alignItems(HorizontalAlign.Center)
+  }
+
+  @Builder
+  HomeContent() {
+    Navigation(this.homeStack) {
       Scroll() {
         Column() {
           Column() {
             Text('\uD83D\uDCD6')
-              .fontSize(48)
-              .margin({ bottom: 8 })
-            Text('文字之美')
-              .fontSize(24)
+              .fontSize(40)
+              .margin({ bottom: 6 })
+            Text('解语珠玑')
+              .fontSize(22)
               .fontWeight(FontWeight.Bold)
               .fontColor($r('app.color.primary_text'))
             Text('品读经典，感悟文字之美')
-              .fontSize(14)
+              .fontSize(13)
               .fontColor($r('app.color.tertiary_text'))
-              .margin({ top: 4 })
+              .margin({ top: 3 })
           }
-          .margin({ top: 40, bottom: 24 })
+          .width('100%')
+          .padding({ top: 8, bottom: 12 })
+          .alignItems(HorizontalAlign.Center)
 
           if (this.dailyPoemTitle) {
             this.DailyPoemCard()
           }
 
-          if (this.dailyIdiom) {
-            this.DailyIdiomCard()
+          Row() {
+            if (this.dailyIdiom) {
+              Column() {
+                this.DailyIdiomCardInner()
+              }
+              .layoutWeight(1)
+              .padding({ right: 5 })
+            }
+            if (this.dailyXiehouyu) {
+              Column() {
+                this.DailyXiehouyuCardInner()
+              }
+              .layoutWeight(1)
+              .padding({ left: 5 })
+            }
           }
-
-          if (this.dailyXiehouyu) {
-            this.DailyXiehouyuCard()
-          }
+          .width('100%')
+          .padding({ left: 16, right: 16 })
 
           Grid() {
             ForEach(this.categories, (cat: ToolCategory) => {
@@ -189,45 +267,234 @@ struct Index {
                 Column() {
                   Column() {
                     Text(cat.icon)
-                      .fontSize(36)
+                      .fontSize(32)
                   }
-                  .width(56)
-                  .height(56)
-                  .borderRadius(16)
+                  .width(48)
+                  .height(48)
+                  .borderRadius(14)
                   .backgroundColor(cat.color + '18')
                   .justifyContent(FlexAlign.Center)
                   .alignItems(HorizontalAlign.Center)
-                  .margin({ bottom: 12 })
-
+                  .margin({ bottom: 8 })
                   Text(cat.title)
-                    .fontSize(16)
+                    .fontSize(15)
                     .fontWeight(FontWeight.Bold)
                     .fontColor($r('app.color.primary_text'))
-                    .margin({ bottom: 4 })
-
+                    .margin({ bottom: 3 })
                   Text(cat.subtitle)
-                    .fontSize(12)
+                    .fontSize(11)
                     .fontColor($r('app.color.tertiary_text'))
-                    .maxLines(2)
+                    .maxLines(1)
                     .textOverflow({ overflow: TextOverflow.Ellipsis })
                 }
                 .width('100%')
-                .padding({ left: 12, right: 12, top: 20, bottom: 20 })
+                .padding({ left: 10, right: 10, top: 16, bottom: 16 })
                 .backgroundColor($r('app.color.card_background'))
                 .borderRadius(14)
                 .alignItems(HorizontalAlign.Center)
                 .justifyContent(FlexAlign.Center)
                 .onClick(() => {
-                  this.pageStack.pushPathByName(cat.page, null);
+                  this.homeStack.pushPathByName(cat.page, null);
                 })
               }
             }, (cat: ToolCategory) => cat.id)
           }
-          .columnsTemplate('1fr 1fr')
-          .rowsGap(10)
-          .columnsGap(10)
+          .columnsTemplate('1fr 1fr 1fr')
+          .rowsGap(8)
+          .columnsGap(8)
           .width('100%')
-          .padding({ left: 16, right: 16 })
+          .padding({ left: 16, right: 16, top: 10 })
+        }
+        .width('100%')
+        .padding({ bottom: 8 })
+      }
+      .width('100%')
+      .height('100%')
+      .scrollable(ScrollDirection.Vertical)
+    }
+    .navDestination(this.PageMap)
+    .hideTitleBar(true)
+    .mode(NavigationMode.Stack)
+    .backgroundColor($r('app.color.page_background'))
+    .hideToolBar(true)
+  }
+
+  @Builder
+  MineContent() {
+    Navigation(this.mineStack) {
+      Scroll() {
+        Column() {
+          Column() {
+            Text('\uD83D\uDC64')
+              .fontSize(40)
+              .margin({ bottom: 6 })
+            Text('解语珠玑')
+              .fontSize(20)
+              .fontWeight(FontWeight.Bold)
+              .fontColor($r('app.color.primary_text'))
+            Text('品读经典，感悟文字之美')
+              .fontSize(13)
+              .fontColor($r('app.color.tertiary_text'))
+              .margin({ top: 3 })
+          }
+          .width('100%')
+          .padding({ top: 8, bottom: 12 })
+          .alignItems(HorizontalAlign.Center)
+
+          Row() {
+            Column() {
+              Text(this.favCount.toString())
+                .fontSize(22)
+                .fontWeight(FontWeight.Bold)
+                .fontColor('#e74c3c')
+              Text('收藏总数')
+                .fontSize(11)
+                .fontColor($r('app.color.tertiary_text'))
+                .margin({ top: 2 })
+            }
+            .layoutWeight(1)
+            .alignItems(HorizontalAlign.Center)
+            .onClick(() => {
+              this.mineStack.pushPathByName('FavoritesPage', null);
+            })
+
+            Divider()
+              .vertical(true)
+              .height(30)
+              .color($r('app.color.border_color'))
+
+            Column() {
+              Text('\u2665')
+                .fontSize(22)
+                .fontColor('#e74c3c')
+              Text('我的收藏')
+                .fontSize(11)
+                .fontColor($r('app.color.tertiary_text'))
+                .margin({ top: 2 })
+            }
+            .layoutWeight(1)
+            .alignItems(HorizontalAlign.Center)
+            .onClick(() => {
+              this.mineStack.pushPathByName('FavoritesPage', null);
+            })
+
+            Divider()
+              .vertical(true)
+              .height(30)
+              .color($r('app.color.border_color'))
+
+            Column() {
+              Text('\u2139')
+                .fontSize(22)
+                .fontColor($r('app.color.poetry_green'))
+              Text('关于')
+                .fontSize(11)
+                .fontColor($r('app.color.tertiary_text'))
+                .margin({ top: 2 })
+            }
+            .layoutWeight(1)
+            .alignItems(HorizontalAlign.Center)
+          }
+          .width('100%')
+          .padding({ top: 14, bottom: 14 })
+          .backgroundColor($r('app.color.card_background'))
+          .borderRadius(14)
+          .margin({ left: 16, right: 16 })
+
+          Column() {
+            Row() {
+              Text('\u2665')
+                .fontSize(20)
+                .margin({ right: 10 })
+              Text('我的收藏')
+                .fontSize(15)
+                .fontColor($r('app.color.primary_text'))
+                .layoutWeight(1)
+              Text('\u203A')
+                .fontSize(18)
+                .fontColor($r('app.color.hint_text'))
+            }
+            .width('100%')
+            .padding({ left: 16, right: 16, top: 14, bottom: 14 })
+            .onClick(() => {
+              this.mineStack.pushPathByName('FavoritesPage', null);
+            })
+
+            Divider()
+              .color($r('app.color.border_color'))
+              .margin({ left: 46 })
+
+            Row() {
+              Text('\uD83C\uDF3C')
+                .fontSize(20)
+                .margin({ right: 10 })
+              Text('诗词查询')
+                .fontSize(15)
+                .fontColor($r('app.color.primary_text'))
+                .layoutWeight(1)
+              Text('\u203A')
+                .fontSize(18)
+                .fontColor($r('app.color.hint_text'))
+            }
+            .width('100%')
+            .padding({ left: 16, right: 16, top: 14, bottom: 14 })
+            .onClick(() => {
+              this.mineStack.pushPathByName('PoetryQueryPage', null);
+            })
+
+            Divider()
+              .color($r('app.color.border_color'))
+              .margin({ left: 46 })
+
+            Row() {
+              Text('\uD83D\uDCD6')
+                .fontSize(20)
+                .margin({ right: 10 })
+              Text('成语查询')
+                .fontSize(15)
+                .fontColor($r('app.color.primary_text'))
+                .layoutWeight(1)
+              Text('\u203A')
+                .fontSize(18)
+                .fontColor($r('app.color.hint_text'))
+            }
+            .width('100%')
+            .padding({ left: 16, right: 16, top: 14, bottom: 14 })
+            .onClick(() => {
+              this.mineStack.pushPathByName('IdiomQueryPage', null);
+            })
+
+            Divider()
+              .color($r('app.color.border_color'))
+              .margin({ left: 46 })
+
+            Row() {
+              Text('\uD83E\uDD14')
+                .fontSize(20)
+                .margin({ right: 10 })
+              Text('歇后语')
+                .fontSize(15)
+                .fontColor($r('app.color.primary_text'))
+                .layoutWeight(1)
+              Text('\u203A')
+                .fontSize(18)
+                .fontColor($r('app.color.hint_text'))
+            }
+            .width('100%')
+            .padding({ left: 16, right: 16, top: 14, bottom: 14 })
+            .onClick(() => {
+              this.mineStack.pushPathByName('XiehouyuQueryPage', null);
+            })
+          }
+          .width('100%')
+          .backgroundColor($r('app.color.card_background'))
+          .borderRadius(14)
+          .margin({ left: 16, right: 16, top: 12 })
+
+          Text('解语珠玑 \u00B7 v1.0.0')
+            .fontSize(12)
+            .fontColor($r('app.color.hint_text'))
+            .margin({ top: 24, bottom: 16 })
         }
         .width('100%')
       }
@@ -236,10 +503,10 @@ struct Index {
       .scrollable(ScrollDirection.Vertical)
     }
     .navDestination(this.PageMap)
-    .title('文字之美')
-    .titleMode(NavigationTitleMode.Mini)
+    .hideTitleBar(true)
     .mode(NavigationMode.Stack)
     .backgroundColor($r('app.color.page_background'))
+    .hideToolBar(true)
   }
 
   @Builder
@@ -247,73 +514,27 @@ struct Index {
     Column() {
       Row() {
         Text('\uD83C\uDF3C')
-          .fontSize(16)
+          .fontSize(14)
           .margin({ right: 4 })
         Text('每日一诗')
-          .fontSize(14)
+          .fontSize(13)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.poetry_green'))
         Blank()
         Text(this.dailyPoemAuthor)
-          .fontSize(12)
+          .fontSize(11)
           .fontColor($r('app.color.tertiary_text'))
       }
       .width('100%')
-      .margin({ bottom: 8 })
-
+      .margin({ bottom: 6 })
       Text(this.dailyPoemTitle)
-        .fontSize(16)
+        .fontSize(15)
         .fontColor($r('app.color.primary_text'))
         .fontWeight(FontWeight.Medium)
         .width('100%')
-        .margin({ bottom: 4 })
-
+        .margin({ bottom: 3 })
       Text(this.dailyPoemContent)
-        .fontSize(13)
-        .fontColor($r('app.color.secondary_text'))
-        .lineHeight(22)
-        .width('100%')
-        .maxLines(3)
-        .textOverflow({ overflow: TextOverflow.Ellipsis })
-    }
-    .width('100%')
-    .padding(14)
-    .backgroundColor($r('app.color.poetry_card_bg'))
-    .borderRadius(12)
-    .margin({ left: 16, right: 16, bottom: 10 })
-    .onClick(() => {
-      this.pageStack.pushPathByName('PoetryQueryPage', null);
-    })
-  }
-
-  @Builder
-  DailyIdiomCard() {
-    Column() {
-      Row() {
-        Text('\uD83D\uDCD6')
-          .fontSize(16)
-          .margin({ right: 4 })
-        Text('每日成语')
-          .fontSize(14)
-          .fontWeight(FontWeight.Bold)
-          .fontColor($r('app.color.idiom_blue'))
-        Blank()
-        Text('点击查看详情 >')
-          .fontSize(12)
-          .fontColor($r('app.color.idiom_blue'))
-      }
-      .width('100%')
-      .margin({ bottom: 8 })
-
-      Text(this.dailyIdiom)
-        .fontSize(20)
-        .fontColor($r('app.color.primary_text'))
-        .fontWeight(FontWeight.Bold)
-        .letterSpacing(4)
-        .margin({ bottom: 4 })
-
-      Text(this.dailyIdiomMeaning)
-        .fontSize(13)
+        .fontSize(12)
         .fontColor($r('app.color.secondary_text'))
         .lineHeight(20)
         .width('100%')
@@ -321,55 +542,83 @@ struct Index {
         .textOverflow({ overflow: TextOverflow.Ellipsis })
     }
     .width('100%')
-    .padding(14)
-    .backgroundColor($r('app.color.idiom_card_bg'))
+    .padding(12)
+    .backgroundColor($r('app.color.poetry_card_bg'))
     .borderRadius(12)
-    .margin({ left: 16, right: 16, bottom: 10 })
+    .margin({ left: 16, right: 16, bottom: 8 })
     .onClick(() => {
-      this.pageStack.pushPathByName('IdiomQueryPage', null);
+      this.homeStack.pushPathByName('PoetryQueryPage', null);
     })
   }
 
   @Builder
-  DailyXiehouyuCard() {
+  DailyIdiomCardInner() {
+    Column() {
+      Row() {
+        Text('\uD83D\uDCD6')
+          .fontSize(13)
+          .margin({ right: 3 })
+        Text('每日成语')
+          .fontSize(12)
+          .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.idiom_blue'))
+      }
+      .margin({ bottom: 5 })
+      Text(this.dailyIdiom)
+        .fontSize(18)
+        .fontColor($r('app.color.primary_text'))
+        .fontWeight(FontWeight.Bold)
+        .letterSpacing(2)
+        .margin({ bottom: 3 })
+      Text(this.dailyIdiomMeaning)
+        .fontSize(11)
+        .fontColor($r('app.color.secondary_text'))
+        .lineHeight(16)
+        .maxLines(2)
+        .textOverflow({ overflow: TextOverflow.Ellipsis })
+    }
+    .width('100%')
+    .padding(12)
+    .backgroundColor($r('app.color.idiom_card_bg'))
+    .borderRadius(12)
+    .onClick(() => {
+      this.homeStack.pushPathByName('IdiomQueryPage', null);
+    })
+  }
+
+  @Builder
+  DailyXiehouyuCardInner() {
     Column() {
       Row() {
         Text('\uD83E\uDD14')
-          .fontSize(16)
-          .margin({ right: 4 })
+          .fontSize(13)
+          .margin({ right: 3 })
         Text('每日歇后语')
-          .fontSize(14)
+          .fontSize(12)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.idiom_orange'))
-        Blank()
-        Text('猜谜玩法 >')
-          .fontSize(12)
-          .fontColor($r('app.color.idiom_orange'))
       }
-      .width('100%')
-      .margin({ bottom: 8 })
-
+      .margin({ bottom: 5 })
       Text(this.dailyXiehouyu)
-        .fontSize(15)
+        .fontSize(13)
         .fontColor($r('app.color.primary_text'))
         .fontWeight(FontWeight.Medium)
-        .lineHeight(22)
-        .width('100%')
-        .margin({ bottom: 4 })
-
+        .maxLines(1)
+        .textOverflow({ overflow: TextOverflow.Ellipsis })
+        .margin({ bottom: 2 })
       Text('—— ' + this.dailyXiehouyuAnswer)
-        .fontSize(14)
+        .fontSize(12)
         .fontColor($r('app.color.idiom_orange'))
         .fontWeight(FontWeight.Bold)
-        .width('100%')
+        .maxLines(1)
+        .textOverflow({ overflow: TextOverflow.Ellipsis })
     }
     .width('100%')
-    .padding(14)
+    .padding(12)
     .backgroundColor($r('app.color.xiehouyu_card_bg'))
     .borderRadius(12)
-    .margin({ left: 16, right: 16, bottom: 10 })
     .onClick(() => {
-      this.pageStack.pushPathByName('XiehouyuQueryPage', null);
+      this.homeStack.pushPathByName('XiehouyuQueryPage', null);
     })
   }
 }

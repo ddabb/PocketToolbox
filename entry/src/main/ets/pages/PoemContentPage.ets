@@ -14,33 +14,8 @@ export function PoemContentPageBuilder(param: Object) {
   }
   .title((param as Record<string, Object>)['n'] as string || '诗词详情')
   .hideTitleBar(false)
-  .menus([
-    {
-      value: '收藏',
-      icon: $r('sys.symbol.heart'),
-      action: () => {
-        let poem: PoemItem = buildPoemItem(param);
-        let ctx: Context = AppStorage.get('AppHostContext') as Context;
-        let item: FavoriteItem = new FavoriteItem();
-        item.type = 'poem';
-        item.title = poem.n;
-        item.subtitle = (poem.a || '') + ' \u00B7 ' + (poem.d || '');
-        item.data = JSON.stringify(poem);
-        let added: boolean = FavoritesUtil.add(ctx, item);
-        let msg: string = added ? '已收藏' : '已在收藏中';
-        let uiCtx: UIContext = AppStorage.get('AppUIContext') as UIContext;
-        uiCtx.getPromptAction().showToast({ message: msg, duration: 1000 });
-      }
-    },
-    {
-      value: '首页',
-      icon: $r('sys.symbol.house'),
-      action: () => {
-        let stack: NavPathStack = AppStorage.get('AppNavPathStack') as NavPathStack;
-        stack.clear();
-      }
-    }
-  ])
+  .backButtonIcon($r('sys.symbol.chevron_left'))
+  .menus([])
 }
 
 @Component
@@ -48,17 +23,24 @@ export struct PoemContentContent {
   @Prop poemParam: PoemItem = new PoemItem();
   @State poetName: string = '';
   @State isFav: boolean = false;
+  @StorageLink('PoemFavStatus') @Watch('onFavStatusChange') favStatus: boolean = false;
   private uiContext: UIContext = this.getUIContext();
 
   aboutToAppear(): void {
     this.poetName = this.poemParam.a || '';
     this.isFav = FavoritesUtil.isFavorite(this.uiContext.getHostContext() as Context, 'poem', this.poemParam.n);
+    AppStorage.setOrCreate('PoemFavStatus', this.isFav);
     console.info('[PoemContent] poem=' + this.poemParam.n + ', poet=' + this.poetName);
+  }
+
+  onFavStatusChange(): void {
+    this.isFav = FavoritesUtil.isFavorite(this.uiContext.getHostContext() as Context, 'poem', this.poemParam.n);
   }
 
   private copyPoem(): void {
     let text: string = '\u3010' + this.poemParam.n + '\u3011' + this.poetName + '\n' + this.poemParam.c;
     ClipboardUtil.copy(text);
+    this.uiContext.getPromptAction().showToast({ message: '已复制到剪贴板', duration: 1000 });
     console.info('[PoemContent] copied poem=' + this.poemParam.n);
   }
 
@@ -67,6 +49,7 @@ export struct PoemContentContent {
     if (this.isFav) {
       FavoritesUtil.remove(ctx, 'poem', this.poemParam.n);
       this.isFav = false;
+      AppStorage.setOrCreate('PoemFavStatus', false);
       this.uiContext.getPromptAction().showToast({ message: '已取消收藏', duration: 1000 });
     } else {
       let item: FavoriteItem = new FavoriteItem();
@@ -76,8 +59,10 @@ export struct PoemContentContent {
       item.data = JSON.stringify(this.poemParam);
       FavoritesUtil.add(ctx, item);
       this.isFav = true;
+      AppStorage.setOrCreate('PoemFavStatus', true);
       this.uiContext.getPromptAction().showToast({ message: '已收藏', duration: 1000 });
     }
+    FavoritesUtil.invalidateCache();
   }
 
   build() {

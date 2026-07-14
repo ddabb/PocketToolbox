@@ -11,16 +11,8 @@ export function IdiomQueryPageBuilder() {
     IdiomQueryContent()
   }
   .title('成语查询')
-  .menus([
-    {
-      value: '首页',
-      icon: $r('sys.symbol.house'),
-      action: () => {
-        let stack: NavPathStack = AppStorage.get('AppNavPathStack') as NavPathStack;
-        stack.clear();
-      }
-    }
-  ])
+  .backButtonIcon($r('sys.symbol.chevron_left'))
+  .menus([])
 }
 
 @Component
@@ -51,6 +43,7 @@ struct IdiomQueryContent {
   });
 
   aboutToAppear(): void {
+    this.viewModel.setContext(this.uiContext.getHostContext() as Context);
     this.loadData();
     this.loadHistory();
   }
@@ -116,7 +109,7 @@ struct IdiomQueryContent {
     if (!word) {
       return;
     }
-    let chineseRegex: RegExp = /[\u4e00-\u9fa5]/;
+     let chineseRegex: RegExp = new RegExp('[\\u4e00-\\u9fa5]');
     if (!chineseRegex.test(word)) {
       return;
     }
@@ -190,6 +183,7 @@ struct IdiomQueryContent {
       lines.push(item.leftWord + ' \u2192 ' + item.rightWord);
     }
     ClipboardUtil.copy(lines.join('\n'));
+    this.uiContext.getPromptAction().showToast({ message: '已复制到剪贴板', duration: 1000 });
   }
 
   private toggleMode(): void {
@@ -299,17 +293,29 @@ struct IdiomQueryContent {
         .placeholderColor($r('app.color.hint_text'))
         .backgroundColor($r('app.color.card_background'))
         .borderRadius(18)
-        .padding({ left: 16, right: 16 })
+        .padding({ left: 16, right: 28 })
         .onChange((value: string) => {
           this.queryInput = value;
-          let chineseRegex: RegExp = /[\u4e00-\u9fa5]/;
-          if (chineseRegex.test(value)) {
-            this.doQuery();
-          }
         })
         .onSubmit(() => {
           this.doQuery();
         })
+
+      if (this.queryInput) {
+        Text('\u2715')
+          .fontSize(14)
+          .fontColor($r('app.color.tertiary_text'))
+          .width(24)
+          .height(24)
+          .textAlign(TextAlign.Center)
+          .margin({ left: -32 })
+          .onClick(() => {
+            this.queryInput = '';
+            this.queryResults = [];
+            this.queryTip = '';
+            this.hasContent = false;
+          })
+      }
 
       Text(this.queryMode === 'forward' ? '顺查' : '逆查')
         .fontSize(12)
@@ -599,6 +605,7 @@ struct IdiomQueryContent {
           .padding({ left: 16, right: 16 })
           .onChange((value: string) => {
             this.pinyinQuery = value;
+            this.doPinyinSearch();
           })
           .onSubmit(() => {
             this.doPinyinSearch();
