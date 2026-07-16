@@ -189,9 +189,16 @@ struct MineContent {
             Text('v1.0.0')
               .fontSize(13)
               .fontColor($r('app.color.tertiary_text'))
+            Text('\u203A')
+              .fontSize(18)
+              .fontColor($r('app.color.hint_text'))
+              .margin({ left: 4 })
           }
           .width('100%')
           .padding({ left: 16, right: 16, top: 14, bottom: 14 })
+          .onClick(() => {
+            this.navPathStack.pushPathByName('AboutPage', null);
+          })
         }
         .width('100%')
         .backgroundColor($r('app.color.card_background'))

@@ -5,6 +5,7 @@ import { PoetryDetailPageBuilder } from './PoetryDetailPage';
 import { PoemContentPageBuilder } from './PoemContentPage';
 import { FavoritesPageBuilder } from './FavoritesPage';
 import { MinePageBuilder } from './MinePage';
+import { AboutPageBuilder } from './AboutPage';
 import { PoetryViewModel } from '../viewmodel/PoetryViewModel';
 import { IdiomViewModel } from '../viewmodel/IdiomViewModel';
 import { XiehouyuViewModel } from '../viewmodel/XiehouyuViewModel';
@@ -166,6 +167,8 @@ struct Index {
       FavoritesPageBuilder()
     } else if (name === 'MinePage') {
       MinePageBuilder()
+    } else if (name === 'AboutPage') {
+      AboutPageBuilder()
     }
   }
 
@@ -394,6 +397,9 @@ struct Index {
             }
             .layoutWeight(1)
             .alignItems(HorizontalAlign.Center)
+            .onClick(() => {
+              this.mineStack.pushPathByName('AboutPage', null);
+            })
           }
           .width('100%')
           .padding({ top: 14, bottom: 14 })

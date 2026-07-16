@@ -273,7 +273,7 @@ struct PoetryQueryContent {
         }
       }
 
-      ForEach(this.results, (item: SearchResultItem, index: number) => {
+      ForEach(this.results, (item: SearchResultItem) => {
         ListItem() {
           Row() {
             Column() {
@@ -306,17 +306,18 @@ struct PoetryQueryContent {
             this.onResultTap(item);
           })
         }
-      }, (item: SearchResultItem, index: number) => item.type + '_' + item.title + '_' + index.toString())
+      }, (item: SearchResultItem) => item.type + '_' + item.title)
     }
     .width('100%')
     .layoutWeight(1)
     .padding({ left: 12, right: 12, top: 4 })
+    .cachedCount(10)
   }
 
   @Builder
   PoetList() {
     List({ space: 6 }) {
-      ForEach(this.poets, (poet: PoetItem, index: number) => {
+      ForEach(this.poets, (poet: PoetItem) => {
         ListItem() {
           Row() {
             Column() {
@@ -344,7 +345,7 @@ struct PoetryQueryContent {
             this.onPoetTap(poet);
           })
         }
-      }, (poet: PoetItem, index: number) => poet.n + '_' + poet.d + '_' + index.toString())
+      }, (poet: PoetItem) => poet.n + '_' + poet.d)
 
       if (this.hasMorePoets) {
         ListItem() {
@@ -369,6 +370,7 @@ struct PoetryQueryContent {
     .width('100%')
     .layoutWeight(1)
     .padding({ left: 12, right: 12, top: 4 })
+    .cachedCount(10)
     .onReachEnd(() => {
       this.loadMorePoets();
     })

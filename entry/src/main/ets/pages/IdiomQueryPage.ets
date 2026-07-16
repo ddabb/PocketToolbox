@@ -5,6 +5,39 @@ import { ErrorState } from '../components/ErrorState';
 import { DetailModal } from '../components/DetailModal';
 import { preferences } from '@kit.ArkData';
 
+class IdiomListDataSource implements IDataSource {
+  private listeners: DataChangeListener[] = [];
+  private items: IdiomDetailItem[] = [];
+
+  totalCount(): number {
+    return this.items.length;
+  }
+
+  getData(index: number): Object {
+    return this.items[index];
+  }
+
+  registerDataChangeListener(listener: DataChangeListener): void {
+    if (this.listeners.indexOf(listener) < 0) {
+      this.listeners.push(listener);
+    }
+  }
+
+  unregisterDataChangeListener(listener: DataChangeListener): void {
+    let pos: number = this.listeners.indexOf(listener);
+    if (pos >= 0) {
+      this.listeners.splice(pos, 1);
+    }
+  }
+
+  setItems(newItems: IdiomDetailItem[]): void {
+    this.items = newItems;
+    for (let i = 0; i < this.listeners.length; i++) {
+      this.listeners[i].onDataReloaded();
+    }
+  }
+}
+
 @Builder
 export function IdiomQueryPageBuilder() {
   NavDestination() {
@@ -33,6 +66,8 @@ struct IdiomQueryContent {
   @State letterIdioms: IdiomDetailItem[] = [];
   @State pinyinResults: IdiomDetailItem[] = [];
   @State pinyinQuery: string = '';
+  private letterSwitching: boolean = false;
+  private letterDataSource: IdiomListDataSource = new IdiomListDataSource();
   private viewModel: IdiomViewModel = IdiomViewModel.getInstance();
   private uiContext: UIContext = this.getUIContext();
   private detailDialogController: CustomDialogController = new CustomDialogController({
@@ -202,9 +237,19 @@ struct IdiomQueryContent {
   }
 
   private onLetterTap(letter: string): void {
+    if (this.letterSwitching) {
+      return;
+    }
+    if (this.activeLetter === letter) {
+      return;
+    }
+    this.letterSwitching = true;
     this.activeLetter = letter;
-    this.letterIdioms = this.viewModel.getIdiomsByLetter(this.uiContext.getHostContext() as Context, letter);
-    console.info('[Idiom] letter=' + letter + ', idioms=' + this.letterIdioms.length.toString());
+    this.letterDataSource.setItems(this.viewModel.getIdiomsByLetter(this.uiContext.getHostContext() as Context, letter));
+    console.info('[Idiom] letter=' + letter + ', idioms=' + this.letterDataSource.totalCount().toString());
+    setTimeout(() => {
+      this.letterSwitching = false;
+    }, 150);
   }
 
   private doPinyinSearch(): void {
@@ -359,7 +404,7 @@ struct IdiomQueryContent {
                 this.queryInput = word;
                 this.querySolitaire(word);
               })
-          }, (word: string, index: number) => word + '_' + index.toString())
+          }, (word: string) => word)
         }
       }
       .scrollable(ScrollDirection.Horizontal)
@@ -418,23 +463,23 @@ struct IdiomQueryContent {
         .padding({ left: 12, right: 12, top: 8, bottom: 6 })
 
         List({ space: 6 }) {
-          ForEach(this.queryResults, (item: IdiomQueryResultItem, index: number) => {
+          ForEach(this.queryResults, (item: IdiomQueryResultItem) => {
             ListItem() {
               Row() {
                 Text(item.leftWord)
-                .fontSize(15)
-                .fontColor($r('app.color.idiom_blue'))
-                .fontWeight(FontWeight.Medium)
-                .decoration({ type: TextDecorationType.Underline, color: $r('app.color.idiom_blue') + '60' })
+                  .fontSize(15)
+                  .fontColor($r('app.color.idiom_blue'))
+                  .fontWeight(FontWeight.Medium)
+                  .decoration({ type: TextDecorationType.Underline, color: $r('app.color.idiom_blue') + '60' })
 
-              Text(' \u2192 ')
-                .fontSize(14)
-                .fontColor($r('app.color.hint_text'))
+                Text(' \u2192 ')
+                  .fontSize(14)
+                  .fontColor($r('app.color.hint_text'))
 
-              Text(item.rightWord)
-                .fontSize(15)
-                .fontColor($r('app.color.idiom_blue'))
-                .decoration({ type: TextDecorationType.Underline, color: $r('app.color.idiom_blue') + '60' })
+                Text(item.rightWord)
+                  .fontSize(15)
+                  .fontColor($r('app.color.idiom_blue'))
+                  .decoration({ type: TextDecorationType.Underline, color: $r('app.color.idiom_blue') + '60' })
                   .onClick(() => {
                     this.onWordTap(item.rightWord);
                   })
@@ -458,11 +503,12 @@ struct IdiomQueryContent {
               .backgroundColor($r('app.color.card_background'))
               .borderRadius(10)
             }
-          }, (item: IdiomQueryResultItem, index: number) => item.leftWord + '_' + item.rightWord + '_' + index.toString())
+          }, (item: IdiomQueryResultItem) => item.leftWord + '_' + item.rightWord)
         }
         .width('100%')
         .layoutWeight(1)
         .padding({ left: 10, right: 10 })
+        .cachedCount(10)
       }
       .width('100%')
       .layoutWeight(1)
@@ -504,13 +550,13 @@ struct IdiomQueryContent {
       .width('100%')
       .padding({ left: 12, right: 12, top: 6, bottom: 6 })
 
-      if (this.activeLetter && this.letterIdioms.length > 0) {
+      if (this.activeLetter && this.letterDataSource.totalCount() > 0) {
         Row() {
           Text(this.activeLetter.toUpperCase() + ' 开头的成语')
             .fontSize(14)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.primary_text'))
-          Text('(' + this.letterIdioms.length.toString() + ')')
+          Text('(' + this.letterDataSource.totalCount().toString() + ')')
             .fontSize(12)
             .fontColor($r('app.color.tertiary_text'))
             .margin({ left: 4 })
@@ -519,20 +565,20 @@ struct IdiomQueryContent {
         .padding({ left: 14, right: 14, bottom: 4 })
 
         List({ space: 4 }) {
-          ForEach(this.letterIdioms, (item: IdiomDetailItem, index: number) => {
+          LazyForEach(this.letterDataSource, (item: IdiomDetailItem) => {
             ListItem() {
               Row() {
                 Column() {
                   Text(item.word)
-                  .fontSize(14)
-                  .fontColor($r('app.color.primary_text'))
-                  .fontWeight(FontWeight.Medium)
-                if (item.pinyin) {
-                  Text(item.pinyin)
-                    .fontSize(11)
-                    .fontColor($r('app.color.tertiary_text'))
-                    .margin({ top: 1 })
-                }
+                    .fontSize(14)
+                    .fontColor($r('app.color.primary_text'))
+                    .fontWeight(FontWeight.Medium)
+                  if (item.pinyin) {
+                    Text(item.pinyin)
+                      .fontSize(11)
+                      .fontColor($r('app.color.tertiary_text'))
+                      .margin({ top: 1 })
+                  }
                 }
                 .layoutWeight(1)
                 .alignItems(HorizontalAlign.Start)
@@ -548,22 +594,23 @@ struct IdiomQueryContent {
                 }
 
                 Text('\u203A')
-              .fontSize(18)
-              .fontColor($r('app.color.hint_text'))
-          }
-          .width('100%')
-          .padding({ left: 14, right: 14, top: 8, bottom: 8 })
-          .backgroundColor($r('app.color.card_background'))
+                  .fontSize(18)
+                  .fontColor($r('app.color.hint_text'))
+              }
+              .width('100%')
+              .padding({ left: 14, right: 14, top: 8, bottom: 8 })
+              .backgroundColor($r('app.color.card_background'))
               .borderRadius(8)
               .onClick(() => {
                 this.onWordTap(item.word);
               })
             }
-          }, (item: IdiomDetailItem, index: number) => item.word + '_' + index.toString())
+          }, (item: IdiomDetailItem) => item.word)
         }
         .width('100%')
         .layoutWeight(1)
         .padding({ left: 10, right: 10 })
+        .cachedCount(10)
       } else if (this.activeLetter) {
         Column() {
           Text('暂无该字母开头的成语')
@@ -640,42 +687,43 @@ struct IdiomQueryContent {
         .padding({ left: 14, right: 14, top: 6, bottom: 4 })
 
         List({ space: 4 }) {
-          ForEach(this.pinyinResults, (item: IdiomDetailItem, index: number) => {
+          ForEach(this.pinyinResults, (item: IdiomDetailItem) => {
             ListItem() {
               Row() {
                 Column() {
                   Text(item.word)
-                  .fontSize(14)
-                  .fontColor($r('app.color.primary_text'))
-                  .fontWeight(FontWeight.Medium)
-                if (item.pinyin) {
-                  Text(item.pinyin)
-                    .fontSize(11)
-                    .fontColor($r('app.color.tertiary_text'))
-                    .margin({ top: 1 })
-                }
+                    .fontSize(14)
+                    .fontColor($r('app.color.primary_text'))
+                    .fontWeight(FontWeight.Medium)
+                  if (item.pinyin) {
+                    Text(item.pinyin)
+                      .fontSize(11)
+                      .fontColor($r('app.color.tertiary_text'))
+                      .margin({ top: 1 })
+                  }
                 }
                 .alignItems(HorizontalAlign.Start)
 
                 Blank()
 
                 Text('\u203A')
-              .fontSize(18)
-              .fontColor($r('app.color.hint_text'))
-          }
-          .width('100%')
-          .padding({ left: 14, right: 14, top: 8, bottom: 8 })
-          .backgroundColor($r('app.color.card_background'))
+                  .fontSize(18)
+                  .fontColor($r('app.color.hint_text'))
+              }
+              .width('100%')
+              .padding({ left: 14, right: 14, top: 8, bottom: 8 })
+              .backgroundColor($r('app.color.card_background'))
               .borderRadius(8)
               .onClick(() => {
                 this.onWordTap(item.word);
               })
             }
-          }, (item: IdiomDetailItem, index: number) => item.word + '_' + index.toString())
+          }, (item: IdiomDetailItem) => item.word)
         }
         .width('100%')
         .layoutWeight(1)
         .padding({ left: 10, right: 10 })
+        .cachedCount(10)
       } else if (this.pinyinQuery) {
         Column() {
           Text('未找到匹配的成语')

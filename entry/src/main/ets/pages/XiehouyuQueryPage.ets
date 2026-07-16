@@ -4,6 +4,39 @@ import { ClipboardUtil } from '../common/utils/ClipboardUtil';
 import { FavoritesUtil, FavoriteItem } from '../common/utils/FavoritesUtil';
 import { ErrorState } from '../components/ErrorState';
 
+class XiehouyuListDataSource implements IDataSource {
+  private listeners: DataChangeListener[] = [];
+  private items: XiehouyuItem[] = [];
+
+  totalCount(): number {
+    return this.items.length;
+  }
+
+  getData(index: number): Object {
+    return this.items[index];
+  }
+
+  registerDataChangeListener(listener: DataChangeListener): void {
+    if (this.listeners.indexOf(listener) < 0) {
+      this.listeners.push(listener);
+    }
+  }
+
+  unregisterDataChangeListener(listener: DataChangeListener): void {
+    let pos: number = this.listeners.indexOf(listener);
+    if (pos >= 0) {
+      this.listeners.splice(pos, 1);
+    }
+  }
+
+  setItems(newItems: XiehouyuItem[]): void {
+    this.items = newItems;
+    for (let i = 0; i < this.listeners.length; i++) {
+      this.listeners[i].onDataReloaded();
+    }
+  }
+}
+
 @Builder
 export function XiehouyuQueryPageBuilder() {
   NavDestination() {
@@ -23,8 +56,9 @@ struct XiehouyuQueryContent {
   @State searchResults: XiehouyuItem[] = [];
   @State categories: XiehouyuCategory[] = [];
   @State activeCategory: string = '';
-  @State categoryItems: XiehouyuItem[] = [];
   @State revealAnswer: string = '';
+  private categorySwitching: boolean = false;
+  private categoryDataSource: XiehouyuListDataSource = new XiehouyuListDataSource();
   @State guessItem: XiehouyuItem | null = null;
   @State guessInput: string = '';
   @State guessMsg: string = '';
@@ -76,8 +110,18 @@ struct XiehouyuQueryContent {
   }
 
   private onCategoryTap(key: string): void {
+    if (this.categorySwitching) {
+      return;
+    }
+    if (this.activeCategory === key) {
+      return;
+    }
+    this.categorySwitching = true;
     this.activeCategory = key;
-    this.categoryItems = this.viewModel.getCategoryItems(key);
+    this.categoryDataSource.setItems(this.viewModel.getCategoryItems(key));
+    setTimeout(() => {
+      this.categorySwitching = false;
+    }, 150);
   }
 
   private startNewGuess(): void {
@@ -276,7 +320,7 @@ struct XiehouyuQueryContent {
         .padding({ left: 14, right: 14, top: 6, bottom: 4 })
 
         List({ space: 4 }) {
-          ForEach(this.searchResults, (item: XiehouyuItem, index: number) => {
+          ForEach(this.searchResults, (item: XiehouyuItem) => {
             ListItem() {
               Row() {
                 Column() {
@@ -295,22 +339,23 @@ struct XiehouyuQueryContent {
                 .alignItems(HorizontalAlign.Start)
 
                 Text('\u203A')
-              .fontSize(18)
-              .fontColor($r('app.color.hint_text'))
-          }
-          .width('100%')
-          .padding({ left: 14, right: 14, top: 8, bottom: 8 })
-          .backgroundColor($r('app.color.card_background'))
+                  .fontSize(18)
+                  .fontColor($r('app.color.hint_text'))
+              }
+              .width('100%')
+              .padding({ left: 14, right: 14, top: 8, bottom: 8 })
+              .backgroundColor($r('app.color.card_background'))
               .borderRadius(8)
               .onClick(() => {
                 this.onItemTap(item);
               })
             }
-          }, (item: XiehouyuItem, index: number) => item.riddle + '_' + index.toString())
+          }, (item: XiehouyuItem) => item.riddle)
         }
         .width('100%')
         .layoutWeight(1)
         .padding({ left: 10, right: 10 })
+        .cachedCount(10)
       } else if (this.searchQuery) {
         Column() {
           Text('未找到匹配的歇后语')
@@ -346,38 +391,38 @@ struct XiehouyuQueryContent {
     Column() {
       if (this.categories.length > 0) {
         Scroll() {
-          Flex({ wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start, alignContent: FlexAlign.Start }) {
+          Row({ space: 6 }) {
             ForEach(this.categories, (cat: XiehouyuCategory) => {
               Text(cat.label)
-            .fontSize(13)
-            .fontColor(this.activeCategory === cat.key ? '#ffffff' : $r('app.color.primary_text'))
-            .backgroundColor(this.activeCategory === cat.key ? $r('app.color.idiom_orange') : $r('app.color.card_background'))
+                .fontSize(13)
+                .fontColor(this.activeCategory === cat.key ? '#ffffff' : $r('app.color.primary_text'))
+                .backgroundColor(this.activeCategory === cat.key ? $r('app.color.idiom_orange') : $r('app.color.card_background'))
                 .borderRadius(8)
                 .padding({ left: 10, right: 10, top: 5, bottom: 5 })
-                .margin({ left: 4, right: 4, top: 3, bottom: 3 })
                 .onClick(() => {
                   this.onCategoryTap(cat.key);
                 })
             }, (cat: XiehouyuCategory) => cat.key)
           }
-          .padding({ left: 8, right: 8 })
+          .padding({ left: 8, right: 8, top: 6, bottom: 6 })
         }
-        .scrollable(ScrollDirection.Vertical)
+        .scrollable(ScrollDirection.Horizontal)
+        .scrollBar(BarState.Off)
         .width('100%')
-        .height(120)
         .padding({ left: 4, right: 4, top: 4, bottom: 4 })
         .backgroundColor($r('app.color.border_color'))
         .borderRadius(8)
         .margin({ left: 12, right: 12, top: 6 })
+        .friction(0.6)
       }
 
-      if (this.activeCategory && this.categoryItems.length > 0) {
+      if (this.activeCategory && this.categoryDataSource.totalCount() > 0) {
         Row() {
           Text('相关歇后语')
             .fontSize(14)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.primary_text'))
-          Text('(' + this.categoryItems.length.toString() + ')')
+          Text('(' + this.categoryDataSource.totalCount().toString() + ')')
             .fontSize(12)
             .fontColor($r('app.color.tertiary_text'))
             .margin({ left: 4 })
@@ -386,7 +431,7 @@ struct XiehouyuQueryContent {
         .padding({ left: 14, right: 14, top: 8, bottom: 4 })
 
         List({ space: 4 }) {
-          ForEach(this.categoryItems, (item: XiehouyuItem, index: number) => {
+          LazyForEach(this.categoryDataSource, (item: XiehouyuItem) => {
             ListItem() {
               Row() {
                 Column() {
@@ -405,27 +450,28 @@ struct XiehouyuQueryContent {
                 .alignItems(HorizontalAlign.Start)
 
                 Text('\u203A')
-              .fontSize(18)
-              .fontColor($r('app.color.hint_text'))
-          }
-          .width('100%')
-          .padding({ left: 14, right: 14, top: 8, bottom: 8 })
-          .backgroundColor($r('app.color.card_background'))
+                  .fontSize(18)
+                  .fontColor($r('app.color.hint_text'))
+              }
+              .width('100%')
+              .padding({ left: 14, right: 14, top: 8, bottom: 8 })
+              .backgroundColor($r('app.color.card_background'))
               .borderRadius(8)
               .onClick(() => {
                 this.onItemTap(item);
               })
             }
-          }, (item: XiehouyuItem, index: number) => item.riddle + '_' + index.toString())
+          }, (item: XiehouyuItem) => item.riddle)
         }
         .width('100%')
         .layoutWeight(1)
         .padding({ left: 10, right: 10 })
+        .cachedCount(10)
       } else if (this.activeCategory) {
         Column() {
           Text('该分类暂无歇后语')
-          .fontSize(14)
-          .fontColor($r('app.color.tertiary_text'))
+            .fontSize(14)
+            .fontColor($r('app.color.tertiary_text'))
             .margin({ top: 30 })
         }
         .width('100%')
@@ -434,8 +480,8 @@ struct XiehouyuQueryContent {
       } else {
         Column() {
           Text('选择分类浏览歇后语')
-          .fontSize(16)
-          .fontColor($r('app.color.tertiary_text'))
+            .fontSize(16)
+            .fontColor($r('app.color.tertiary_text'))
             .margin({ top: 40 })
         }
         .width('100%')

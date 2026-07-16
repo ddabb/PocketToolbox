@@ -109,7 +109,7 @@ struct FavoritesContent {
 
       if (this.displayItems.length > 0) {
         List({ space: 6 }) {
-          ForEach(this.displayItems, (item: FavoriteItem, index: number) => {
+          ForEach(this.displayItems, (item: FavoriteItem) => {
             ListItem() {
               Row() {
                 Column() {
@@ -147,11 +147,12 @@ struct FavoritesContent {
                 this.onTap(item);
               })
             }
-          }, (item: FavoriteItem, index: number) => item.type + '_' + item.title + '_' + index.toString())
+          }, (item: FavoriteItem) => item.type + '_' + item.title)
         }
         .width('100%')
         .layoutWeight(1)
         .padding({ left: 10, right: 10, top: 4 })
+        .cachedCount(10)
       } else {
         Column() {
           Text(this.activeTab === 'poem' ? '暂无收藏的诗词' : this.activeTab === 'idiom' ? '暂无收藏的成语' : '暂无收藏的歇后语')

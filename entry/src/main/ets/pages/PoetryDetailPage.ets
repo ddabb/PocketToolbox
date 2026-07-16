@@ -155,7 +155,7 @@ export struct PoetryDetailContent {
         }
       }
 
-      ForEach(this.displayPoems, (poem: PoemItem, index: number) => {
+      ForEach(this.displayPoems, (poem: PoemItem) => {
         ListItem() {
           Row() {
             Column() {
@@ -187,10 +187,11 @@ export struct PoetryDetailContent {
             this.onPoemTap(poem);
           })
         }
-      }, (poem: PoemItem, index: number) => poem.n + '_' + index.toString())
+      }, (poem: PoemItem) => poem.n)
     }
     .width('100%')
     .layoutWeight(1)
     .padding({ left: 10, right: 10, top: 2, bottom: 6 })
+    .cachedCount(10)
   }
 }

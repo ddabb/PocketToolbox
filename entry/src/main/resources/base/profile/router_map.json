@@ -34,6 +34,11 @@
       "name": "MinePage",
       "pageSourceFile": "src/main/ets/pages/MinePage.ets",
       "buildFunction": "MinePageBuilder"
+    },
+    {
+      "name": "AboutPage",
+      "pageSourceFile": "src/main/ets/pages/AboutPage.ets",
+      "buildFunction": "AboutPageBuilder"
     }
   ]
 }
