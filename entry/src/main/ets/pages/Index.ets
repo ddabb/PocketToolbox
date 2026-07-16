@@ -306,7 +306,7 @@ struct Index {
               }
             }, (cat: ToolCategory) => cat.id)
           }
-          .columnsTemplate('1fr 1fr 1fr')
+          .columnsTemplate('1fr 1fr')
           .rowsGap(8)
           .columnsGap(8)
           .width('100%')

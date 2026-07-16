@@ -4,6 +4,7 @@ import { FavoritesUtil, FavoriteItem } from '../common/utils/FavoritesUtil';
 import { PoetryViewModel } from '../viewmodel/PoetryViewModel';
 import { ShareImageCard } from '../components/ShareImageCard';
 import { buildPoemMarkdown } from '../common/utils/ShareImageUtil';
+import { Md2PngTemplates } from '../model/Md2PngModels';
 
 function buildPoemItem(param: Object): PoemItem {
   return PoetryViewModel.getInstance().parsePoemFromParam(param as Record<string, Object>);
@@ -146,9 +147,10 @@ export struct PoemContentContent {
           if (this.showShareCard) {
             ShareImageCard({
               mdText: this.shareMdText,
-              accentColor: '#07c160',
-              bgColor: '#ffffff',
-              cardId: 'poem_share_card'
+              accentColor: '#6b8e6b',
+              bgColor: '#fdf8f0',
+              cardId: 'poem_share_card',
+              theme: Md2PngTemplates.getPoetryTemplate()
             })
               .margin({ top: 16 })
           }

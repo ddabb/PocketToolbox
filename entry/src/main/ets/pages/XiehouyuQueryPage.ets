@@ -5,6 +5,7 @@ import { FavoritesUtil, FavoriteItem } from '../common/utils/FavoritesUtil';
 import { ErrorState } from '../components/ErrorState';
 import { ShareImageCard } from '../components/ShareImageCard';
 import { buildXiehouyuMarkdown } from '../common/utils/ShareImageUtil';
+import { Md2PngTemplates } from '../model/Md2PngModels';
 
 class XiehouyuListDataSource implements IDataSource {
   private listeners: DataChangeListener[] = [];
@@ -748,9 +749,10 @@ struct XiehouyuDetailModal {
             if (this.modalShowShare) {
               ShareImageCard({
                 mdText: this.modalShareMd,
-                accentColor: '#ff6b35',
-                bgColor: '#ffffff',
-                cardId: 'xiehouyu_share_card'
+                accentColor: '#e67e22',
+                bgColor: '#fffbf0',
+                cardId: 'xiehouyu_share_card',
+                theme: Md2PngTemplates.getXiehouyuTemplate()
               })
                 .margin({ top: 12 })
             }

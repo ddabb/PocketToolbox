@@ -3,6 +3,7 @@ import { ClipboardUtil } from '../common/utils/ClipboardUtil';
 import { FavoritesUtil, FavoriteItem } from '../common/utils/FavoritesUtil';
 import { ShareImageCard } from './ShareImageCard';
 import { buildIdiomMarkdown } from '../common/utils/ShareImageUtil';
+import { Md2PngTemplates } from '../model/Md2PngModels';
 
 @CustomDialog
 export struct DetailModal {
@@ -205,9 +206,10 @@ export struct DetailModal {
             if (this.showShareCard) {
               ShareImageCard({
                 mdText: this.shareMdText,
-                accentColor: '#3182ce',
-                bgColor: '#ffffff',
-                cardId: 'idiom_share_card'
+                accentColor: '#c0392b',
+                bgColor: '#fdf6ec',
+                cardId: 'idiom_share_card',
+                theme: Md2PngTemplates.getIdiomTemplate()
               })
                 .margin({ top: 12 })
             }

@@ -1,5 +1,6 @@
 import { Markdown, MarkdownController } from '@luvi/lv-markdown-in';
 import { generateShareImage, saveImageToAlbum } from '../common/utils/ShareImageUtil';
+import { ShareTemplateInfo } from '../model/Md2PngModels';
 import { BusinessError } from '@kit.BasicServicesKit';
 
 @Component
@@ -8,39 +9,63 @@ export struct ShareImageCard {
   @Prop accentColor: string = '#3182ce';
   @Prop bgColor: string = '#ffffff';
   @Prop cardId: string = 'share_card';
+  @Prop theme: ShareTemplateInfo | null = null;
   @State isGenerating: boolean = false;
   @State generatedImageUri: string = '';
+  @State resolvedBgColor: string = '#ffffff';
+  @State resolvedAccentColor: string = '#3182ce';
   private mdController: MarkdownController = new MarkdownController();
 
   aboutToAppear(): void {
+    this.resolveTheme();
     this.applyStyle();
   }
 
+  private resolveTheme(): void {
+    if (this.theme !== null) {
+      this.resolvedBgColor = this.theme.bgColor;
+      this.resolvedAccentColor = this.theme.accentColor;
+    } else {
+      this.resolvedBgColor = this.bgColor;
+      this.resolvedAccentColor = this.accentColor;
+    }
+  }
+
   private applyStyle(): void {
-    let isDark: boolean = this.isDarkColor(this.bgColor);
-    let textColor: string = isDark ? '#ffffff' : '#2c3e50';
-    let headerColor: string = isDark ? '#ffffff' : '#1a365d';
+    let tpl: ShareTemplateInfo = this.theme !== null ? this.theme : this.buildFallbackTheme();
+    let isDark: boolean = this.isDarkColor(tpl.bgColor);
     this.mdController
-      .setTitleColor(headerColor)
+      .setTitleColor(tpl.headerColor)
       .setTitleSize([24, 20, 17, 15, 14, 13])
       .setTitleFontWeight(FontWeight.Bold)
-      .setTextColor(textColor)
+      .setTextColor(tpl.textColor)
       .setTextSize(15)
       .setTextLineHeight(24)
-      .setQuoteTextColor(textColor)
-      .setQuoteBorderColor(this.accentColor)
-      .setQuoteBackgroundColor(isDark ? 'rgba(255,255,255,0.06)' : '#f7fafc')
+      .setQuoteTextColor(tpl.textColor)
+      .setQuoteBorderColor(tpl.quoteBorderColor)
+      .setQuoteBackgroundColor(tpl.quoteBgColor)
       .setQuoteBorderRadius(8)
       .setQuoteBorderWidth(3)
-      .setInlineCodeColor(this.accentColor)
-      .setInlineCodeBackgroundColor(isDark ? 'rgba(255,255,255,0.1)' : '#edf2f7')
+      .setInlineCodeColor(tpl.accentColor)
+      .setInlineCodeBackgroundColor(tpl.codeBgColor)
       .setInlineCodeBackgroundRadius(4)
       .setCodeBlockTheme(isDark ? 'dark' : 'light')
       .setCodeBlockBorderRadius(8)
-      .setUlPointColor(this.accentColor)
-      .setLineColor(this.accentColor)
-      .setHyperlinkTextColor(this.accentColor)
+      .setUlPointColor(tpl.accentColor)
+      .setLineColor(tpl.accentColor)
+      .setHyperlinkTextColor(tpl.accentColor)
       .setBlockSpacing(8);
+  }
+
+  private buildFallbackTheme(): ShareTemplateInfo {
+    return new ShareTemplateInfo(
+      this.accentColor, this.bgColor,
+      this.isDarkColor(this.bgColor) ? '#ffffff' : '#2c3e50',
+      this.isDarkColor(this.bgColor) ? '#ffffff' : '#1a365d',
+      this.isDarkColor(this.bgColor) ? 'rgba(255,255,255,0.1)' : '#edf2f7',
+      this.isDarkColor(this.bgColor) ? 'rgba(255,255,255,0.06)' : '#f7fafc',
+      this.accentColor, this.accentColor
+    );
   }
 
   private isDarkColor(color: string): boolean {
@@ -92,9 +117,9 @@ export struct ShareImageCard {
       }
       .width('100%')
       .padding(20)
-      .backgroundColor(this.bgColor)
+      .backgroundColor(this.resolvedBgColor)
       .borderRadius(16)
-      .shadow({ radius: 8, color: this.accentColor + '18', offsetY: 4 })
+      .shadow({ radius: 8, color: this.resolvedAccentColor + '20', offsetY: 4 })
       .id(this.cardId)
 
       if (this.generatedImageUri) {
@@ -109,7 +134,7 @@ export struct ShareImageCard {
         Text(this.isGenerating ? '生成中...' : '生成图片')
           .fontSize(13)
           .fontColor('#ffffff')
-          .backgroundColor(this.accentColor)
+          .backgroundColor(this.resolvedAccentColor)
           .borderRadius(16)
           .padding({ left: 16, right: 16, top: 6, bottom: 6 })
           .enabled(!this.isGenerating)
@@ -120,9 +145,9 @@ export struct ShareImageCard {
         if (this.generatedImageUri) {
           Text('保存')
             .fontSize(13)
-            .fontColor(this.accentColor)
+            .fontColor(this.resolvedAccentColor)
             .backgroundColor(Color.Transparent)
-            .border({ width: 1, color: this.accentColor, style: BorderStyle.Solid })
+            .border({ width: 1, color: this.resolvedAccentColor, style: BorderStyle.Solid })
             .borderRadius(16)
             .padding({ left: 16, right: 16, top: 6, bottom: 6 })
             .onClick(() => {

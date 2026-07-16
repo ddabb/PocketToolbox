@@ -30,6 +30,31 @@ export class TemplateInfo {
   }
 }
 
+export class ShareTemplateInfo {
+  accentColor: string = '';
+  bgColor: string = '';
+  textColor: string = '';
+  headerColor: string = '';
+  codeBgColor: string = '';
+  quoteBgColor: string = '';
+  quoteBorderColor: string = '';
+  watermarkColor: string = '';
+
+  constructor(
+    accentColor: string, bgColor: string, textColor: string, headerColor: string,
+    codeBgColor: string, quoteBgColor: string, quoteBorderColor: string, watermarkColor: string
+  ) {
+    this.accentColor = accentColor;
+    this.bgColor = bgColor;
+    this.textColor = textColor;
+    this.headerColor = headerColor;
+    this.codeBgColor = codeBgColor;
+    this.quoteBgColor = quoteBgColor;
+    this.quoteBorderColor = quoteBorderColor;
+    this.watermarkColor = watermarkColor;
+  }
+}
+
 export class Md2PngTemplates {
   static getAll(): TemplateInfo[] {
     return [
@@ -64,5 +89,26 @@ export class Md2PngTemplates {
       }
     }
     return templates[0];
+  }
+
+  static getPoetryTemplate(): ShareTemplateInfo {
+    return new ShareTemplateInfo(
+      '#6b8e6b', '#fdf8f0', '#4a3c2a', '#2d5a27',
+      '#e8f0e8', '#f0f5ec', '#6b8e6b', '#9bb59b'
+    );
+  }
+
+  static getIdiomTemplate(): ShareTemplateInfo {
+    return new ShareTemplateInfo(
+      '#c0392b', '#fdf6ec', '#5a3e2b', '#8b1a1a',
+      '#fce4e4', '#fef5ef', '#c0392b', '#d4a574'
+    );
+  }
+
+  static getXiehouyuTemplate(): ShareTemplateInfo {
+    return new ShareTemplateInfo(
+      '#e67e22', '#fffbf0', '#5a3e2b', '#c45100',
+      '#fef0e0', '#fff5eb', '#e67e22', '#d4a574'
+    );
   }
 }

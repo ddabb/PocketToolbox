@@ -236,16 +236,22 @@ struct Md2PngContent {
         Row({ space: 8 }) {
           ForEach(this.templates, (tpl: TemplateInfo) => {
             Column() {
-              Column() {
-                Text(tpl.icon)
-                  .fontSize(18)
+              Stack() {
+                Column()
+                  .width(36)
+                  .height(36)
+                  .borderRadius(10)
+                  .backgroundColor(tpl.bgColor)
+                Column()
+                  .width(12)
+                  .height(12)
+                  .borderRadius(6)
+                  .backgroundColor(tpl.accentColor)
               }
               .width(44)
               .height(44)
               .borderRadius(12)
-              .backgroundColor(tpl.bgColor)
-              .justifyContent(FlexAlign.Center)
-              .alignItems(HorizontalAlign.Center)
+              .backgroundColor($r('app.color.card_background'))
               .border({
                 width: this.currentTemplateId === tpl.id ? 2 : 0,
                 color: tpl.accentColor,
