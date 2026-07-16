@@ -1,12 +1,16 @@
 import { IdiomDetailItem } from '../model/IdiomModels';
 import { ClipboardUtil } from '../common/utils/ClipboardUtil';
 import { FavoritesUtil, FavoriteItem } from '../common/utils/FavoritesUtil';
+import { ShareImageCard } from './ShareImageCard';
+import { buildIdiomMarkdown } from '../common/utils/ShareImageUtil';
 
 @CustomDialog
 export struct DetailModal {
   controller: CustomDialogController;
   @State detailItem: IdiomDetailItem | null = null;
   @State isFav: boolean = false;
+  @State showShareCard: boolean = false;
+  @State shareMdText: string = '';
   private uiContext: UIContext = this.getUIContext();
 
   aboutToAppear(): void {
@@ -182,10 +186,31 @@ export struct DetailModal {
                   ClipboardUtil.copy(all);
                   this.uiContext.getPromptAction().showToast({ message: '已复制到剪贴板', duration: 1000 });
                 })
+
+              Text('图片')
+                .fontSize(14)
+                .fontColor('#ffffff')
+                .backgroundColor($r('app.color.idiom_blue'))
+                .borderRadius(12)
+                .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+                .onClick(() => {
+                  this.shareMdText = buildIdiomMarkdown(this.detailItem!);
+                  this.showShareCard = !this.showShareCard;
+                })
             }
             .width('100%')
             .justifyContent(FlexAlign.Center)
             .margin({ top: 8 })
+
+            if (this.showShareCard) {
+              ShareImageCard({
+                mdText: this.shareMdText,
+                accentColor: '#3182ce',
+                bgColor: '#ffffff',
+                cardId: 'idiom_share_card'
+              })
+                .margin({ top: 12 })
+            }
           }
           .padding({ left: 20, right: 20, bottom: 20 })
         }

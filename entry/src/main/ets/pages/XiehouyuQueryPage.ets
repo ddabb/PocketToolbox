@@ -3,6 +3,8 @@ import { XiehouyuItem, XiehouyuCategory } from '../model/XiehouyuModels';
 import { ClipboardUtil } from '../common/utils/ClipboardUtil';
 import { FavoritesUtil, FavoriteItem } from '../common/utils/FavoritesUtil';
 import { ErrorState } from '../components/ErrorState';
+import { ShareImageCard } from '../components/ShareImageCard';
+import { buildXiehouyuMarkdown } from '../common/utils/ShareImageUtil';
 
 class XiehouyuListDataSource implements IDataSource {
   private listeners: DataChangeListener[] = [];
@@ -66,6 +68,8 @@ struct XiehouyuQueryContent {
   @State guessTotal: number = 0;
   @State detailItem: XiehouyuItem | null = null;
   @State isFav: boolean = false;
+  @State showShareCard: boolean = false;
+  @State shareMdText: string = '';
   private viewModel: XiehouyuViewModel = XiehouyuViewModel.getInstance();
   private uiContext: UIContext = this.getUIContext();
   private detailDialogController: CustomDialogController = new CustomDialogController({
@@ -622,6 +626,8 @@ struct XiehouyuDetailModal {
 
   @State detailItem: XiehouyuItem | null = null;
   @State isFav: boolean = false;
+  @State modalShowShare: boolean = false;
+  @State modalShareMd: string = '';
   private uiContext: UIContext = this.getUIContext();
 
   private toggleFav(): void {
@@ -724,9 +730,30 @@ struct XiehouyuDetailModal {
                   ClipboardUtil.copy(this.detailItem!.riddle + '——' + this.detailItem!.answer);
                   this.uiContext.getPromptAction().showToast({ message: '已复制到剪贴板', duration: 1000 });
                 })
+
+              Text('图片')
+                .fontSize(14)
+                .fontColor('#ffffff')
+                .backgroundColor($r('app.color.idiom_orange'))
+                .borderRadius(12)
+                .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+                .onClick(() => {
+                  this.modalShareMd = buildXiehouyuMarkdown(this.detailItem!);
+                  this.modalShowShare = !this.modalShowShare;
+                })
             }
             .width('100%')
             .justifyContent(FlexAlign.Center)
+
+            if (this.modalShowShare) {
+              ShareImageCard({
+                mdText: this.modalShareMd,
+                accentColor: '#ff6b35',
+                bgColor: '#ffffff',
+                cardId: 'xiehouyu_share_card'
+              })
+                .margin({ top: 12 })
+            }
           }
           .padding({ left: 20, right: 20, bottom: 20 })
         }

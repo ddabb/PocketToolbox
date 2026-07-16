@@ -6,6 +6,7 @@ import { PoemContentPageBuilder } from './PoemContentPage';
 import { FavoritesPageBuilder } from './FavoritesPage';
 import { MinePageBuilder } from './MinePage';
 import { AboutPageBuilder } from './AboutPage';
+import { Md2PngPageBuilder } from './Md2PngPage';
 import { PoetryViewModel } from '../viewmodel/PoetryViewModel';
 import { IdiomViewModel } from '../viewmodel/IdiomViewModel';
 import { XiehouyuViewModel } from '../viewmodel/XiehouyuViewModel';
@@ -41,7 +42,8 @@ struct Index {
   @State categories: ToolCategory[] = [
     new ToolCategory('poetry', '诗词查询', '唐诗宋词，按朝代浏览', '\uD83C\uDF3C', '#2d7d46', 'PoetryQueryPage'),
     new ToolCategory('idiom', '成语查询', '成语接龙，顺查逆查', '\uD83D\uDCD6', '#2980b9', 'IdiomQueryPage'),
-    new ToolCategory('xiehouyu', '歇后语', '趣味歇后语，猜谜玩法', '\uD83E\uDD14', '#bf5b04', 'XiehouyuQueryPage')
+    new ToolCategory('xiehouyu', '歇后语', '趣味歇后语，猜谜玩法', '\uD83E\uDD14', '#bf5b04', 'XiehouyuQueryPage'),
+    new ToolCategory('md2png', '文字转图片', 'Markdown文本生成精美图片', '\uD83D\uDDBC\uFE0F', '#9b59b6', 'Md2PngPage')
   ];
   @State dailyPoemTitle: string = '';
   @State dailyPoemAuthor: string = '';
@@ -169,6 +171,8 @@ struct Index {
       MinePageBuilder()
     } else if (name === 'AboutPage') {
       AboutPageBuilder()
+    } else if (name === 'Md2PngPage') {
+      Md2PngPageBuilder()
     }
   }
 

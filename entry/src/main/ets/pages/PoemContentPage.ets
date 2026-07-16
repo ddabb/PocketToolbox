@@ -2,6 +2,8 @@ import { PoemItem } from '../model/PoetryModels';
 import { ClipboardUtil } from '../common/utils/ClipboardUtil';
 import { FavoritesUtil, FavoriteItem } from '../common/utils/FavoritesUtil';
 import { PoetryViewModel } from '../viewmodel/PoetryViewModel';
+import { ShareImageCard } from '../components/ShareImageCard';
+import { buildPoemMarkdown } from '../common/utils/ShareImageUtil';
 
 function buildPoemItem(param: Object): PoemItem {
   return PoetryViewModel.getInstance().parsePoemFromParam(param as Record<string, Object>);
@@ -23,6 +25,8 @@ export struct PoemContentContent {
   @Prop poemParam: PoemItem = new PoemItem();
   @State poetName: string = '';
   @State isFav: boolean = false;
+  @State showShareCard: boolean = false;
+  @State shareMdText: string = '';
   @StorageLink('PoemFavStatus') @Watch('onFavStatusChange') favStatus: boolean = false;
   private uiContext: UIContext = this.getUIContext();
 
@@ -123,10 +127,31 @@ export struct PoemContentContent {
               .onClick(() => {
                 this.copyPoem();
               })
+
+            Text('图片')
+              .fontSize(14)
+              .fontColor('#ffffff')
+              .backgroundColor($r('app.color.poetry_green'))
+              .borderRadius(16)
+              .padding({ left: 20, right: 20, top: 8, bottom: 8 })
+              .onClick(() => {
+                this.shareMdText = buildPoemMarkdown(this.poemParam);
+                this.showShareCard = !this.showShareCard;
+              })
           }
           .width('100%')
           .justifyContent(FlexAlign.Center)
           .margin({ top: 24 })
+
+          if (this.showShareCard) {
+            ShareImageCard({
+              mdText: this.shareMdText,
+              accentColor: '#07c160',
+              bgColor: '#ffffff',
+              cardId: 'poem_share_card'
+            })
+              .margin({ top: 16 })
+          }
         }
         .width('100%')
         .padding({ left: 20, right: 20, top: 16, bottom: 24 })
