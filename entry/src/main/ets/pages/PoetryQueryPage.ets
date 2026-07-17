@@ -2,6 +2,7 @@ import { PoetryViewModel } from '../viewmodel/PoetryViewModel';
 import { PoetItem, SearchResultItem, PoetDetail, PoemItem } from '../model/PoetryModels';
 import { Constants } from '../common/constants/Constants';
 import { ErrorState } from '../components/ErrorState';
+import { FavoritesUtil } from '../common/utils/FavoritesUtil';
 
 @Builder
 export function PoetryQueryPageBuilder() {
@@ -144,6 +145,11 @@ struct PoetryQueryContent {
     } else {
       this.uiContext.getPromptAction().showToast({ message: '请搜索诗人姓名查看详情', duration: 1500 });
     }
+  }
+
+  private isPoemFav(title: string): boolean {
+    let ctx: Context = this.uiContext.getHostContext() as Context;
+    return FavoritesUtil.isFavorite(ctx, 'poem', title);
   }
 
   build() {
@@ -290,6 +296,13 @@ struct PoetryQueryContent {
             }
             .layoutWeight(1)
             .alignItems(HorizontalAlign.Start)
+
+            if (item.type === 'poem' && this.isPoemFav(item.title)) {
+              Text('\u2665')
+                .fontSize(14)
+                .fontColor($r('app.color.danger_red'))
+                .margin({ right: 6 })
+            }
 
             Text(item.type === 'poet' ? '诗人' : '诗词')
               .fontSize(11)

@@ -2,6 +2,7 @@ import { FavoritesUtil, FavoriteItem } from '../common/utils/FavoritesUtil';
 import { PoemItem } from '../model/PoetryModels';
 import { IdiomDetailItem } from '../model/IdiomModels';
 import { IdiomViewModel } from '../viewmodel/IdiomViewModel';
+import { promptAction } from '@kit.ArkUI';
 
 @Builder
 export function FavoritesPageBuilder() {
@@ -47,8 +48,20 @@ struct FavoritesContent {
   }
 
   private removeItem(item: FavoriteItem): void {
-    FavoritesUtil.remove(this.uiContext.getHostContext() as Context, item.type, item.title);
-    this.loadFavorites();
+    let uiContext: UIContext = this.getUIContext();
+    uiContext.getPromptAction().showDialog({
+      title: '确认删除',
+      message: '确定要取消收藏「' + item.title + '」吗？',
+      buttons: [
+        { text: '取消', color: '#999999' },
+        { text: '删除', color: '#e74c3c' }
+      ]
+    }).then((result: promptAction.ShowDialogSuccessResponse) => {
+      if (result.index === 1) {
+        FavoritesUtil.remove(uiContext.getHostContext() as Context, item.type, item.title);
+        this.loadFavorites();
+      }
+    }).catch(() => {});
   }
 
   private onTap(item: FavoriteItem): void {

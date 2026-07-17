@@ -6,6 +6,8 @@ import { common } from '@kit.AbilityKit';
 import { IdiomDetailItem } from '../../model/IdiomModels';
 import { PoemItem } from '../../model/PoetryModels';
 import { XiehouyuItem } from '../../model/XiehouyuModels';
+import { systemShare } from '@kit.ShareKit';
+import { uniformTypeDescriptor as utd } from '@kit.ArkData';
 
 const WEEKDAYS: string[] = ['日', '一', '二', '三', '四', '五', '六'];
 const TIANGAN: string[] = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
@@ -149,5 +151,29 @@ export async function saveImageToAlbum(uiContext: UIContext, cachePath: string, 
     let err: BusinessError = e as BusinessError;
     console.error('[ShareUtil] saveToAlbum failed: ' + err.code + ' ' + err.message);
     uiContext.getPromptAction().showToast({ message: '保存失败', duration: 1500 });
+  }
+}
+
+export function shareImageViaPanel(uiContext: UIContext, cachePath: string): void {
+  try {
+    let context: common.UIAbilityContext = uiContext.getHostContext() as common.UIAbilityContext;
+    let fileUriStr: string = fileUri.getUriFromPath(cachePath);
+    let utdTypeId: string = utd.getUniformDataTypeByFilenameExtension('.png', utd.UniformDataType.IMAGE);
+    let shareData: systemShare.SharedData = new systemShare.SharedData({
+      utd: utdTypeId,
+      uri: fileUriStr,
+    });
+    let controller: systemShare.ShareController = new systemShare.ShareController(shareData);
+    controller.on('dismiss', () => {
+      console.info('[ShareUtil] share panel closed');
+    });
+    controller.show(context, {
+      previewMode: systemShare.SharePreviewMode.DETAIL,
+      selectionMode: systemShare.SelectionMode.SINGLE,
+    });
+  } catch (e) {
+    let err: BusinessError = e as BusinessError;
+    console.error('[ShareUtil] shareViaPanel failed: ' + err.code + ' ' + err.message);
+    uiContext.getPromptAction().showToast({ message: '分享失败', duration: 1500 });
   }
 }

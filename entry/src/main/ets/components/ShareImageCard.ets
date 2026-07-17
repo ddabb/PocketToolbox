@@ -1,5 +1,5 @@
 import { Markdown, MarkdownController } from '@luvi/lv-markdown-in';
-import { generateShareImage, saveImageToAlbum } from '../common/utils/ShareImageUtil';
+import { generateShareImage, saveImageToAlbum, shareImageViaPanel } from '../common/utils/ShareImageUtil';
 import { ShareTemplateInfo } from '../model/Md2PngModels';
 import { BusinessError } from '@kit.BasicServicesKit';
 import { display } from '@kit.ArkUI';
@@ -130,6 +130,13 @@ export struct ShareImageCard {
     }
   }
 
+  doShare(): void {
+    if (!this.generatedImageUri) {
+      return;
+    }
+    shareImageViaPanel(this.getUIContext(), this.generatedImageUri);
+  }
+
   build() {
     Column() {
       Stack() {
@@ -179,6 +186,17 @@ export struct ShareImageCard {
           })
 
         if (this.generatedImageUri) {
+          Text('分享')
+            .fontSize(13)
+            .fontColor(this.resolvedAccentColor)
+            .backgroundColor(Color.Transparent)
+            .border({ width: 1, color: this.resolvedAccentColor, style: BorderStyle.Solid })
+            .borderRadius(16)
+            .padding({ left: 16, right: 16, top: 6, bottom: 6 })
+            .onClick(() => {
+              this.doShare();
+            })
+
           Text('保存到相册')
             .fontSize(13)
             .fontColor(this.resolvedAccentColor)

@@ -218,6 +218,11 @@ struct XiehouyuQueryContent {
     }
   }
 
+  private isItemFav(item: XiehouyuItem): boolean {
+    let ctx: Context = this.uiContext.getHostContext() as Context;
+    return FavoritesUtil.isFavorite(ctx, 'xiehouyu', item.riddle);
+  }
+
   private onItemTap(item: XiehouyuItem): void {
     this.detailItem = item;
     let ctx: Context = this.uiContext.getHostContext() as Context;
@@ -398,6 +403,13 @@ struct XiehouyuQueryContent {
                 .layoutWeight(1)
                 .alignItems(HorizontalAlign.Start)
 
+                if (this.isItemFav(item)) {
+                  Text('\u2665')
+                    .fontSize(14)
+                    .fontColor($r('app.color.danger_red'))
+                    .margin({ right: 6 })
+                }
+
                 Text('\u203A')
                   .fontSize(18)
                   .fontColor($r('app.color.hint_text'))
@@ -504,6 +516,13 @@ struct XiehouyuQueryContent {
                 }
                 .layoutWeight(1)
                 .alignItems(HorizontalAlign.Start)
+
+                if (this.isItemFav(item)) {
+                  Text('\u2665')
+                    .fontSize(14)
+                    .fontColor($r('app.color.danger_red'))
+                    .margin({ right: 6 })
+                }
 
                 Text('\u203A')
                   .fontSize(18)

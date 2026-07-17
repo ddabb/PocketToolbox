@@ -8,6 +8,7 @@ import { pasteboard } from '@kit.BasicServicesKit';
 import { Markdown, MarkdownController } from '@luvi/lv-markdown-in';
 import { display } from '@kit.ArkUI';
 import { DecorPatternUtil } from '../common/utils/DecorPatternUtil';
+import { shareImageViaPanel } from '../common/utils/ShareImageUtil';
 
 class MdCanvasStore {
   private contexts: CanvasRenderingContext2D[] = [];
@@ -219,6 +220,13 @@ struct Md2PngContent {
     }
   }
 
+  private doShare(): void {
+    if (!this.generatedImageUri) {
+      return;
+    }
+    shareImageViaPanel(this.getUIContext(), this.generatedImageUri);
+  }
+
   build() {
     Column() {
       Scroll() {
@@ -393,6 +401,23 @@ struct Md2PngContent {
           })
 
         if (this.generatedImageUri) {
+          Button('分享')
+            .fontSize(15)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(this.currentAccentColor)
+            .backgroundColor(Color.Transparent)
+            .border({
+              width: 1,
+              color: this.currentAccentColor,
+              style: BorderStyle.Solid
+            })
+            .borderRadius(22)
+            .height(44)
+            .layoutWeight(1)
+            .onClick(() => {
+              this.doShare();
+            })
+
           Button('保存到相册')
             .fontSize(15)
             .fontWeight(FontWeight.Bold)

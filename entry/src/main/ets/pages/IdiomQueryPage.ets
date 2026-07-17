@@ -3,6 +3,7 @@ import { IdiomQueryResultItem, IdiomDetailItem, SolitaireResult } from '../model
 import { ClipboardUtil } from '../common/utils/ClipboardUtil';
 import { ErrorState } from '../components/ErrorState';
 import { DetailModal } from '../components/DetailModal';
+import { FavoritesUtil } from '../common/utils/FavoritesUtil';
 import { preferences } from '@kit.ArkData';
 
 class IdiomListDataSource implements IDataSource {
@@ -201,6 +202,11 @@ struct IdiomQueryContent {
     } else {
       this.uiContext.getPromptAction().showToast({ message: '暂无详情', duration: 1500 });
     }
+  }
+
+  private isIdiomFav(word: string): boolean {
+    let ctx: Context = this.uiContext.getHostContext() as Context;
+    return FavoritesUtil.isFavorite(ctx, 'idiom', word);
   }
 
   private onContinueChain(continueWord: string): void {
@@ -486,6 +492,13 @@ struct IdiomQueryContent {
 
                 Blank()
 
+                if (this.isIdiomFav(item.leftWord) || this.isIdiomFav(item.rightWord)) {
+                  Text('\u2665')
+                    .fontSize(14)
+                    .fontColor($r('app.color.danger_red'))
+                    .margin({ right: 6 })
+                }
+
                 if (item.canContinue) {
                   Text(item.actionText)
                     .fontSize(12)
@@ -591,6 +604,13 @@ struct IdiomQueryContent {
                     .textOverflow({ overflow: TextOverflow.Ellipsis })
                     .layoutWeight(1)
                     .margin({ left: 12 })
+                }
+
+                if (this.isIdiomFav(item.word)) {
+                  Text('\u2665')
+                    .fontSize(14)
+                    .fontColor($r('app.color.danger_red'))
+                    .margin({ right: 6 })
                 }
 
                 Text('\u203A')
@@ -705,6 +725,13 @@ struct IdiomQueryContent {
                 .alignItems(HorizontalAlign.Start)
 
                 Blank()
+
+                if (this.isIdiomFav(item.word)) {
+                  Text('\u2665')
+                    .fontSize(14)
+                    .fontColor($r('app.color.danger_red'))
+                    .margin({ right: 6 })
+                }
 
                 Text('\u203A')
                   .fontSize(18)
