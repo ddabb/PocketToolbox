@@ -1,11 +1,85 @@
 import { TemplateInfo, Md2PngTemplates } from '../model/Md2PngModels';
 import { image } from '@kit.ImageKit';
-import { fileIo as fs, WriteOptions } from '@kit.CoreFileKit';
-import { picker } from '@kit.CoreFileKit';
+import { fileIo as fs, WriteOptions, fileUri } from '@kit.CoreFileKit';
+import { photoAccessHelper } from '@kit.MediaLibraryKit';
 import { BusinessError } from '@kit.BasicServicesKit';
 import { common } from '@kit.AbilityKit';
 import { pasteboard } from '@kit.BasicServicesKit';
 import { Markdown, MarkdownController } from '@luvi/lv-markdown-in';
+import { display } from '@kit.ArkUI';
+import { DecorPatternUtil } from '../common/utils/DecorPatternUtil';
+
+class MdCanvasStore {
+  private contexts: CanvasRenderingContext2D[] = [];
+  private drawn: Set<number> = new Set();
+
+  get(index: number): CanvasRenderingContext2D {
+    if (index >= this.contexts.length) {
+      this.contexts.push(new CanvasRenderingContext2D(new RenderingContextSettings(true)));
+    }
+    return this.contexts[index];
+  }
+
+  markDrawn(index: number): void {
+    this.drawn.add(index);
+  }
+
+  isDrawn(index: number): boolean {
+    return this.drawn.has(index);
+  }
+}
+
+class MdControllerStore {
+  private controllers: MarkdownController[] = [];
+
+  get(index: number): MarkdownController {
+    if (index >= this.controllers.length) {
+      let ctrl: MarkdownController = new MarkdownController();
+      this.controllers.push(ctrl);
+    }
+    return this.controllers[index];
+  }
+
+  applyTemplate(index: number, tpl: TemplateInfo): void {
+    let ctrl: MarkdownController = this.get(index);
+    let isDark: boolean = this.isDarkColor(tpl.bgColor);
+    ctrl
+      .setTitleColor(tpl.headerColor)
+      .setTitleSize([20, 17, 15, 13, 12, 11])
+      .setTitleFontWeight(FontWeight.Bold)
+      .setTextColor(tpl.textColor)
+      .setTextSize(13)
+      .setTextLineHeight(20)
+      .setQuoteTextColor(tpl.textColor)
+      .setQuoteBorderColor(tpl.quoteBorderColor)
+      .setQuoteBackgroundColor(tpl.quoteBgColor)
+      .setQuoteBorderRadius(6)
+      .setQuoteBorderWidth(2)
+      .setInlineCodeColor(tpl.accentColor)
+      .setInlineCodeBackgroundColor(tpl.codeBgColor)
+      .setInlineCodeBackgroundRadius(3)
+      .setCodeBlockTheme(isDark ? 'dark' : 'light')
+      .setCodeBlockBorderRadius(6)
+      .setUlPointColor(tpl.accentColor)
+      .setLineColor(tpl.accentColor)
+      .setHyperlinkTextColor(tpl.accentColor)
+      .setBlockSpacing(6);
+  }
+
+  private isDarkColor(color: string): boolean {
+    let c: string = color.toLowerCase();
+    if (c.startsWith('#')) {
+      let hex: string = c.substring(1);
+      if (hex.length >= 6) {
+        let r: number = parseInt(hex.substring(0, 2), 16);
+        let g: number = parseInt(hex.substring(2, 4), 16);
+        let b: number = parseInt(hex.substring(4, 6), 16);
+        return (r * 299 + g * 587 + b * 114) / 1000 < 128;
+      }
+    }
+    return false;
+  }
+}
 
 @Builder
 export function Md2PngPageBuilder() {
@@ -20,70 +94,40 @@ export function Md2PngPageBuilder() {
 @Component
 struct Md2PngContent {
   @State inputText: string = '';
-  @State currentTemplateId: string = 'default';
+  @State currentTemplateIndex: number = 0;
   @State generatedImageUri: string = '';
   @State isGenerating: boolean = false;
-  @State previewBgColor: string = '#ffffff';
-  @State previewTextColor: string = '#2c3e50';
-  @State previewAccentColor: string = '#3182ce';
-  @State previewHeaderColor: string = '#1a365d';
-  @State previewCodeBgColor: string = '#edf2f7';
-  @State previewQuoteBgColor: string = '#f7fafc';
-  @State previewQuoteBorderColor: string = '#3182ce';
+  @State currentAccentColor: string = '#3182ce';
+  @State cardWidth: number = 360;
+  @State cardHeight: number = 640;
   private templates: TemplateInfo[] = Md2PngTemplates.getAll();
-  private mdController: MarkdownController = new MarkdownController();
+  private controllerStore: MdControllerStore = new MdControllerStore();
+  private canvasStore: MdCanvasStore = new MdCanvasStore();
+  private swiperController: SwiperController = new SwiperController();
 
   aboutToAppear(): void {
     this.inputText = '# 欢迎使用文字转图片\n\n输入 **Markdown** 或普通文本，选择喜欢的模板，一键生成精美图片！\n\n## 功能特点\n\n- 支持多种精美模板\n- 支持Markdown语法\n- 一键保存到相册\n\n> 让文字更有表现力\n\n`代码片段` 也能高亮显示';
-    this.applyTemplate();
+    this.currentAccentColor = this.templates[this.currentTemplateIndex].accentColor;
+    this.initAllControllers();
+    this.calcCardSize();
   }
 
-  private applyTemplate(): void {
-    let tpl: TemplateInfo = Md2PngTemplates.getById(this.currentTemplateId);
-    this.previewBgColor = tpl.bgColor;
-    this.previewTextColor = tpl.textColor;
-    this.previewAccentColor = tpl.accentColor;
-    this.previewHeaderColor = tpl.headerColor;
-    this.previewCodeBgColor = tpl.codeBgColor;
-    this.previewQuoteBgColor = tpl.quoteBgColor;
-    this.previewQuoteBorderColor = tpl.quoteBorderColor;
-
-    let isDark: boolean = this.isDarkTheme(tpl);
-    this.mdController
-      .setTitleColor(tpl.headerColor)
-      .setTitleSize([24, 20, 17, 15, 14, 13])
-      .setTitleFontWeight(FontWeight.Bold)
-      .setTextColor(tpl.textColor)
-      .setTextSize(15)
-      .setTextLineHeight(24)
-      .setQuoteTextColor(tpl.textColor)
-      .setQuoteBorderColor(tpl.quoteBorderColor)
-      .setQuoteBackgroundColor(tpl.quoteBgColor)
-      .setQuoteBorderRadius(8)
-      .setQuoteBorderWidth(3)
-      .setInlineCodeColor(tpl.accentColor)
-      .setInlineCodeBackgroundColor(tpl.codeBgColor)
-      .setInlineCodeBackgroundRadius(4)
-      .setCodeBlockTheme(isDark ? 'dark' : 'light')
-      .setCodeBlockBorderRadius(8)
-      .setUlPointColor(tpl.accentColor)
-      .setLineColor(tpl.accentColor)
-      .setHyperlinkTextColor(tpl.accentColor)
-      .setBlockSpacing(8);
-  }
-
-  private isDarkTheme(tpl: TemplateInfo): boolean {
-    let bgColor: string = tpl.bgColor.toLowerCase();
-    if (bgColor.startsWith('#')) {
-      let hex: string = bgColor.substring(1);
-      if (hex.length >= 6) {
-        let r: number = parseInt(hex.substring(0, 2), 16);
-        let g: number = parseInt(hex.substring(2, 4), 16);
-        let b: number = parseInt(hex.substring(4, 6), 16);
-        return (r * 299 + g * 587 + b * 114) / 1000 < 128;
-      }
+  private initAllControllers(): void {
+    for (let i = 0; i < this.templates.length; i++) {
+      this.controllerStore.applyTemplate(i, this.templates[i]);
     }
-    return false;
+  }
+
+  private calcCardSize(): void {
+    try {
+      let disp: display.Display = display.getDefaultDisplaySync();
+      let density: number = disp.densityPixels;
+      this.cardWidth = Math.floor(disp.width / density);
+      this.cardHeight = Math.floor(disp.height / density);
+    } catch (e) {
+      this.cardWidth = 360;
+      this.cardHeight = 780;
+    }
   }
 
   private async pasteFromClipboard(): Promise<void> {
@@ -107,7 +151,9 @@ struct Md2PngContent {
     try {
       let uiCtx: UIContext = this.getUIContext();
       let snapshot = uiCtx.getComponentSnapshot();
-      let pixelMap: image.PixelMap = await snapshot.get('md_preview_card');
+      let tpl: TemplateInfo = this.templates[this.currentTemplateIndex];
+      let cardId: string = 'md_card_' + tpl.id;
+      let pixelMap: image.PixelMap = await snapshot.get(cardId);
       let packer: image.ImagePacker = image.createImagePacker();
       let packOpts: image.PackingOption = {
         format: 'image/png',
@@ -138,13 +184,23 @@ struct Md2PngContent {
       return;
     }
     try {
-      let docPicker: picker.DocumentViewPicker = new picker.DocumentViewPicker();
-      let saveOpts: picker.DocumentSaveOptions = new picker.DocumentSaveOptions();
-      saveOpts.newFileNames = ['md2png_' + Date.now() + '.png'];
-      let uris: Array<string> = await docPicker.save(saveOpts);
-      if (uris.length > 0) {
+      let uiCtx: UIContext = this.getUIContext();
+      let context: common.UIAbilityContext = uiCtx.getHostContext() as common.UIAbilityContext;
+      let helper: photoAccessHelper.PhotoAccessHelper = photoAccessHelper.getPhotoAccessHelper(context);
+      let srcFileUri: string = fileUri.getUriFromPath(this.generatedImageUri);
+      let srcFileUris: Array<string> = [srcFileUri];
+      let photoCreationConfigs: Array<photoAccessHelper.PhotoCreationConfig> = [
+        {
+          title: 'md2png_' + Date.now(),
+          fileNameExtension: 'png',
+          photoType: photoAccessHelper.PhotoType.IMAGE,
+          subtype: photoAccessHelper.PhotoSubtype.DEFAULT,
+        }
+      ];
+      let desFileUris: Array<string> = await helper.showAssetsCreationDialog(srcFileUris, photoCreationConfigs);
+      if (desFileUris.length > 0) {
         let sourceFile: fs.File = fs.openSync(this.generatedImageUri, fs.OpenMode.READ_ONLY);
-        let destFile: fs.File = fs.openSync(uris[0], fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.TRUNC);
+        let destFile: fs.File = fs.openSync(desFileUris[0], fs.OpenMode.READ_WRITE);
         let buf: ArrayBuffer = new ArrayBuffer(4096);
         let readLen: number = fs.readSync(sourceFile.fd, buf);
         while (readLen > 0) {
@@ -154,7 +210,7 @@ struct Md2PngContent {
         }
         fs.closeSync(sourceFile);
         fs.closeSync(destFile);
-        this.getUIContext().getPromptAction().showToast({ message: '已保存', duration: 1500 });
+        uiCtx.getPromptAction().showToast({ message: '已保存到相册', duration: 1500 });
       }
     } catch (e) {
       let err: BusinessError = e as BusinessError;
@@ -168,8 +224,7 @@ struct Md2PngContent {
       Scroll() {
         Column() {
           this.InputSection()
-          this.TemplateSelector()
-          this.PreviewSection()
+          this.PreviewSwiper()
           this.ActionButtons()
         }
         .width('100%')
@@ -208,7 +263,7 @@ struct Md2PngContent {
 
       TextArea({ text: $$this.inputText, placeholder: '输入Markdown或普通文本...' })
         .width('100%')
-        .height(160)
+        .height(140)
         .fontSize(14)
         .fontColor($r('app.color.primary_text'))
         .backgroundColor($r('app.color.card_background'))
@@ -223,86 +278,83 @@ struct Md2PngContent {
   }
 
   @Builder
-  TemplateSelector() {
+  PreviewSwiper() {
     Column() {
-      Text('选择模板')
-        .fontSize(15)
-        .fontWeight(FontWeight.Bold)
-        .fontColor($r('app.color.primary_text'))
-        .width('100%')
-        .margin({ bottom: 8, top: 16 })
+      Row() {
+        Text('预览效果')
+          .fontSize(15)
+          .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.primary_text'))
+        Blank()
+        Text('左右滑动切换模板')
+          .fontSize(12)
+          .fontColor($r('app.color.tertiary_text'))
+      }
+      .width('100%')
+      .margin({ bottom: 8, top: 16 })
 
-      Scroll() {
-        Row({ space: 8 }) {
-          ForEach(this.templates, (tpl: TemplateInfo) => {
-            Column() {
+      Swiper(this.swiperController) {
+        ForEach(this.templates, (tpl: TemplateInfo, index: number) => {
+          Column() {
+            Stack() {
+              Column() {
+                Markdown({ controller: this.controllerStore.get(index), text: this.inputText })
+                  .width('100%')
+              }
+              .width('100%')
+              .padding({ left: 20, right: 20, top: 16, bottom: 16 })
+
+              Canvas(this.canvasStore.get(index))
+                .width(this.cardWidth)
+                .height(320)
+                .onReady(() => {
+                  if (!this.canvasStore.isDrawn(index)) {
+                    DecorPatternUtil.draw(this.canvasStore.get(index), this.cardWidth, 320, tpl.accentColor, tpl.decorPattern);
+                    this.canvasStore.markDrawn(index);
+                  }
+                })
+            }
+            .width(this.cardWidth)
+            .height(320)
+            .backgroundColor(tpl.bgColor)
+            .borderRadius(16)
+            .clip(true)
+            .id('md_card_' + tpl.id)
+
+            Row() {
               Stack() {
                 Column()
-                  .width(36)
-                  .height(36)
-                  .borderRadius(10)
+                  .width(20)
+                  .height(20)
+                  .borderRadius(6)
                   .backgroundColor(tpl.bgColor)
                 Column()
-                  .width(12)
-                  .height(12)
-                  .borderRadius(6)
+                  .width(6)
+                  .height(6)
+                  .borderRadius(3)
                   .backgroundColor(tpl.accentColor)
               }
-              .width(44)
-              .height(44)
-              .borderRadius(12)
-              .backgroundColor($r('app.color.card_background'))
-              .border({
-                width: this.currentTemplateId === tpl.id ? 2 : 0,
-                color: tpl.accentColor,
-                style: BorderStyle.Solid
-              })
-              .margin({ bottom: 4 })
+              .margin({ right: 6 })
               Text(tpl.name)
-                .fontSize(11)
-                .fontColor(this.currentTemplateId === tpl.id ? tpl.accentColor : $r('app.color.tertiary_text'))
-                .fontWeight(this.currentTemplateId === tpl.id ? FontWeight.Bold : FontWeight.Normal)
+                .fontSize(13)
+                .fontColor(this.currentTemplateIndex === index ? tpl.accentColor : $r('app.color.tertiary_text'))
+                .fontWeight(this.currentTemplateIndex === index ? FontWeight.Bold : FontWeight.Normal)
             }
-            .onClick(() => {
-              this.currentTemplateId = tpl.id;
-              this.applyTemplate();
-            })
-          }, (tpl: TemplateInfo) => tpl.id)
-        }
+            .width('100%')
+            .justifyContent(FlexAlign.Center)
+            .padding({ top: 10, bottom: 6 })
+          }
+        }, (tpl: TemplateInfo) => tpl.id)
       }
-      .scrollable(ScrollDirection.Horizontal)
       .width('100%')
+      .indicator(false)
+      .displayMode(SwiperDisplayMode.STRETCH)
+      .onChange((index: number) => {
+        this.currentTemplateIndex = index;
+        this.currentAccentColor = this.templates[index].accentColor;
+      })
     }
     .width('100%')
-  }
-
-  @Builder
-  PreviewSection() {
-    Column() {
-      Text('预览效果')
-        .fontSize(15)
-        .fontWeight(FontWeight.Bold)
-        .fontColor($r('app.color.primary_text'))
-        .width('100%')
-        .margin({ bottom: 8, top: 16 })
-
-      this.RenderedCard()
-    }
-    .width('100%')
-  }
-
-  @Builder
-  RenderedCard() {
-    Column() {
-      Markdown({ controller: this.mdController, text: this.inputText })
-        .width('100%')
-    }
-    .width('100%')
-    .padding(20)
-    .backgroundColor(this.previewBgColor)
-    .borderRadius(16)
-    .shadow({ radius: 8, color: this.previewAccentColor + '18', offsetY: 4 })
-    .id('md_preview_card')
   }
 
   @Builder
@@ -331,7 +383,7 @@ struct Md2PngContent {
           .fontSize(15)
           .fontWeight(FontWeight.Bold)
           .fontColor(Color.White)
-          .backgroundColor(this.previewAccentColor)
+          .backgroundColor(this.currentAccentColor)
           .borderRadius(22)
           .height(44)
           .layoutWeight(1)
@@ -344,11 +396,11 @@ struct Md2PngContent {
           Button('保存到相册')
             .fontSize(15)
             .fontWeight(FontWeight.Bold)
-            .fontColor(this.previewAccentColor)
+            .fontColor(this.currentAccentColor)
             .backgroundColor(Color.Transparent)
             .border({
               width: 1,
-              color: this.previewAccentColor,
+              color: this.currentAccentColor,
               style: BorderStyle.Solid
             })
             .borderRadius(22)

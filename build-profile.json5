@@ -10,8 +10,8 @@
           "keyAlias": "toolbox",
           "keyPassword": "0000001863BB2BA579ADF145AB1E2F018CFC3778C5E769F4D570F640AE501B5BC51F3F8ECD303C45",
           "signAlg": "SHA256withECDSA",
-          "profile": "D:/DownLoad/发布profileRelease (1).p7b",
-          "certpath": "D:/DownLoad/发布证书 (1).cer"
+          "profile": "D:/keystore/Release .p7b",
+          "certpath": "D:/keystore/发布证书.cer"
         }
       }
     ],

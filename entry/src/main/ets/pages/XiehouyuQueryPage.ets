@@ -10,9 +10,14 @@ import { Md2PngTemplates } from '../model/Md2PngModels';
 class XiehouyuListDataSource implements IDataSource {
   private listeners: DataChangeListener[] = [];
   private items: XiehouyuItem[] = [];
+  private totalSize: number = 0;
 
   totalCount(): number {
     return this.items.length;
+  }
+
+  getTotalSize(): number {
+    return this.totalSize;
   }
 
   getData(index: number): Object {
@@ -32,11 +37,26 @@ class XiehouyuListDataSource implements IDataSource {
     }
   }
 
-  setItems(newItems: XiehouyuItem[]): void {
-    this.items = newItems;
+  reset(newItems: XiehouyuItem[], total: number): void {
+    this.items = newItems.slice(0);
+    this.totalSize = total;
     for (let i = 0; i < this.listeners.length; i++) {
       this.listeners[i].onDataReloaded();
     }
+  }
+
+  append(moreItems: XiehouyuItem[]): void {
+    let oldLen: number = this.items.length;
+    for (let i = 0; i < moreItems.length; i++) {
+      this.items.push(moreItems[i]);
+    }
+    for (let i = 0; i < this.listeners.length; i++) {
+      this.listeners[i].onDataAdd(oldLen);
+    }
+  }
+
+  hasMore(): boolean {
+    return this.items.length < this.totalSize;
   }
 }
 
@@ -60,8 +80,13 @@ struct XiehouyuQueryContent {
   @State categories: XiehouyuCategory[] = [];
   @State activeCategory: string = '';
   @State revealAnswer: string = '';
-  private categorySwitching: boolean = false;
+  @State browseInited: boolean = false;
+  @State categoryTotal: number = 0;
+  @State loadedCount: number = 0;
   private categoryDataSource: XiehouyuListDataSource = new XiehouyuListDataSource();
+  private categoryOffset: number = 0;
+  private readonly PAGE_SIZE: number = 50;
+  private isLoadingMore: boolean = false;
   @State guessItem: XiehouyuItem | null = null;
   @State guessInput: string = '';
   @State guessMsg: string = '';
@@ -115,18 +140,47 @@ struct XiehouyuQueryContent {
   }
 
   private onCategoryTap(key: string): void {
-    if (this.categorySwitching) {
-      return;
-    }
     if (this.activeCategory === key) {
       return;
     }
-    this.categorySwitching = true;
     this.activeCategory = key;
-    this.categoryDataSource.setItems(this.viewModel.getCategoryItems(key));
-    setTimeout(() => {
-      this.categorySwitching = false;
-    }, 150);
+    this.categoryOffset = 0;
+    let total: number = this.viewModel.getCategoryTotal(key);
+    this.categoryTotal = total;
+    let firstPage: XiehouyuItem[] = this.viewModel.getCategoryItemsPage(key, 0, this.PAGE_SIZE);
+    this.categoryDataSource.reset(firstPage, total);
+    this.loadedCount = firstPage.length;
+  }
+
+  private initBrowseTab(): void {
+    if (this.browseInited) {
+      return;
+    }
+    this.browseInited = true;
+    if (this.categories.length > 0) {
+      let firstKey: string = this.categories[0].key;
+      this.activeCategory = firstKey;
+      let total: number = this.viewModel.getCategoryTotal(firstKey);
+      this.categoryTotal = total;
+      let firstPage: XiehouyuItem[] = this.viewModel.getCategoryItemsPage(firstKey, 0, this.PAGE_SIZE);
+      this.categoryDataSource.reset(firstPage, total);
+      this.loadedCount = firstPage.length;
+    }
+  }
+
+  private loadMore(): void {
+    if (this.isLoadingMore || !this.categoryDataSource.hasMore()) {
+      return;
+    }
+    this.isLoadingMore = true;
+    let nextOffset: number = this.categoryOffset + this.PAGE_SIZE;
+    let moreItems: XiehouyuItem[] = this.viewModel.getCategoryItemsPage(this.activeCategory, nextOffset, this.PAGE_SIZE);
+    if (moreItems.length > 0) {
+      this.categoryOffset = nextOffset;
+      this.categoryDataSource.append(moreItems);
+      this.loadedCount = this.categoryDataSource.totalCount();
+    }
+    this.isLoadingMore = false;
   }
 
   private startNewGuess(): void {
@@ -259,6 +313,7 @@ struct XiehouyuQueryContent {
         .margin({ left: 8 })
         .onClick(() => {
           this.activeTab = 'browse';
+          this.initBrowseTab();
         })
 
       Text('猜谜玩法')
@@ -395,42 +450,38 @@ struct XiehouyuQueryContent {
   BrowseTab() {
     Column() {
       if (this.categories.length > 0) {
-        Scroll() {
-          Row({ space: 6 }) {
-            ForEach(this.categories, (cat: XiehouyuCategory) => {
-              Text(cat.label)
-                .fontSize(13)
-                .fontColor(this.activeCategory === cat.key ? '#ffffff' : $r('app.color.primary_text'))
-                .backgroundColor(this.activeCategory === cat.key ? $r('app.color.idiom_orange') : $r('app.color.card_background'))
-                .borderRadius(8)
-                .padding({ left: 10, right: 10, top: 5, bottom: 5 })
-                .onClick(() => {
-                  this.onCategoryTap(cat.key);
-                })
-            }, (cat: XiehouyuCategory) => cat.key)
-          }
-          .padding({ left: 8, right: 8, top: 6, bottom: 6 })
+        Flex({ wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start, alignItems: ItemAlign.Start }) {
+          ForEach(this.categories, (cat: XiehouyuCategory) => {
+            Text(cat.label)
+              .fontSize(13)
+              .fontColor(this.activeCategory === cat.key ? '#ffffff' : $r('app.color.primary_text'))
+              .backgroundColor(this.activeCategory === cat.key ? $r('app.color.idiom_orange') : $r('app.color.card_background'))
+              .borderRadius(8)
+              .padding({ left: 10, right: 10, top: 5, bottom: 5 })
+              .margin({ right: 6, bottom: 6 })
+              .onClick(() => {
+                this.onCategoryTap(cat.key);
+              })
+          }, (cat: XiehouyuCategory) => cat.key)
         }
-        .scrollable(ScrollDirection.Horizontal)
-        .scrollBar(BarState.Off)
         .width('100%')
-        .padding({ left: 4, right: 4, top: 4, bottom: 4 })
-        .backgroundColor($r('app.color.border_color'))
-        .borderRadius(8)
-        .margin({ left: 12, right: 12, top: 6 })
-        .friction(0.6)
+        .padding({ left: 12, right: 12, top: 8, bottom: 8 })
       }
 
-      if (this.activeCategory && this.categoryDataSource.totalCount() > 0) {
+      if (this.activeCategory && this.loadedCount > 0) {
         Row() {
           Text('相关歇后语')
             .fontSize(14)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.primary_text'))
-          Text('(' + this.categoryDataSource.totalCount().toString() + ')')
+          Text('(' + this.categoryTotal.toString() + ')')
             .fontSize(12)
             .fontColor($r('app.color.tertiary_text'))
             .margin({ left: 4 })
+          Text('已加载 ' + this.loadedCount.toString() + ' 条')
+            .fontSize(11)
+            .fontColor($r('app.color.hint_text'))
+            .margin({ left: 8 })
         }
         .width('100%')
         .padding({ left: 14, right: 14, top: 8, bottom: 4 })
@@ -467,11 +518,36 @@ struct XiehouyuQueryContent {
               })
             }
           }, (item: XiehouyuItem) => item.riddle)
+
+          ListItem() {
+            Row() {
+              if (this.categoryDataSource.hasMore()) {
+                LoadingProgress()
+                  .width(24)
+                  .height(24)
+                  .color($r('app.color.idiom_orange'))
+                  .margin({ right: 8 })
+                Text('加载更多...')
+                  .fontSize(13)
+                  .fontColor($r('app.color.tertiary_text'))
+              } else if (this.categoryTotal > 0) {
+                Text('已全部加载')
+                  .fontSize(13)
+                  .fontColor($r('app.color.hint_text'))
+              }
+            }
+            .width('100%')
+            .justifyContent(FlexAlign.Center)
+            .padding({ top: 12, bottom: 12 })
+          }
         }
         .width('100%')
         .layoutWeight(1)
         .padding({ left: 10, right: 10 })
-        .cachedCount(10)
+        .cachedCount(5)
+        .onReachEnd(() => {
+          this.loadMore();
+        })
       } else if (this.activeCategory) {
         Column() {
           Text('该分类暂无歇后语')

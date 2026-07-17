@@ -10,11 +10,12 @@ export class TemplateInfo {
   quoteBgColor: string = '';
   quoteBorderColor: string = '';
   cardBgColor: string = '';
+  decorPattern: string = '';
 
   constructor(
     id: string, name: string, icon: string, bgColor: string, textColor: string,
     accentColor: string, headerColor: string, codeBgColor: string,
-    quoteBgColor: string, quoteBorderColor: string, cardBgColor: string
+    quoteBgColor: string, quoteBorderColor: string, cardBgColor: string, decorPattern: string
   ) {
     this.id = id;
     this.name = name;
@@ -27,6 +28,7 @@ export class TemplateInfo {
     this.quoteBgColor = quoteBgColor;
     this.quoteBorderColor = quoteBorderColor;
     this.cardBgColor = cardBgColor;
+    this.decorPattern = decorPattern;
   }
 }
 
@@ -39,10 +41,12 @@ export class ShareTemplateInfo {
   quoteBgColor: string = '';
   quoteBorderColor: string = '';
   watermarkColor: string = '';
+  decorPattern: string = '';
 
   constructor(
     accentColor: string, bgColor: string, textColor: string, headerColor: string,
-    codeBgColor: string, quoteBgColor: string, quoteBorderColor: string, watermarkColor: string
+    codeBgColor: string, quoteBgColor: string, quoteBorderColor: string, watermarkColor: string,
+    decorPattern: string
   ) {
     this.accentColor = accentColor;
     this.bgColor = bgColor;
@@ -52,6 +56,7 @@ export class ShareTemplateInfo {
     this.quoteBgColor = quoteBgColor;
     this.quoteBorderColor = quoteBorderColor;
     this.watermarkColor = watermarkColor;
+    this.decorPattern = decorPattern;
   }
 }
 
@@ -59,25 +64,25 @@ export class Md2PngTemplates {
   static getAll(): TemplateInfo[] {
     return [
       new TemplateInfo('default', '简约蓝', '#4A90D9', '#ffffff', '#2c3e50',
-        '#3182ce', '#1a365d', '#edf2f7', '#f7fafc', '#3182ce', '#f7fafc'),
+        '#3182ce', '#1a365d', '#edf2f7', '#f7fafc', '#3182ce', '#f7fafc', 'wave'),
       new TemplateInfo('wechat', '清新绿', '#07c160', '#ffffff', '#3f3f3f',
-        '#07c160', '#07c160', '#f7f7f7', '#f8f8f8', '#07c160', '#fafafa'),
+        '#07c160', '#07c160', '#f7f7f7', '#f8f8f8', '#07c160', '#fafafa', 'leaf'),
       new TemplateInfo('xiaohongshu', '樱桃红', '#ff2e4d', '#faf5f5', '#333333',
-        '#ff2e4d', '#ff2e4d', '#f9f9f9', '#fff9f9', '#ff2e4d', '#fff9f9'),
+        '#ff2e4d', '#ff2e4d', '#f9f9f9', '#fff9f9', '#ff2e4d', '#fff9f9', 'heart'),
       new TemplateInfo('douyin', '暗夜红', '#fe2c55', '#121212', '#ffffff',
-        '#fe2c55', '#fe2c55', '#1a1a1a', 'rgba(254,44,85,0.1)', '#fe2c55', '#121212'),
+        '#fe2c55', '#fe2c55', '#1a1a1a', 'rgba(254,44,85,0.1)', '#fe2c55', '#121212', 'glitch'),
       new TemplateInfo('ink', '水墨风', '#333333', '#f8f8f8', '#333333',
-        '#000000', '#000000', 'rgba(0,0,0,0.05)', 'rgba(0,0,0,0.03)', '#000000', '#f8f8f8'),
+        '#000000', '#000000', 'rgba(0,0,0,0.05)', 'rgba(0,0,0,0.03)', '#000000', '#f8f8f8', 'mountain'),
       new TemplateInfo('cyberpunk', '赛博朋克', '#ff00ff', '#0a0a12', '#00ffff',
-        '#ff00ff', '#ff00ff', '#1a1a2e', 'rgba(10,10,18,0.6)', '#ff00ff', '#0a0a12'),
+        '#ff00ff', '#ff00ff', '#1a1a2e', 'rgba(10,10,18,0.6)', '#ff00ff', '#0a0a12', 'grid'),
       new TemplateInfo('minimalist', '极简白', '#0070f3', '#ffffff', '#333333',
-        '#000000', '#000000', '#f5f5f5', '#ffffff', '#eeeeee', '#ffffff'),
+        '#000000', '#000000', '#f5f5f5', '#ffffff', '#eeeeee', '#ffffff', 'dot'),
       new TemplateInfo('neon', '霓虹灯', '#ff00ff', '#121212', '#ffffff',
-        '#ff00ff', '#0ff', '#222222', 'rgba(255,0,255,0.1)', '#ff00ff', '#121212'),
+        '#ff00ff', '#0ff', '#222222', 'rgba(255,0,255,0.1)', '#ff00ff', '#121212', 'line'),
       new TemplateInfo('nature', '自然绿', '#27ae60', '#f0f7f0', '#2c3e50',
-        '#27ae60', '#1a5632', '#edf7ed', '#f0f7f0', '#27ae60', '#e8f5e9'),
+        '#27ae60', '#1a5632', '#edf7ed', '#f0f7f0', '#27ae60', '#e8f5e9', 'vine'),
       new TemplateInfo('nordic', '北欧风', '#5B8FA8', '#f5f5f0', '#4a5568',
-        '#5B8FA8', '#2d3748', '#f0f0eb', '#f5f5f0', '#5B8FA8', '#e8e8e3'),
+        '#5B8FA8', '#2d3748', '#f0f0eb', '#f5f5f0', '#5B8FA8', '#e8e8e3', 'snow'),
     ];
   }
 
@@ -94,21 +99,24 @@ export class Md2PngTemplates {
   static getPoetryTemplate(): ShareTemplateInfo {
     return new ShareTemplateInfo(
       '#6b8e6b', '#fdf8f0', '#4a3c2a', '#2d5a27',
-      '#e8f0e8', '#f0f5ec', '#6b8e6b', '#9bb59b'
+      '#e8f0e8', '#f0f5ec', '#6b8e6b', '#9bb59b',
+      'bamboo'
     );
   }
 
   static getIdiomTemplate(): ShareTemplateInfo {
     return new ShareTemplateInfo(
       '#c0392b', '#fdf6ec', '#5a3e2b', '#8b1a1a',
-      '#fce4e4', '#fef5ef', '#c0392b', '#d4a574'
+      '#fce4e4', '#fef5ef', '#c0392b', '#d4a574',
+      'cloud'
     );
   }
 
   static getXiehouyuTemplate(): ShareTemplateInfo {
     return new ShareTemplateInfo(
       '#e67e22', '#fffbf0', '#5a3e2b', '#c45100',
-      '#fef0e0', '#fff5eb', '#e67e22', '#d4a574'
+      '#fef0e0', '#fff5eb', '#e67e22', '#d4a574',
+      'lantern'
     );
   }
 }

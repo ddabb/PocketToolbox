@@ -1,6 +1,6 @@
 import { image } from '@kit.ImageKit';
-import { fileIo as fs, WriteOptions } from '@kit.CoreFileKit';
-import { picker } from '@kit.CoreFileKit';
+import { fileIo as fs, WriteOptions, fileUri } from '@kit.CoreFileKit';
+import { photoAccessHelper } from '@kit.MediaLibraryKit';
 import { BusinessError } from '@kit.BasicServicesKit';
 import { common } from '@kit.AbilityKit';
 import { IdiomDetailItem } from '../../model/IdiomModels';
@@ -117,22 +117,37 @@ export async function generateShareImage(uiContext: UIContext, componentId: stri
 }
 
 export async function saveImageToAlbum(uiContext: UIContext, cachePath: string, prefix: string): Promise<void> {
-  let docPicker: picker.DocumentViewPicker = new picker.DocumentViewPicker();
-  let saveOpts: picker.DocumentSaveOptions = new picker.DocumentSaveOptions();
-  saveOpts.newFileNames = [prefix + '_' + Date.now() + '.png'];
-  let uris: Array<string> = await docPicker.save(saveOpts);
-  if (uris.length > 0) {
-    let sourceFile: fs.File = fs.openSync(cachePath, fs.OpenMode.READ_ONLY);
-    let destFile: fs.File = fs.openSync(uris[0], fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.TRUNC);
-    let buf: ArrayBuffer = new ArrayBuffer(4096);
-    let readLen: number = fs.readSync(sourceFile.fd, buf);
-    while (readLen > 0) {
-      let writeOpts: WriteOptions = { length: readLen };
-      fs.writeSync(destFile.fd, buf, writeOpts);
-      readLen = fs.readSync(sourceFile.fd, buf);
+  try {
+    let context: common.UIAbilityContext = uiContext.getHostContext() as common.UIAbilityContext;
+    let helper: photoAccessHelper.PhotoAccessHelper = photoAccessHelper.getPhotoAccessHelper(context);
+    let srcFileUri: string = fileUri.getUriFromPath(cachePath);
+    let srcFileUris: Array<string> = [srcFileUri];
+    let photoCreationConfigs: Array<photoAccessHelper.PhotoCreationConfig> = [
+      {
+        title: prefix + '_' + Date.now(),
+        fileNameExtension: 'png',
+        photoType: photoAccessHelper.PhotoType.IMAGE,
+        subtype: photoAccessHelper.PhotoSubtype.DEFAULT,
+      }
+    ];
+    let desFileUris: Array<string> = await helper.showAssetsCreationDialog(srcFileUris, photoCreationConfigs);
+    if (desFileUris.length > 0) {
+      let sourceFile: fs.File = fs.openSync(cachePath, fs.OpenMode.READ_ONLY);
+      let destFile: fs.File = fs.openSync(desFileUris[0], fs.OpenMode.READ_WRITE);
+      let buf: ArrayBuffer = new ArrayBuffer(4096);
+      let readLen: number = fs.readSync(sourceFile.fd, buf);
+      while (readLen > 0) {
+        let writeOpts: WriteOptions = { length: readLen };
+        fs.writeSync(destFile.fd, buf, writeOpts);
+        readLen = fs.readSync(sourceFile.fd, buf);
+      }
+      fs.closeSync(sourceFile);
+      fs.closeSync(destFile);
+      uiContext.getPromptAction().showToast({ message: '已保存到相册', duration: 1500 });
     }
-    fs.closeSync(sourceFile);
-    fs.closeSync(destFile);
-    uiContext.getPromptAction().showToast({ message: '已保存', duration: 1500 });
+  } catch (e) {
+    let err: BusinessError = e as BusinessError;
+    console.error('[ShareUtil] saveToAlbum failed: ' + err.code + ' ' + err.message);
+    uiContext.getPromptAction().showToast({ message: '保存失败', duration: 1500 });
   }
 }

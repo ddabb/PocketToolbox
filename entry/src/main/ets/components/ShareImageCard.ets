@@ -2,6 +2,8 @@ import { Markdown, MarkdownController } from '@luvi/lv-markdown-in';
 import { generateShareImage, saveImageToAlbum } from '../common/utils/ShareImageUtil';
 import { ShareTemplateInfo } from '../model/Md2PngModels';
 import { BusinessError } from '@kit.BasicServicesKit';
+import { display } from '@kit.ArkUI';
+import { DecorPatternUtil } from '../common/utils/DecorPatternUtil';
 
 @Component
 export struct ShareImageCard {
@@ -14,20 +16,27 @@ export struct ShareImageCard {
   @State generatedImageUri: string = '';
   @State resolvedBgColor: string = '#ffffff';
   @State resolvedAccentColor: string = '#3182ce';
+  @State cardWidth: number = 360;
+  @State cardHeight: number = 640;
+  @State decorPattern: string = '';
   private mdController: MarkdownController = new MarkdownController();
+  private decorCanvasCtx: CanvasRenderingContext2D = new CanvasRenderingContext2D(new RenderingContextSettings(true));
 
   aboutToAppear(): void {
     this.resolveTheme();
     this.applyStyle();
+    this.calcCardSize();
   }
 
   private resolveTheme(): void {
     if (this.theme !== null) {
       this.resolvedBgColor = this.theme.bgColor;
       this.resolvedAccentColor = this.theme.accentColor;
+      this.decorPattern = this.theme.decorPattern;
     } else {
       this.resolvedBgColor = this.bgColor;
       this.resolvedAccentColor = this.accentColor;
+      this.decorPattern = '';
     }
   }
 
@@ -36,11 +45,11 @@ export struct ShareImageCard {
     let isDark: boolean = this.isDarkColor(tpl.bgColor);
     this.mdController
       .setTitleColor(tpl.headerColor)
-      .setTitleSize([24, 20, 17, 15, 14, 13])
+      .setTitleSize([22, 18, 16, 14, 13, 12])
       .setTitleFontWeight(FontWeight.Bold)
       .setTextColor(tpl.textColor)
-      .setTextSize(15)
-      .setTextLineHeight(24)
+      .setTextSize(14)
+      .setTextLineHeight(22)
       .setQuoteTextColor(tpl.textColor)
       .setQuoteBorderColor(tpl.quoteBorderColor)
       .setQuoteBackgroundColor(tpl.quoteBgColor)
@@ -64,7 +73,7 @@ export struct ShareImageCard {
       this.isDarkColor(this.bgColor) ? '#ffffff' : '#1a365d',
       this.isDarkColor(this.bgColor) ? 'rgba(255,255,255,0.1)' : '#edf2f7',
       this.isDarkColor(this.bgColor) ? 'rgba(255,255,255,0.06)' : '#f7fafc',
-      this.accentColor, this.accentColor
+      this.accentColor, this.accentColor, ''
     );
   }
 
@@ -80,6 +89,18 @@ export struct ShareImageCard {
       }
     }
     return false;
+  }
+
+  private calcCardSize(): void {
+    try {
+      let disp: display.Display = display.getDefaultDisplaySync();
+      let density: number = disp.densityPixels;
+      this.cardWidth = Math.floor(disp.width / density);
+      this.cardHeight = Math.floor(disp.height / density);
+    } catch (e) {
+      this.cardWidth = 360;
+      this.cardHeight = 780;
+    }
   }
 
   async doGenerate(): Promise<void> {
@@ -111,15 +132,30 @@ export struct ShareImageCard {
 
   build() {
     Column() {
-      Column() {
-        Markdown({ controller: this.mdController, text: this.mdText })
+      Stack() {
+        Column() {
+          Column() {
+            Markdown({ controller: this.mdController, text: this.mdText })
+              .width('100%')
+          }
           .width('100%')
+          .padding({ left: 24, right: 24, top: 20, bottom: 20 })
+        }
+        .width(this.cardWidth)
+        .height(this.cardHeight)
+        .justifyContent(FlexAlign.Start)
+        .padding({ top: 40, bottom: 40 })
+
+        Canvas(this.decorCanvasCtx)
+          .width(this.cardWidth)
+          .height(this.cardHeight)
+          .onReady(() => {
+            DecorPatternUtil.draw(this.decorCanvasCtx, this.cardWidth, this.cardHeight, this.resolvedAccentColor, this.decorPattern);
+          })
       }
-      .width('100%')
-      .padding(20)
+      .width(this.cardWidth)
+      .height(this.cardHeight)
       .backgroundColor(this.resolvedBgColor)
-      .borderRadius(16)
-      .shadow({ radius: 8, color: this.resolvedAccentColor + '20', offsetY: 4 })
       .id(this.cardId)
 
       if (this.generatedImageUri) {
@@ -143,7 +179,7 @@ export struct ShareImageCard {
           })
 
         if (this.generatedImageUri) {
-          Text('保存')
+          Text('保存到相册')
             .fontSize(13)
             .fontColor(this.resolvedAccentColor)
             .backgroundColor(Color.Transparent)
