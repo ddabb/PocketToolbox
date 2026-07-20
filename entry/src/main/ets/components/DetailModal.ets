@@ -1,6 +1,6 @@
 import { IdiomDetailItem } from '../model/IdiomModels';
 import { ClipboardUtil } from '../common/utils/ClipboardUtil';
-import { FavoritesUtil, FavoriteItem } from '../common/utils/FavoritesUtil';
+import { FavoritesUtil, FavoriteItem, FavoriteAddResult } from '../common/utils/FavoritesUtil';
 import { ShareImageCard } from './ShareImageCard';
 import { buildIdiomMarkdown } from '../common/utils/ShareImageUtil';
 import { Md2PngTemplates } from '../model/Md2PngModels';
@@ -35,11 +35,24 @@ export struct DetailModal {
       item.title = this.detailItem!.word;
       item.subtitle = this.detailItem!.pinyin;
       item.data = JSON.stringify(this.detailItem);
-      FavoritesUtil.add(ctx, item);
+      let res: FavoriteAddResult = FavoritesUtil.add(ctx, item);
       this.isFav = true;
-      this.uiContext.getPromptAction().showToast({ message: '已收藏', duration: 1000 });
+      if (res.truncated) {
+        this.uiContext.getPromptAction().showToast({ message: '收藏已达上限，最早一条已移除', duration: 2000 });
+      } else {
+        this.uiContext.getPromptAction().showToast({ message: '已收藏', duration: 1000 });
+      }
     }
     FavoritesUtil.invalidateCache();
+  }
+
+  private onShareImage(): void {
+    if (!this.detailItem) {
+      return;
+    }
+    this.showShareCard = false;
+    this.shareMdText = buildIdiomMarkdown(this.detailItem!);
+    this.showShareCard = true;
   }
 
   build() {
@@ -188,15 +201,14 @@ export struct DetailModal {
                   this.uiContext.getPromptAction().showToast({ message: '已复制到剪贴板', duration: 1000 });
                 })
 
-              Text('图片')
+              Text('分享图片')
                 .fontSize(14)
                 .fontColor('#ffffff')
                 .backgroundColor($r('app.color.idiom_blue'))
                 .borderRadius(12)
                 .padding({ left: 16, right: 16, top: 8, bottom: 8 })
                 .onClick(() => {
-                  this.shareMdText = buildIdiomMarkdown(this.detailItem!);
-                  this.showShareCard = !this.showShareCard;
+                  this.onShareImage();
                 })
             }
             .width('100%')
@@ -209,9 +221,13 @@ export struct DetailModal {
                 accentColor: '#c0392b',
                 bgColor: '#fdf6ec',
                 cardId: 'idiom_share_card',
-                theme: Md2PngTemplates.getIdiomTemplate()
+                theme: Md2PngTemplates.getIdiomTemplate(),
+                autoShare: true,
+                onAutoShared: () => {
+                  this.showShareCard = false;
+                }
               })
-                .margin({ top: 12 })
+                .position({ x: -10000, y: 0 })
             }
           }
           .padding({ left: 20, right: 20, bottom: 20 })

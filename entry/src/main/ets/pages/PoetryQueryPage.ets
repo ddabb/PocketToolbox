@@ -2,12 +2,15 @@ import { PoetryViewModel } from '../viewmodel/PoetryViewModel';
 import { PoetItem, SearchResultItem, PoetDetail, PoemItem } from '../model/PoetryModels';
 import { Constants } from '../common/constants/Constants';
 import { ErrorState } from '../components/ErrorState';
+import { preferences } from '@kit.ArkData';
 import { FavoritesUtil } from '../common/utils/FavoritesUtil';
 
 @Builder
-export function PoetryQueryPageBuilder() {
+export function PoetryQueryPageBuilder(param?: Object) {
   NavDestination() {
-    PoetryQueryContent()
+    PoetryQueryContent({
+      initialDynasty: param ? ((param as Record<string, Object>)['dynasty'] as string || '') : ''
+    })
   }
   .title('诗词查询')
   .backButtonIcon($r('sys.symbol.chevron_left'))
@@ -25,19 +28,24 @@ struct PoetryQueryContent {
   @State poetPage: number = 0;
   @State hasMorePoets: boolean = true;
   @State isSearching: boolean = false;
+  @State searchHistory: string[] = [];
   @State loadingMore: boolean = false;
+  initialDynasty: string = '';
   private viewModel: PoetryViewModel = PoetryViewModel.getInstance();
   private uiContext: UIContext = this.getUIContext();
   navPathStack: NavPathStack = AppStorage.get('AppNavPathStack') as NavPathStack;
 
   aboutToAppear(): void {
-    this.loadData();
+    setTimeout(() => {
+      this.loadData();
+    }, 0);
   }
 
   private loadData(): void {
     if (this.viewModel.isDataLoaded()) {
       this.isLoading = false;
       this.dynasties = ['全部'].concat(this.viewModel.getDynasties());
+      this.applyInitialDynasty();
       this.refreshContent();
       return;
     }
@@ -48,12 +56,20 @@ struct PoetryQueryContent {
     if (ok) {
       this.dynasties = ['全部'].concat(this.viewModel.getDynasties());
       console.info('[PoetryQuery] loadData ok, dynasties=' + this.dynasties.length.toString());
+      this.applyInitialDynasty();
       this.refreshContent();
       this.isLoading = false;
     } else {
       console.error('[PoetryQuery] loadData failed');
       this.hasError = true;
       this.isLoading = false;
+    }
+  }
+
+  private applyInitialDynasty(): void {
+    if (this.initialDynasty && this.dynasties.indexOf(this.initialDynasty) >= 0) {
+      this.activeDynasty = this.initialDynasty;
+      console.info('[PoetryQuery] apply initial dynasty=' + this.initialDynasty);
     }
   }
 
@@ -90,10 +106,49 @@ struct PoetryQueryContent {
   }
 
   private onSearchSubmit(): void {
+    let q: string = this.searchText.trim();
+    if (q) {
+      this.addToHistory(q);
+    }
     this.refreshContent();
     if (this.isSearching && this.results.length === 0) {
-      this.uiContext.getPromptAction().showToast({ message: '未找到相关结果', duration: 1500 });
+      this.uiContext.getPromptAction().showToast({ message: '未找到相关结果', duration: 1000 });
     }
+  }
+
+  private loadHistory(): void {
+    try {
+      let prefs: preferences.Preferences = preferences.getPreferencesSync(
+        this.uiContext.getHostContext() as Context, { name: 'app_cache' });
+      let histStr: string = prefs.getSync('poetry_query_history', '') as string;
+      if (histStr) {
+        this.searchHistory = JSON.parse(histStr) as string[];
+      }
+    } catch (e) {
+      this.searchHistory = [];
+    }
+  }
+
+  private saveHistory(): void {
+    try {
+      let prefs: preferences.Preferences = preferences.getPreferencesSync(
+        this.uiContext.getHostContext() as Context, { name: 'app_cache' });
+      prefs.putSync('poetry_query_history', JSON.stringify(this.searchHistory));
+      prefs.flush();
+    } catch (e) {
+    }
+  }
+
+  private addToHistory(word: string): void {
+    let idx: number = this.searchHistory.indexOf(word);
+    if (idx >= 0) {
+      this.searchHistory.splice(idx, 1);
+    }
+    this.searchHistory.unshift(word);
+    if (this.searchHistory.length > 5) {
+      this.searchHistory = this.searchHistory.slice(0, 5);
+    }
+    this.saveHistory();
   }
 
   private onDynastyTap(dynasty: string): void {
@@ -138,12 +193,12 @@ struct PoetryQueryContent {
             return;
           }
         }
-        this.uiContext.getPromptAction().showToast({ message: '未找到诗词详情', duration: 1500 });
+        this.uiContext.getPromptAction().showToast({ message: '未找到诗词详情', duration: 1000 });
       } else {
-        this.uiContext.getPromptAction().showToast({ message: '未找到诗人信息', duration: 1500 });
+        this.uiContext.getPromptAction().showToast({ message: '未找到诗人信息', duration: 1000 });
       }
     } else {
-      this.uiContext.getPromptAction().showToast({ message: '请搜索诗人姓名查看详情', duration: 1500 });
+      this.uiContext.getPromptAction().showToast({ message: '请搜索诗人姓名查看详情', duration: 1000 });
     }
   }
 
@@ -155,12 +210,40 @@ struct PoetryQueryContent {
   build() {
     Column() {
       this.SearchBar()
+      if (!this.isSearching && this.searchHistory.length > 0) {
+        this.HistorySection()
+      }
       this.DynastyTabs()
       this.ContentArea()
     }
     .width('100%')
     .height('100%')
     .backgroundColor($r('app.color.page_background'))
+  }
+
+  @Builder
+  HistorySection() {
+    if (this.searchHistory.length > 0) {
+      Scroll() {
+        Row({ space: 6 }) {
+          ForEach(this.searchHistory, (word: string) => {
+            Text(word)
+              .fontSize(13)
+              .fontColor($r('app.color.poetry_green'))
+              .backgroundColor($r('app.color.poetry_green') + '18')
+              .borderRadius(10)
+              .padding({ left: 10, right: 10, top: 3, bottom: 3 })
+              .onClick(() => {
+                this.searchText = word;
+                this.onSearchSubmit();
+              })
+          }, (word: string) => word)
+        }
+      }
+      .scrollable(ScrollDirection.Horizontal)
+      .width('100%')
+      .padding({ left: 12, right: 12, top: 2, bottom: 4 })
+    }
   }
 
   @Builder

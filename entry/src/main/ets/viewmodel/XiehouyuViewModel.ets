@@ -57,8 +57,8 @@ export class XiehouyuViewModel {
       for (let i = 0; i < raw.length; i++) {
         let obj: Record<string, Object> = raw[i] as Record<string, Object>;
         let item: XiehouyuItem = new XiehouyuItem();
-        item.riddle = (obj['riddle'] as string) || '';
-        item.answer = (obj['answer'] as string) || '';
+        item.riddle = this.cleanText((obj['riddle'] as string) || '');
+        item.answer = this.cleanText((obj['answer'] as string) || '');
         if (item.riddle && item.answer) {
           this.allItems.push(item);
         }
@@ -71,6 +71,48 @@ export class XiehouyuViewModel {
       console.error('[Xiehouyu] loadData failed: ' + (e as Error).message);
       return false;
     }
+  }
+
+  // 清洗数据源中被污染的拼音/注释片段：去掉拉丁字母、数字、半角括号，
+  // 删除不成对的全角括号（保留合法中文注释），避免搜索误命中字母、结果呈现拼音。
+  private cleanText(s: string): string {
+    if (!s) {
+      return s;
+    }
+    let t: string = s.replace(/[A-Za-z0-9\(\)]/g, '');
+    t = this.removeOrphanBrackets(t);
+    t = t.replace(/\s+/g, ' ').trim();
+    return t;
+  }
+
+  // 栈扫描删除不成对的全角括号（保留成对合法注释，如 （一年生草本植物））
+  private removeOrphanBrackets(s: string): string {
+    let stack: number[] = [];
+    let keep: boolean[] = [];
+    for (let i: number = 0; i < s.length; i++) {
+      let ch: string = s.charAt(i);
+      keep.push(true);
+      if (ch === '（') {
+        stack.push(i);
+      } else if (ch === '）') {
+        if (stack.length > 0) {
+          stack.pop();
+        } else {
+          keep[i] = false;
+        }
+      }
+    }
+    while (stack.length > 0) {
+      let idx: number = stack.pop() as number;
+      keep[idx] = false;
+    }
+    let result: string = '';
+    for (let i: number = 0; i < s.length; i++) {
+      if (keep[i]) {
+        result += s.charAt(i);
+      }
+    }
+    return result;
   }
 
   private buildCategories(): void {

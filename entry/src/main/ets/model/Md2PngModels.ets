@@ -106,9 +106,9 @@ export class Md2PngTemplates {
 
   static getIdiomTemplate(): ShareTemplateInfo {
     return new ShareTemplateInfo(
-      '#c0392b', '#fdf6ec', '#5a3e2b', '#8b1a1a',
-      '#fce4e4', '#fef5ef', '#c0392b', '#d4a574',
-      'cloud'
+      '#9e2b25', '#f6efe1', '#4a3b2c', '#7a1f1f',
+      '#efe6d2', '#f3ead7', '#c9a35b', '#9e2b25',
+      'seal'
     );
   }
 

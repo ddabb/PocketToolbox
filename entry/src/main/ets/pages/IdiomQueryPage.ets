@@ -40,9 +40,9 @@ class IdiomListDataSource implements IDataSource {
 }
 
 @Builder
-export function IdiomQueryPageBuilder() {
+export function IdiomQueryPageBuilder(param: Object) {
   NavDestination() {
-    IdiomQueryContent()
+    IdiomQueryContent({ initialWord: (param as string) || '' })
   }
   .title('成语查询')
   .backButtonIcon($r('sys.symbol.chevron_left'))
@@ -51,6 +51,7 @@ export function IdiomQueryPageBuilder() {
 
 @Component
 struct IdiomQueryContent {
+  initialWord: string = '';
   @State queryMode: string = 'forward';
   @State queryInput: string = '';
   @State queryResults: IdiomQueryResultItem[] = [];
@@ -61,12 +62,15 @@ struct IdiomQueryContent {
   @State hasContent: boolean = false;
   @State detailItem: IdiomDetailItem | null = null;
   @State isReverseReady: boolean = false;
-  @State activeTab: string = 'solitaire';
+  @State activeTab: string = 'pinyin';
   @State firstLetters: string[] = [];
   @State activeLetter: string = '';
   @State letterIdioms: IdiomDetailItem[] = [];
   @State pinyinResults: IdiomDetailItem[] = [];
   @State pinyinQuery: string = '';
+  @State pinyinAllCount: number = 0;
+  @State pinyinDisplayed: number = 0;
+  private readonly pinyinPageSize: number = 100;
   private letterSwitching: boolean = false;
   private letterDataSource: IdiomListDataSource = new IdiomListDataSource();
   private viewModel: IdiomViewModel = IdiomViewModel.getInstance();
@@ -80,8 +84,23 @@ struct IdiomQueryContent {
 
   aboutToAppear(): void {
     this.viewModel.setContext(this.uiContext.getHostContext() as Context);
-    this.loadData();
     this.loadHistory();
+    setTimeout(() => {
+      this.loadData();
+      if (!this.hasError && this.initialWord) {
+        let ctx: Context = this.uiContext.getHostContext() as Context;
+        // 录入拼音搜索：把当日成语转为拼音查询串并触发查询（查询效果）
+        this.activeTab = 'pinyin';
+        this.pinyinQuery = this.viewModel.getPinyinSearchQuery(this.initialWord, ctx);
+        this.doPinyinSearch();
+        // 模拟结果点击：直接打开当日成语的详情弹窗
+        let detail: IdiomDetailItem | null = this.viewModel.findIdiomDetail(ctx, this.initialWord);
+        if (detail) {
+          this.detailItem = detail;
+          this.detailDialogController.open();
+        }
+      }
+    }, 0);
   }
 
   private loadData(): void {
@@ -158,7 +177,7 @@ struct IdiomQueryContent {
         this.handleMultipleFuzzy(fuzzy);
         return;
       } else {
-        this.uiContext.getPromptAction().showToast({ message: '该成语不在词库中', duration: 1500 });
+        this.uiContext.getPromptAction().showToast({ message: '该成语不在词库中', duration: 1000 });
         return;
       }
     }
@@ -168,7 +187,7 @@ struct IdiomQueryContent {
   private querySolitaire(word: string): void {
     let result: SolitaireResult = this.viewModel.querySolitaire(word, this.queryMode);
     if (result.error) {
-      this.uiContext.getPromptAction().showToast({ message: result.error, duration: 1500 });
+      this.uiContext.getPromptAction().showToast({ message: result.error, duration: 1000 });
       this.isReverseReady = !result.lastIndexLoading;
       return;
     }
@@ -200,7 +219,7 @@ struct IdiomQueryContent {
       this.detailItem = detail;
       this.detailDialogController.open();
     } else {
-      this.uiContext.getPromptAction().showToast({ message: '暂无详情', duration: 1500 });
+      this.uiContext.getPromptAction().showToast({ message: '暂无详情', duration: 1000 });
     }
   }
 
@@ -230,7 +249,7 @@ struct IdiomQueryContent {
   private toggleMode(): void {
     if (this.queryMode === 'forward') {
       if (!this.viewModel.isLastIndexReady()) {
-        this.uiContext.getPromptAction().showToast({ message: '逆查数据加载中，请稍候...', duration: 1500 });
+        this.uiContext.getPromptAction().showToast({ message: '逆查数据加载中，请稍候...', duration: 1000 });
         return;
       }
       this.queryMode = 'reverse';
@@ -262,9 +281,23 @@ struct IdiomQueryContent {
     let q: string = this.pinyinQuery.trim().toLowerCase();
     if (!q) {
       this.pinyinResults = [];
+      this.pinyinAllCount = 0;
+      this.pinyinDisplayed = 0;
       return;
     }
-    this.pinyinResults = this.viewModel.searchByPinyin(q);
+    this.pinyinAllCount = this.viewModel.searchByPinyinTotal(q);
+    this.pinyinDisplayed = Math.min(this.pinyinPageSize, this.pinyinAllCount);
+    this.pinyinResults = this.viewModel.searchByPinyin(q, 0, this.pinyinDisplayed);
+  }
+
+  private loadMorePinyin(): void {
+    let q: string = this.pinyinQuery.trim().toLowerCase();
+    if (!q || this.pinyinDisplayed >= this.pinyinAllCount) {
+      return;
+    }
+    let more: IdiomDetailItem[] = this.viewModel.searchByPinyin(q, this.pinyinDisplayed, this.pinyinPageSize);
+    this.pinyinResults = this.pinyinResults.concat(more);
+    this.pinyinDisplayed = Math.min(this.pinyinDisplayed + this.pinyinPageSize, this.pinyinAllCount);
   }
 
   build() {
@@ -286,12 +319,23 @@ struct IdiomQueryContent {
   @Builder
   TabBar() {
     Row() {
+      Text('拼音搜索')
+        .fontSize(14)
+        .fontColor(this.activeTab === 'pinyin' ? '#ffffff' : $r('app.color.secondary_text'))
+        .backgroundColor(this.activeTab === 'pinyin' ? $r('app.color.idiom_blue') : $r('app.color.border_color'))
+        .borderRadius(12)
+        .padding({ left: 14, right: 14, top: 6, bottom: 6 })
+        .onClick(() => {
+          this.activeTab = 'pinyin';
+        })
+
       Text('接龙查询')
         .fontSize(14)
         .fontColor(this.activeTab === 'solitaire' ? '#ffffff' : $r('app.color.secondary_text'))
         .backgroundColor(this.activeTab === 'solitaire' ? $r('app.color.idiom_blue') : $r('app.color.border_color'))
         .borderRadius(12)
         .padding({ left: 14, right: 14, top: 6, bottom: 6 })
+        .margin({ left: 8 })
         .onClick(() => {
           this.activeTab = 'solitaire';
         })
@@ -305,17 +349,6 @@ struct IdiomQueryContent {
         .margin({ left: 8 })
         .onClick(() => {
           this.activeTab = 'browse';
-        })
-
-      Text('拼音搜索')
-        .fontSize(14)
-        .fontColor(this.activeTab === 'pinyin' ? '#ffffff' : $r('app.color.secondary_text'))
-        .backgroundColor(this.activeTab === 'pinyin' ? $r('app.color.idiom_blue') : $r('app.color.border_color'))
-        .borderRadius(12)
-        .padding({ left: 14, right: 14, top: 6, bottom: 6 })
-        .margin({ left: 8 })
-        .onClick(() => {
-          this.activeTab = 'pinyin';
         })
     }
     .width('100%')
@@ -661,7 +694,7 @@ struct IdiomQueryContent {
   SearchTab() {
     Column() {
       Row() {
-        TextInput({ placeholder: '输入拼音搜索，如 bai...', text: this.pinyinQuery })
+        TextInput({ placeholder: '输入拼音或汉字搜索，如 bai / 百', text: this.pinyinQuery })
         .layoutWeight(1)
         .height(36)
         .fontSize(14)
@@ -694,11 +727,11 @@ struct IdiomQueryContent {
 
       if (this.pinyinResults.length > 0) {
         Row() {
-          Text('拼音搜索结果')
+          Text('搜索结果')
             .fontSize(14)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.primary_text'))
-          Text('(' + this.pinyinResults.length.toString() + ')')
+          Text('(共 ' + this.pinyinAllCount.toString() + ' 条)')
             .fontSize(12)
             .fontColor($r('app.color.tertiary_text'))
             .margin({ left: 4 })
@@ -746,6 +779,22 @@ struct IdiomQueryContent {
               })
             }
           }, (item: IdiomDetailItem) => item.word)
+
+          if (this.pinyinDisplayed < this.pinyinAllCount) {
+            ListItem() {
+              Row() {
+                Text('加载更多 (剩余 ' + (this.pinyinAllCount - this.pinyinDisplayed).toString() + ' 条)')
+                  .fontSize(13)
+                  .fontColor($r('app.color.idiom_blue'))
+              }
+              .width('100%')
+              .height(44)
+              .justifyContent(FlexAlign.Center)
+              .onClick(() => {
+                this.loadMorePinyin();
+              })
+            }
+          }
         }
         .width('100%')
         .layoutWeight(1)
@@ -763,11 +812,11 @@ struct IdiomQueryContent {
         .alignItems(HorizontalAlign.Center)
       } else {
         Column() {
-          Text('输入拼音搜索成语')
+          Text('输入拼音或汉字搜索成语')
           .fontSize(16)
           .fontColor($r('app.color.tertiary_text'))
           .margin({ top: 60 })
-        Text('例如: bai \u2192 百发百中、百步穿杨')
+        Text('例如: bai 或 百 \u2192 百发百中、百步穿杨')
           .fontSize(13)
           .fontColor($r('app.color.hint_text'))
             .margin({ top: 8 })

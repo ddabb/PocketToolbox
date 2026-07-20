@@ -17,6 +17,7 @@ export class IdiomViewModel {
   private idiomFullCache: Record<string, IdiomDetailItem> = {};
   private isFullLoaded: boolean = false;
   private firstLettersCache: string[] | null = null;
+  private normalizedPyCache: Record<string, string[]> = {};
 
   private constructor() {}
 
@@ -93,6 +94,7 @@ export class IdiomViewModel {
         item.derivation = (obj['derivation'] as string) || '';
         item.example = (obj['example'] as string) || '';
         this.idiomFullCache[word] = item;
+        this.normalizedPyCache[word] = this.normalizePinyinToSyllables(item.pinyin);
       }
       this.isFullLoaded = true;
       console.info('[Idiom] idiom.json loaded, count=' + raw.length.toString());
@@ -221,42 +223,137 @@ export class IdiomViewModel {
     return results;
   }
 
-  searchByPinyin(pinyin: string): IdiomDetailItem[] {
-    if (!pinyin || !this.isFirstReady) {
-      return [];
-    }
-    let q: string = pinyin.trim().toLowerCase();
-    let syllables: string[] = this.splitPinyin(q);
-    let firstPy: string = syllables[0];
-    let matchedWords: string[] = [];
-    for (let i = 0; i < this.firstIndexKeys.length; i++) {
-      if (this.firstIndexKeys[i] === firstPy || this.firstIndexKeys[i].indexOf(firstPy) === 0) {
-        matchedWords = matchedWords.concat(this.firstIndexValues[i]);
-      }
-    }
+  private pinyinCacheQuery: string = '';
+  private pinyinCacheWords: string[] = [];
+  private pinyinCachePinyins: string[] = [];
+
+  searchByPinyinTotal(query: string): number {
+    this.ensurePinyinCache(query);
+    return this.pinyinCacheWords.length;
+  }
+
+  searchByPinyin(query: string, offset: number = 0, limit: number = 100): IdiomDetailItem[] {
+    this.ensurePinyinCache(query);
+    let end: number = Math.min(offset + limit, this.pinyinCacheWords.length);
     let results: IdiomDetailItem[] = [];
-    let limit: number = 100;
-    if (syllables.length <= 1) {
-      for (let i = 0; i < matchedWords.length && i < limit; i++) {
-        let item: IdiomDetailItem = new IdiomDetailItem();
-        item.word = matchedWords[i];
-        item.pinyin = this.wordToFirstPy[matchedWords[i]] || '';
-        results.push(item);
-      }
-    } else {
-      let context: Context | null = this.getCachedContext();
-      for (let i = 0; i < matchedWords.length && results.length < limit; i++) {
-        let word: string = matchedWords[i];
-        let fullPy: string = this.getFullPinyin(word, context);
-        if (this.pinyinMatches(fullPy, syllables)) {
-          let item: IdiomDetailItem = new IdiomDetailItem();
-          item.word = word;
-          item.pinyin = fullPy;
-          results.push(item);
+    for (let i: number = offset; i < end; i++) {
+      let item: IdiomDetailItem = new IdiomDetailItem();
+      item.word = this.pinyinCacheWords[i];
+      item.pinyin = this.pinyinCachePinyins[i];
+      results.push(item);
+    }
+    console.info('[Idiom] searchByPinyin q=' + query + ', offset=' + offset.toString() + ', returned=' + results.length.toString() + ', total=' + this.pinyinCacheWords.length.toString());
+    return results;
+  }
+
+  private ensurePinyinCache(query: string): void {
+    let q: string = (query || '').trim().toLowerCase();
+    if (this.pinyinCacheQuery === q) {
+      return;
+    }
+    this.pinyinCacheQuery = q;
+    this.pinyinCacheWords = [];
+    this.pinyinCachePinyins = [];
+    if (!q || !this.isFirstReady) {
+      return;
+    }
+    let chineseRegex: RegExp = new RegExp('[\\u4e00-\\u9fa5]');
+    if (chineseRegex.test(q)) {
+      let m: RegExpMatchArray | null = q.match(/[\u4e00-\u9fa5]/);
+      let ch: string = m ? m[0] : q;
+      let ctx: Context | null = this.getCachedContext();
+      for (let i: number = 0; i < this.allWords.length; i++) {
+        let word: string = this.allWords[i];
+        if (word.indexOf(ch) >= 0) {
+          this.pinyinCacheWords.push(word);
+          this.pinyinCachePinyins.push(this.getFullPinyin(word, ctx));
         }
       }
+      return;
     }
-    console.info('[Idiom] searchByPinyin q=' + q + ', syllables=' + syllables.length.toString() + ', results=' + results.length.toString());
+    let syllables: string[] = this.splitPinyin(q);
+    if (syllables.length === 0) {
+      return;
+    }
+    if (syllables.length === 1) {
+      let firstPy: string = syllables[0];
+      let ctx: Context | null = this.getCachedContext();
+      this.ensureFullData(ctx as Context);
+      for (let i = 0; i < this.firstIndexKeys.length; i++) {
+        if (this.firstIndexKeys[i] === firstPy) {
+          let arr: string[] = this.firstIndexValues[i];
+          for (let j = 0; j < arr.length; j++) {
+            let word: string = arr[j];
+            this.pinyinCacheWords.push(word);
+            let detail = this.idiomFullCache[word];
+            this.pinyinCachePinyins.push(detail ? detail.pinyin : firstPy);
+          }
+        }
+      }
+      return;
+    }
+    let ctx: Context | null = this.getCachedContext();
+    this.ensureFullData(ctx as Context);
+    for (let i: number = 0; i < this.allWords.length; i++) {
+      let word: string = this.allWords[i];
+      let npy: string[] = this.getNormalizedPinyin(word);
+      if (this.pinyinMatches(npy, syllables)) {
+        let detail = this.idiomFullCache[word];
+        this.pinyinCacheWords.push(word);
+        this.pinyinCachePinyins.push(detail ? detail.pinyin : (this.wordToFirstPy[word] || ''));
+      }
+    }
+  }
+
+  private normalizePinyinToSyllables(raw: string): string[] {
+    if (!raw) {
+      return [];
+    }
+    let s: string = raw.toLowerCase();
+    s = s
+      .replace(/[āáǎà]/g, 'a')
+      .replace(/[ēéěè]/g, 'e')
+      .replace(/[īíǐì]/g, 'i')
+      .replace(/[ōóǒò]/g, 'o')
+      .replace(/[ūúǔù]/g, 'u')
+      .replace(/[ǖǘǚǜ]/g, 'ü')
+      .replace(/[ńň]/g, 'n')
+      .replace(/v/g, 'ü');
+    let parts: string[] = s.split(/\s+/);
+    let result: string[] = [];
+    for (let i = 0; i < parts.length; i++) {
+      if (parts[i].length > 0) {
+        result.push(parts[i]);
+      }
+    }
+    return result;
+  }
+
+  private getNormalizedPinyin(word: string): string[] {
+    if (this.normalizedPyCache[word]) {
+      return this.normalizedPyCache[word];
+    }
+    let detail = this.idiomFullCache[word];
+    let raw: string = detail ? detail.pinyin : (this.wordToFirstPy[word] || '');
+    let npy: string[] = this.normalizePinyinToSyllables(raw);
+    this.normalizedPyCache[word] = npy;
+    return npy;
+  }
+
+  private searchByChinese(ch: string): IdiomDetailItem[] {
+    let results: IdiomDetailItem[] = [];
+    let limit: number = 100;
+    let ctx: Context | null = this.getCachedContext();
+    for (let i: number = 0; i < this.allWords.length && results.length < limit; i++) {
+      let word: string = this.allWords[i];
+      if (word.indexOf(ch) >= 0) {
+        let item: IdiomDetailItem = new IdiomDetailItem();
+        item.word = word;
+        item.pinyin = this.getFullPinyin(word, ctx);
+        results.push(item);
+      }
+    }
+    console.info('[Idiom] searchByChinese ch=' + ch + ', results=' + results.length.toString());
     return results;
   }
 
@@ -304,18 +401,33 @@ export class IdiomViewModel {
     return this.wordToFirstPy[word] || '';
   }
 
-  private pinyinMatches(fullPy: string, syllables: string[]): boolean {
-    let py: string = fullPy.toLowerCase().replace(new RegExp('\\s+', 'g'), '');
-    let pos: number = 0;
-    for (let i: number = 0; i < syllables.length; i++) {
-      let syl: string = syllables[i].toLowerCase();
-      let idx: number = py.indexOf(syl, pos);
-      if (idx < 0) {
-        return false;
-      }
-      pos = idx + syl.length;
+  // 将成语转为可直接录入拼音搜索框的查询串（去声调、去空格，如 yixinyiyi）
+  getPinyinSearchQuery(word: string, context: Context | null): string {
+    let raw: string = this.getFullPinyin(word, context);
+    if (!raw) {
+      return word;
     }
-    return true;
+    let syls: string[] = this.normalizePinyinToSyllables(raw);
+    return syls.join('');
+  }
+
+  private pinyinMatches(fullSyllables: string[], syllables: string[]): boolean {
+    if (syllables.length === 0 || fullSyllables.length < syllables.length) {
+      return false;
+    }
+    for (let start: number = 0; start <= fullSyllables.length - syllables.length; start++) {
+      let ok: boolean = true;
+      for (let k: number = 0; k < syllables.length; k++) {
+        if (fullSyllables[start + k] !== syllables[k].toLowerCase()) {
+          ok = false;
+          break;
+        }
+      }
+      if (ok) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private cachedContext: Context | null = null;

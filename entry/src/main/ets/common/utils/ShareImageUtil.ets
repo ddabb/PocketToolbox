@@ -36,36 +36,36 @@ export class DateInfo {
   }
 
   toMarkdownLine(): string {
-    return this.dateStr + ' ' + this.weekday + ' | ' + this.ganzhi + '（' + this.shengxiao + '年）';
+    return this.dateStr + ' ' + this.weekday + ' | ' + this.ganzhi;
   }
 }
 
 export function buildIdiomMarkdown(item: IdiomDetailItem): string {
   let md: string = '';
   let dateInfo: DateInfo = new DateInfo();
-  md += '> ' + dateInfo.toMarkdownLine() + '\n\n';
   md += '# **' + item.word + '**\n\n';
   if (item.pinyin) {
     md += '`' + item.pinyin + '`\n\n';
   }
+  md += '---\n\n';
   if (item.explanation) {
-    md += '> **释义** ' + item.explanation + '\n\n';
+    md += '> **释义**　' + item.explanation + '\n\n';
   }
   if (item.derivation) {
-    md += '> **出处** ' + item.derivation + '\n\n';
+    md += '> **出处**　' + item.derivation + '\n\n';
   }
   if (item.example) {
-    md += '> **例句** ' + item.example + '\n\n';
+    md += '> **例句**　' + item.example + '\n\n';
   }
   md += '---\n\n';
-  md += '*成语词典 · 解语珠玑*\n';
+  md += '*解语珠玑　·　成语词典*\n\n';
+  md += '*' + dateInfo.toMarkdownLine() + '*\n';
   return md;
 }
 
 export function buildPoemMarkdown(item: PoemItem): string {
   let md: string = '';
   let dateInfo: DateInfo = new DateInfo();
-  md += '> ' + dateInfo.toMarkdownLine() + '\n\n';
   md += '# **' + item.n + '**\n\n';
   let authorLine: string = '';
   if (item.a) {
@@ -82,18 +82,19 @@ export function buildPoemMarkdown(item: PoemItem): string {
   }
   md += item.c + '\n\n';
   md += '---\n\n';
-  md += '*诗词鉴赏 · 解语珠玑*\n';
+  md += '*诗词鉴赏 · 解语珠玑*\n\n';
+  md += '*' + dateInfo.toMarkdownLine() + '*\n';
   return md;
 }
 
 export function buildXiehouyuMarkdown(item: XiehouyuItem): string {
   let md: string = '';
   let dateInfo: DateInfo = new DateInfo();
-  md += '> ' + dateInfo.toMarkdownLine() + '\n\n';
   md += '# **' + item.riddle + '**\n\n';
   md += '***' + item.answer + '***\n\n';
   md += '---\n\n';
-  md += '*趣味歇后语 · 解语珠玑*\n';
+  md += '*趣味歇后语 · 解语珠玑*\n\n';
+  md += '*' + dateInfo.toMarkdownLine() + '*\n';
   return md;
 }
 
@@ -145,12 +146,12 @@ export async function saveImageToAlbum(uiContext: UIContext, cachePath: string, 
       }
       fs.closeSync(sourceFile);
       fs.closeSync(destFile);
-      uiContext.getPromptAction().showToast({ message: '已保存到相册', duration: 1500 });
+      uiContext.getPromptAction().showToast({ message: '已保存到相册', duration: 1000 });
     }
   } catch (e) {
     let err: BusinessError = e as BusinessError;
     console.error('[ShareUtil] saveToAlbum failed: ' + err.code + ' ' + err.message);
-    uiContext.getPromptAction().showToast({ message: '保存失败', duration: 1500 });
+    uiContext.getPromptAction().showToast({ message: '保存失败', duration: 2000 });
   }
 }
 
@@ -174,6 +175,6 @@ export function shareImageViaPanel(uiContext: UIContext, cachePath: string): voi
   } catch (e) {
     let err: BusinessError = e as BusinessError;
     console.error('[ShareUtil] shareViaPanel failed: ' + err.code + ' ' + err.message);
-    uiContext.getPromptAction().showToast({ message: '分享失败', duration: 1500 });
+    uiContext.getPromptAction().showToast({ message: '分享失败', duration: 2000 });
   }
 }

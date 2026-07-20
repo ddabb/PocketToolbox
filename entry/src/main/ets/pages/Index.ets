@@ -52,6 +52,7 @@ struct Index {
   @State dailyIdiomMeaning: string = '';
   @State dailyXiehouyu: string = '';
   @State dailyXiehouyuAnswer: string = '';
+  @State dailyPoemItem: PoemItem | null = null;
   @State favCount: number = 0;
   private poetryVm: PoetryViewModel = PoetryViewModel.getInstance();
   private idiomVm: IdiomViewModel = IdiomViewModel.getInstance();
@@ -61,7 +62,9 @@ struct Index {
     AppStorage.setOrCreate('AppNavPathStack', this.homeStack);
     AppStorage.setOrCreate('AppHostContext', this.getUIContext().getHostContext() as Context);
     AppStorage.setOrCreate('AppUIContext', this.getUIContext());
-    this.loadDailyContent();
+    setTimeout(() => {
+      this.loadDailyContent();
+    }, 0);
     this.loadFavCount();
   }
 
@@ -118,6 +121,7 @@ struct Index {
     this.dailyPoemTitle = poem.n;
     this.dailyPoemAuthor = detail.name + ' \u00B7 ' + detail.dynasty;
     this.dailyPoemContent = poem.c.length > 60 ? poem.c.substring(0, 60) + '...' : poem.c;
+    this.dailyPoemItem = poem;
     console.info('[Index] dailyPoem: ' + poem.n + ' by ' + detail.name);
   }
 
@@ -156,9 +160,9 @@ struct Index {
   @Builder
   PageMap(name: string, param: Object) {
     if (name === 'PoetryQueryPage') {
-      PoetryQueryPageBuilder()
+      PoetryQueryPageBuilder(param)
     } else if (name === 'IdiomQueryPage') {
-      IdiomQueryPageBuilder()
+      IdiomQueryPageBuilder(param)
     } else if (name === 'XiehouyuQueryPage') {
       XiehouyuQueryPageBuilder()
     } else if (name === 'PoetryDetailPage') {
@@ -353,7 +357,7 @@ struct Index {
               Text(this.favCount.toString())
                 .fontSize(22)
                 .fontWeight(FontWeight.Bold)
-                .fontColor('#e74c3c')
+                .fontColor($r('app.color.danger_red'))
               Text('收藏总数')
                 .fontSize(11)
                 .fontColor($r('app.color.tertiary_text'))
@@ -373,7 +377,7 @@ struct Index {
             Column() {
               Text('\u2665')
                 .fontSize(22)
-                .fontColor('#e74c3c')
+                .fontColor($r('app.color.danger_red'))
               Text('我的收藏')
                 .fontSize(11)
                 .fontColor($r('app.color.tertiary_text'))
@@ -557,7 +561,11 @@ struct Index {
     .borderRadius(12)
     .margin({ left: 16, right: 16, bottom: 8 })
     .onClick(() => {
-      this.homeStack.pushPathByName('PoetryQueryPage', null);
+      if (this.dailyPoemItem) {
+        this.homeStack.pushPathByName('PoemContentPage', this.dailyPoemItem);
+      } else {
+        this.homeStack.pushPathByName('PoetryQueryPage', null);
+      }
     })
   }
 
@@ -592,7 +600,7 @@ struct Index {
     .backgroundColor($r('app.color.idiom_card_bg'))
     .borderRadius(12)
     .onClick(() => {
-      this.homeStack.pushPathByName('IdiomQueryPage', null);
+      this.homeStack.pushPathByName('IdiomQueryPage', this.dailyIdiom);
     })
   }
 

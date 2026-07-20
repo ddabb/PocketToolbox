@@ -1,7 +1,8 @@
 import { XiehouyuViewModel } from '../viewmodel/XiehouyuViewModel';
 import { XiehouyuItem, XiehouyuCategory } from '../model/XiehouyuModels';
 import { ClipboardUtil } from '../common/utils/ClipboardUtil';
-import { FavoritesUtil, FavoriteItem } from '../common/utils/FavoritesUtil';
+import { preferences } from '@kit.ArkData';
+import { FavoritesUtil, FavoriteItem, FavoriteAddResult } from '../common/utils/FavoritesUtil';
 import { ErrorState } from '../components/ErrorState';
 import { ShareImageCard } from '../components/ShareImageCard';
 import { buildXiehouyuMarkdown } from '../common/utils/ShareImageUtil';
@@ -76,6 +77,7 @@ struct XiehouyuQueryContent {
   @State loading: boolean = true;
   @State hasError: boolean = false;
   @State searchQuery: string = '';
+  @State searchHistory: string[] = [];
   @State searchResults: XiehouyuItem[] = [];
   @State categories: XiehouyuCategory[] = [];
   @State activeCategory: string = '';
@@ -92,6 +94,7 @@ struct XiehouyuQueryContent {
   @State guessMsg: string = '';
   @State guessScore: number = 0;
   @State guessTotal: number = 0;
+  @State guessStreak: number = 0;
   @State detailItem: XiehouyuItem | null = null;
   @State isFav: boolean = false;
   @State showShareCard: boolean = false;
@@ -106,7 +109,10 @@ struct XiehouyuQueryContent {
   });
 
   aboutToAppear(): void {
-    this.loadData();
+    this.loadHistory();
+    setTimeout(() => {
+      this.loadData();
+    }, 0);
   }
 
   private loadData(): void {
@@ -129,14 +135,52 @@ struct XiehouyuQueryContent {
     }
   }
 
-  private doSearch(): void {
+  private doSearch(addHistory: boolean = true): void {
     let q: string = this.searchQuery.trim();
     if (!q) {
       this.searchResults = [];
       return;
     }
     this.searchResults = this.viewModel.search(q);
+    if (addHistory) {
+      this.addToHistory(q);
+    }
     console.info('[Xiehouyu] search q=' + q + ', results=' + this.searchResults.length.toString());
+  }
+
+  private loadHistory(): void {
+    try {
+      let prefs: preferences.Preferences = preferences.getPreferencesSync(
+        this.uiContext.getHostContext() as Context, { name: 'app_cache' });
+      let histStr: string = prefs.getSync('xiehouyu_query_history', '') as string;
+      if (histStr) {
+        this.searchHistory = JSON.parse(histStr) as string[];
+      }
+    } catch (e) {
+      this.searchHistory = [];
+    }
+  }
+
+  private saveHistory(): void {
+    try {
+      let prefs: preferences.Preferences = preferences.getPreferencesSync(
+        this.uiContext.getHostContext() as Context, { name: 'app_cache' });
+      prefs.putSync('xiehouyu_query_history', JSON.stringify(this.searchHistory));
+      prefs.flush();
+    } catch (e) {
+    }
+  }
+
+  private addToHistory(word: string): void {
+    let idx: number = this.searchHistory.indexOf(word);
+    if (idx >= 0) {
+      this.searchHistory.splice(idx, 1);
+    }
+    this.searchHistory.unshift(word);
+    if (this.searchHistory.length > 5) {
+      this.searchHistory = this.searchHistory.slice(0, 5);
+    }
+    this.saveHistory();
   }
 
   private onCategoryTap(key: string): void {
@@ -190,6 +234,11 @@ struct XiehouyuQueryContent {
       this.guessInput = '';
       this.guessMsg = '';
       this.revealAnswer = '';
+      if (this.activeTab === 'guess') {
+        setTimeout(() => {
+          this.getUIContext().getFocusController().requestFocus('guess_input');
+        }, 100);
+      }
     }
   }
 
@@ -204,8 +253,17 @@ struct XiehouyuQueryContent {
     this.guessTotal++;
     if (input === this.guessItem.answer || this.guessItem.answer.indexOf(input) >= 0 || input.indexOf(this.guessItem.answer) >= 0) {
       this.guessScore++;
-      this.guessMsg = '答对了！';
+      this.guessStreak++;
+      if (this.guessStreak >= 2) {
+        this.guessMsg = '答对了！连对 ' + this.guessStreak.toString() + ' 题';
+      } else {
+        this.guessMsg = '答对了！';
+      }
+      setTimeout(() => {
+        this.startNewGuess();
+      }, 1000);
     } else {
+      this.guessStreak = 0;
       this.guessMsg = '不对哦，答案是：' + this.guessItem.answer;
     }
   }
@@ -247,9 +305,13 @@ struct XiehouyuQueryContent {
       fav.title = item.riddle;
       fav.subtitle = item.answer;
       fav.data = JSON.stringify({ riddle: item.riddle, answer: item.answer });
-      FavoritesUtil.add(ctx, fav);
+      let res: FavoriteAddResult = FavoritesUtil.add(ctx, fav);
       this.isFav = true;
-      this.uiContext.getPromptAction().showToast({ message: '已收藏', duration: 1000 });
+      if (res.truncated) {
+        this.uiContext.getPromptAction().showToast({ message: '收藏已达上限，最早一条已移除', duration: 2000 });
+      } else {
+        this.uiContext.getPromptAction().showToast({ message: '已收藏', duration: 1000 });
+      }
     }
     FavoritesUtil.invalidateCache();
   }
@@ -351,6 +413,7 @@ struct XiehouyuQueryContent {
           .padding({ left: 16, right: 16 })
           .onChange((value: string) => {
             this.searchQuery = value;
+            this.doSearch(false);
           })
           .onSubmit(() => {
             this.doSearch();
@@ -369,6 +432,8 @@ struct XiehouyuQueryContent {
       }
       .width('100%')
       .padding({ left: 12, right: 12, top: 8, bottom: 4 })
+
+      this.HistorySection()
 
       if (this.searchResults.length > 0) {
         Row() {
@@ -456,6 +521,31 @@ struct XiehouyuQueryContent {
     }
     .width('100%')
     .layoutWeight(1)
+  }
+
+  @Builder
+  HistorySection() {
+    if (this.searchHistory.length > 0) {
+      Scroll() {
+        Row({ space: 6 }) {
+          ForEach(this.searchHistory, (word: string) => {
+            Text(word)
+              .fontSize(13)
+              .fontColor($r('app.color.idiom_orange'))
+              .backgroundColor($r('app.color.idiom_orange') + '18')
+              .borderRadius(10)
+              .padding({ left: 10, right: 10, top: 3, bottom: 3 })
+              .onClick(() => {
+                this.searchQuery = word;
+                this.doSearch();
+              })
+          }, (word: string) => word)
+        }
+      }
+      .scrollable(ScrollDirection.Horizontal)
+      .width('100%')
+      .padding({ left: 12, right: 12, top: 2, bottom: 4 })
+    }
   }
 
   @Builder
@@ -639,6 +729,7 @@ struct XiehouyuQueryContent {
 
           Row() {
             TextInput({ placeholder: '输入你的答案...', text: this.guessInput })
+              .id('guess_input')
               .layoutWeight(1)
               .height(40)
               .fontSize(16)
@@ -704,7 +795,7 @@ struct XiehouyuQueryContent {
           if (this.guessMsg) {
             Text(this.guessMsg)
               .fontSize(16)
-              .fontColor(this.guessMsg.indexOf('对了') >= 0 ? '#2d7d46' : '#e74c3c')
+              .fontColor(this.guessMsg.indexOf('对了') >= 0 ? $r('app.color.success_green') : $r('app.color.error_red'))
               .fontWeight(FontWeight.Medium)
               .margin({ top: 16 })
           }
@@ -741,9 +832,13 @@ struct XiehouyuDetailModal {
       fav.title = this.detailItem!.riddle;
       fav.subtitle = this.detailItem!.answer;
       fav.data = JSON.stringify({ riddle: this.detailItem!.riddle, answer: this.detailItem!.answer });
-      FavoritesUtil.add(ctx, fav);
+      let res: FavoriteAddResult = FavoritesUtil.add(ctx, fav);
       this.isFav = true;
-      this.uiContext.getPromptAction().showToast({ message: '已收藏', duration: 1000 });
+      if (res.truncated) {
+        this.uiContext.getPromptAction().showToast({ message: '收藏已达上限，最早一条已移除', duration: 2000 });
+      } else {
+        this.uiContext.getPromptAction().showToast({ message: '已收藏', duration: 1000 });
+      }
     }
     FavoritesUtil.invalidateCache();
   }
@@ -827,15 +922,16 @@ struct XiehouyuDetailModal {
                   this.uiContext.getPromptAction().showToast({ message: '已复制到剪贴板', duration: 1000 });
                 })
 
-              Text('图片')
+              Text('分享图片')
                 .fontSize(14)
                 .fontColor('#ffffff')
                 .backgroundColor($r('app.color.idiom_orange'))
                 .borderRadius(12)
                 .padding({ left: 16, right: 16, top: 8, bottom: 8 })
                 .onClick(() => {
+                  this.modalShowShare = false;
                   this.modalShareMd = buildXiehouyuMarkdown(this.detailItem!);
-                  this.modalShowShare = !this.modalShowShare;
+                  this.modalShowShare = true;
                 })
             }
             .width('100%')
@@ -847,9 +943,13 @@ struct XiehouyuDetailModal {
                 accentColor: '#e67e22',
                 bgColor: '#fffbf0',
                 cardId: 'xiehouyu_share_card',
-                theme: Md2PngTemplates.getXiehouyuTemplate()
+                theme: Md2PngTemplates.getXiehouyuTemplate(),
+                autoShare: true,
+                onAutoShared: () => {
+                  this.modalShowShare = false;
+                }
               })
-                .margin({ top: 12 })
+                .position({ x: -10000, y: 0 })
             }
           }
           .padding({ left: 20, right: 20, bottom: 20 })

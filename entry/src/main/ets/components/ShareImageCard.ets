@@ -12,13 +12,17 @@ export struct ShareImageCard {
   @Prop bgColor: string = '#ffffff';
   @Prop cardId: string = 'share_card';
   @Prop theme: ShareTemplateInfo | null = null;
+  @Prop autoShare: boolean = false;
+  onAutoShared: () => void = () => {};
   @State isGenerating: boolean = false;
   @State generatedImageUri: string = '';
   @State resolvedBgColor: string = '#ffffff';
   @State resolvedAccentColor: string = '#3182ce';
   @State cardWidth: number = 360;
-  @State cardHeight: number = 640;
+  @State @Watch('onCardHeightChange') cardHeight: number = 0;
   @State decorPattern: string = '';
+  private readonly minCardHeight: number = 320;
+  private canvasReady: boolean = false;
   private mdController: MarkdownController = new MarkdownController();
   private decorCanvasCtx: CanvasRenderingContext2D = new CanvasRenderingContext2D(new RenderingContextSettings(true));
 
@@ -26,6 +30,11 @@ export struct ShareImageCard {
     this.resolveTheme();
     this.applyStyle();
     this.calcCardSize();
+    if (this.autoShare) {
+      setTimeout(() => {
+        this.doGenerateAndShare();
+      }, 700);
+    }
   }
 
   private resolveTheme(): void {
@@ -96,11 +105,23 @@ export struct ShareImageCard {
       let disp: display.Display = display.getDefaultDisplaySync();
       let density: number = disp.densityPixels;
       this.cardWidth = Math.floor(disp.width / density);
-      this.cardHeight = Math.floor(disp.height / density);
     } catch (e) {
       this.cardWidth = 360;
-      this.cardHeight = 780;
     }
+    if (this.cardHeight <= 0) {
+      this.cardHeight = this.minCardHeight;
+    }
+  }
+
+  private redrawDecor(): void {
+    if (!this.canvasReady) {
+      return;
+    }
+    DecorPatternUtil.draw(this.decorCanvasCtx, this.cardWidth, this.cardHeight, this.resolvedAccentColor, this.decorPattern);
+  }
+
+  private onCardHeightChange(): void {
+    this.redrawDecor();
   }
 
   async doGenerate(): Promise<void> {
@@ -108,13 +129,30 @@ export struct ShareImageCard {
     try {
       let uiCtx: UIContext = this.getUIContext();
       this.generatedImageUri = await generateShareImage(uiCtx, this.cardId, 'share');
-      uiCtx.getPromptAction().showToast({ message: '图片已生成', duration: 1500 });
+      uiCtx.getPromptAction().showToast({ message: '图片已生成', duration: 1000 });
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[ShareCard] generate failed: ' + err.message);
       this.getUIContext().getPromptAction().showToast({ message: '生成失败', duration: 2000 });
     }
     this.isGenerating = false;
+  }
+
+  async doGenerateAndShare(): Promise<void> {
+    this.isGenerating = true;
+    try {
+      let uiCtx: UIContext = this.getUIContext();
+      this.generatedImageUri = await generateShareImage(uiCtx, this.cardId, 'share');
+      if (this.generatedImageUri) {
+        shareImageViaPanel(uiCtx, this.generatedImageUri);
+      }
+    } catch (e) {
+      let err: BusinessError = e as BusinessError;
+      console.error('[ShareCard] generateAndShare failed: ' + err.message);
+      this.getUIContext().getPromptAction().showToast({ message: '生成失败', duration: 2000 });
+    }
+    this.isGenerating = false;
+    this.onAutoShared();
   }
 
   async doSave(): Promise<void> {
@@ -126,7 +164,7 @@ export struct ShareImageCard {
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[ShareCard] save failed: ' + err.message);
-      this.getUIContext().getPromptAction().showToast({ message: '保存失败', duration: 1500 });
+      this.getUIContext().getPromptAction().showToast({ message: '保存失败', duration: 2000 });
     }
   }
 
@@ -140,6 +178,15 @@ export struct ShareImageCard {
   build() {
     Column() {
       Stack() {
+        Canvas(this.decorCanvasCtx)
+          .width(this.cardWidth)
+          .height(this.cardHeight)
+          .hitTestBehavior(HitTestMode.Transparent)
+          .onReady(() => {
+            this.canvasReady = true;
+            this.redrawDecor();
+          })
+
         Column() {
           Column() {
             Markdown({ controller: this.mdController, text: this.mdText })
@@ -149,20 +196,21 @@ export struct ShareImageCard {
           .padding({ left: 24, right: 24, top: 20, bottom: 20 })
         }
         .width(this.cardWidth)
-        .height(this.cardHeight)
-        .justifyContent(FlexAlign.Start)
         .padding({ top: 40, bottom: 40 })
-
-        Canvas(this.decorCanvasCtx)
-          .width(this.cardWidth)
-          .height(this.cardHeight)
-          .onReady(() => {
-            DecorPatternUtil.draw(this.decorCanvasCtx, this.cardWidth, this.cardHeight, this.resolvedAccentColor, this.decorPattern);
-          })
+        .onAreaChange((_oldValue: Area, newValue: Area) => {
+          let contentH: number = newValue.height as number;
+          if (contentH < this.minCardHeight) {
+            contentH = this.minCardHeight;
+          }
+          if (Math.abs(contentH - this.cardHeight) > 1) {
+            this.cardHeight = contentH;
+          }
+        })
       }
       .width(this.cardWidth)
-      .height(this.cardHeight)
+      .constraintSize({ minHeight: this.cardHeight })
       .backgroundColor(this.resolvedBgColor)
+      .clip(true)
       .id(this.cardId)
 
       if (this.generatedImageUri) {
@@ -197,13 +245,13 @@ export struct ShareImageCard {
               this.doShare();
             })
 
-          Text('保存到相册')
+          Text('保存图片')
             .fontSize(13)
             .fontColor(this.resolvedAccentColor)
             .backgroundColor(Color.Transparent)
             .border({ width: 1, color: this.resolvedAccentColor, style: BorderStyle.Solid })
             .borderRadius(16)
-            .padding({ left: 16, right: 16, top: 6, bottom: 6 })
+            .padding({ left: 24, right: 24, top: 6, bottom: 6 })
             .onClick(() => {
               this.doSave();
             })

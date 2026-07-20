@@ -27,6 +27,8 @@ export class DecorPatternUtil {
       DecorPatternUtil.drawVine(ctx, w, h, accent);
     } else if (pattern === 'snow') {
       DecorPatternUtil.drawSnow(ctx, w, h, accent);
+    } else if (pattern === 'seal') {
+      DecorPatternUtil.drawSeal(ctx, w, h, accent);
     }
   }
 
@@ -506,5 +508,74 @@ export class DecorPatternUtil {
       ctx.fill();
     }
     ctx.globalAlpha = 1;
+  }
+
+  static drawSeal(ctx: CanvasRenderingContext2D, w: number, h: number, accent: string): void {
+    let m: number = 14;
+    ctx.globalAlpha = 0.42;
+    ctx.strokeStyle = accent;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(m, m, w - 2 * m, h - 2 * m);
+    ctx.globalAlpha = 0.2;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(m + 4, m + 4, w - 2 * (m + 4), h - 2 * (m + 4));
+
+    ctx.globalAlpha = 0.5;
+    DecorPatternUtil.drawPlum(ctx, m + 6, m + 6, accent);
+    DecorPatternUtil.drawPlum(ctx, w - m - 6, m + 6, accent);
+    DecorPatternUtil.drawPlum(ctx, m + 6, h - m - 6, accent);
+    DecorPatternUtil.drawPlum(ctx, w - m - 6, h - m - 6, accent);
+
+    DecorPatternUtil.drawSealStamp(ctx, w - 70, 44, 46, accent);
+    ctx.globalAlpha = 1;
+  }
+
+  static drawPlum(ctx: CanvasRenderingContext2D, x: number, y: number, accent: string): void {
+    ctx.save();
+    ctx.globalAlpha = 0.55;
+    ctx.fillStyle = accent;
+    let r: number = 3.0;
+    let petals: number = 5;
+    for (let i = 0; i < petals; i++) {
+      let ang: number = (Math.PI * 2 / petals) * i - Math.PI / 2;
+      let px: number = x + Math.cos(ang) * r * 1.7;
+      let py: number = y + Math.sin(ang) * r * 1.7;
+      ctx.beginPath();
+      ctx.arc(px, py, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.beginPath();
+    ctx.arc(x, y, r * 0.7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  static drawSealStamp(ctx: CanvasRenderingContext2D, x: number, y: number, size: number, accent: string): void {
+    ctx.save();
+    ctx.globalAlpha = 0.92;
+    ctx.fillStyle = accent;
+    let r: number = 6;
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + size, y, x + size, y + size, r);
+    ctx.arcTo(x + size, y + size, x, y + size, r);
+    ctx.arcTo(x, y + size, x, y, r);
+    ctx.arcTo(x, y, x + size, y, r);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.globalAlpha = 0.85;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(x + 4, y + 4, size - 8, size - 8);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 17px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    let cx: number = x + size / 2;
+    ctx.fillText('解', cx, y + size * 0.3);
+    ctx.fillText('语', cx, y + size * 0.72);
+    ctx.restore();
   }
 }

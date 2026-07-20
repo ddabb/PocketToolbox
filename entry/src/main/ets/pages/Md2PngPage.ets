@@ -100,17 +100,27 @@ struct Md2PngContent {
   @State isGenerating: boolean = false;
   @State currentAccentColor: string = '#3182ce';
   @State cardWidth: number = 360;
-  @State cardHeight: number = 640;
+  @State cardHeights: number[] = [];
+  private readonly minMdCardHeight: number = 200;
+  private readonly maxInputLength: number = 20000;
   private templates: TemplateInfo[] = Md2PngTemplates.getAll();
   private controllerStore: MdControllerStore = new MdControllerStore();
   private canvasStore: MdCanvasStore = new MdCanvasStore();
   private swiperController: SwiperController = new SwiperController();
+  private regenerateTimer: number = -1;
+  private readonly markdownExample: string = '# 欢迎使用文字转图片\n\n输入 **Markdown** 或普通文本，选择喜欢的模板，一键生成精美图片！\n\n## 功能特点\n\n- 支持多种精美模板\n- 支持Markdown语法\n- 一键保存到相册\n\n> 让文字更有表现力\n\n`代码片段` 也能高亮显示';
+  private readonly textExample: string = '今天天气真好，阳光明媚，微风不燥。\n出门走走，看花开花落，心情格外舒畅。\n把生活里的美好，藏进最平凡的句子。';
 
   aboutToAppear(): void {
-    this.inputText = '# 欢迎使用文字转图片\n\n输入 **Markdown** 或普通文本，选择喜欢的模板，一键生成精美图片！\n\n## 功能特点\n\n- 支持多种精美模板\n- 支持Markdown语法\n- 一键保存到相册\n\n> 让文字更有表现力\n\n`代码片段` 也能高亮显示';
+    this.inputText = '';
     this.currentAccentColor = this.templates[this.currentTemplateIndex].accentColor;
     this.initAllControllers();
     this.calcCardSize();
+    let heights: number[] = [];
+    for (let i: number = 0; i < this.templates.length; i++) {
+      heights.push(this.minMdCardHeight);
+    }
+    this.cardHeights = heights;
   }
 
   private initAllControllers(): void {
@@ -123,12 +133,28 @@ struct Md2PngContent {
     try {
       let disp: display.Display = display.getDefaultDisplaySync();
       let density: number = disp.densityPixels;
-      this.cardWidth = Math.floor(disp.width / density);
-      this.cardHeight = Math.floor(disp.height / density);
+      // 预留预览容器左右各 16vp 的内边距，避免卡片横向超出屏幕
+      this.cardWidth = Math.floor(disp.width / density) - 32;
     } catch (e) {
-      this.cardWidth = 360;
-      this.cardHeight = 780;
+      this.cardWidth = 328;
     }
+  }
+
+  private getCardHeight(index: number): number {
+    if (index >= 0 && index < this.cardHeights.length) {
+      return this.cardHeights[index];
+    }
+    return this.minMdCardHeight;
+  }
+
+  private getMaxCardHeight(): number {
+    let maxH: number = this.minMdCardHeight;
+    for (let i = 0; i < this.cardHeights.length; i++) {
+      if (this.cardHeights[i] > maxH) {
+        maxH = this.cardHeights[i];
+      }
+    }
+    return maxH;
   }
 
   private async pasteFromClipboard(): Promise<void> {
@@ -138,8 +164,13 @@ struct Md2PngContent {
       if (pasteData.getPrimaryMimeType() === pasteboard.MIMETYPE_TEXT_PLAIN) {
         let text: string = pasteData.getPrimaryText();
         if (text) {
+          if (text.length > this.maxInputLength) {
+            text = text.substring(0, this.maxInputLength);
+            this.getUIContext().getPromptAction().showToast({ message: '已粘贴（超出 ' + this.maxInputLength.toString() + ' 字符部分已截断）', duration: 2000 });
+          } else {
+            this.getUIContext().getPromptAction().showToast({ message: '已粘贴', duration: 1000 });
+          }
           this.inputText = text;
-          this.getUIContext().getPromptAction().showToast({ message: '已粘贴', duration: 1000 });
         }
       }
     } catch (e) {
@@ -147,7 +178,32 @@ struct Md2PngContent {
     }
   }
 
+  private fillMarkdownExample(): void {
+    this.inputText = this.markdownExample;
+    this.scheduleRegenerate();
+    this.getUIContext().getPromptAction().showToast({ message: '已填入 Markdown 示例', duration: 1000 });
+  }
+
+  private fillTextExample(): void {
+    this.inputText = this.textExample;
+    this.scheduleRegenerate();
+    this.getUIContext().getPromptAction().showToast({ message: '已填入文本示例', duration: 1000 });
+  }
+
+  private scheduleRegenerate(): void {
+    if (this.regenerateTimer !== -1) {
+      clearTimeout(this.regenerateTimer);
+    }
+    this.regenerateTimer = setTimeout(() => {
+      this.generateImage();
+    }, 800);
+  }
+
   private async generateImage(): Promise<void> {
+    if (!this.inputText || this.inputText.trim().length === 0) {
+      this.generatedImageUri = '';
+      return;
+    }
     this.isGenerating = true;
     try {
       let uiCtx: UIContext = this.getUIContext();
@@ -171,7 +227,6 @@ struct Md2PngContent {
       this.generatedImageUri = filePath;
       packer.release();
       pixelMap.release();
-      uiCtx.getPromptAction().showToast({ message: '图片已生成，点击保存到相册', duration: 1500 });
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[Md2Png] generate failed: ' + err.message);
@@ -211,12 +266,12 @@ struct Md2PngContent {
         }
         fs.closeSync(sourceFile);
         fs.closeSync(destFile);
-        uiCtx.getPromptAction().showToast({ message: '已保存到相册', duration: 1500 });
+        uiCtx.getPromptAction().showToast({ message: '已保存到相册', duration: 1000 });
       }
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[Md2Png] save failed: ' + err.message);
-      this.getUIContext().getPromptAction().showToast({ message: '保存失败', duration: 1500 });
+      this.getUIContext().getPromptAction().showToast({ message: '保存失败', duration: 2000 });
     }
   }
 
@@ -229,18 +284,24 @@ struct Md2PngContent {
 
   build() {
     Column() {
-      Scroll() {
-        Column() {
-          this.InputSection()
-          this.PreviewSwiper()
-          this.ActionButtons()
+      this.InputSection()
+
+      Column() {
+        Scroll() {
+          Column() {
+            this.PreviewSwiper()
+            this.ActionButtons()
+          }
+          .width('100%')
         }
         .width('100%')
-        .padding({ left: 16, right: 16, bottom: 16 })
+        .layoutWeight(1)
+        .scrollable(ScrollDirection.Vertical)
+        .align(Alignment.Top)
       }
       .width('100%')
       .layoutWeight(1)
-      .scrollable(ScrollDirection.Vertical)
+      .padding({ left: 16, right: 16, bottom: 16 })
     }
     .width('100%')
     .height('100%')
@@ -256,6 +317,28 @@ struct Md2PngContent {
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.primary_text'))
         Blank()
+        Text('Markdown示例')
+          .fontSize(12)
+          .fontColor($r('app.color.idiom_blue'))
+          .backgroundColor($r('app.color.idiom_blue') + '18')
+          .borderRadius(8)
+          .padding({ left: 8, right: 8, top: 2, bottom: 2 })
+          .margin({ right: 8 })
+          .onClick(() => {
+            this.fillMarkdownExample();
+          })
+
+        Text('文本示例')
+          .fontSize(12)
+          .fontColor($r('app.color.idiom_blue'))
+          .backgroundColor($r('app.color.idiom_blue') + '18')
+          .borderRadius(8)
+          .padding({ left: 8, right: 8, top: 2, bottom: 2 })
+          .margin({ right: 8 })
+          .onClick(() => {
+            this.fillTextExample();
+          })
+
         Text('粘贴')
           .fontSize(12)
           .fontColor($r('app.color.idiom_blue'))
@@ -269,20 +352,44 @@ struct Md2PngContent {
       .width('100%')
       .margin({ bottom: 8 })
 
-      TextArea({ text: $$this.inputText, placeholder: '输入Markdown或普通文本...' })
-        .width('100%')
-        .height(140)
-        .fontSize(14)
-        .fontColor($r('app.color.primary_text'))
-        .backgroundColor($r('app.color.card_background'))
-        .borderRadius(12)
-        .padding(12)
-        .onChange((value: string) => {
-          this.inputText = value;
-        })
+      Scroll() {
+        TextArea({ text: $$this.inputText, placeholder: '输入Markdown或普通文本...' })
+          .width('100%')
+          .height(140)
+          .fontSize(14)
+          .maxLength(this.maxInputLength)
+          .fontColor($r('app.color.primary_text'))
+          .backgroundColor($r('app.color.card_background'))
+          .borderRadius(12)
+          .padding(12)
+          .onChange((value: string) => {
+            let text: string = value;
+            if (text.length > this.maxInputLength) {
+              text = text.substring(0, this.maxInputLength);
+              this.getUIContext().getPromptAction()
+                .showToast({ message: '最多输入 ' + this.maxInputLength.toString() + ' 字符', duration: 1500 });
+            }
+            this.inputText = text;
+            this.scheduleRegenerate();
+          })
+      }
+      .width('100%')
+      .scrollable(ScrollDirection.Vertical)
+      .scrollBar(BarState.Auto)
+      .edgeEffect(EdgeEffect.Fade)
+
+      Row() {
+        Blank()
+        Text(this.inputText.length.toString() + ' / ' + this.maxInputLength.toString())
+          .fontSize(12)
+          .fontColor($r('app.color.tertiary_text'))
+      }
+      .width('100%')
+      .margin({ top: 4 })
     }
     .width('100%')
-    .margin({ top: 12 })
+    .padding({ left: 16, right: 16, top: 8, bottom: 16 })
+    .backgroundColor($r('app.color.page_background'))
   }
 
   @Builder
@@ -305,25 +412,36 @@ struct Md2PngContent {
         ForEach(this.templates, (tpl: TemplateInfo, index: number) => {
           Column() {
             Stack() {
+              Canvas(this.canvasStore.get(index))
+                .width(this.cardWidth)
+                .height(this.getCardHeight(index))
+                .hitTestBehavior(HitTestMode.Transparent)
+                .onReady(() => {
+                  DecorPatternUtil.draw(this.canvasStore.get(index), this.cardWidth, this.getCardHeight(index), tpl.accentColor, tpl.decorPattern);
+                })
+
               Column() {
                 Markdown({ controller: this.controllerStore.get(index), text: this.inputText })
                   .width('100%')
               }
               .width('100%')
               .padding({ left: 20, right: 20, top: 16, bottom: 16 })
-
-              Canvas(this.canvasStore.get(index))
-                .width(this.cardWidth)
-                .height(320)
-                .onReady(() => {
-                  if (!this.canvasStore.isDrawn(index)) {
-                    DecorPatternUtil.draw(this.canvasStore.get(index), this.cardWidth, 320, tpl.accentColor, tpl.decorPattern);
-                    this.canvasStore.markDrawn(index);
+              .onAreaChange((_oldValue: Area, newValue: Area) => {
+                let contentH: number = newValue.height as number;
+                if (contentH < this.minMdCardHeight) {
+                  contentH = this.minMdCardHeight;
+                }
+                if (index >= 0 && index < this.cardHeights.length) {
+                  if (Math.abs(this.cardHeights[index] - contentH) > 1) {
+                    let newArr: number[] = this.cardHeights.slice();
+                    newArr[index] = contentH;
+                    this.cardHeights = newArr;
                   }
-                })
+                }
+              })
             }
             .width(this.cardWidth)
-            .height(320)
+            .constraintSize({ minHeight: this.getCardHeight(index) })
             .backgroundColor(tpl.bgColor)
             .borderRadius(16)
             .clip(true)
@@ -360,6 +478,8 @@ struct Md2PngContent {
       .onChange((index: number) => {
         this.currentTemplateIndex = index;
         this.currentAccentColor = this.templates[index].accentColor;
+        this.generatedImageUri = '';
+        this.scheduleRegenerate();
       })
     }
     .width('100%')
@@ -368,76 +488,62 @@ struct Md2PngContent {
   @Builder
   ActionButtons() {
     Column() {
-      if (this.generatedImageUri) {
-        Row() {
-          Text('生成结果')
-            .fontSize(15)
-            .fontWeight(FontWeight.Bold)
-            .fontColor($r('app.color.primary_text'))
-        }
-        .width('100%')
-        .margin({ top: 16, bottom: 8 })
-
-        Image(this.generatedImageUri)
-          .width('100%')
-          .borderRadius(12)
-          .objectFit(ImageFit.Contain)
-          .backgroundColor($r('app.color.card_background'))
-          .margin({ bottom: 8 })
-      }
-
-      Row({ space: 10 }) {
-        Button(this.isGenerating ? '生成中...' : '生成图片')
+      Row() {
+        Text('生成结果')
           .fontSize(15)
           .fontWeight(FontWeight.Bold)
-          .fontColor(Color.White)
-          .backgroundColor(this.currentAccentColor)
+          .fontColor($r('app.color.primary_text'))
+      }
+      .width('100%')
+      .margin({ top: 16, bottom: 8 })
+      .visibility(this.generatedImageUri ? Visibility.Visible : Visibility.Hidden)
+
+      Image(this.generatedImageUri)
+        .width('100%')
+        .borderRadius(12)
+        .objectFit(ImageFit.Contain)
+        .backgroundColor($r('app.color.card_background'))
+        .margin({ bottom: 8 })
+        .visibility(this.generatedImageUri ? Visibility.Visible : Visibility.Hidden)
+
+      Row({ space: 10 }) {
+        Button('分享')
+          .fontSize(15)
+          .fontWeight(FontWeight.Bold)
+          .fontColor(this.currentAccentColor)
+          .backgroundColor(Color.Transparent)
+          .border({
+            width: 1,
+            color: this.currentAccentColor,
+            style: BorderStyle.Solid
+          })
           .borderRadius(22)
           .height(44)
           .layoutWeight(1)
-          .enabled(!this.isGenerating)
           .onClick(() => {
-            this.generateImage();
+            this.doShare();
           })
 
-        if (this.generatedImageUri) {
-          Button('分享')
-            .fontSize(15)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(this.currentAccentColor)
-            .backgroundColor(Color.Transparent)
-            .border({
-              width: 1,
-              color: this.currentAccentColor,
-              style: BorderStyle.Solid
-            })
-            .borderRadius(22)
-            .height(44)
-            .layoutWeight(1)
-            .onClick(() => {
-              this.doShare();
-            })
-
-          Button('保存到相册')
-            .fontSize(15)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(this.currentAccentColor)
-            .backgroundColor(Color.Transparent)
-            .border({
-              width: 1,
-              color: this.currentAccentColor,
-              style: BorderStyle.Solid
-            })
-            .borderRadius(22)
-            .height(44)
-            .layoutWeight(1)
-            .onClick(() => {
-              this.saveToAlbum();
-            })
-        }
+        Button('保存到相册')
+          .fontSize(15)
+          .fontWeight(FontWeight.Bold)
+          .fontColor(this.currentAccentColor)
+          .backgroundColor(Color.Transparent)
+          .border({
+            width: 1,
+            color: this.currentAccentColor,
+            style: BorderStyle.Solid
+          })
+          .borderRadius(22)
+          .height(44)
+          .layoutWeight(1)
+          .onClick(() => {
+            this.saveToAlbum();
+          })
       }
       .width('100%')
       .margin({ top: 12 })
+      .visibility(this.generatedImageUri ? Visibility.Visible : Visibility.Hidden)
     }
     .width('100%')
   }

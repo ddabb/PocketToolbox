@@ -53,8 +53,8 @@ struct FavoritesContent {
       title: '确认删除',
       message: '确定要取消收藏「' + item.title + '」吗？',
       buttons: [
-        { text: '取消', color: '#999999' },
-        { text: '删除', color: '#e74c3c' }
+        { text: '取消', color: $r('app.color.tertiary_text') },
+        { text: '删除', color: $r('app.color.danger_red') }
       ]
     }).then((result: promptAction.ShowDialogSuccessResponse) => {
       if (result.index === 1) {

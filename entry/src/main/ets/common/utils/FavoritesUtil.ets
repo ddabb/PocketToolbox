@@ -9,8 +9,14 @@ export class FavoriteItem {
   timestamp: number = 0;
 }
 
+export interface FavoriteAddResult {
+  added: boolean;
+  truncated: boolean;
+}
+
 export class FavoritesUtil {
   private static readonly PREFS_NAME: string = 'app_cache';
+  private static readonly MAX_FAVORITES: number = 200;
   private static readonly FAVORITES_KEY: string = 'user_favorites';
   private static cachedItems: FavoriteItem[] | null = null;
   private static cachedKeySet: Set<string> | null = null;
@@ -86,21 +92,23 @@ export class FavoritesUtil {
     }
   }
 
-  static add(context: Context, item: FavoriteItem): boolean {
+  static add(context: Context, item: FavoriteItem): FavoriteAddResult {
     let items: FavoriteItem[] = FavoritesUtil.load(context);
     let key: string = FavoritesUtil.buildKey(item.type, item.title);
     if (FavoritesUtil.cachedKeySet && FavoritesUtil.cachedKeySet.has(key)) {
       console.info('[Favorites] already exists: ' + item.title);
-      return false;
+      return { added: false, truncated: false };
     }
     item.timestamp = Date.now();
     items.unshift(item);
-    if (items.length > 200) {
-      items = items.slice(0, 200);
+    let truncated: boolean = false;
+    if (items.length > FavoritesUtil.MAX_FAVORITES) {
+      items = items.slice(0, FavoritesUtil.MAX_FAVORITES);
+      truncated = true;
     }
     FavoritesUtil.save(context, items);
-    console.info('[Favorites] added: type=' + item.type + ', title=' + item.title);
-    return true;
+    console.info('[Favorites] added: type=' + item.type + ', title=' + item.title + ', truncated=' + truncated.toString());
+    return { added: true, truncated: truncated };
   }
 
   static remove(context: Context, type: string, title: string): void {
