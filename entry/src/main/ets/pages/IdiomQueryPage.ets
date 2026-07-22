@@ -91,7 +91,7 @@ struct IdiomQueryContent {
         let ctx: Context = this.uiContext.getHostContext() as Context;
         // 录入拼音搜索：把当日成语转为拼音查询串并触发查询（查询效果）
         this.activeTab = 'pinyin';
-        this.pinyinQuery = this.viewModel.getPinyinSearchQuery(this.initialWord, ctx);
+        this.pinyinQuery = this.initialWord;
         this.doPinyinSearch();
         // 模拟结果点击：直接打开当日成语的详情弹窗
         let detail: IdiomDetailItem | null = this.viewModel.findIdiomDetail(ctx, this.initialWord);

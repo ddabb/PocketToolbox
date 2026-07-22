@@ -1,0 +1,195 @@
+{
+  "regions": [
+    {
+      "name": "中国",
+      "cities": [
+        {"city":"北京","zone":"Asia/Shanghai","offset":8,"country":"中国","abbr":"CST","lat":39.91,"lng":116.40},
+        {"city":"上海","zone":"Asia/Shanghai","offset":8,"country":"中国","abbr":"CST","lat":31.23,"lng":121.47},
+        {"city":"广州","zone":"Asia/Shanghai","offset":8,"country":"中国","abbr":"CST","lat":23.13,"lng":113.26},
+        {"city":"深圳","zone":"Asia/Shanghai","offset":8,"country":"中国","abbr":"CST","lat":22.55,"lng":114.07},
+        {"city":"成都","zone":"Asia/Shanghai","offset":8,"country":"中国","abbr":"CST","lat":30.57,"lng":104.07},
+        {"city":"武汉","zone":"Asia/Shanghai","offset":8,"country":"中国","abbr":"CST","lat":30.59,"lng":114.31},
+        {"city":"杭州","zone":"Asia/Shanghai","offset":8,"country":"中国","abbr":"CST","lat":30.27,"lng":120.15},
+        {"city":"南京","zone":"Asia/Shanghai","offset":8,"country":"中国","abbr":"CST","lat":32.06,"lng":118.80},
+        {"city":"重庆","zone":"Asia/Shanghai","offset":8,"country":"中国","abbr":"CST","lat":29.56,"lng":106.55},
+        {"city":"西安","zone":"Asia/Shanghai","offset":8,"country":"中国","abbr":"CST","lat":34.26,"lng":108.94},
+        {"city":"香港","zone":"Asia/Hong_Kong","offset":8,"country":"中国香港","abbr":"HKT","lat":22.28,"lng":114.17},
+        {"city":"台北","zone":"Asia/Taipei","offset":8,"country":"中国台湾","abbr":"CST","lat":25.03,"lng":121.57},
+        {"city":"澳门","zone":"Asia/Macau","offset":8,"country":"中国澳门","abbr":"CST","lat":22.20,"lng":113.55}
+      ]
+    },
+    {
+      "name": "日韩",
+      "cities": [
+        {"city":"东京","zone":"Asia/Tokyo","offset":9,"country":"日本","abbr":"JST","lat":35.68,"lng":139.69},
+        {"city":"大阪","zone":"Asia/Tokyo","offset":9,"country":"日本","abbr":"JST","lat":34.69,"lng":135.50},
+        {"city":"首尔","zone":"Asia/Seoul","offset":9,"country":"韩国","abbr":"KST","lat":37.57,"lng":126.98},
+        {"city":"釜山","zone":"Asia/Seoul","offset":9,"country":"韩国","abbr":"KST","lat":35.18,"lng":129.08}
+      ]
+    },
+    {
+      "name": "东南亚",
+      "cities": [
+        {"city":"新加坡","zone":"Asia/Singapore","offset":8,"country":"新加坡","abbr":"SGT","lat":1.35,"lng":103.82},
+        {"city":"曼谷","zone":"Asia/Bangkok","offset":7,"country":"泰国","abbr":"ICT","lat":13.76,"lng":100.50},
+        {"city":"吉隆坡","zone":"Asia/Kuala_Lumpur","offset":8,"country":"马来西亚","abbr":"MYT","lat":3.14,"lng":101.69},
+        {"city":"雅加达","zone":"Asia/Jakarta","offset":7,"country":"印尼","abbr":"WIB","lat":-6.21,"lng":106.85},
+        {"city":"马尼拉","zone":"Asia/Manila","offset":8,"country":"菲律宾","abbr":"PHT","lat":14.60,"lng":120.98},
+        {"city":"河内","zone":"Asia/Bangkok","offset":7,"country":"越南","abbr":"ICT","lat":21.03,"lng":105.85},
+        {"city":"胡志明市","zone":"Asia/Ho_Chi_Minh","offset":7,"country":"越南","abbr":"ICT","lat":10.82,"lng":106.63},
+        {"city":"金边","zone":"Asia/Phnom_Penh","offset":7,"country":"柬埔寨","abbr":"ICT","lat":11.56,"lng":104.92},
+        {"city":"仰光","zone":"Asia/Yangon","offset":6.5,"country":"缅甸","abbr":"MMT","lat":16.87,"lng":96.20}
+      ]
+    },
+    {
+      "name": "南亚",
+      "cities": [
+        {"city":"新德里","zone":"Asia/Kolkata","offset":5.5,"country":"印度","abbr":"IST","lat":28.61,"lng":77.21},
+        {"city":"孟买","zone":"Asia/Kolkata","offset":5.5,"country":"印度","abbr":"IST","lat":19.08,"lng":72.88},
+        {"city":"加尔各答","zone":"Asia/Kolkata","offset":5.5,"country":"印度","abbr":"IST","lat":22.57,"lng":88.36},
+        {"city":"达卡","zone":"Asia/Dhaka","offset":6,"country":"孟加拉","abbr":"BST","lat":23.81,"lng":90.41},
+        {"city":"科伦坡","zone":"Asia/Colombo","offset":5.5,"country":"斯里兰卡","abbr":"IST","lat":6.93,"lng":79.85},
+        {"city":"加德满都","zone":"Asia/Kathmandu","offset":5.75,"country":"尼泊尔","abbr":"NPT","lat":27.72,"lng":85.32},
+        {"city":"卡拉奇","zone":"Asia/Karachi","offset":5,"country":"巴基斯坦","abbr":"PKT","lat":24.86,"lng":67.01}
+      ]
+    },
+    {
+      "name": "中亚与中东",
+      "cities": [
+        {"city":"迪拜","zone":"Asia/Dubai","offset":4,"country":"阿联酋","abbr":"GST","lat":25.20,"lng":55.27},
+        {"city":"阿布扎比","zone":"Asia/Dubai","offset":4,"country":"阿联酋","abbr":"GST","lat":24.45,"lng":54.65},
+        {"city":"利雅得","zone":"Asia/Riyadh","offset":3,"country":"沙特","abbr":"AST","lat":24.71,"lng":46.68},
+        {"city":"多哈","zone":"Asia/Qatar","offset":3,"country":"卡塔尔","abbr":"AST","lat":25.29,"lng":51.53},
+        {"city":"科威特城","zone":"Asia/Kuwait","offset":3,"country":"科威特","abbr":"AST","lat":29.38,"lng":47.98},
+        {"city":"巴格达","zone":"Asia/Baghdad","offset":3,"country":"伊拉克","abbr":"AST","lat":33.31,"lng":44.37},
+        {"city":"德黑兰","zone":"Asia/Tehran","offset":3.5,"country":"伊朗","abbr":"IRST","lat":35.69,"lng":51.39},
+        {"city":"安曼","zone":"Asia/Amman","offset":3,"country":"约旦","abbr":"EET","lat":31.95,"lng":35.93},
+        {"city":"耶路撒冷","zone":"Asia/Jerusalem","offset":2,"country":"以色列","abbr":"IST","lat":31.77,"lng":35.23},
+        {"city":"塔什干","zone":"Asia/Tashkent","offset":5,"country":"乌兹别克斯坦","abbr":"UZT","lat":41.30,"lng":69.28},
+        {"city":"阿拉木图","zone":"Asia/Almaty","offset":6,"country":"哈萨克斯坦","abbr":"ALMT","lat":43.24,"lng":76.95}
+      ]
+    },
+    {
+      "name": "西欧",
+      "cities": [
+        {"city":"伦敦","zone":"Europe/London","offset":0,"country":"英国","abbr":"GMT","lat":51.51,"lng":-0.13},
+        {"city":"巴黎","zone":"Europe/Paris","offset":1,"country":"法国","abbr":"CET","lat":48.86,"lng":2.35},
+        {"city":"柏林","zone":"Europe/Berlin","offset":1,"country":"德国","abbr":"CET","lat":52.52,"lng":13.41},
+        {"city":"马德里","zone":"Europe/Madrid","offset":1,"country":"西班牙","abbr":"CET","lat":40.42,"lng":-3.70},
+        {"city":"罗马","zone":"Europe/Rome","offset":1,"country":"意大利","abbr":"CET","lat":41.90,"lng":12.50},
+        {"city":"阿姆斯特丹","zone":"Europe/Amsterdam","offset":1,"country":"荷兰","abbr":"CET","lat":52.37,"lng":4.90},
+        {"city":"布鲁塞尔","zone":"Europe/Brussels","offset":1,"country":"比利时","abbr":"CET","lat":50.85,"lng":4.35},
+        {"city":"维也纳","zone":"Europe/Vienna","offset":1,"country":"奥地利","abbr":"CET","lat":48.21,"lng":16.37},
+        {"city":"都柏林","zone":"Europe/Dublin","offset":0,"country":"爱尔兰","abbr":"GMT","lat":53.35,"lng":-6.26},
+        {"city":"里斯本","zone":"Europe/Lisbon","offset":0,"country":"葡萄牙","abbr":"WET","lat":38.72,"lng":-9.14},
+        {"city":"苏黎世","zone":"Europe/Zurich","offset":1,"country":"瑞士","abbr":"CET","lat":47.38,"lng":8.54},
+        {"city":"哥本哈根","zone":"Europe/Copenhagen","offset":1,"country":"丹麦","abbr":"CET","lat":55.68,"lng":12.57},
+        {"city":"斯德哥尔摩","zone":"Europe/Stockholm","offset":1,"country":"瑞典","abbr":"CET","lat":59.33,"lng":18.07},
+        {"city":"奥斯陆","zone":"Europe/Oslo","offset":1,"country":"挪威","abbr":"CET","lat":59.91,"lng":10.75},
+        {"city":"赫尔辛基","zone":"Europe/Helsinki","offset":2,"country":"芬兰","abbr":"EET","lat":60.17,"lng":24.94}
+      ]
+    },
+    {
+      "name": "东欧",
+      "cities": [
+        {"city":"莫斯科","zone":"Europe/Moscow","offset":3,"country":"俄罗斯","abbr":"MSK","lat":55.76,"lng":37.62},
+        {"city":"圣彼得堡","zone":"Europe/Moscow","offset":3,"country":"俄罗斯","abbr":"MSK","lat":59.93,"lng":30.32},
+        {"city":"华沙","zone":"Europe/Warsaw","offset":1,"country":"波兰","abbr":"CET","lat":52.23,"lng":21.01},
+        {"city":"布拉格","zone":"Europe/Prague","offset":1,"country":"捷克","abbr":"CET","lat":50.08,"lng":14.44},
+        {"city":"布达佩斯","zone":"Europe/Budapest","offset":1,"country":"匈牙利","abbr":"CET","lat":47.50,"lng":19.04},
+        {"city":"布加勒斯特","zone":"Europe/Bucharest","offset":2,"country":"罗马尼亚","abbr":"EET","lat":44.43,"lng":26.10},
+        {"city":"索菲亚","zone":"Europe/Sofia","offset":2,"country":"保加利亚","abbr":"EET","lat":42.70,"lng":23.32},
+        {"city":"基辅","zone":"Europe/Kyiv","offset":2,"country":"乌克兰","abbr":"EET","lat":50.45,"lng":30.52},
+        {"city":"明斯克","zone":"Europe/Minsk","offset":3,"country":"白俄罗斯","abbr":"MSK","lat":53.90,"lng":27.57},
+        {"city":"雅典","zone":"Europe/Athens","offset":2,"country":"希腊","abbr":"EET","lat":37.98,"lng":23.73},
+        {"city":"贝尔格莱德","zone":"Europe/Belgrade","offset":1,"country":"塞尔维亚","abbr":"CET","lat":44.79,"lng":20.47},
+        {"city":"萨格勒布","zone":"Europe/Zagreb","offset":1,"country":"克罗地亚","abbr":"CET","lat":45.81,"lng":15.98},
+        {"city":"里加","zone":"Europe/Riga","offset":2,"country":"拉脱维亚","abbr":"EET","lat":56.95,"lng":24.11},
+        {"city":"维尔纽斯","zone":"Europe/Vilnius","offset":2,"country":"立陶宛","abbr":"EET","lat":54.69,"lng":25.28},
+        {"city":"塔林","zone":"Europe/Tallinn","offset":2,"country":"爱沙尼亚","abbr":"EET","lat":59.44,"lng":24.75}
+      ]
+    },
+    {
+      "name": "土耳其与高加索",
+      "cities": [
+        {"city":"伊斯坦布尔","zone":"Europe/Istanbul","offset":3,"country":"土耳其","abbr":"TRT","lat":41.01,"lng":28.98},
+        {"city":"安卡拉","zone":"Europe/Istanbul","offset":3,"country":"土耳其","abbr":"TRT","lat":39.93,"lng":32.86},
+        {"city":"第比利斯","zone":"Asia/Tbilisi","offset":4,"country":"格鲁吉亚","abbr":"GET","lat":41.72,"lng":44.78},
+        {"city":"巴库","zone":"Asia/Baku","offset":4,"country":"阿塞拜疆","abbr":"AZT","lat":40.41,"lng":49.87},
+        {"city":"埃里温","zone":"Asia/Yerevan","offset":4,"country":"亚美尼亚","abbr":"AMT","lat":40.18,"lng":44.51}
+      ]
+    },
+    {
+      "name": "北美东部",
+      "cities": [
+        {"city":"纽约","zone":"America/New_York","offset":-5,"country":"美国","abbr":"EST","lat":40.71,"lng":-74.01},
+        {"city":"华盛顿","zone":"America/New_York","offset":-5,"country":"美国","abbr":"EST","lat":38.91,"lng":-77.04},
+        {"city":"波士顿","zone":"America/New_York","offset":-5,"country":"美国","abbr":"EST","lat":42.36,"lng":-71.06},
+        {"city":"迈阿密","zone":"America/New_York","offset":-5,"country":"美国","abbr":"EST","lat":25.76,"lng":-80.19},
+        {"city":"亚特兰大","zone":"America/New_York","offset":-5,"country":"美国","abbr":"EST","lat":33.75,"lng":-84.39},
+        {"city":"芝加哥","zone":"America/Chicago","offset":-6,"country":"美国","abbr":"CST","lat":41.88,"lng":-87.63},
+        {"city":"多伦多","zone":"America/Toronto","offset":-5,"country":"加拿大","abbr":"EST","lat":43.65,"lng":-79.38},
+        {"city":"蒙特利尔","zone":"America/Toronto","offset":-5,"country":"加拿大","abbr":"EST","lat":45.50,"lng":-73.57},
+        {"city":"墨西哥城","zone":"America/Mexico_City","offset":-6,"country":"墨西哥","abbr":"CST","lat":19.43,"lng":-99.13},
+        {"city":"哈瓦那","zone":"America/Havana","offset":-5,"country":"古巴","abbr":"CST","lat":23.11,"lng":-82.37}
+      ]
+    },
+    {
+      "name": "北美西部",
+      "cities": [
+        {"city":"洛杉矶","zone":"America/Los_Angeles","offset":-8,"country":"美国","abbr":"PST","lat":34.05,"lng":-118.24},
+        {"city":"旧金山","zone":"America/Los_Angeles","offset":-8,"country":"美国","abbr":"PST","lat":37.77,"lng":-122.42},
+        {"city":"西雅图","zone":"America/Los_Angeles","offset":-8,"country":"美国","abbr":"PST","lat":47.61,"lng":-122.33},
+        {"city":"温哥华","zone":"America/Vancouver","offset":-8,"country":"加拿大","abbr":"PST","lat":49.28,"lng":-123.12},
+        {"city":"丹佛","zone":"America/Denver","offset":-7,"country":"美国","abbr":"MST","lat":39.74,"lng":-104.99},
+        {"city":"菲尼克斯","zone":"America/Phoenix","offset":-7,"country":"美国","abbr":"MST","lat":33.45,"lng":-112.07},
+        {"city":"夏威夷","zone":"Pacific/Honolulu","offset":-10,"country":"美国","abbr":"HST","lat":21.31,"lng":-157.86},
+        {"city":"安克雷奇","zone":"America/Anchorage","offset":-9,"country":"美国","abbr":"AKST","lat":61.22,"lng":-149.90},
+        {"city":"卡尔加里","zone":"America/Edmonton","offset":-7,"country":"加拿大","abbr":"MST","lat":51.05,"lng":-114.07}
+      ]
+    },
+    {
+      "name": "南美",
+      "cities": [
+        {"city":"圣保罗","zone":"America/Sao_Paulo","offset":-3,"country":"巴西","abbr":"BRT","lat":-23.55,"lng":-46.63},
+        {"city":"里约热内卢","zone":"America/Sao_Paulo","offset":-3,"country":"巴西","abbr":"BRT","lat":-22.91,"lng":-43.17},
+        {"city":"布宜诺斯艾利斯","zone":"America/Argentina/Buenos_Aires","offset":-3,"country":"阿根廷","abbr":"ART","lat":-34.60,"lng":-58.38},
+        {"city":"利马","zone":"America/Lima","offset":-5,"country":"秘鲁","abbr":"PET","lat":-12.05,"lng":-77.04},
+        {"city":"波哥大","zone":"America/Bogota","offset":-5,"country":"哥伦比亚","abbr":"COT","lat":4.71,"lng":-74.07},
+        {"city":"圣地亚哥","zone":"America/Santiago","offset":-4,"country":"智利","abbr":"CLT","lat":-33.45,"lng":-70.67},
+        {"city":"加拉加斯","zone":"America/Caracas","offset":-4,"country":"委内瑞拉","abbr":"VET","lat":10.49,"lng":-66.88}
+      ]
+    },
+    {
+      "name": "大洋洲",
+      "cities": [
+        {"city":"悉尼","zone":"Australia/Sydney","offset":10,"country":"澳大利亚","abbr":"AEST","lat":-33.87,"lng":151.21},
+        {"city":"墨尔本","zone":"Australia/Melbourne","offset":10,"country":"澳大利亚","abbr":"AEST","lat":-37.81,"lng":144.96},
+        {"city":"布里斯班","zone":"Australia/Brisbane","offset":10,"country":"澳大利亚","abbr":"AEST","lat":-27.47,"lng":153.03},
+        {"city":"珀斯","zone":"Australia/Perth","offset":8,"country":"澳大利亚","abbr":"AWST","lat":-31.95,"lng":115.86},
+        {"city":"阿德莱德","zone":"Australia/Adelaide","offset":9.5,"country":"澳大利亚","abbr":"ACST","lat":-34.93,"lng":138.60},
+        {"city":"奥克兰","zone":"Pacific/Auckland","offset":12,"country":"新西兰","abbr":"NZST","lat":-36.85,"lng":174.76},
+        {"city":"惠灵顿","zone":"Pacific/Auckland","offset":12,"country":"新西兰","abbr":"NZST","lat":-41.29,"lng":174.78}
+      ]
+    },
+    {
+      "name": "非洲",
+      "cities": [
+        {"city":"开罗","zone":"Africa/Cairo","offset":2,"country":"埃及","abbr":"EET","lat":30.04,"lng":31.24},
+        {"city":"约翰内斯堡","zone":"Africa/Johannesburg","offset":2,"country":"南非","abbr":"SAST","lat":-26.20,"lng":28.05},
+        {"city":"开普敦","zone":"Africa/Johannesburg","offset":2,"country":"南非","abbr":"SAST","lat":-33.93,"lng":18.42},
+        {"city":"内罗毕","zone":"Africa/Nairobi","offset":3,"country":"肯尼亚","abbr":"EAT","lat":-1.29,"lng":36.82},
+        {"city":"拉各斯","zone":"Africa/Lagos","offset":1,"country":"尼日利亚","abbr":"WAT","lat":6.52,"lng":3.38},
+        {"city":"卡萨布兰卡","zone":"Africa/Casablanca","offset":1,"country":"摩洛哥","abbr":"WET","lat":33.57,"lng":-7.59},
+        {"city":"阿尔及尔","zone":"Africa/Algiers","offset":1,"country":"阿尔及利亚","abbr":"CET","lat":36.75,"lng":3.04},
+        {"city":"突尼斯","zone":"Africa/Tunis","offset":1,"country":"突尼斯","abbr":"CET","lat":36.81,"lng":10.17},
+        {"city":"亚的斯亚贝巴","zone":"Africa/Addis_Ababa","offset":3,"country":"埃塞俄比亚","abbr":"EAT","lat":9.02,"lng":38.75},
+        {"city":"达累斯萨拉姆","zone":"Africa/Dar_es_Salaam","offset":3,"country":"坦桑尼亚","abbr":"EAT","lat":-6.79,"lng":39.28},
+        {"city":"阿克拉","zone":"Africa/Accra","offset":0,"country":"加纳","abbr":"GMT","lat":5.56,"lng":-0.19},
+        {"city":"罗安达","zone":"Africa/Luanda","offset":1,"country":"安哥拉","abbr":"WAT","lat":-8.84,"lng":13.29},
+        {"city":"坎帕拉","zone":"Africa/Kampala","offset":3,"country":"乌干达","abbr":"EAT","lat":0.35,"lng":32.58},
+        {"city":"基加利","zone":"Africa/Kigali","offset":2,"country":"卢旺达","abbr":"CAT","lat":-1.94,"lng":30.06}
+      ]
+    }
+  ]
+}

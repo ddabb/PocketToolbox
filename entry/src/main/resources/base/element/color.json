@@ -67,6 +67,10 @@
     {
       "name": "xiehouyu_card_bg",
       "value": "#fdf2e9"
+    },
+    {
+      "name": "unit_active_bg",
+      "value": "#e8f8f0"
     }
   ]
 }

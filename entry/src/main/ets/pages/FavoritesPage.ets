@@ -34,6 +34,7 @@ struct FavoritesContent {
   private loadFavorites(): void {
     this.favorites = FavoritesUtil.load(this.uiContext.getHostContext() as Context);
     this.refreshDisplay();
+    AppStorage.setOrCreate('favCount', this.favorites.length);
     console.info('[Favorites] loaded: ' + this.favorites.length.toString());
   }
 

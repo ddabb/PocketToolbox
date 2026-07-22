@@ -39,6 +39,26 @@
       "name": "AboutPage",
       "pageSourceFile": "src/main/ets/pages/AboutPage.ets",
       "buildFunction": "AboutPageBuilder"
+    },
+    {
+      "name": "UnitCategoryPage",
+      "pageSourceFile": "src/main/ets/pages/UnitCategoryPage.ets",
+      "buildFunction": "UnitCategoryPageBuilder"
+    },
+    {
+      "name": "UnitConverterPage",
+      "pageSourceFile": "src/main/ets/pages/UnitConverterPage.ets",
+      "buildFunction": "UnitConverterPageBuilder"
+    },
+    {
+      "name": "BaseConverterPage",
+      "pageSourceFile": "src/main/ets/pages/BaseConverterPage.ets",
+      "buildFunction": "BaseConverterPageBuilder"
+    },
+    {
+      "name": "TimezoneConverterPage",
+      "pageSourceFile": "src/main/ets/pages/TimezoneConverterPage.ets",
+      "buildFunction": "TimezoneConverterPageBuilder"
     }
   ]
 }
