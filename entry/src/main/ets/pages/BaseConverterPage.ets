@@ -1,317 +1,167 @@
+@Observed
+class BaseValueItem {
+  name: string = '';
+  symbol: string = '';
+  value: string = '';
+
+  constructor(name: string, symbol: string, value: string) {
+    this.name = name;
+    this.symbol = symbol;
+    this.value = value;
+  }
+}
+
 @Builder
 export function BaseConverterPageBuilder(param?: Object) {
   NavDestination() {
     BaseConverterContent()
   }
-  .title('进制转换')
+  .title('\u8FDB\u5236\u8F6C\u6362')
   .backButtonIcon($r('sys.symbol.chevron_left'))
   .menus([])
 }
 
 @Component
-struct BaseConverterContent {
-  @State decimalValue: string = '';
-  @State binaryValue: string = '';
-  @State octalValue: string = '';
-  @State hexValue: string = '';
-  @State base64Value: string = '';
-  @State base64Decoded: string = '';
-  @State activeField: string = '';
-  @State errorMsg: string = '';
-  private focusedField: string = '';
-
-  private readonly examples: string[][] = [
-    ['255', '十进制'],
-    ['11111111', '二进制'],
-    ['777', '八进制'],
-    ['FF', '十六进制']
-  ];
+struct BaseValueRow {
+  @ObjectLink item: BaseValueItem;
+  isActive: boolean = false;
+  showDivider: boolean = false;
+  onValueChange: (value: string) => void = () => {};
+  onItemFocus: () => void = () => {};
 
   build() {
-    Scroll() {
-      Column() {
-        this.InputField('十进制', 'DEC', $$this.decimalValue)
-        this.InputField('二进制', 'BIN', $$this.binaryValue)
-        this.InputField('八进制', 'OCT', $$this.octalValue)
-        this.InputField('十六进制', 'HEX', $$this.hexValue)
-        this.InputField('Base64', 'B64', $$this.base64Value)
-
-        if (this.base64Decoded.length > 0) {
-          Column() {
-            Text('Base64解码')
-              .fontSize(13)
-              .fontColor($r('app.color.tertiary_text'))
-              .margin({ bottom: 4 })
-            Text(this.base64Decoded)
-              .fontSize(14)
-              .fontColor($r('app.color.primary_text'))
-              .width('100%')
-          }
-          .width('100%')
-          .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-          .backgroundColor($r('app.color.card_background'))
-          .borderRadius(12)
-          .margin({ left: 16, right: 16, top: 8 })
+    Column() {
+      Row() {
+        Column() {
+          Text(this.item.symbol)
+            .fontSize(11)
+            .fontColor($r('app.color.tertiary_text'))
+          Text(this.item.name)
+            .fontSize(14)
+            .fontWeight(FontWeight.Medium)
+            .fontColor($r('app.color.primary_text'))
         }
+        .width(64)
+        .alignItems(HorizontalAlign.Center)
 
-        if (this.errorMsg.length > 0) {
-          Text(this.errorMsg)
-            .fontSize(13)
-            .fontColor($r('app.color.error_red'))
-            .margin({ left: 16, right: 16, top: 8 })
-        }
-
-        this.ExamplesSection()
-        this.InfoSection()
+        TextInput({ text: $$this.item.value, placeholder: '\u8F93\u5165\u6570\u503C' })
+          .type(InputType.Normal)
+          .layoutWeight(1)
+          .fontSize(15)
+          .fontColor($r('app.color.primary_text'))
+          .backgroundColor(Color.Transparent)
+          .textAlign(TextAlign.End)
+          .onFocus(() => {
+            this.onItemFocus();
+          })
+          .onChange((value: string) => {
+            this.onValueChange(value);
+          })
       }
       .width('100%')
-      .padding({ bottom: 16 })
-    }
-    .width('100%')
-    .height('100%')
-    .backgroundColor($r('app.color.page_background'))
-    .scrollable(ScrollDirection.Vertical)
-  }
+      .padding({ left: 16, right: 16, top: 12, bottom: 12 })
+      .alignItems(VerticalAlign.Center)
 
-  @Builder
-  InputField(label: string, symbol: string, textBinding: string) {
-    Row() {
-      Column() {
-        Text(symbol)
-          .fontSize(11)
-          .fontColor($r('app.color.tertiary_text'))
-        Text(label)
-          .fontSize(14)
-          .fontWeight(FontWeight.Medium)
-          .fontColor($r('app.color.primary_text'))
-      }
-      .width(64)
-      .alignItems(HorizontalAlign.Center)
-
-      TextInput({ text: textBinding, placeholder: '输入' + label + '数值' })
-        .layoutWeight(1)
-        .fontSize(15)
-        .fontColor($r('app.color.primary_text'))
-        .backgroundColor(Color.Transparent)
-        .textAlign(TextAlign.End)
-        .onFocus(() => {
-          this.focusedField = label;
-        })
-        .onChange((value: string) => {
-          this.onFieldChange(label, value);
-        })
-    }
-    .width('100%')
-    .padding({ left: 16, right: 16, top: 12, bottom: 12 })
-    .alignItems(VerticalAlign.Center)
-    .backgroundColor(this.activeField === label ?
-      $r('app.color.unit_active_bg') : $r('app.color.card_background'))
-    .borderRadius(label === '十进制' ? 12 : 0)
-  }
-
-  private onFieldChange(field: string, value: string): void {
-    if (this.focusedField.length > 0 && field !== this.focusedField) {
-      return;
-    }
-    this.activeField = field;
-    if (field === '十进制') {
-      this.onDecimalChange(value);
-    } else if (field === '二进制') {
-      this.onBinaryChange(value);
-    } else if (field === '八进制') {
-      this.onOctalChange(value);
-    } else if (field === '十六进制') {
-      this.onHexChange(value);
-    } else if (field === 'Base64') {
-      this.onBase64Change(value);
-    }
-  }
-
-  @Builder
-  ExamplesSection() {
-    Column() {
-      Text('快速示例')
-        .fontSize(15)
-        .fontWeight(FontWeight.Bold)
-        .fontColor($r('app.color.primary_text'))
-        .width('100%')
-        .margin({ bottom: 8 })
-
-      Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
-        ForEach(this.examples, (ex: string[]) => {
-          Column() {
-            Text(ex[0])
-              .fontSize(15)
-              .fontWeight(FontWeight.Bold)
-              .fontColor($r('app.color.idiom_blue'))
-            Text(ex[1])
-              .fontSize(11)
-              .fontColor($r('app.color.tertiary_text'))
-              .margin({ top: 2 })
-          }
-          .padding({ left: 16, right: 16, top: 10, bottom: 10 })
-          .backgroundColor($r('app.color.idiom_blue') + '12')
-          .borderRadius(10)
-          .margin({ right: 8, bottom: 8 })
-          .onClick(() => {
-            this.useExample(ex[0], ex[1]);
-          })
-        }, (ex: string[]) => ex[0] + ex[1])
+      if (this.showDivider) {
+        Divider()
+          .color($r('app.color.border_color'))
+          .margin({ left: 16, right: 16 })
       }
     }
     .width('100%')
-    .padding(16)
-    .backgroundColor($r('app.color.card_background'))
-    .borderRadius(12)
-    .margin({ left: 16, right: 16, top: 12 })
+    .backgroundColor(this.isActive ? $r('app.color.unit_active_bg') : $r('app.color.card_background'))
+  }
+}
+
+@Component
+struct BaseConverterContent {
+  @State baseValues: BaseValueItem[] = [];
+  @State activeBaseIndex: number = -1;
+  @State errorMsg: string = '';
+  private focusedIndex: number = -1;
+  private suppressOnChange: boolean = false;
+
+  private readonly examples: string[][] = [
+    ['255', '\u5341\u8FDB\u5236'],
+    ['11111111', '\u4E8C\u8FDB\u5236'],
+    ['777', '\u516B\u8FDB\u5236'],
+    ['FF', '\u5341\u516D\u8FDB\u5236']
+  ];
+
+  aboutToAppear(): void {
+    this.baseValues = [
+      new BaseValueItem('\u5341\u8FDB\u5236', 'DEC', ''),
+      new BaseValueItem('\u4E8C\u8FDB\u5236', 'BIN', ''),
+      new BaseValueItem('\u516B\u8FDB\u5236', 'OCT', ''),
+      new BaseValueItem('\u5341\u516D\u8FDB\u5236', 'HEX', ''),
+      new BaseValueItem('Base64', 'B64', '')
+    ];
   }
 
-  @Builder
-  InfoSection() {
-    Column() {
-      Text('进制说明')
-        .fontSize(15)
-        .fontWeight(FontWeight.Bold)
-        .fontColor($r('app.color.primary_text'))
-        .width('100%')
-        .margin({ bottom: 8 })
-
-      this.InfoRow('十进制 (DEC)', '使用0-9，10个数字')
-      this.InfoRow('二进制 (BIN)', '使用0和1，计算机基础')
-      this.InfoRow('八进制 (OCT)', '使用0-7，8个数字')
-      this.InfoRow('十六进制 (HEX)', '使用0-9和A-F')
-      this.InfoRow('Base64 (B64)', '编码二进制数据为文本')
+  private getDecimalNum(inputValue: string, baseName: string): number {
+    if (inputValue.length === 0) {
+      return NaN;
     }
-    .width('100%')
-    .padding(16)
-    .backgroundColor($r('app.color.card_background'))
-    .borderRadius(12)
-    .margin({ left: 16, right: 16, top: 8, bottom: 16 })
-  }
-
-  @Builder
-  InfoRow(title: string, desc: string) {
-    Row() {
-      Text(title)
-        .fontSize(13)
-        .fontColor($r('app.color.primary_text'))
-        .fontWeight(FontWeight.Medium)
-        .width(130)
-      Text(desc)
-        .fontSize(13)
-        .fontColor($r('app.color.secondary_text'))
-        .layoutWeight(1)
+    if (baseName === '\u5341\u8FDB\u5236') {
+      let reg: RegExp = new RegExp('^[0-9]+$');
+      if (!reg.test(inputValue)) {
+        return NaN;
+      }
+      return parseInt(inputValue, 10);
+    } else if (baseName === '\u4E8C\u8FDB\u5236') {
+      let reg: RegExp = new RegExp('^[01]+$');
+      if (!reg.test(inputValue)) {
+        return NaN;
+      }
+      return parseInt(inputValue, 2);
+    } else if (baseName === '\u516B\u8FDB\u5236') {
+      let reg: RegExp = new RegExp('^[0-7]+$');
+      if (!reg.test(inputValue)) {
+        return NaN;
+      }
+      return parseInt(inputValue, 8);
+    } else if (baseName === '\u5341\u516D\u8FDB\u5236') {
+      let reg: RegExp = new RegExp('^[0-9A-Fa-f]+$');
+      if (!reg.test(inputValue)) {
+        return NaN;
+      }
+      return parseInt(inputValue, 16);
     }
-    .width('100%')
-    .margin({ bottom: 4 })
+    return NaN;
   }
 
-  private clearAll(): void {
-    this.decimalValue = '';
-    this.binaryValue = '';
-    this.octalValue = '';
-    this.hexValue = '';
-    this.base64Value = '';
-    this.base64Decoded = '';
-    this.errorMsg = '';
-  }
-
-  private onDecimalChange(value: string): void {
+  private validateInput(value: string, baseName: string): string {
     if (value.length === 0) {
-      this.clearAll();
-      return;
+      return '';
     }
-    let reg: RegExp = new RegExp('^[0-9]+$');
-    if (!reg.test(value)) {
-      this.errorMsg = '请输入有效的十进制数字';
-      return;
+    if (baseName === '\u5341\u8FDB\u5236') {
+      let reg: RegExp = new RegExp('^[0-9]+$');
+      if (!reg.test(value)) {
+        return '\u8BF7\u8F93\u5165\u6709\u6548\u7684\u5341\u8FDB\u5236\u6570\u5B57';
+      }
+    } else if (baseName === '\u4E8C\u8FDB\u5236') {
+      let reg: RegExp = new RegExp('^[01]+$');
+      if (!reg.test(value)) {
+        return '\u8BF7\u8F93\u5165\u6709\u6548\u7684\u4E8C\u8FDB\u5236\u6570\u5B57\uFF080\u548C1\uFF09';
+      }
+    } else if (baseName === '\u516B\u8FDB\u5236') {
+      let reg: RegExp = new RegExp('^[0-7]+$');
+      if (!reg.test(value)) {
+        return '\u8BF7\u8F93\u5165\u6709\u6548\u7684\u516B\u8FDB\u5236\u6570\u5B57\uFF080-7\uFF09';
+      }
+    } else if (baseName === '\u5341\u516D\u8FDB\u5236') {
+      let reg: RegExp = new RegExp('^[0-9A-Fa-f]+$');
+      if (!reg.test(value)) {
+        return '\u8BF7\u8F93\u5165\u6709\u6548\u7684\u5341\u516D\u8FDB\u5236\u6570\u5B57\uFF080-9, A-F\uFF09';
+      }
+    } else if (baseName === 'Base64') {
+      try {
+        this.decodeBase64Text(value);
+      } catch (e) {
+        return '\u65E0\u6548\u7684Base64\u5B57\u7B26';
+      }
     }
-    this.errorMsg = '';
-    let num: number = parseInt(value, 10);
-    this.decimalValue = value;
-    this.binaryValue = num.toString(2);
-    this.octalValue = num.toString(8);
-    this.hexValue = num.toString(16).toUpperCase();
-    this.base64Value = this.numberToBase64(num);
-    this.base64Decoded = this.numberToText(num);
-  }
-
-  private onBinaryChange(value: string): void {
-    if (value.length === 0) {
-      this.clearAll();
-      return;
-    }
-    let reg: RegExp = new RegExp('^[01]+$');
-    if (!reg.test(value)) {
-      this.errorMsg = '请输入有效的二进制数字（0和1）';
-      return;
-    }
-    this.errorMsg = '';
-    let num: number = parseInt(value, 2);
-    this.decimalValue = num.toString(10);
-    this.binaryValue = value;
-    this.octalValue = num.toString(8);
-    this.hexValue = num.toString(16).toUpperCase();
-    this.base64Value = this.numberToBase64(num);
-    this.base64Decoded = this.numberToText(num);
-  }
-
-  private onOctalChange(value: string): void {
-    if (value.length === 0) {
-      this.clearAll();
-      return;
-    }
-    let reg: RegExp = new RegExp('^[0-7]+$');
-    if (!reg.test(value)) {
-      this.errorMsg = '请输入有效的八进制数字（0-7）';
-      return;
-    }
-    this.errorMsg = '';
-    let num: number = parseInt(value, 8);
-    this.decimalValue = num.toString(10);
-    this.binaryValue = num.toString(2);
-    this.octalValue = value;
-    this.hexValue = num.toString(16).toUpperCase();
-    this.base64Value = this.numberToBase64(num);
-    this.base64Decoded = this.numberToText(num);
-  }
-
-  private onHexChange(value: string): void {
-    if (value.length === 0) {
-      this.clearAll();
-      return;
-    }
-    let reg: RegExp = new RegExp('^[0-9A-Fa-f]+$');
-    if (!reg.test(value)) {
-      this.errorMsg = '请输入有效的十六进制数字（0-9, A-F）';
-      return;
-    }
-    this.errorMsg = '';
-    let num: number = parseInt(value, 16);
-    this.decimalValue = num.toString(10);
-    this.binaryValue = num.toString(2);
-    this.octalValue = num.toString(8);
-    this.hexValue = value.toUpperCase();
-    this.base64Value = this.numberToBase64(num);
-    this.base64Decoded = this.numberToText(num);
-  }
-
-  private onBase64Change(value: string): void {
-    if (value.length === 0) {
-      this.clearAll();
-      return;
-    }
-    this.base64Value = value;
-    try {
-      let decoded: string = this.decodeBase64Text(value);
-      this.base64Decoded = decoded;
-      this.decimalValue = '';
-      this.binaryValue = '';
-      this.octalValue = '';
-      this.hexValue = '';
-    } catch (e) {
-      this.errorMsg = '无效的Base64字符';
-    }
+    return '';
   }
 
   private numberToBase64(num: number): string {
@@ -325,23 +175,6 @@ struct BaseConverterContent {
       n = Math.floor(n / 256);
     }
     return this.encodeBase64(bytes);
-  }
-
-  private numberToText(num: number): string {
-    if (num === 0) {
-      return '\0';
-    }
-    let bytes: number[] = [];
-    let n: number = num;
-    while (n > 0) {
-      bytes.unshift(n & 0xFF);
-      n = Math.floor(n / 256);
-    }
-    let result: string = '';
-    for (let i = 0; i < bytes.length; i++) {
-      result += String.fromCharCode(bytes[i]);
-    }
-    return result;
   }
 
   private encodeBase64(bytes: number[]): string {
@@ -388,24 +221,227 @@ struct BaseConverterContent {
     return result;
   }
 
-  private useExample(value: string, source: string): void {
-    this.clearAll();
-    if (source === '十进制') {
-      this.focusedField = '十进制';
-      this.decimalValue = value;
-      this.onDecimalChange(value);
-    } else if (source === '二进制') {
-      this.focusedField = '二进制';
-      this.binaryValue = value;
-      this.onBinaryChange(value);
-    } else if (source === '八进制') {
-      this.focusedField = '八进制';
-      this.octalValue = value;
-      this.onOctalChange(value);
-    } else if (source === '十六进制') {
-      this.focusedField = '十六进制';
-      this.hexValue = value;
-      this.onHexChange(value);
+  private onValueChange(changedIndex: number, value: string): void {
+    if (this.suppressOnChange) {
+      return;
     }
+    if (this.focusedIndex >= 0 && changedIndex !== this.focusedIndex) {
+      return;
+    }
+    this.activeBaseIndex = changedIndex;
+    this.suppressOnChange = true;
+
+    let baseName: string = this.baseValues[changedIndex].name;
+    let validationMsg: string = this.validateInput(value, baseName);
+    this.errorMsg = validationMsg;
+
+    if (!value || value.length === 0) {
+      for (let i = 0; i < this.baseValues.length; i++) {
+        this.baseValues[i].value = '';
+      }
+      this.suppressOnChange = false;
+      return;
+    }
+
+    if (validationMsg.length > 0) {
+      this.baseValues[changedIndex].value = value;
+      for (let i = 0; i < this.baseValues.length; i++) {
+        if (i !== changedIndex) {
+          this.baseValues[i].value = '';
+        }
+      }
+      this.suppressOnChange = false;
+      return;
+    }
+
+    this.baseValues[changedIndex].value = value;
+
+    if (baseName === 'Base64') {
+      let decoded: string = this.decodeBase64Text(value);
+      let num: number = 0;
+      for (let i = 0; i < decoded.length; i++) {
+        num = num * 256 + decoded.charCodeAt(i);
+      }
+      this.baseValues[0].value = num.toString(10);
+      this.baseValues[1].value = num.toString(2);
+      this.baseValues[2].value = num.toString(8);
+      this.baseValues[3].value = num.toString(16).toUpperCase();
+    } else {
+      let num: number = this.getDecimalNum(value, baseName);
+      if (isNaN(num)) {
+        this.suppressOnChange = false;
+        return;
+      }
+      this.baseValues[0].value = num.toString(10);
+      this.baseValues[1].value = num.toString(2);
+      this.baseValues[2].value = num.toString(8);
+      this.baseValues[3].value = num.toString(16).toUpperCase();
+      if (num >= 0) {
+        this.baseValues[4].value = this.numberToBase64(num);
+      } else {
+        this.baseValues[4].value = '';
+      }
+    }
+
+    this.suppressOnChange = false;
+  }
+
+  build() {
+    Scroll() {
+      Column() {
+        List({ space: 0 }) {
+          ForEach(this.baseValues, (item: BaseValueItem, index: number) => {
+            ListItem() {
+              BaseValueRow({
+                item: item,
+                isActive: this.activeBaseIndex === index,
+                showDivider: index < this.baseValues.length - 1,
+                onValueChange: (value: string) => {
+                  this.onValueChange(index, value);
+                },
+                onItemFocus: () => {
+                  this.focusedIndex = index;
+                }
+              })
+            }
+          }, (item: BaseValueItem) => item.name)
+        }
+        .width('100%')
+        .borderRadius(12)
+        .clip(true)
+        .margin({ left: 16, right: 16, top: 8 })
+
+        if (this.errorMsg.length > 0) {
+          Text(this.errorMsg)
+            .fontSize(13)
+            .fontColor($r('app.color.error_red'))
+            .margin({ left: 16, right: 16, top: 4 })
+        }
+
+        Column() {
+          Text('\u5FEB\u901F\u793A\u4F8B')
+            .fontSize(15)
+            .fontWeight(FontWeight.Bold)
+            .fontColor($r('app.color.primary_text'))
+            .width('100%')
+            .margin({ bottom: 8 })
+
+          Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
+            ForEach(this.examples, (ex: string[]) => {
+              Column() {
+                Text(ex[0])
+                  .fontSize(15)
+                  .fontWeight(FontWeight.Bold)
+                  .fontColor($r('app.color.idiom_blue'))
+                Text(ex[1])
+                  .fontSize(11)
+                  .fontColor($r('app.color.tertiary_text'))
+                  .margin({ top: 2 })
+              }
+              .padding({ left: 16, right: 16, top: 10, bottom: 10 })
+              .backgroundColor($r('app.color.idiom_blue') + '12')
+              .borderRadius(10)
+              .margin({ right: 8, bottom: 8 })
+              .onClick(() => {
+                this.useExample(ex[0], ex[1]);
+              })
+            }, (ex: string[]) => ex[0] + ex[1])
+          }
+        }
+        .width('100%')
+        .padding(16)
+        .backgroundColor($r('app.color.card_background'))
+        .borderRadius(12)
+        .margin({ left: 16, right: 16, top: 12 })
+
+        Column() {
+          Text('\u8FDB\u5236\u8BF4\u660E')
+            .fontSize(15)
+            .fontWeight(FontWeight.Bold)
+            .fontColor($r('app.color.primary_text'))
+            .width('100%')
+            .margin({ bottom: 8 })
+
+          this.InfoRow('\u5341\u8FDB\u5236 (DEC)', '\u4F7F\u75280-9\uFF0C10\u4E2A\u6570\u5B57')
+          this.InfoRow('\u4E8C\u8FDB\u5236 (BIN)', '\u4F7F\u75280\u548C1\uFF0C\u8BA1\u7B97\u673A\u57FA\u7840')
+          this.InfoRow('\u516B\u8FDB\u5236 (OCT)', '\u4F7F\u75280-7\uFF0C8\u4E2A\u6570\u5B57')
+          this.InfoRow('\u5341\u516D\u8FDB\u5236 (HEX)', '\u4F7F\u75280-9\u548CA-F')
+          this.InfoRow('Base64 (B64)', '\u7F16\u7801\u4E8C\u8FDB\u5236\u6570\u636E\u4E3A\u6587\u672C')
+        }
+        .width('100%')
+        .padding(16)
+        .backgroundColor($r('app.color.card_background'))
+        .borderRadius(12)
+        .margin({ left: 16, right: 16, top: 8, bottom: 16 })
+      }
+      .width('100%')
+    }
+    .width('100%')
+    .height('100%')
+    .backgroundColor($r('app.color.page_background'))
+    .scrollable(ScrollDirection.Vertical)
+  }
+
+  @Builder
+  InfoRow(title: string, desc: string) {
+    Row() {
+      Text(title)
+        .fontSize(13)
+        .fontColor($r('app.color.primary_text'))
+        .fontWeight(FontWeight.Medium)
+        .width(130)
+      Text(desc)
+        .fontSize(13)
+        .fontColor($r('app.color.secondary_text'))
+        .layoutWeight(1)
+    }
+    .width('100%')
+    .margin({ bottom: 4 })
+  }
+
+  private useExample(value: string, source: string): void {
+    this.suppressOnChange = true;
+    let targetIndex: number = -1;
+    for (let i = 0; i < this.baseValues.length; i++) {
+      if (this.baseValues[i].name === source) {
+        targetIndex = i;
+        break;
+      }
+    }
+    if (targetIndex < 0) {
+      this.suppressOnChange = false;
+      return;
+    }
+
+    this.activeBaseIndex = targetIndex;
+    this.focusedIndex = targetIndex;
+    this.baseValues[targetIndex].value = value;
+
+    if (source === 'Base64') {
+      let decoded: string = this.decodeBase64Text(value);
+      let num: number = 0;
+      for (let i = 0; i < decoded.length; i++) {
+        num = num * 256 + decoded.charCodeAt(i);
+      }
+      this.baseValues[0].value = num.toString(10);
+      this.baseValues[1].value = num.toString(2);
+      this.baseValues[2].value = num.toString(8);
+      this.baseValues[3].value = num.toString(16).toUpperCase();
+    } else {
+      let num: number = this.getDecimalNum(value, source);
+      if (!isNaN(num)) {
+        this.baseValues[0].value = num.toString(10);
+        this.baseValues[1].value = num.toString(2);
+        this.baseValues[2].value = num.toString(8);
+        this.baseValues[3].value = num.toString(16).toUpperCase();
+        if (num >= 0) {
+          this.baseValues[4].value = this.numberToBase64(num);
+        } else {
+          this.baseValues[4].value = '';
+        }
+      }
+    }
+
+    this.suppressOnChange = false;
   }
 }

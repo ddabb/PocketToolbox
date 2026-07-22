@@ -325,7 +325,16 @@ export class UnitConverterData {
     if (result === 0) {
       return '0';
     }
-    let fixed: number = parseFloat(result.toFixed(6));
-    return fixed.toString();
+    let absResult: number = Math.abs(result);
+    let precision: number = absResult >= 1 ? 6 : 8;
+    let fixed: string = result.toFixed(precision);
+    let parts: string[] = fixed.split('.');
+    let intPart: string = parts[0];
+    let decPart: string = parts[1];
+    let trimmed: string = decPart.replace(/0+$/, '');
+    if (trimmed.length === 0) {
+      return intPart;
+    }
+    return intPart + '.' + trimmed;
   }
 }

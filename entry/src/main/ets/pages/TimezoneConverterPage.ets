@@ -705,7 +705,7 @@ struct TimezoneConverterContent {
         .width('100%')
         .margin({ bottom: 12 })
 
-        TextInput({ placeholder: '搜索城市', text: $$this.searchKeyword })
+        TextInput({ placeholder: '搜索城市', text: this.searchKeyword })
           .width('100%')
           .height(40)
           .fontSize(14)

@@ -38,6 +38,7 @@ export function UnitConverterPageBuilder(param: Object) {
 struct UnitValueRow {
   @ObjectLink item: UnitValueItem;
   isActive: boolean = false;
+  showDivider: boolean = false;
   onValueChange: (value: string) => void = () => {};
   onItemFocus: () => void = () => {};
 
@@ -49,23 +50,56 @@ struct UnitValueRow {
           .fontWeight(FontWeight.Medium)
           .fontColor($r('app.color.secondary_text'))
           .width(80)
-        TextInput({ text: $$this.item.value, placeholder: '输入数值' })
-          .type(InputType.Number)
+        TextInput({ text: $$this.item.value, placeholder: '\u8F93\u5165\u6570\u503C' })
+          .type(InputType.Normal)
+          .inputFilter('^[0-9.\\-]*$', () => {
+            return 0;
+          })
           .layoutWeight(1)
           .fontSize(15)
           .fontColor($r('app.color.primary_text'))
           .backgroundColor(Color.Transparent)
+          .caretColor($r('app.color.idiom_blue'))
+          .selectedBackgroundColor($r('app.color.unit_active_bg'))
           .textAlign(TextAlign.End)
           .onFocus(() => {
             this.onItemFocus();
           })
           .onChange((value: string) => {
-            this.onValueChange(value);
+            let dotCount: number = 0;
+            let filtered: string = '';
+            for (let i = 0; i < value.length; i++) {
+              let ch: string = value[i];
+              if (ch === '.') {
+                dotCount++;
+                if (dotCount > 1) {
+                  continue;
+                }
+              }
+              if (ch === '-' && i !== 0) {
+                continue;
+              }
+              filtered += ch;
+            }
+            let cleaned: string = filtered.replace(/^0+(?=\d)/, '');
+            if (cleaned.length === 0 && value.length > 0) {
+              cleaned = '0';
+            }
+            if (cleaned === '-' || cleaned === '-0') {
+              cleaned = '-0';
+            }
+            this.onValueChange(cleaned);
           })
       }
       .width('100%')
       .padding({ left: 16, right: 16, top: 12, bottom: 12 })
       .alignItems(VerticalAlign.Center)
+
+      if (this.showDivider) {
+        Divider()
+          .color($r('app.color.border_color'))
+          .margin({ left: 16, right: 16 })
+      }
     }
     .width('100%')
     .backgroundColor(this.isActive ? $r('app.color.unit_active_bg') : $r('app.color.card_background'))
@@ -80,6 +114,7 @@ struct UnitConverterContent {
   private category: ConverterCategory | null = null;
   private isTemperature: boolean = false;
   private focusedIndex: number = -1;
+  private suppressOnChange: boolean = false;
 
   aboutToAppear(): void {
     this.category = UnitConverterData.getCategoryById(this.convParam.categoryId);
@@ -101,30 +136,38 @@ struct UnitConverterContent {
   }
 
   private onValueChange(changedIndex: number, value: string): void {
+    if (this.suppressOnChange) {
+      return;
+    }
     if (this.focusedIndex >= 0 && changedIndex !== this.focusedIndex) {
       return;
     }
     this.activeUnitIndex = changedIndex;
+    this.suppressOnChange = true;
 
     if (!value || value.length === 0) {
       for (let i = 0; i < this.unitValues.length; i++) {
         this.unitValues[i].value = '';
       }
+      this.suppressOnChange = false;
       return;
     }
 
     let inputValue: number = parseFloat(value);
     if (isNaN(inputValue)) {
+      this.unitValues[changedIndex].value = value;
+      this.suppressOnChange = false;
       return;
     }
 
     this.unitValues[changedIndex].value = value;
 
     if (this.isTemperature) {
-      let baseValue: number = UnitConverterData.temperatureToBase(inputValue, this.unitValues[changedIndex].name);
+      let unitNames: string[] = UnitConverterData.temperatureUnits;
+      let baseValue: number = UnitConverterData.temperatureToBase(inputValue, unitNames[changedIndex]);
       for (let i = 0; i < this.unitValues.length; i++) {
         if (i !== changedIndex) {
-          let result: number = UnitConverterData.temperatureFromBase(baseValue, this.unitValues[i].name);
+          let result: number = UnitConverterData.temperatureFromBase(baseValue, unitNames[i]);
           this.unitValues[i].value = UnitConverterData.formatResult(result);
         }
       }
@@ -138,6 +181,8 @@ struct UnitConverterContent {
         }
       }
     }
+
+    this.suppressOnChange = false;
   }
 
   build() {
@@ -145,24 +190,17 @@ struct UnitConverterContent {
       List({ space: 0 }) {
         ForEach(this.unitValues, (item: UnitValueItem, index: number) => {
           ListItem() {
-            Column() {
-              UnitValueRow({
-                item: item,
-                isActive: this.activeUnitIndex === index,
-                onValueChange: (value: string) => {
-                  this.onValueChange(index, value);
-                },
-                onItemFocus: () => {
-                  this.focusedIndex = index;
-                }
-              })
-              if (index < this.unitValues.length - 1) {
-                Divider()
-                  .color($r('app.color.border_color'))
-                  .margin({ left: 16, right: 16 })
+            UnitValueRow({
+              item: item,
+              isActive: this.activeUnitIndex === index,
+              showDivider: index < this.unitValues.length - 1,
+              onValueChange: (value: string) => {
+                this.onValueChange(index, value);
+              },
+              onItemFocus: () => {
+                this.focusedIndex = index;
               }
-            }
-            .width('100%')
+            })
           }
         }, (item: UnitValueItem) => item.name)
       }
@@ -174,7 +212,7 @@ struct UnitConverterContent {
 
       Scroll() {
         Column() {
-          Text('常用参考')
+          Text('\u5E38\u7528\u53C2\u8003')
             .fontSize(15)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.primary_text'))
@@ -182,43 +220,43 @@ struct UnitConverterContent {
             .margin({ bottom: 8 })
 
           if (this.isTemperature) {
-            this.ConceptRow('摄氏度', '冰点0\u00B0C，沸点100\u00B0C')
-            this.ConceptRow('华氏度', '冰点32\u00B0F，沸点212\u00B0F')
-            this.ConceptRow('开尔文', '绝对零度0K = -273.15\u00B0C')
+            this.ConceptRow('\u6444\u6C0F\u5EA6', '\u51B0\u70B90\u00B0C\uFF0C\u6CB8\u70B9100\u00B0C')
+            this.ConceptRow('\u534E\u6C0F\u5EA6', '\u51B0\u70B932\u00B0F\uFF0C\u6CB8\u70B9212\u00B0F')
+            this.ConceptRow('\u5F00\u5C14\u6587', '\u7EDD\u5BF9\u96F6\u5EA60K = -273.15\u00B0C')
           } else if (this.category !== null) {
             if (this.category.id === 'length') {
-              this.ConceptRow('1千米', '= 0.621371英里')
-              this.ConceptRow('1米', '= 3.28084英尺')
-              this.ConceptRow('1寸', '\u2248 3.33厘米')
-              this.ConceptRow('1海里', '= 1.852千米')
+              this.ConceptRow('1\u5343\u7C73', '= 0.621371\u82F1\u91CC')
+              this.ConceptRow('1\u7C73', '= 3.28084\u82F1\u5C3A')
+              this.ConceptRow('1\u5BF8', '\u2248 3.33\u5398\u7C73')
+              this.ConceptRow('1\u6D77\u91CC', '= 1.852\u5343\u7C73')
             } else if (this.category.id === 'area') {
-              this.ConceptRow('1公顷', '= 10000平方米')
-              this.ConceptRow('1亩', '\u2248 666.67平方米')
-              this.ConceptRow('1英亩', '\u2248 4046.86平方米')
+              this.ConceptRow('1\u516C\u9877', '= 10000\u5E73\u65B9\u7C73')
+              this.ConceptRow('1\u4EA9', '\u2248 666.67\u5E73\u65B9\u7C73')
+              this.ConceptRow('1\u82F1\u4EA9', '\u2248 4046.86\u5E73\u65B9\u7C73')
             } else if (this.category.id === 'weight') {
-              this.ConceptRow('1千克', '\u2248 2.20462磅')
-              this.ConceptRow('1磅', '\u2248 453.59克')
-              this.ConceptRow('1盎司', '\u2248 28.35克')
+              this.ConceptRow('1\u5343\u514B', '\u2248 2.20462\u78C5')
+              this.ConceptRow('1\u78C5', '\u2248 453.59\u514B')
+              this.ConceptRow('1\u76CE\u53F8', '\u2248 28.35\u514B')
             } else if (this.category.id === 'volume') {
-              this.ConceptRow('1立方米', '= 1000升')
-              this.ConceptRow('1加仑', '\u2248 3.78541升')
-              this.ConceptRow('1升', '= 10分升 = 1000毫升')
+              this.ConceptRow('1\u7ACB\u65B9\u7C73', '= 1000\u5347')
+              this.ConceptRow('1\u52A0\u4ED1', '\u2248 3.78541\u5347')
+              this.ConceptRow('1\u5347', '= 10\u5206\u5347 = 1000\u6BEB\u5347')
             } else if (this.category.id === 'speed') {
-              this.ConceptRow('1千米/时', '\u2248 0.27778米/秒')
-              this.ConceptRow('1英里/时', '\u2248 1.60934千米/时')
-              this.ConceptRow('1节', '\u2248 1.852千米/时')
+              this.ConceptRow('1\u5343\u7C73/\u65F6', '\u2248 0.27778\u7C73/\u79D2')
+              this.ConceptRow('1\u82F1\u91CC/\u65F6', '\u2248 1.60934\u5343\u7C73/\u65F6')
+              this.ConceptRow('1\u8282', '\u2248 1.852\u5343\u7C73/\u65F6')
             } else if (this.category.id === 'time') {
-              this.ConceptRow('1天', '= 24小时 = 86400秒')
-              this.ConceptRow('1年', '\u2248 365天')
-              this.ConceptRow('1世纪', '= 100年')
+              this.ConceptRow('1\u5929', '= 24\u5C0F\u65F6 = 86400\u79D2')
+              this.ConceptRow('1\u5E74', '\u2248 365\u5929')
+              this.ConceptRow('1\u4E16\u7EAA', '= 100\u5E74')
             } else if (this.category.id === 'pressure') {
-              this.ConceptRow('1标准大气压', '\u2248 101325帕')
-              this.ConceptRow('1巴', '= 100000帕')
-              this.ConceptRow('1毫米汞柱', '\u2248 133.322帕')
+              this.ConceptRow('1\u6807\u51C6\u5927\u6C14\u538B', '\u2248 101325\u5E15')
+              this.ConceptRow('1\u5DF4', '= 100000\u5E15')
+              this.ConceptRow('1\u6BEB\u7C73\u6C5E\u67F1', '\u2248 133.322\u5E15')
             } else if (this.category.id === 'energy') {
-              this.ConceptRow('1千瓦时', '= 3600千焦')
-              this.ConceptRow('1卡路里', '\u2248 4.184焦耳')
-              this.ConceptRow('1英热单位', '\u2248 1055.06焦耳')
+              this.ConceptRow('1\u5343\u74E6\u65F6', '= 3600\u5343\u7126')
+              this.ConceptRow('1\u5361\u8DEF\u91CC', '\u2248 4.184\u7126\u8033')
+              this.ConceptRow('1\u82F1\u70ED\u5355\u4F4D', '\u2248 1055.06\u7126\u8033')
             }
           }
         }
