@@ -493,6 +493,7 @@ struct XiehouyuQueryContent {
         .layoutWeight(1)
         .padding({ left: 10, right: 10 })
         .cachedCount(10)
+        .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
       } else if (this.searchQuery) {
         Column() {
           Text('未找到匹配的歇后语')
@@ -545,6 +546,7 @@ struct XiehouyuQueryContent {
       .scrollable(ScrollDirection.Horizontal)
       .width('100%')
       .padding({ left: 12, right: 12, top: 2, bottom: 4 })
+      .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
     }
   }
 
@@ -654,6 +656,7 @@ struct XiehouyuQueryContent {
         .layoutWeight(1)
         .padding({ left: 10, right: 10 })
         .cachedCount(5)
+        .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
         .onReachEnd(() => {
           this.loadMore();
         })
@@ -956,6 +959,7 @@ struct XiehouyuDetailModal {
         }
         .scrollable(ScrollDirection.Vertical)
         .constraintSize({ maxHeight: '50%' })
+        .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
       }
     }
     .width('85%')

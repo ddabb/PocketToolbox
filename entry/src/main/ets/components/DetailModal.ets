@@ -234,6 +234,7 @@ export struct DetailModal {
         }
         .scrollable(ScrollDirection.Vertical)
         .constraintSize({ maxHeight: '60%' })
+        .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
       }
     }
     .width('85%')

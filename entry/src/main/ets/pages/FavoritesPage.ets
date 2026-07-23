@@ -20,7 +20,9 @@ struct FavoritesContent {
   @State activeTab: string = 'poem';
   @State displayItems: FavoriteItem[] = [];
   private uiContext: UIContext = this.getUIContext();
-  navPathStack: NavPathStack = AppStorage.get('AppNavPathStack') as NavPathStack;
+  private getNavPathStack(): NavPathStack {
+    return AppStorage.get('AppNavPathStack') as NavPathStack;
+  }
 
   aboutToAppear(): void {
     this.loadFavorites();
@@ -69,7 +71,10 @@ struct FavoritesContent {
     if (item.type === 'poem') {
       try {
         let poem: PoemItem = JSON.parse(item.data) as PoemItem;
-        this.navPathStack.pushPathByName('PoemContentPage', poem);
+        let stack: NavPathStack = this.getNavPathStack();
+        if (stack) {
+          stack.pushPathByName('PoemContentPage', poem);
+        }
       } catch (e) {
         console.error('[Favorites] parse poem failed: ' + (e as Error).message);
       }
@@ -167,6 +172,7 @@ struct FavoritesContent {
         .layoutWeight(1)
         .padding({ left: 10, right: 10, top: 4 })
         .cachedCount(10)
+        .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
       } else {
         Column() {
           Text(this.activeTab === 'poem' ? '暂无收藏的诗词' : this.activeTab === 'idiom' ? '暂无收藏的成语' : '暂无收藏的歇后语')

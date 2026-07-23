@@ -33,7 +33,9 @@ struct PoetryQueryContent {
   initialDynasty: string = '';
   private viewModel: PoetryViewModel = PoetryViewModel.getInstance();
   private uiContext: UIContext = this.getUIContext();
-  navPathStack: NavPathStack = AppStorage.get('AppNavPathStack') as NavPathStack;
+  private getNavPathStack(): NavPathStack {
+    return AppStorage.get('AppNavPathStack') as NavPathStack;
+  }
 
   aboutToAppear(): void {
     setTimeout(() => {
@@ -170,7 +172,10 @@ struct PoetryQueryContent {
     let detail: PoetDetail = this.viewModel.loadPoetDetail(
       this.uiContext.getHostContext() as Context, poet.n, poet.i, poet.d);
     console.info('[PoetryQuery] loaded poems=' + detail.poems.length.toString() + ' for poet=' + poet.n);
-    this.navPathStack.pushPathByName('PoetryDetailPage', detail);
+    let stack: NavPathStack = this.getNavPathStack();
+    if (stack) {
+      stack.pushPathByName('PoetryDetailPage', detail);
+    }
   }
 
   private onResultTap(result: SearchResultItem): void {
@@ -189,7 +194,10 @@ struct PoetryQueryContent {
           this.uiContext.getHostContext() as Context, poet.n, poet.i, poet.d);
         for (let i = 0; i < detail.poems.length; i++) {
           if (detail.poems[i].n === result.title) {
-            this.navPathStack.pushPathByName('PoemContentPage', detail.poems[i]);
+            let stack2: NavPathStack = this.getNavPathStack();
+            if (stack2) {
+              stack2.pushPathByName('PoemContentPage', detail.poems[i]);
+            }
             return;
           }
         }
@@ -243,6 +251,7 @@ struct PoetryQueryContent {
       .scrollable(ScrollDirection.Horizontal)
       .width('100%')
       .padding({ left: 12, right: 12, top: 2, bottom: 4 })
+      .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
     }
   }
 
@@ -313,6 +322,7 @@ struct PoetryQueryContent {
     .scrollable(ScrollDirection.Horizontal)
     .width('100%')
     .padding({ left: 12, right: 12, top: 4, bottom: 4 })
+    .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
   }
 
   @Builder
@@ -408,6 +418,7 @@ struct PoetryQueryContent {
     .layoutWeight(1)
     .padding({ left: 12, right: 12, top: 4 })
     .cachedCount(10)
+    .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
   }
 
   @Builder
@@ -467,6 +478,7 @@ struct PoetryQueryContent {
     .layoutWeight(1)
     .padding({ left: 12, right: 12, top: 4 })
     .cachedCount(10)
+    .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
     .onReachEnd(() => {
       this.loadMorePoets();
     })

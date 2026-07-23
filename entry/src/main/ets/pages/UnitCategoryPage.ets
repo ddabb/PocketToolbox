@@ -12,7 +12,9 @@ export function UnitCategoryPageBuilder(param?: Object) {
 
 @Component
 struct UnitCategoryContent {
-  navPathStack: NavPathStack = AppStorage.get('AppNavPathStack') as NavPathStack;
+  private getNavPathStack(): NavPathStack {
+    return AppStorage.get('AppNavPathStack') as NavPathStack;
+  }
   @State categories: ConverterCategory[] = UnitConverterData.getCategories();
 
   build() {
@@ -67,6 +69,7 @@ struct UnitCategoryContent {
     .height('100%')
     .backgroundColor($r('app.color.page_background'))
     .scrollable(ScrollDirection.Vertical)
+    .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
   }
 
   private getSubtitle(cat: ConverterCategory): string {
@@ -89,16 +92,20 @@ struct UnitCategoryContent {
   }
 
   private navigateToCategory(cat: ConverterCategory): void {
+    let stack: NavPathStack = this.getNavPathStack();
+    if (!stack) {
+      return;
+    }
     if (cat.isBase) {
-      this.navPathStack.pushPathByName('BaseConverterPage', null);
+      stack.pushPathByName('BaseConverterPage', null);
     } else if (cat.isTimezone) {
-      this.navPathStack.pushPathByName('TimezoneConverterPage', null);
+      stack.pushPathByName('TimezoneConverterPage', null);
     } else {
       let param: Record<string, Object> = {
         'categoryId': cat.id as Object,
         'title': cat.title as Object
       };
-      this.navPathStack.pushPathByName('UnitConverterPage', param);
+      stack.pushPathByName('UnitConverterPage', param);
     }
   }
 }

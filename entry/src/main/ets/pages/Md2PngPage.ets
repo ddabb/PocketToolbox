@@ -298,6 +298,7 @@ struct Md2PngContent {
         .layoutWeight(1)
         .scrollable(ScrollDirection.Vertical)
         .align(Alignment.Top)
+        .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
       }
       .width('100%')
       .layoutWeight(1)
@@ -376,7 +377,7 @@ struct Md2PngContent {
       .width('100%')
       .scrollable(ScrollDirection.Vertical)
       .scrollBar(BarState.Auto)
-      .edgeEffect(EdgeEffect.Fade)
+      .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
 
       Row() {
         Blank()

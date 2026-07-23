@@ -66,6 +66,7 @@ struct Index {
   private xiehouyuVm: XiehouyuViewModel = XiehouyuViewModel.getInstance();
 
   aboutToAppear(): void {
+    AppStorage.setOrCreate('AppNavPathStack', this.homeStack);
     AppStorage.setOrCreate('AppHostContext', this.getUIContext().getHostContext() as Context);
     AppStorage.setOrCreate('AppUIContext', this.getUIContext());
     this.buildToolItems();
@@ -482,6 +483,7 @@ struct Index {
       .width('100%')
       .height('100%')
       .scrollable(ScrollDirection.Vertical)
+      .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
     }
     .navDestination(this.PageMap)
     .hideTitleBar(true)
@@ -567,6 +569,7 @@ struct Index {
       .width('100%')
       .height('100%')
       .scrollable(ScrollDirection.Vertical)
+      .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
     }
     .navDestination(this.PageMap)
     .hideTitleBar(true)
@@ -760,6 +763,7 @@ struct Index {
       .width('100%')
       .height('100%')
       .scrollable(ScrollDirection.Vertical)
+      .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
     }
     .navDestination(this.PageMap)
     .hideTitleBar(true)

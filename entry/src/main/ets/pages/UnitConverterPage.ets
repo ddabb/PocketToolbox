@@ -209,6 +209,7 @@ struct UnitConverterContent {
       .borderRadius(12)
       .clip(true)
       .margin({ left: 16, right: 16, top: 8 })
+      .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
 
       Scroll() {
         Column() {
@@ -268,6 +269,7 @@ struct UnitConverterContent {
       .width('100%')
       .margin({ left: 16, right: 16, top: 12, bottom: 16 })
       .scrollable(ScrollDirection.Vertical)
+      .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
     }
     .width('100%')
     .height('100%')

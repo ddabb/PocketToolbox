@@ -21,7 +21,9 @@ export struct PoetryDetailContent {
   @Prop poetParam: PoetDetail = new PoetDetail();
   @State searchText: string = '';
   @State displayPoems: PoemItem[] = [];
-  navPathStack: NavPathStack = AppStorage.get('AppNavPathStack') as NavPathStack;
+  private getNavPathStack(): NavPathStack {
+    return AppStorage.get('AppNavPathStack') as NavPathStack;
+  }
 
   aboutToAppear(): void {
     this.displayPoems = this.poetParam.poems;
@@ -48,7 +50,10 @@ export struct PoetryDetailContent {
 
   private onPoemTap(poem: PoemItem): void {
     console.info('[PoetryDetail] tap poem=' + poem.n);
-    this.navPathStack.pushPathByName('PoemContentPage', poem);
+    let stack: NavPathStack = this.getNavPathStack();
+    if (stack) {
+      stack.pushPathByName('PoemContentPage', poem);
+    }
   }
 
   build() {
@@ -193,5 +198,6 @@ export struct PoetryDetailContent {
     .layoutWeight(1)
     .padding({ left: 10, right: 10, top: 2, bottom: 6 })
     .cachedCount(10)
+    .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
   }
 }

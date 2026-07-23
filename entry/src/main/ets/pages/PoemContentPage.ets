@@ -35,7 +35,9 @@ export struct PoemContentContent {
   @StorageLink('PoemFavStatus') @Watch('onFavStatusChange') favStatus: boolean = false;
   private uiContext: UIContext = this.getUIContext();
   private viewModel: PoetryViewModel = PoetryViewModel.getInstance();
-  navPathStack: NavPathStack = AppStorage.get('AppNavPathStack') as NavPathStack;
+  private getNavPathStack(): NavPathStack {
+    return AppStorage.get('AppNavPathStack') as NavPathStack;
+  }
 
   aboutToAppear(): void {
     this.poetName = this.poemParam.a || '';
@@ -70,7 +72,10 @@ export struct PoemContentContent {
     if (poet) {
       let detail: PoetDetail = this.viewModel.loadPoetDetail(
         this.uiContext.getHostContext() as Context, poet.n, poet.i, poet.d);
-      this.navPathStack.pushPathByName('PoetryDetailPage', detail);
+      let stack: NavPathStack = this.getNavPathStack();
+    if (stack) {
+      stack.pushPathByName('PoetryDetailPage', detail);
+    }
       console.info('[PoemContent] tap poet=' + this.poetName + ', poems=' + detail.poems.length.toString());
     } else {
       this.uiContext.getPromptAction().showToast({ message: '未找到诗人信息', duration: 1000 });
@@ -85,7 +90,10 @@ export struct PoemContentContent {
     }
     let queryParam: DynastyQueryParam = new DynastyQueryParam();
     queryParam.dynasty = this.poemParam.d;
-    this.navPathStack.pushPathByName('PoetryQueryPage', queryParam);
+    let stack: NavPathStack = this.getNavPathStack();
+    if (stack) {
+      stack.pushPathByName('PoetryQueryPage', queryParam);
+    }
     console.info('[PoemContent] tap dynasty=' + this.poemParam.d);
   }
 
@@ -227,6 +235,7 @@ export struct PoemContentContent {
         .width('100%')
         .padding({ left: 20, right: 20, top: 16, bottom: 24 })
       }
+      .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
     }
     .width('100%')
     .height('100%')

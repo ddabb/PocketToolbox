@@ -449,6 +449,7 @@ struct IdiomQueryContent {
       .scrollable(ScrollDirection.Horizontal)
       .width('100%')
       .padding({ left: 12, right: 12, top: 2, bottom: 4 })
+      .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
     }
   }
 
@@ -555,6 +556,7 @@ struct IdiomQueryContent {
         .layoutWeight(1)
         .padding({ left: 10, right: 10 })
         .cachedCount(10)
+        .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
       }
       .width('100%')
       .layoutWeight(1)
@@ -595,6 +597,7 @@ struct IdiomQueryContent {
       .scrollable(ScrollDirection.Horizontal)
       .width('100%')
       .padding({ left: 12, right: 12, top: 6, bottom: 6 })
+      .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
 
       if (this.activeLetter && this.letterDataSource.totalCount() > 0) {
         Row() {
@@ -664,6 +667,7 @@ struct IdiomQueryContent {
         .layoutWeight(1)
         .padding({ left: 10, right: 10 })
         .cachedCount(10)
+        .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
       } else if (this.activeLetter) {
         Column() {
           Text('暂无该字母开头的成语')
@@ -800,6 +804,7 @@ struct IdiomQueryContent {
         .layoutWeight(1)
         .padding({ left: 10, right: 10 })
         .cachedCount(10)
+        .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
       } else if (this.pinyinQuery) {
         Column() {
           Text('未找到匹配的成语')

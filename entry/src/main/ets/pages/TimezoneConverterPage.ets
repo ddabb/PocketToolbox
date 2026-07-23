@@ -431,6 +431,7 @@ struct TimezoneConverterContent {
     .width('100%')
     .layoutWeight(1)
     .scrollable(ScrollDirection.Vertical)
+    .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
   }
 
   @Builder
@@ -614,6 +615,7 @@ struct TimezoneConverterContent {
     .width('100%')
     .layoutWeight(1)
     .scrollable(ScrollDirection.Vertical)
+    .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
   }
 
   @Builder
@@ -778,6 +780,7 @@ struct TimezoneConverterContent {
           }
         }
         .layoutWeight(1)
+        .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
       }
       .width('100%')
       .height('70%')

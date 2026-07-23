@@ -47,7 +47,9 @@ struct MineContent {
   @State stats: MineStatItem[] = [];
   @State actions: MineActionItem[] = [];
   private uiContext: UIContext = this.getUIContext();
-  navPathStack: NavPathStack = AppStorage.get('AppNavPathStack') as NavPathStack;
+  private getNavPathStack(): NavPathStack {
+    return AppStorage.get('AppNavPathStack') as NavPathStack;
+  }
 
   aboutToAppear(): void {
     this.loadStats();
@@ -155,14 +157,18 @@ struct MineContent {
             .width('100%')
             .padding({ left: 16, right: 16, top: 14, bottom: 14 })
             .onClick(() => {
+              let stack: NavPathStack = this.getNavPathStack();
+              if (!stack) {
+                return;
+              }
               if (action.page === 'FavoritesPage') {
-                this.navPathStack.pushPathByName('FavoritesPage', null);
+                stack.pushPathByName('FavoritesPage', null);
               } else if (action.page === 'PoetryQueryPage') {
-                this.navPathStack.pushPathByName('PoetryQueryPage', null);
+                stack.pushPathByName('PoetryQueryPage', null);
               } else if (action.page === 'IdiomQueryPage') {
-                this.navPathStack.pushPathByName('IdiomQueryPage', null);
+                stack.pushPathByName('IdiomQueryPage', null);
               } else if (action.page === 'XiehouyuQueryPage') {
-                this.navPathStack.pushPathByName('XiehouyuQueryPage', null);
+                stack.pushPathByName('XiehouyuQueryPage', null);
               }
             })
             if (index < this.actions.length - 1) {
@@ -197,7 +203,10 @@ struct MineContent {
           .width('100%')
           .padding({ left: 16, right: 16, top: 14, bottom: 14 })
           .onClick(() => {
-            this.navPathStack.pushPathByName('AboutPage', null);
+            let stack: NavPathStack = this.getNavPathStack();
+            if (stack) {
+              stack.pushPathByName('AboutPage', null);
+            }
           })
         }
         .width('100%')
@@ -212,6 +221,7 @@ struct MineContent {
       }
       .width('100%')
     }
+    .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
     .width('100%')
     .height('100%')
     .backgroundColor($r('app.color.page_background'))

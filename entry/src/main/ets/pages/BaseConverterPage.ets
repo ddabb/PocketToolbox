@@ -310,6 +310,7 @@ struct BaseConverterContent {
         .borderRadius(12)
         .clip(true)
         .margin({ left: 16, right: 16, top: 8 })
+        .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
 
         if (this.errorMsg.length > 0) {
           Text(this.errorMsg)
@@ -380,6 +381,7 @@ struct BaseConverterContent {
     .height('100%')
     .backgroundColor($r('app.color.page_background'))
     .scrollable(ScrollDirection.Vertical)
+    .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
   }
 
   @Builder
