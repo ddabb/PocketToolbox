@@ -9,6 +9,7 @@ import { Markdown, MarkdownController } from '@luvi/lv-markdown-in';
 import { display } from '@kit.ArkUI';
 import { DecorPatternUtil } from '../common/utils/DecorPatternUtil';
 import { shareImageViaPanel } from '../common/utils/ShareImageUtil';
+import { KeywordUtil } from '../common/utils/KeywordUtil';
 
 class MdCanvasStore {
   private contexts: CanvasRenderingContext2D[] = [];
@@ -57,7 +58,7 @@ class MdControllerStore {
       .setQuoteBorderRadius(6)
       .setQuoteBorderWidth(2)
       .setInlineCodeColor(tpl.accentColor)
-      .setInlineCodeBackgroundColor(tpl.codeBgColor)
+      .setInlineCodeBackgroundColor(tpl.highlightBgColor || tpl.codeBgColor)
       .setInlineCodeBackgroundRadius(3)
       .setCodeBlockTheme(isDark ? 'dark' : 'light')
       .setCodeBlockBorderRadius(6)
@@ -99,6 +100,8 @@ struct Md2PngContent {
   @State generatedImageUri: string = '';
   @State isGenerating: boolean = false;
   @State currentAccentColor: string = '#3182ce';
+  @State highlightWords: string[] = [];
+  @State isExtractingKeywords: boolean = false;
   @State cardWidth: number = 360;
   @State cardHeights: number[] = [];
   private readonly minMdCardHeight: number = 200;
@@ -195,8 +198,25 @@ struct Md2PngContent {
       clearTimeout(this.regenerateTimer);
     }
     this.regenerateTimer = setTimeout(() => {
-      this.generateImage();
+      this.extractAndGenerate();
     }, 800);
+  }
+
+  private async extractAndGenerate(): Promise<void> {
+    if (!this.inputText || this.inputText.trim().length === 0) {
+      this.highlightWords = [];
+      this.generatedImageUri = '';
+      return;
+    }
+    this.isExtractingKeywords = true;
+    try {
+      let keywords: string[] = await KeywordUtil.extractKeywords(this.inputText);
+      this.highlightWords = keywords;
+    } catch (e) {
+      this.highlightWords = [];
+    }
+    this.isExtractingKeywords = false;
+    this.generateImage();
   }
 
   private async generateImage(): Promise<void> {
@@ -422,7 +442,7 @@ struct Md2PngContent {
                 })
 
               Column() {
-                Markdown({ controller: this.controllerStore.get(index), text: this.inputText })
+                Markdown({ controller: this.controllerStore.get(index), text: KeywordUtil.highlightText(this.inputText, this.highlightWords) })
                   .width('100%')
               }
               .width('100%')

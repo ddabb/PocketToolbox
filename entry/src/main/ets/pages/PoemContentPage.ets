@@ -5,6 +5,8 @@ import { PoetryViewModel } from '../viewmodel/PoetryViewModel';
 import { ShareImageCard } from '../components/ShareImageCard';
 import { buildPoemMarkdown } from '../common/utils/ShareImageUtil';
 import { Md2PngTemplates } from '../model/Md2PngModels';
+import { AddToReadingListUtil, AddToListResult } from '../common/utils/AddToReadingListUtil';
+import { ReadingList, ReadingItem } from '../model/ReadingListModels';
 
 class DynastyQueryParam {
   dynasty: string = '';
@@ -32,6 +34,8 @@ export struct PoemContentContent {
   @State isFav: boolean = false;
   @State showShareCard: boolean = false;
   @State shareMdText: string = '';
+  @State showReadingListPicker: boolean = false;
+  @State readingLists: ReadingList[] = [];
   @StorageLink('PoemFavStatus') @Watch('onFavStatusChange') favStatus: boolean = false;
   private uiContext: UIContext = this.getUIContext();
   private viewModel: PoetryViewModel = PoetryViewModel.getInstance();
@@ -122,123 +126,227 @@ export struct PoemContentContent {
     FavoritesUtil.invalidateCache();
   }
 
-  build() {
-    Column() {
-      Scroll() {
-        Column() {
-          Text(this.poemParam.n)
-            .fontSize(22)
-            .fontWeight(FontWeight.Bold)
-            .fontColor($r('app.color.primary_text'))
-            .width('100%')
-            .textAlign(TextAlign.Center)
+  private openReadingListPicker(): void {
+    this.readingLists = AddToReadingListUtil.getLists(this.uiContext.getHostContext() as Context);
+    this.showReadingListPicker = true;
+  }
 
-          if (this.poetName || this.poemParam.d) {
-            Row({ space: 6 }) {
-              if (this.poetName) {
-                Text(this.poetName)
-                  .fontSize(14)
-                  .fontColor($r('app.color.poetry_green'))
-                  .decoration({ type: TextDecorationType.Underline, color: $r('app.color.poetry_green') })
-                  .onClick(() => {
-                    this.onPoetTap();
-                  })
+  private addToReadingList(listId: string): void {
+    let subtitle: string = this.poetName;
+    if (this.poemParam.d) {
+      subtitle += ' \u00B7 ' + this.poemParam.d;
+    }
+    let result: AddToListResult = AddToReadingListUtil.addToListWithCheck(
+      this.uiContext.getHostContext() as Context, listId, 'poem', this.poemParam.n, subtitle, this.poemParam.c);
+    this.showReadingListPicker = false;
+    this.uiContext.getPromptAction().showToast({ message: result.msg, duration: 1000 });
+  }
+
+  build() {
+    Stack() {
+      Column() {
+        Scroll() {
+          Column() {
+            Text(this.poemParam.n)
+              .fontSize(22)
+              .fontWeight(FontWeight.Bold)
+              .fontColor($r('app.color.primary_text'))
+              .width('100%')
+              .textAlign(TextAlign.Center)
+
+            if (this.poetName || this.poemParam.d) {
+              Row({ space: 6 }) {
+                if (this.poetName) {
+                  Text(this.poetName)
+                    .fontSize(14)
+                    .fontColor($r('app.color.poetry_green'))
+                    .decoration({ type: TextDecorationType.Underline, color: $r('app.color.poetry_green') })
+                    .onClick(() => {
+                      this.onPoetTap();
+                    })
+                }
+                if (this.poetName && this.poemParam.d) {
+                  Text('\u00B7')
+                    .fontSize(14)
+                    .fontColor($r('app.color.tertiary_text'))
+                }
+                if (this.poemParam.d) {
+                  Text(this.poemParam.d)
+                    .fontSize(14)
+                    .fontColor($r('app.color.poetry_green'))
+                    .decoration({ type: TextDecorationType.Underline, color: $r('app.color.poetry_green') })
+                    .onClick(() => {
+                      this.onDynastyTap();
+                    })
+                }
               }
-              if (this.poetName && this.poemParam.d) {
-                Text('\u00B7')
-                  .fontSize(14)
-                  .fontColor($r('app.color.tertiary_text'))
-              }
-              if (this.poemParam.d) {
-                Text(this.poemParam.d)
-                  .fontSize(14)
-                  .fontColor($r('app.color.poetry_green'))
-                  .decoration({ type: TextDecorationType.Underline, color: $r('app.color.poetry_green') })
-                  .onClick(() => {
-                    this.onDynastyTap();
-                  })
-              }
+              .width('100%')
+              .margin({ top: 8 })
+              .justifyContent(FlexAlign.Center)
+            }
+
+            if (this.poemParam.f) {
+              Text(this.poemParam.f)
+                .fontSize(12)
+                .fontColor($r('app.color.poetry_green'))
+                .backgroundColor($r('app.color.poetry_green') + '18')
+                .borderRadius(8)
+                .padding({ left: 10, right: 10, top: 3, bottom: 3 })
+                .margin({ top: 8 })
+            }
+
+            Text(this.poemParam.c)
+              .fontSize(16)
+              .fontColor($r('app.color.secondary_text'))
+              .lineHeight(30)
+              .width('100%')
+              .margin({ top: 20 })
+              .padding({ left: 8, right: 8 })
+
+            Row({ space: 12 }) {
+              Text(this.isFav ? '\u2665' : '\u2661')
+                .fontSize(14)
+                .fontColor(this.isFav ? $r('app.color.danger_red') : $r('app.color.poetry_green'))
+                .backgroundColor(this.isFav ? $r('app.color.danger_red') + '18' : $r('app.color.poetry_green') + '18')
+                .borderRadius(16)
+                .padding({ left: 20, right: 20, top: 8, bottom: 8 })
+                .onClick(() => {
+                  this.toggleFav();
+                })
+
+              Text('\uD83D\uDCD6')
+                .fontSize(14)
+                .fontColor($r('app.color.poetry_green'))
+                .backgroundColor($r('app.color.poetry_green') + '18')
+                .borderRadius(16)
+                .padding({ left: 20, right: 20, top: 8, bottom: 8 })
+                .onClick(() => {
+                  this.openReadingListPicker();
+                })
+
+              Text('复制')
+                .fontSize(14)
+                .fontColor('#ffffff')
+                .backgroundColor($r('app.color.poetry_green'))
+                .borderRadius(16)
+                .padding({ left: 24, right: 24, top: 8, bottom: 8 })
+                .onClick(() => {
+                  this.copyPoem();
+                })
+
+              Text('分享图片')
+                .fontSize(14)
+                .fontColor('#ffffff')
+                .backgroundColor($r('app.color.poetry_green'))
+                .borderRadius(16)
+                .padding({ left: 20, right: 20, top: 8, bottom: 8 })
+                .onClick(() => {
+                  this.onShareImage();
+                })
             }
             .width('100%')
-            .margin({ top: 8 })
             .justifyContent(FlexAlign.Center)
-          }
+            .margin({ top: 24 })
 
-          if (this.poemParam.f) {
-            Text(this.poemParam.f)
-              .fontSize(12)
-              .fontColor($r('app.color.poetry_green'))
-              .backgroundColor($r('app.color.poetry_green') + '18')
-              .borderRadius(8)
-              .padding({ left: 10, right: 10, top: 3, bottom: 3 })
-              .margin({ top: 8 })
-          }
-
-          Text(this.poemParam.c)
-            .fontSize(16)
-            .fontColor($r('app.color.secondary_text'))
-            .lineHeight(30)
-            .width('100%')
-            .margin({ top: 20 })
-            .padding({ left: 8, right: 8 })
-
-          Row({ space: 12 }) {
-            Text(this.isFav ? '\u2665' : '\u2661')
-              .fontSize(14)
-              .fontColor(this.isFav ? $r('app.color.danger_red') : $r('app.color.poetry_green'))
-              .backgroundColor(this.isFav ? $r('app.color.danger_red') + '18' : $r('app.color.poetry_green') + '18')
-              .borderRadius(16)
-              .padding({ left: 20, right: 20, top: 8, bottom: 8 })
-              .onClick(() => {
-                this.toggleFav();
+            if (this.showShareCard) {
+              ShareImageCard({
+                mdText: this.shareMdText,
+                accentColor: '#6b8e6b',
+                bgColor: '#fdf8f0',
+                cardId: 'poem_share_card',
+                theme: Md2PngTemplates.getPoetryTemplate(),
+                autoShare: true,
+                onAutoShared: () => {
+                  this.showShareCard = false;
+                }
               })
-
-            Text('复制')
-              .fontSize(14)
-              .fontColor('#ffffff')
-              .backgroundColor($r('app.color.poetry_green'))
-              .borderRadius(16)
-              .padding({ left: 24, right: 24, top: 8, bottom: 8 })
-              .onClick(() => {
-                this.copyPoem();
-              })
-
-            Text('分享图片')
-              .fontSize(14)
-              .fontColor('#ffffff')
-              .backgroundColor($r('app.color.poetry_green'))
-              .borderRadius(16)
-              .padding({ left: 20, right: 20, top: 8, bottom: 8 })
-              .onClick(() => {
-                this.onShareImage();
-              })
+                .position({ x: -10000, y: 0 })
+            }
           }
           .width('100%')
-          .justifyContent(FlexAlign.Center)
-          .margin({ top: 24 })
-
-          if (this.showShareCard) {
-            ShareImageCard({
-              mdText: this.shareMdText,
-              accentColor: '#6b8e6b',
-              bgColor: '#fdf8f0',
-              cardId: 'poem_share_card',
-              theme: Md2PngTemplates.getPoetryTemplate(),
-              autoShare: true,
-              onAutoShared: () => {
-                this.showShareCard = false;
-              }
-            })
-              .position({ x: -10000, y: 0 })
-          }
+          .padding({ left: 20, right: 20, top: 16, bottom: 24 })
         }
-        .width('100%')
-        .padding({ left: 20, right: 20, top: 16, bottom: 24 })
+        .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
       }
-      .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
+      .width('100%')
+      .height('100%')
+      .backgroundColor($r('app.color.page_background'))
+
+      if (this.showReadingListPicker) {
+        this.ReadingListPickerOverlay()
+      }
     }
     .width('100%')
     .height('100%')
-    .backgroundColor($r('app.color.page_background'))
+  }
+
+  @Builder
+  ReadingListPickerOverlay() {
+    Column() {
+      Column() {
+        Text('加入朗读清单')
+          .fontSize(18)
+          .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.primary_text'))
+          .margin({ bottom: 16 })
+
+        if (this.readingLists.length > 0) {
+          List({ space: 8 }) {
+            ForEach(this.readingLists, (list: ReadingList) => {
+              ListItem() {
+                Row() {
+                  Text(list.name)
+                    .fontSize(15)
+                    .fontColor($r('app.color.primary_text'))
+                    .layoutWeight(1)
+                  Text(list.items.length.toString() + '项')
+                    .fontSize(12)
+                    .fontColor($r('app.color.tertiary_text'))
+                    .margin({ left: 8 })
+                }
+                .width('100%')
+                .padding({ left: 16, right: 16, top: 12, bottom: 12 })
+                .backgroundColor($r('app.color.page_background'))
+                .borderRadius(10)
+                .onClick(() => {
+                  this.addToReadingList(list.id);
+                })
+              }
+            }, (list: ReadingList) => list.id)
+          }
+          .width('100%')
+          .constraintSize({ maxHeight: '50%' })
+        } else {
+          Text('暂无朗读清单，请先创建')
+            .fontSize(14)
+            .fontColor($r('app.color.tertiary_text'))
+            .margin({ top: 20, bottom: 20 })
+        }
+
+        Text('取消')
+          .fontSize(15)
+          .fontColor($r('app.color.tertiary_text'))
+          .backgroundColor($r('app.color.border_color'))
+          .borderRadius(22)
+          .padding({ left: 32, right: 32, top: 10, bottom: 10 })
+          .margin({ top: 12 })
+          .onClick(() => {
+            this.showReadingListPicker = false;
+          })
+      }
+      .width('85%')
+      .padding(24)
+      .backgroundColor($r('app.color.card_background'))
+      .borderRadius(20)
+      .shadow({ radius: 20, color: '#33000000', offsetY: 8 })
+    }
+    .width('100%')
+    .height('100%')
+    .justifyContent(FlexAlign.Center)
+    .alignItems(HorizontalAlign.Center)
+    .backgroundColor('#99000000')
+    .onClick(() => {
+      this.showReadingListPicker = false;
+    })
   }
 }

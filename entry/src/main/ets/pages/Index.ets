@@ -11,6 +11,8 @@ import { UnitCategoryPageBuilder } from './UnitCategoryPage';
 import { UnitConverterPageBuilder } from './UnitConverterPage';
 import { BaseConverterPageBuilder } from './BaseConverterPage';
 import { TimezoneConverterPageBuilder } from './TimezoneConverterPage';
+import { ReadingListPageBuilder } from './ReadingListPage';
+import { ReadingPlayerPageBuilder } from './ReadingPlayerPage';
 import { PoetryViewModel } from '../viewmodel/PoetryViewModel';
 import { IdiomViewModel } from '../viewmodel/IdiomViewModel';
 import { XiehouyuViewModel } from '../viewmodel/XiehouyuViewModel';
@@ -242,6 +244,10 @@ struct Index {
       BaseConverterPageBuilder()
     } else if (name === 'TimezoneConverterPage') {
       TimezoneConverterPageBuilder()
+    } else if (name === 'ReadingListPage') {
+      ReadingListPageBuilder()
+    } else if (name === 'ReadingPlayerPage') {
+      ReadingPlayerPageBuilder(param)
     }
   }
 
@@ -623,10 +629,10 @@ struct Index {
               .color($r('app.color.border_color'))
 
             Column() {
-              Text('\u2665')
+              Text('\uD83D\uDCD6')
                 .fontSize(22)
-                .fontColor($r('app.color.danger_red'))
-              Text('我的收藏')
+                .fontColor($r('app.color.poetry_green'))
+              Text('朗读清单')
                 .fontSize(11)
                 .fontColor($r('app.color.tertiary_text'))
                 .margin({ top: 2 })
@@ -634,7 +640,7 @@ struct Index {
             .layoutWeight(1)
             .alignItems(HorizontalAlign.Center)
             .onClick(() => {
-              this.mineStack.pushPathByName('FavoritesPage', null);
+              this.mineStack.pushPathByName('ReadingListPage', null);
             })
 
             Divider()

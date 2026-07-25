@@ -7,6 +7,8 @@ import { ErrorState } from '../components/ErrorState';
 import { ShareImageCard } from '../components/ShareImageCard';
 import { buildXiehouyuMarkdown } from '../common/utils/ShareImageUtil';
 import { Md2PngTemplates } from '../model/Md2PngModels';
+import { AddToReadingListUtil, AddToListResult } from '../common/utils/AddToReadingListUtil';
+import { ReadingList } from '../model/ReadingListModels';
 
 class XiehouyuListDataSource implements IDataSource {
   private listeners: DataChangeListener[] = [];
@@ -818,6 +820,8 @@ struct XiehouyuDetailModal {
   @State isFav: boolean = false;
   @State modalShowShare: boolean = false;
   @State modalShareMd: string = '';
+  @State showReadingListPicker: boolean = false;
+  @State readingLists: ReadingList[] = [];
   private uiContext: UIContext = this.getUIContext();
 
   private toggleFav(): void {
@@ -846,125 +850,230 @@ struct XiehouyuDetailModal {
     FavoritesUtil.invalidateCache();
   }
 
+  private openReadingListPicker(): void {
+    this.readingLists = AddToReadingListUtil.getLists(this.uiContext.getHostContext() as Context);
+    this.showReadingListPicker = true;
+  }
+
+  private addToReadingList(listId: string): void {
+    if (!this.detailItem) {
+      return;
+    }
+    let result: AddToListResult = AddToReadingListUtil.addToListWithCheck(
+      this.uiContext.getHostContext() as Context, listId, 'xiehouyu',
+      this.detailItem!.riddle, this.detailItem!.answer,
+      this.detailItem!.riddle + '\u2014\u2014' + this.detailItem!.answer);
+    this.showReadingListPicker = false;
+    this.uiContext.getPromptAction().showToast({ message: result.msg, duration: 1000 });
+  }
+
   build() {
-    Column() {
-      Row() {
-        Text()
-          .width(1)
-          .height(1)
-        Blank()
-        Text('\u2715')
-          .fontSize(18)
-          .fontColor($r('app.color.tertiary_text'))
-          .width(36)
-          .height(36)
-          .borderRadius(18)
-          .backgroundColor($r('app.color.border_color'))
-          .textAlign(TextAlign.Center)
-          .onClick(() => {
-            this.controller?.close();
-          })
-      }
-      .width('100%')
-      .justifyContent(FlexAlign.End)
-      .padding({ right: 12, top: 12 })
-
-      if (this.detailItem) {
-        Scroll() {
-          Column() {
-            Text('谜面')
-              .fontSize(14)
-              .fontColor($r('app.color.tertiary_text'))
-              .margin({ bottom: 6 })
-
-            Text(this.detailItem!.riddle)
-              .fontSize(20)
-              .fontColor($r('app.color.primary_text'))
-              .fontWeight(FontWeight.Bold)
-              .textAlign(TextAlign.Center)
-              .lineHeight(28)
-              .width('100%')
-              .margin({ bottom: 16 })
-
-            Divider()
-              .color($r('app.color.border_color'))
-              .margin({ bottom: 16 })
-
-            Text('谜底')
-              .fontSize(14)
-              .fontColor($r('app.color.tertiary_text'))
-              .margin({ bottom: 6 })
-
-            Text(this.detailItem!.answer)
-              .fontSize(22)
-              .fontColor($r('app.color.idiom_orange'))
-              .fontWeight(FontWeight.Bold)
-              .textAlign(TextAlign.Center)
-              .width('100%')
-              .margin({ bottom: 20 })
-
-            Row({ space: 10 }) {
-              Text(this.isFav ? '\u2665' : '\u2661')
-                .fontSize(14)
-                .fontColor(this.isFav ? $r('app.color.danger_red') : $r('app.color.secondary_text'))
-                .backgroundColor(this.isFav ? $r('app.color.danger_red') + '18' : $r('app.color.border_color'))
-                .borderRadius(12)
-                .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-                .onClick(() => {
-                  this.toggleFav();
-                })
-
-              Text('复制')
-                .fontSize(14)
-                .fontColor($r('app.color.secondary_text'))
-                .backgroundColor($r('app.color.border_color'))
-                .borderRadius(12)
-                .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-                .onClick(() => {
-                  ClipboardUtil.copy(this.detailItem!.riddle + '——' + this.detailItem!.answer);
-                  this.uiContext.getPromptAction().showToast({ message: '已复制到剪贴板', duration: 1000 });
-                })
-
-              Text('分享图片')
-                .fontSize(14)
-                .fontColor('#ffffff')
-                .backgroundColor($r('app.color.idiom_orange'))
-                .borderRadius(12)
-                .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-                .onClick(() => {
-                  this.modalShowShare = false;
-                  this.modalShareMd = buildXiehouyuMarkdown(this.detailItem!);
-                  this.modalShowShare = true;
-                })
-            }
-            .width('100%')
-            .justifyContent(FlexAlign.Center)
-
-            if (this.modalShowShare) {
-              ShareImageCard({
-                mdText: this.modalShareMd,
-                accentColor: '#e67e22',
-                bgColor: '#fffbf0',
-                cardId: 'xiehouyu_share_card',
-                theme: Md2PngTemplates.getXiehouyuTemplate(),
-                autoShare: true,
-                onAutoShared: () => {
-                  this.modalShowShare = false;
-                }
-              })
-                .position({ x: -10000, y: 0 })
-            }
-          }
-          .padding({ left: 20, right: 20, bottom: 20 })
+    Stack() {
+      Column() {
+        Row() {
+          Text()
+            .width(1)
+            .height(1)
+          Blank()
+          Text('\u2715')
+            .fontSize(18)
+            .fontColor($r('app.color.tertiary_text'))
+            .width(36)
+            .height(36)
+            .borderRadius(18)
+            .backgroundColor($r('app.color.border_color'))
+            .textAlign(TextAlign.Center)
+            .onClick(() => {
+              this.controller?.close();
+            })
         }
-        .scrollable(ScrollDirection.Vertical)
-        .constraintSize({ maxHeight: '50%' })
-        .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
+        .width('100%')
+        .justifyContent(FlexAlign.End)
+        .padding({ right: 12, top: 12 })
+
+        if (this.detailItem) {
+          Scroll() {
+            Column() {
+              Text('谜面')
+                .fontSize(14)
+                .fontColor($r('app.color.tertiary_text'))
+                .margin({ bottom: 6 })
+
+              Text(this.detailItem!.riddle)
+                .fontSize(20)
+                .fontColor($r('app.color.primary_text'))
+                .fontWeight(FontWeight.Bold)
+                .textAlign(TextAlign.Center)
+                .lineHeight(28)
+                .width('100%')
+                .margin({ bottom: 16 })
+
+              Divider()
+                .color($r('app.color.border_color'))
+                .margin({ bottom: 16 })
+
+              Text('谜底')
+                .fontSize(14)
+                .fontColor($r('app.color.tertiary_text'))
+                .margin({ bottom: 6 })
+
+              Text(this.detailItem!.answer)
+                .fontSize(22)
+                .fontColor($r('app.color.idiom_orange'))
+                .fontWeight(FontWeight.Bold)
+                .textAlign(TextAlign.Center)
+                .width('100%')
+                .margin({ bottom: 20 })
+
+              Row({ space: 10 }) {
+                Text(this.isFav ? '\u2665' : '\u2661')
+                  .fontSize(14)
+                  .fontColor(this.isFav ? $r('app.color.danger_red') : $r('app.color.secondary_text'))
+                  .backgroundColor(this.isFav ? $r('app.color.danger_red') + '18' : $r('app.color.border_color'))
+                  .borderRadius(12)
+                  .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+                  .onClick(() => {
+                    this.toggleFav();
+                  })
+
+                Text('\uD83D\uDCD6')
+                  .fontSize(14)
+                  .fontColor($r('app.color.idiom_orange'))
+                  .backgroundColor($r('app.color.idiom_orange') + '18')
+                  .borderRadius(12)
+                  .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+                  .onClick(() => {
+                    this.openReadingListPicker();
+                  })
+
+                Text('复制')
+                  .fontSize(14)
+                  .fontColor($r('app.color.secondary_text'))
+                  .backgroundColor($r('app.color.border_color'))
+                  .borderRadius(12)
+                  .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+                  .onClick(() => {
+                    ClipboardUtil.copy(this.detailItem!.riddle + '——' + this.detailItem!.answer);
+                    this.uiContext.getPromptAction().showToast({ message: '已复制到剪贴板', duration: 1000 });
+                  })
+
+                Text('分享图片')
+                  .fontSize(14)
+                  .fontColor('#ffffff')
+                  .backgroundColor($r('app.color.idiom_orange'))
+                  .borderRadius(12)
+                  .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+                  .onClick(() => {
+                    this.modalShowShare = false;
+                    this.modalShareMd = buildXiehouyuMarkdown(this.detailItem!);
+                    this.modalShowShare = true;
+                  })
+              }
+              .width('100%')
+              .justifyContent(FlexAlign.Center)
+
+              if (this.modalShowShare) {
+                ShareImageCard({
+                  mdText: this.modalShareMd,
+                  accentColor: '#e67e22',
+                  bgColor: '#fffbf0',
+                  cardId: 'xiehouyu_share_card',
+                  theme: Md2PngTemplates.getXiehouyuTemplate(),
+                  autoShare: true,
+                  onAutoShared: () => {
+                    this.modalShowShare = false;
+                  }
+                })
+                  .position({ x: -10000, y: 0 })
+              }
+            }
+            .padding({ left: 20, right: 20, bottom: 20 })
+          }
+          .scrollable(ScrollDirection.Vertical)
+          .constraintSize({ maxHeight: '50%' })
+          .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
+        }
+      }
+      .width('85%')
+      .backgroundColor($r('app.color.card_background'))
+      .borderRadius(20)
+      .shadow({ radius: 20, color: '#33000000', offsetY: 8 })
+
+      if (this.showReadingListPicker) {
+        this.ReadingListPickerOverlay()
       }
     }
-    .width('85%')
-    .backgroundColor($r('app.color.card_background'))
-    .borderRadius(20)
-    .shadow({ radius: 20, color: '#33000000', offsetY: 8 })
+    .width('100%')
+    .height('100%')
+  }
+
+  @Builder
+  ReadingListPickerOverlay() {
+    Column() {
+      Column() {
+        Text('加入朗读清单')
+          .fontSize(18)
+          .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.primary_text'))
+          .margin({ bottom: 16 })
+
+        if (this.readingLists.length > 0) {
+          List({ space: 8 }) {
+            ForEach(this.readingLists, (list: ReadingList) => {
+              ListItem() {
+                Row() {
+                  Text(list.name)
+                    .fontSize(15)
+                    .fontColor($r('app.color.primary_text'))
+                    .layoutWeight(1)
+                  Text(list.items.length.toString() + '项')
+                    .fontSize(12)
+                    .fontColor($r('app.color.tertiary_text'))
+                    .margin({ left: 8 })
+                }
+                .width('100%')
+                .padding({ left: 16, right: 16, top: 12, bottom: 12 })
+                .backgroundColor($r('app.color.page_background'))
+                .borderRadius(10)
+                .onClick(() => {
+                  this.addToReadingList(list.id);
+                })
+              }
+            }, (list: ReadingList) => list.id)
+          }
+          .width('100%')
+          .constraintSize({ maxHeight: '50%' })
+        } else {
+          Text('暂无朗读清单，请先创建')
+            .fontSize(14)
+            .fontColor($r('app.color.tertiary_text'))
+            .margin({ top: 20, bottom: 20 })
+        }
+
+        Text('取消')
+          .fontSize(15)
+          .fontColor($r('app.color.tertiary_text'))
+          .backgroundColor($r('app.color.border_color'))
+          .borderRadius(22)
+          .padding({ left: 32, right: 32, top: 10, bottom: 10 })
+          .margin({ top: 12 })
+          .onClick(() => {
+            this.showReadingListPicker = false;
+          })
+      }
+      .width('85%')
+      .padding(24)
+      .backgroundColor($r('app.color.card_background'))
+      .borderRadius(20)
+      .shadow({ radius: 20, color: '#33000000', offsetY: 8 })
+    }
+    .width('100%')
+    .height('100%')
+    .justifyContent(FlexAlign.Center)
+    .alignItems(HorizontalAlign.Center)
+    .backgroundColor('#99000000')
+    .onClick(() => {
+      this.showReadingListPicker = false;
+    })
   }
 }

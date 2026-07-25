@@ -59,6 +59,16 @@
       "name": "TimezoneConverterPage",
       "pageSourceFile": "src/main/ets/pages/TimezoneConverterPage.ets",
       "buildFunction": "TimezoneConverterPageBuilder"
+    },
+    {
+      "name": "ReadingListPage",
+      "pageSourceFile": "src/main/ets/pages/ReadingListPage.ets",
+      "buildFunction": "ReadingListPageBuilder"
+    },
+    {
+      "name": "ReadingPlayerPage",
+      "pageSourceFile": "src/main/ets/pages/ReadingPlayerPage.ets",
+      "buildFunction": "ReadingPlayerPageBuilder"
     }
   ]
 }
