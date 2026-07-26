@@ -1,7 +1,5 @@
 import { FavoritesUtil, FavoriteItem } from '../common/utils/FavoritesUtil';
-import { PoemItem } from '../model/PoetryModels';
-import { IdiomDetailItem } from '../model/IdiomModels';
-import { IdiomViewModel } from '../viewmodel/IdiomViewModel';
+import { FavDetailModal } from '../components/FavDetailModal';
 import { promptAction } from '@kit.ArkUI';
 
 @Builder
@@ -17,9 +15,11 @@ export function FavoritesPageBuilder() {
 @Component
 struct FavoritesContent {
   @State favorites: FavoriteItem[] = [];
-  @State activeTab: string = 'poem';
+  @State activeTab: string = 'all';
   @State displayItems: FavoriteItem[] = [];
+  @State detailItem: FavoriteItem | null = null;
   private uiContext: UIContext = this.getUIContext();
+  private detailDialogController: CustomDialogController | null = null;
   private getNavPathStack(): NavPathStack {
     return AppStorage.get('AppNavPathStack') as NavPathStack;
   }
@@ -41,13 +41,17 @@ struct FavoritesContent {
   }
 
   private refreshDisplay(): void {
-    let items: FavoriteItem[] = [];
-    for (let i = 0; i < this.favorites.length; i++) {
-      if (this.favorites[i].type === this.activeTab) {
-        items.push(this.favorites[i]);
+    if (this.activeTab === 'all') {
+      this.displayItems = this.favorites.slice();
+    } else {
+      let items: FavoriteItem[] = [];
+      for (let i = 0; i < this.favorites.length; i++) {
+        if (this.favorites[i].type === this.activeTab) {
+          items.push(this.favorites[i]);
+        }
       }
+      this.displayItems = items;
     }
-    this.displayItems = items;
   }
 
   private removeItem(item: FavoriteItem): void {
@@ -68,28 +72,30 @@ struct FavoritesContent {
   }
 
   private onTap(item: FavoriteItem): void {
-    if (item.type === 'poem') {
-      try {
-        let poem: PoemItem = JSON.parse(item.data) as PoemItem;
-        let stack: NavPathStack = this.getNavPathStack();
-        if (stack) {
-          stack.pushPathByName('PoemContentPage', poem);
-        }
-      } catch (e) {
-        console.error('[Favorites] parse poem failed: ' + (e as Error).message);
-      }
-    } else if (item.type === 'idiom') {
-      let detail: IdiomDetailItem | null = IdiomViewModel.getInstance().findIdiomDetail(
-        this.uiContext.getHostContext() as Context, item.title);
-      if (detail) {
-        console.info('[Favorites] idiom detail: ' + detail.word);
-      }
-    }
+    this.detailItem = item;
+    this.detailDialogController = new CustomDialogController({
+      builder: FavDetailModal({ favItem: this.detailItem }),
+      customStyle: true,
+      alignment: DialogAlignment.Center,
+      autoCancel: true
+    });
+    this.detailDialogController.open();
   }
 
   build() {
     Column() {
       Row({ space: 8 }) {
+        Text('全部')
+          .fontSize(14)
+          .fontColor(this.activeTab === 'all' ? '#ffffff' : $r('app.color.secondary_text'))
+          .backgroundColor(this.activeTab === 'all' ? $r('app.color.primary_text') : $r('app.color.border_color'))
+          .borderRadius(12)
+          .padding({ left: 16, right: 16, top: 6, bottom: 6 })
+          .onClick(() => {
+            this.activeTab = 'all';
+            this.refreshDisplay();
+          })
+
         Text('诗词')
           .fontSize(14)
           .fontColor(this.activeTab === 'poem' ? '#ffffff' : $r('app.color.secondary_text'))
@@ -175,7 +181,7 @@ struct FavoritesContent {
         .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
       } else {
         Column() {
-          Text(this.activeTab === 'poem' ? '暂无收藏的诗词' : this.activeTab === 'idiom' ? '暂无收藏的成语' : '暂无收藏的歇后语')
+          Text(this.activeTab === 'all' ? '暂无收藏' : this.activeTab === 'poem' ? '暂无收藏的诗词' : this.activeTab === 'idiom' ? '暂无收藏的成语' : '暂无收藏的歇后语')
             .fontSize(16)
             .fontColor($r('app.color.tertiary_text'))
             .margin({ top: 60 })

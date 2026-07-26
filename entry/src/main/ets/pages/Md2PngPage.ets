@@ -42,16 +42,19 @@ class MdControllerStore {
     return this.controllers[index];
   }
 
-  applyTemplate(index: number, tpl: TemplateInfo): void {
+  applyTemplate(index: number, tpl: TemplateInfo, textSize: number, titleSize: number[], lineHeight: number): void {
     let ctrl: MarkdownController = this.get(index);
     let isDark: boolean = this.isDarkColor(tpl.bgColor);
+    let ts: [number, number, number, number, number, number] = [
+      titleSize[0], titleSize[1], titleSize[2], titleSize[3], titleSize[4], titleSize[5]
+    ];
     ctrl
       .setTitleColor(tpl.headerColor)
-      .setTitleSize([20, 17, 15, 13, 12, 11])
+      .setTitleSize(ts)
       .setTitleFontWeight(FontWeight.Bold)
       .setTextColor(tpl.textColor)
-      .setTextSize(13)
-      .setTextLineHeight(20)
+      .setTextSize(textSize)
+      .setTextLineHeight(lineHeight)
       .setQuoteTextColor(tpl.textColor)
       .setQuoteBorderColor(tpl.quoteBorderColor)
       .setQuoteBackgroundColor(tpl.quoteBgColor)
@@ -104,8 +107,15 @@ struct Md2PngContent {
   @State isExtractingKeywords: boolean = false;
   @State cardWidth: number = 360;
   @State cardHeights: number[] = [];
+  @State dynamicTextSize: number = 13;
+  @State dynamicTitleSize: number[] = [20, 17, 15, 13, 12, 11];
+  @State dynamicLineHeight: number = 20;
+  @State dynamicPaddingLeft: number = 20;
+  @State dynamicPaddingRight: number = 20;
+  @State dynamicPaddingTop: number = 16;
+  @State dynamicPaddingBottom: number = 16;
   private readonly minMdCardHeight: number = 200;
-  private readonly maxInputLength: number = 20000;
+  private readonly maxInputLength: number = 1000;
   private templates: TemplateInfo[] = Md2PngTemplates.getAll();
   private controllerStore: MdControllerStore = new MdControllerStore();
   private canvasStore: MdCanvasStore = new MdCanvasStore();
@@ -128,7 +138,7 @@ struct Md2PngContent {
 
   private initAllControllers(): void {
     for (let i = 0; i < this.templates.length; i++) {
-      this.controllerStore.applyTemplate(i, this.templates[i]);
+      this.controllerStore.applyTemplate(i, this.templates[i], this.dynamicTextSize, this.dynamicTitleSize, this.dynamicLineHeight);
     }
   }
 
@@ -136,10 +146,59 @@ struct Md2PngContent {
     try {
       let disp: display.Display = display.getDefaultDisplaySync();
       let density: number = disp.densityPixels;
-      // 预留预览容器左右各 16vp 的内边距，避免卡片横向超出屏幕
       this.cardWidth = Math.floor(disp.width / density) - 32;
     } catch (e) {
       this.cardWidth = 328;
+    }
+  }
+
+  private getKeywordTopN(): number {
+    let len: number = this.inputText.length;
+    if (len <= 50) {
+      return 2;
+    } else if (len <= 200) {
+      return 3;
+    } else if (len <= 500) {
+      return 5;
+    } else {
+      return 7;
+    }
+  }
+
+  private calcDynamicStyle(): void {
+    let len: number = this.inputText.length;
+    if (len <= 50) {
+      this.dynamicTextSize = 15;
+      this.dynamicTitleSize = [22, 19, 17, 15, 13, 12];
+      this.dynamicLineHeight = 24;
+      this.dynamicPaddingLeft = 24;
+      this.dynamicPaddingRight = 24;
+      this.dynamicPaddingTop = 20;
+      this.dynamicPaddingBottom = 20;
+    } else if (len <= 200) {
+      this.dynamicTextSize = 14;
+      this.dynamicTitleSize = [20, 17, 15, 14, 12, 11];
+      this.dynamicLineHeight = 22;
+      this.dynamicPaddingLeft = 22;
+      this.dynamicPaddingRight = 22;
+      this.dynamicPaddingTop = 18;
+      this.dynamicPaddingBottom = 18;
+    } else if (len <= 500) {
+      this.dynamicTextSize = 13;
+      this.dynamicTitleSize = [18, 16, 14, 13, 11, 10];
+      this.dynamicLineHeight = 20;
+      this.dynamicPaddingLeft = 20;
+      this.dynamicPaddingRight = 20;
+      this.dynamicPaddingTop = 16;
+      this.dynamicPaddingBottom = 16;
+    } else {
+      this.dynamicTextSize = 12;
+      this.dynamicTitleSize = [16, 14, 13, 12, 10, 9];
+      this.dynamicLineHeight = 18;
+      this.dynamicPaddingLeft = 18;
+      this.dynamicPaddingRight = 18;
+      this.dynamicPaddingTop = 14;
+      this.dynamicPaddingBottom = 14;
     }
   }
 
@@ -208,9 +267,12 @@ struct Md2PngContent {
       this.generatedImageUri = '';
       return;
     }
+    this.calcDynamicStyle();
+    this.initAllControllers();
     this.isExtractingKeywords = true;
     try {
-      let keywords: string[] = await KeywordUtil.extractKeywords(this.inputText);
+      let topN: number = this.getKeywordTopN();
+      let keywords: string[] = await KeywordUtil.extractKeywords(this.inputText, topN);
       this.highlightWords = keywords;
     } catch (e) {
       this.highlightWords = [];
@@ -355,19 +417,8 @@ struct Md2PngContent {
           .backgroundColor($r('app.color.idiom_blue') + '18')
           .borderRadius(8)
           .padding({ left: 8, right: 8, top: 2, bottom: 2 })
-          .margin({ right: 8 })
           .onClick(() => {
             this.fillTextExample();
-          })
-
-        Text('粘贴')
-          .fontSize(12)
-          .fontColor($r('app.color.idiom_blue'))
-          .backgroundColor($r('app.color.idiom_blue') + '18')
-          .borderRadius(8)
-          .padding({ left: 8, right: 8, top: 2, bottom: 2 })
-          .onClick(() => {
-            this.pasteFromClipboard();
           })
       }
       .width('100%')
@@ -446,7 +497,7 @@ struct Md2PngContent {
                   .width('100%')
               }
               .width('100%')
-              .padding({ left: 20, right: 20, top: 16, bottom: 16 })
+              .padding({ left: this.dynamicPaddingLeft, right: this.dynamicPaddingRight, top: this.dynamicPaddingTop, bottom: this.dynamicPaddingBottom })
               .onAreaChange((_oldValue: Area, newValue: Area) => {
                 let contentH: number = newValue.height as number;
                 if (contentH < this.minMdCardHeight) {

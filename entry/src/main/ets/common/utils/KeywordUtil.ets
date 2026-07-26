@@ -52,9 +52,12 @@ const MIN_KEYWORD_LENGTH: number = 2;
 export class KeywordUtil {
   private static extracting: boolean = false;
 
-  static async extractKeywords(text: string): Promise<string[]> {
+  static async extractKeywords(text: string, topN: number = TOP_N): Promise<string[]> {
     if (!text || text.trim().length === 0) {
       return [];
+    }
+    if (topN <= 0) {
+      topN = TOP_N;
     }
     if (KeywordUtil.extracting) {
       return [];
@@ -69,7 +72,7 @@ export class KeywordUtil {
       let scored: KeywordEntry[] = KeywordUtil.computeTfIdf(filtered);
       let keywords: string[] = [];
       let count: number = 0;
-      for (let i = 0; i < scored.length && count < TOP_N; i++) {
+      for (let i = 0; i < scored.length && count < topN; i++) {
         if (scored[i].word.length >= MIN_KEYWORD_LENGTH) {
           keywords.push(scored[i].word);
           count++;
