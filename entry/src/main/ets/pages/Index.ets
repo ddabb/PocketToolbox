@@ -13,13 +13,17 @@ import { BaseConverterPageBuilder } from './BaseConverterPage';
 import { TimezoneConverterPageBuilder } from './TimezoneConverterPage';
 import { ReadingListPageBuilder } from './ReadingListPage';
 import { ReadingPlayerPageBuilder } from './ReadingPlayerPage';
+import { DailyChallengePageBuilder } from './DailyChallengePage';
+import { AchievementPageBuilder } from './AchievementPage';
 import { PoetryViewModel } from '../viewmodel/PoetryViewModel';
 import { IdiomViewModel } from '../viewmodel/IdiomViewModel';
 import { XiehouyuViewModel } from '../viewmodel/XiehouyuViewModel';
 import { PoemItem, PoetDetail, PoetItem } from '../model/PoetryModels';
 import { IdiomDetailItem } from '../model/IdiomModels';
 import { XiehouyuItem } from '../model/XiehouyuModels';
-import { FavoritesUtil } from '../common/utils/FavoritesUtil';
+import { FavoritesUtil, FavoriteItem } from '../common/utils/FavoritesUtil';
+import { StickinessUtil, CheckInData, ChallengeProgress } from '../common/utils/StickinessUtil';
+import { bundleManager } from '@kit.AbilityKit';
 import { ConverterCategory, UnitConverterData } from '../model/UnitModels';
 
 class ToolItem {
@@ -63,6 +67,12 @@ struct Index {
   @State xiehouyuOffset: number = 0;
   @StorageLink('favCount') favCount: number = 0;
   @State unitTools: ToolItem[] = [];
+  @State checkInData: CheckInData = new CheckInData();
+  @State checkedInToday: boolean = false;
+  @State challengeProgress: ChallengeProgress = new ChallengeProgress();
+  @State reviewItem: FavoriteItem | null = null;
+  @State reviewVisible: boolean = false;
+  @State appVersionName: string = '';
   private poetryVm: PoetryViewModel = PoetryViewModel.getInstance();
   private idiomVm: IdiomViewModel = IdiomViewModel.getInstance();
   private xiehouyuVm: XiehouyuViewModel = XiehouyuViewModel.getInstance();
@@ -76,6 +86,13 @@ struct Index {
       this.loadDailyContent();
     }, 0);
     this.loadFavCount();
+    this.loadStickinessData();
+    try {
+      let info: bundleManager.BundleInfo = bundleManager.getBundleInfoForSelfSync(bundleManager.BundleFlag.GET_BUNDLE_INFO_DEFAULT);
+      this.appVersionName = info.versionName;
+    } catch (e) {
+      this.appVersionName = '';
+    }
   }
 
   private buildToolItems(): void {
@@ -114,6 +131,45 @@ struct Index {
 
   onPageShow(): void {
     this.loadFavCount();
+    this.loadStickinessData();
+  }
+
+  private loadStickinessData(): void {
+    let ctx: Context = this.getUIContext().getHostContext() as Context;
+    this.checkInData = StickinessUtil.loadCheckIn(ctx);
+    this.checkedInToday = StickinessUtil.isCheckedInToday(ctx);
+    this.challengeProgress = StickinessUtil.loadChallengeProgress(ctx);
+    this.loadReviewItem(ctx);
+  }
+
+  private doCheckIn(): void {
+    let ctx: Context = this.getUIContext().getHostContext() as Context;
+    let ok: boolean = StickinessUtil.doCheckIn(ctx);
+    if (ok) {
+      this.checkInData = StickinessUtil.loadCheckIn(ctx);
+      this.checkedInToday = true;
+      this.getUIContext().getPromptAction().showToast({ message: '签到成功！连续' + this.checkInData.streak.toString() + '天', duration: 1500 });
+    }
+  }
+
+  private loadReviewItem(ctx: Context): void {
+    let favs: FavoriteItem[] = FavoritesUtil.load(ctx);
+    if (favs.length === 0) {
+      this.reviewVisible = false;
+      this.reviewItem = null;
+      return;
+    }
+    let poemFavs: FavoriteItem[] = [];
+    for (let i = 0; i < favs.length; i++) {
+      if (favs[i].type === 'poem') {
+        poemFavs.push(favs[i]);
+      }
+    }
+    let pool: FavoriteItem[] = poemFavs.length > 0 ? poemFavs : favs;
+    let seed: number = new Date().getFullYear() * 10000 + (new Date().getMonth() + 1) * 100 + new Date().getDate();
+    let idx: number = Math.floor(Math.abs(Math.sin(seed + 999) * 10000) % pool.length);
+    this.reviewItem = pool[idx];
+    this.reviewVisible = true;
   }
 
   private loadFavCount(): void {
@@ -248,6 +304,10 @@ struct Index {
       ReadingListPageBuilder()
     } else if (name === 'ReadingPlayerPage') {
       ReadingPlayerPageBuilder(param)
+    } else if (name === 'DailyChallengePage') {
+      DailyChallengePageBuilder()
+    } else if (name === 'AchievementPage') {
+      AchievementPageBuilder()
     }
   }
 
@@ -460,6 +520,12 @@ struct Index {
           .width('100%')
           .padding({ left: 16, right: 16, top: 8 })
 
+          this.CheckInAndChallengeCard()
+
+          if (this.reviewVisible && this.reviewItem) {
+            this.ReviewCard()
+          }
+
           Row() {
             if (this.dailyIdiom) {
               Column() {
@@ -590,8 +656,10 @@ struct Index {
       Scroll() {
         Column() {
           Column() {
-            Text('\uD83D\uDC64')
-              .fontSize(40)
+            Image($r('app.media.foreground'))
+              .width(52)
+              .height(52)
+              .borderRadius(12)
               .margin({ bottom: 6 })
             Text('解语珠玑')
               .fontSize(20)
@@ -759,7 +827,7 @@ struct Index {
           .borderRadius(14)
           .margin({ left: 16, right: 16, top: 12 })
 
-          Text('解语珠玑 \u00B7 v1.0.0')
+          Text('解语珠玑' + (this.appVersionName ? ' \u00B7 v' + this.appVersionName : ''))
             .fontSize(12)
             .fontColor($r('app.color.hint_text'))
             .margin({ top: 24, bottom: 16 })
@@ -907,6 +975,146 @@ struct Index {
     .borderRadius(12)
     .onClick(() => {
       this.homeStack.pushPathByName('XiehouyuQueryPage', null);
+    })
+  }
+
+  @Builder
+  CheckInAndChallengeCard() {
+    Row() {
+      Column() {
+        Row() {
+          Text('\uD83D\uDCC5')
+            .fontSize(14)
+            .margin({ right: 4 })
+          Text('每日签到')
+            .fontSize(12)
+            .fontWeight(FontWeight.Bold)
+            .fontColor($r('app.color.idiom_orange'))
+        }
+        .margin({ bottom: 6 })
+        if (this.checkedInToday) {
+          Text('\u2713 已签到')
+            .fontSize(14)
+            .fontColor('#27ae60')
+            .fontWeight(FontWeight.Bold)
+          Text('连续' + this.checkInData.streak.toString() + '天')
+            .fontSize(11)
+            .fontColor($r('app.color.tertiary_text'))
+            .margin({ top: 2 })
+        } else {
+          Text('点击签到')
+            .fontSize(14)
+            .fontColor($r('app.color.idiom_orange'))
+            .fontWeight(FontWeight.Bold)
+          if (this.checkInData.streak > 0) {
+            Text('已连续' + this.checkInData.streak.toString() + '天')
+              .fontSize(11)
+              .fontColor($r('app.color.tertiary_text'))
+              .margin({ top: 2 })
+          } else {
+            Text('开始你的连续签到')
+              .fontSize(11)
+              .fontColor($r('app.color.tertiary_text'))
+              .margin({ top: 2 })
+          }
+        }
+      }
+      .layoutWeight(1)
+      .padding(12)
+      .backgroundColor($r('app.color.card_background'))
+      .borderRadius(12)
+      .alignItems(HorizontalAlign.Center)
+      .margin({ right: 4 })
+      .onClick(() => {
+        if (!this.checkedInToday) {
+          this.doCheckIn();
+        }
+      })
+
+      Column() {
+        Row() {
+          Text('\uD83C\uDFC6')
+            .fontSize(14)
+            .margin({ right: 4 })
+          Text('每日挑战')
+            .fontSize(12)
+            .fontWeight(FontWeight.Bold)
+            .fontColor($r('app.color.poetry_green'))
+        }
+        .margin({ bottom: 6 })
+        if (this.challengeProgress.completed && this.challengeProgress.date === StickinessUtil.todayStr()) {
+          Text('已完成')
+            .fontSize(14)
+            .fontColor('#27ae60')
+            .fontWeight(FontWeight.Bold)
+          Text('得分 ' + this.challengeProgress.score.toString())
+            .fontSize(11)
+            .fontColor($r('app.color.tertiary_text'))
+            .margin({ top: 2 })
+        } else {
+          Text('去挑战')
+            .fontSize(14)
+            .fontColor($r('app.color.poetry_green'))
+            .fontWeight(FontWeight.Bold)
+          Text('答题赢积分')
+            .fontSize(11)
+            .fontColor($r('app.color.tertiary_text'))
+            .margin({ top: 2 })
+        }
+      }
+      .layoutWeight(1)
+      .padding(12)
+      .backgroundColor($r('app.color.card_background'))
+      .borderRadius(12)
+      .alignItems(HorizontalAlign.Center)
+      .margin({ left: 4 })
+      .onClick(() => {
+        this.homeStack.pushPathByName('DailyChallengePage', null);
+      })
+    }
+    .width('100%')
+    .padding({ left: 16, right: 16, top: 8 })
+  }
+
+  @Builder
+  ReviewCard() {
+    Column() {
+      Row() {
+        Text('\uD83D\uDCDD')
+          .fontSize(13)
+          .margin({ right: 3 })
+        Text('温故知新')
+          .fontSize(12)
+          .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.poetry_green'))
+        Blank()
+        Text('\u203A')
+          .fontSize(16)
+          .fontColor($r('app.color.hint_text'))
+      }
+      .margin({ bottom: 5 })
+      if (this.reviewItem) {
+        Text(this.reviewItem.title)
+          .fontSize(15)
+          .fontColor($r('app.color.primary_text'))
+          .fontWeight(FontWeight.Medium)
+          .maxLines(1)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+          .margin({ bottom: 2 })
+        Text(this.reviewItem.subtitle)
+          .fontSize(11)
+          .fontColor($r('app.color.secondary_text'))
+          .maxLines(2)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+      }
+    }
+    .width('100%')
+    .padding(12)
+    .backgroundColor($r('app.color.poetry_card_bg'))
+    .borderRadius(12)
+    .margin({ left: 16, right: 16, bottom: 8 })
+    .onClick(() => {
+      this.homeStack.pushPathByName('FavoritesPage', null);
     })
   }
 }

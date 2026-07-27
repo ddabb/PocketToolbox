@@ -27,6 +27,8 @@ export class ReadingList {
   items: ReadingItem[] = [];
   createdAt: number = 0;
   updatedAt: number = 0;
+  lastPlayedIndex: number = -1;
+  lastPlayedTime: number = 0;
 
   static create(name: string): ReadingList {
     let list: ReadingList = new ReadingList();
@@ -35,6 +37,8 @@ export class ReadingList {
     list.items = [];
     list.createdAt = Date.now();
     list.updatedAt = Date.now();
+    list.lastPlayedIndex = -1;
+    list.lastPlayedTime = 0;
     return list;
   }
 }
@@ -68,6 +72,8 @@ export class ReadingListStore {
         list.name = (obj['name'] as string) || '';
         list.createdAt = (obj['createdAt'] as number) || 0;
         list.updatedAt = (obj['updatedAt'] as number) || 0;
+        list.lastPlayedIndex = (obj['lastPlayedIndex'] as number) || -1;
+        list.lastPlayedTime = (obj['lastPlayedTime'] as number) || 0;
         let itemsRaw: Object[] = (obj['items'] as Object[]) || [];
         list.items = [];
         for (let j = 0; j < itemsRaw.length; j++) {

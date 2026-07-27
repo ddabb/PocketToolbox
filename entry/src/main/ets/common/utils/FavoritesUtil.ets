@@ -7,6 +7,8 @@ export class FavoriteItem {
   subtitle: string = '';
   data: string = '';
   timestamp: number = 0;
+  tags: string[] = [];
+  note: string = '';
 }
 
 export interface FavoriteAddResult {
@@ -66,6 +68,13 @@ export class FavoritesUtil {
         item.subtitle = (obj['subtitle'] as string) || '';
         item.data = (obj['data'] as string) || '';
         item.timestamp = (obj['timestamp'] as number) || 0;
+        let rawTags: Object[] = (obj['tags'] as Object[]) || [];
+        let tagArr: string[] = [];
+        for (let j = 0; j < rawTags.length; j++) {
+          tagArr.push(rawTags[j] as string);
+        }
+        item.tags = tagArr;
+        item.note = (obj['note'] as string) || '';
         items.push(item);
         keySet.add(FavoritesUtil.buildKey(item.type, item.title));
       }

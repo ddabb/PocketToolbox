@@ -568,6 +568,10 @@ export class IdiomViewModel {
     return detail;
   }
 
+  getAllWords(): string[] {
+    return this.allWords;
+  }
+
   getRandomIdiom(context: Context): IdiomDetailItem | null {
     if (this.allWords.length === 0) {
       return null;

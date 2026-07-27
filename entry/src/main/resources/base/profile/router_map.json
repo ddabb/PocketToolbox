@@ -69,6 +69,16 @@
       "name": "ReadingPlayerPage",
       "pageSourceFile": "src/main/ets/pages/ReadingPlayerPage.ets",
       "buildFunction": "ReadingPlayerPageBuilder"
+    },
+    {
+      "name": "DailyChallengePage",
+      "pageSourceFile": "src/main/ets/pages/DailyChallengePage.ets",
+      "buildFunction": "DailyChallengePageBuilder"
+    },
+    {
+      "name": "AchievementPage",
+      "pageSourceFile": "src/main/ets/pages/AchievementPage.ets",
+      "buildFunction": "AchievementPageBuilder"
     }
   ]
 }

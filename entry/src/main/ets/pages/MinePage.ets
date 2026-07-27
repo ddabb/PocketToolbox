@@ -1,4 +1,6 @@
 import { FavoritesUtil, FavoriteItem } from '../common/utils/FavoritesUtil';
+import { StickinessUtil, CheckInData, UserStats, AchievementItem, ChallengeProgress } from '../common/utils/StickinessUtil';
+import { bundleManager } from '@kit.AbilityKit';
 import { preferences } from '@kit.ArkData';
 
 class MineStatItem {
@@ -46,6 +48,12 @@ struct MineContent {
   @State browseCount: number = 0;
   @State stats: MineStatItem[] = [];
   @State actions: MineActionItem[] = [];
+  @State checkInData: CheckInData = new CheckInData();
+  @State userStats: UserStats = new UserStats();
+  @State achievementCount: number = 0;
+  @State achievementTotal: number = 0;
+  @State challengeProgress: ChallengeProgress = new ChallengeProgress();
+  @State versionName: string = '';
   private uiContext: UIContext = this.getUIContext();
   private getNavPathStack(): NavPathStack {
     return AppStorage.get('AppNavPathStack') as NavPathStack;
@@ -55,6 +63,7 @@ struct MineContent {
     this.loadStats();
     this.actions = [
       new MineActionItem('我的收藏', '\u2665', '#e74c3c', 'FavoritesPage'),
+      new MineActionItem('我的成就', '\uD83C\uDFC6', '#8e44ad', 'AchievementPage'),
       new MineActionItem('诗词查询', '\uD83C\uDF3C', '#2d7d46', 'PoetryQueryPage'),
       new MineActionItem('成语查询', '\uD83D\uDCD6', '#2980b9', 'IdiomQueryPage'),
       new MineActionItem('歇后语', '\uD83E\uDD14', '#bf5b04', 'XiehouyuQueryPage')
@@ -87,11 +96,40 @@ struct MineContent {
     } catch (e) {
       this.browseCount = 0;
     }
+    try {
+      let info: bundleManager.BundleInfo = bundleManager.getBundleInfoForSelfSync(bundleManager.BundleFlag.GET_BUNDLE_INFO_DEFAULT);
+      this.versionName = info.versionName;
+    } catch (e) {
+      this.versionName = '';
+    }
+    this.checkInData = StickinessUtil.loadCheckIn(ctx);
+    this.userStats = StickinessUtil.loadStats(ctx);
+    this.challengeProgress = StickinessUtil.loadChallengeProgress(ctx);
+    StickinessUtil.syncFavStats(ctx, this.poemCount, this.idiomCount, this.xiehouyuCount);
+    let achievements: AchievementItem[] = StickinessUtil.loadAchievements(ctx);
+    this.achievementCount = 0;
+    this.achievementTotal = achievements.length;
+    for (let i = 0; i < achievements.length; i++) {
+      if (achievements[i].unlocked) {
+        this.achievementCount++;
+      }
+    }
+    let todayChallenge: string = '';
+    if (this.challengeProgress.completed && this.challengeProgress.date === StickinessUtil.todayStr()) {
+      todayChallenge = this.challengeProgress.score.toString() + '分';
+    } else {
+      todayChallenge = '未完成';
+    }
     this.stats = [
       new MineStatItem('收藏诗词', this.poemCount.toString(), '\uD83C\uDF3C', '#2d7d46'),
       new MineStatItem('收藏成语', this.idiomCount.toString(), '\uD83D\uDCD6', '#2980b9'),
       new MineStatItem('收藏歇后语', this.xiehouyuCount.toString(), '\uD83E\uDD14', '#bf5b04'),
-      new MineStatItem('浏览次数', this.browseCount.toString(), '\uD83D\uDC41', '#8e44ad')
+      new MineStatItem('连续签到', this.checkInData.streak.toString() + '天', '\uD83D\uDCC5', '#f39c12'),
+      new MineStatItem('今日挑战', todayChallenge, '\uD83C\uDFC6', '#e74c3c'),
+      new MineStatItem('挑战累计', this.challengeProgress.totalChallenges.toString() + '次', '\u2705', '#8e44ad'),
+      new MineStatItem('成就', this.achievementCount.toString() + '/' + this.achievementTotal.toString(), '\uD83C\uDFC5', '#9b59b6'),
+      new MineStatItem('浏览次数', this.userStats.browseCount.toString(), '\uD83D\uDC41', '#3498db'),
+      new MineStatItem('累计签到', this.checkInData.totalDays.toString() + '天', '\uD83D\uDD34', '#27ae60')
     ];
   }
 
@@ -99,8 +137,10 @@ struct MineContent {
     Scroll() {
       Column() {
         Column() {
-          Text('\uD83D\uDC64')
-            .fontSize(48)
+          Image($r('app.media.foreground'))
+            .width(64)
+            .height(64)
+            .borderRadius(14)
             .margin({ bottom: 8 })
           Text('解语珠玑')
             .fontSize(20)
@@ -115,14 +155,14 @@ struct MineContent {
         .padding({ top: 32, bottom: 20 })
         .alignItems(HorizontalAlign.Center)
 
-        Row() {
-          ForEach(this.stats, (stat: MineStatItem) => {
+        Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
+          ForEach(this.stats, (stat: MineStatItem, index: number) => {
             Column() {
               Text(stat.icon)
                 .fontSize(20)
                 .margin({ bottom: 4 })
               Text(stat.value)
-                .fontSize(20)
+                .fontSize(18)
                 .fontWeight(FontWeight.Bold)
                 .fontColor(stat.color)
               Text(stat.label)
@@ -130,7 +170,8 @@ struct MineContent {
                 .fontColor($r('app.color.tertiary_text'))
                 .margin({ top: 2 })
             }
-            .layoutWeight(1)
+            .width('33.33%')
+            .padding({ top: 10, bottom: 10 })
             .alignItems(HorizontalAlign.Center)
           }, (stat: MineStatItem, index: number) => stat.label + '_' + index.toString())
         }
@@ -163,6 +204,8 @@ struct MineContent {
               }
               if (action.page === 'FavoritesPage') {
                 stack.pushPathByName('FavoritesPage', null);
+              } else if (action.page === 'AchievementPage') {
+                stack.pushPathByName('AchievementPage', null);
               } else if (action.page === 'PoetryQueryPage') {
                 stack.pushPathByName('PoetryQueryPage', null);
               } else if (action.page === 'IdiomQueryPage') {
@@ -185,19 +228,22 @@ struct MineContent {
 
         Column() {
           Row() {
-            Text('\u2139')
-              .fontSize(18)
-              .margin({ right: 8 })
+            SymbolGlyph($r('sys.symbol.info_circle'))
+              .fontSize(20)
+              .fontColor([$r('app.color.tertiary_text')])
+              .margin({ right: 10 })
             Text('关于')
               .fontSize(15)
               .fontColor($r('app.color.primary_text'))
               .layoutWeight(1)
-            Text('v1.0.0')
-              .fontSize(13)
-              .fontColor($r('app.color.tertiary_text'))
-            Text('\u203A')
-              .fontSize(18)
-              .fontColor($r('app.color.hint_text'))
+            if (this.versionName) {
+              Text('v' + this.versionName)
+                .fontSize(13)
+                .fontColor($r('app.color.tertiary_text'))
+            }
+            SymbolGlyph($r('sys.symbol.chevron_right'))
+              .fontSize(14)
+              .fontColor([$r('app.color.hint_text')])
               .margin({ left: 4 })
           }
           .width('100%')
