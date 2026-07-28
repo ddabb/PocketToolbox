@@ -69,7 +69,9 @@ class MdControllerStore {
       .setUlPointColor(tpl.accentColor)
       .setLineColor(tpl.accentColor)
       .setHyperlinkTextColor(tpl.accentColor)
-      .setBlockSpacing(6);
+      .setHtmlPreviewEnable(true)
+      .setBlockSpacing(6)
+      ;
     FontUtil.applyFonts(ctrl, tpl);
   }
 

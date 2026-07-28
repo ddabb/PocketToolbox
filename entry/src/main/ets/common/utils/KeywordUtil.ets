@@ -116,7 +116,7 @@ export class KeywordUtil {
           j = end;
           continue;
         }
-        if (KeywordUtil.isInsideMarkdownTag(original, j)) {
+        if (KeywordUtil.isInsideCodeBlock(original, j)) {
           j = end;
           continue;
         }
@@ -266,17 +266,19 @@ export class KeywordUtil {
     return words;
   }
 
-  private static isInsideMarkdownTag(text: string, pos: number): boolean {
-    let before: string = text.substring(Math.max(0, pos - 20), pos);
-    let after: string = text.substring(pos, Math.min(text.length, pos + 20));
-    if (before.lastIndexOf('[') > before.lastIndexOf(']') && after.indexOf(']') >= 0 &&
-      after.indexOf(']') < after.indexOf('(')) {
-      return true;
+  private static isInsideCodeBlock(text: string, pos: number): boolean {
+    let before: string = text.substring(0, pos);
+    let fenceCount: number = 0;
+    let idx: number = 0;
+    while (idx < before.length) {
+      let tripleIdx: number = before.indexOf('```', idx);
+      if (tripleIdx === -1) {
+        break;
+      }
+      fenceCount++;
+      idx = tripleIdx + 3;
     }
-    if (before.lastIndexOf('<') > before.lastIndexOf('>') && after.indexOf('>') >= 0) {
-      return true;
-    }
-    return false;
+    return fenceCount % 2 !== 0;
   }
 }
 
