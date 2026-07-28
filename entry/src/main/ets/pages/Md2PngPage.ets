@@ -385,6 +385,11 @@ struct Md2PngContent {
     this.isGenerating = false;
   }
 
+  private getHighlightedText(index: number): string {
+    let tpl: TemplateInfo = this.templates[index];
+    return KeywordUtil.highlightText(this.inputText, this.highlightWords, tpl.highlightFont, tpl.accentColor);
+  }
+
   private async saveToAlbum(): Promise<void> {
     if (!this.generatedImageUri) {
       return;
@@ -654,7 +659,7 @@ struct Md2PngContent {
                 })
 
               Column() {
-                Markdown({ controller: this.controllerStore.get(index), text: KeywordUtil.highlightText(this.inputText, this.highlightWords, tpl.highlightFont, tpl.accentColor) })
+                Markdown({ controller: this.controllerStore.get(index), text: this.getHighlightedText(index) })
                   .width('100%')
               }
               .width('100%')

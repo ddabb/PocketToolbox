@@ -139,18 +139,13 @@ export class KeywordUtil {
       return original;
     }
     ranges.sort((a: HighlightRange, b: HighlightRange) => a.start - b.start);
-    let useFontTag: boolean = highlightFont.length > 0;
     let result: string = '';
     let pos: number = 0;
     for (let i = 0; i < ranges.length; i++) {
       let r: HighlightRange = ranges[i];
       result += original.substring(pos, r.start);
       let word: string = original.substring(r.start, r.end);
-      if (useFontTag) {
-        result += '**<font face="' + highlightFont + '" color="' + accentColor + '">' + word + '</font>**';
-      } else {
-        result += '**`' + word + '`**';
-      }
+      result += '`' + word + '`';
       pos = r.end;
     }
     result += original.substring(pos);
@@ -270,8 +265,6 @@ export class KeywordUtil {
     words.sort((a: KeywordEntry, b: KeywordEntry) => b.score - a.score);
     return words;
   }
-
-
 
   private static isInsideMarkdownTag(text: string, pos: number): boolean {
     let before: string = text.substring(Math.max(0, pos - 20), pos);
