@@ -10,6 +10,7 @@ import { display } from '@kit.ArkUI';
 import { DecorPatternUtil } from '../common/utils/DecorPatternUtil';
 import { shareImageViaPanel } from '../common/utils/ShareImageUtil';
 import { KeywordUtil } from '../common/utils/KeywordUtil';
+import { FontUtil } from '../common/utils/FontUtil';
 
 class MdCanvasStore {
   private contexts: CanvasRenderingContext2D[] = [];
@@ -69,6 +70,7 @@ class MdControllerStore {
       .setLineColor(tpl.accentColor)
       .setHyperlinkTextColor(tpl.accentColor)
       .setBlockSpacing(6);
+    FontUtil.applyFonts(ctrl, tpl);
   }
 
   private isDarkColor(color: string): boolean {
@@ -108,14 +110,15 @@ struct Md2PngContent {
   @State customKeyword: string = '';
   @State cardWidth: number = 360;
   @State cardHeights: number[] = [];
-  @State dynamicTextSize: number = 13;
-  @State dynamicTitleSize: number[] = [20, 17, 15, 13, 12, 11];
-  @State dynamicLineHeight: number = 20;
-  @State dynamicPaddingLeft: number = 20;
-  @State dynamicPaddingRight: number = 20;
-  @State dynamicPaddingTop: number = 16;
-  @State dynamicPaddingBottom: number = 16;
-  private readonly minMdCardHeight: number = 200;
+  @State dynamicTextSize: number = 18;
+  @State dynamicTitleSize: number[] = [28, 24, 20, 18, 16, 15];
+  @State dynamicLineHeight: number = 28;
+  @State dynamicPaddingLeft: number = 28;
+  @State dynamicPaddingRight: number = 28;
+  @State dynamicPaddingTop: number = 24;
+  @State dynamicPaddingBottom: number = 24;
+  @State dynamicMinCardHeight: number = 260;
+  private baseCardWidth: number = 360;
   private readonly maxInputLength: number = 1000;
   private templates: TemplateInfo[] = Md2PngTemplates.getAll();
   private controllerStore: MdControllerStore = new MdControllerStore();
@@ -128,11 +131,12 @@ struct Md2PngContent {
   aboutToAppear(): void {
     this.inputText = '';
     this.currentAccentColor = this.templates[this.currentTemplateIndex].accentColor;
+    FontUtil.registerAll(this.getUIContext());
     this.initAllControllers();
     this.calcCardSize();
     let heights: number[] = [];
     for (let i: number = 0; i < this.templates.length; i++) {
-      heights.push(this.minMdCardHeight);
+      heights.push(this.dynamicMinCardHeight);
     }
     this.cardHeights = heights;
   }
@@ -147,10 +151,11 @@ struct Md2PngContent {
     try {
       let disp: display.Display = display.getDefaultDisplaySync();
       let density: number = disp.densityPixels;
-      this.cardWidth = Math.floor(disp.width / density) - 32;
+      this.baseCardWidth = Math.floor(disp.width / density) - 32;
     } catch (e) {
-      this.cardWidth = 328;
+      this.baseCardWidth = 328;
     }
+    this.cardWidth = this.baseCardWidth;
   }
 
   private getKeywordTopN(): number {
@@ -168,38 +173,56 @@ struct Md2PngContent {
 
   private calcDynamicStyle(): void {
     let len: number = this.inputText.length;
-    if (len <= 50) {
-      this.dynamicTextSize = 15;
-      this.dynamicTitleSize = [22, 19, 17, 15, 13, 12];
-      this.dynamicLineHeight = 24;
+    if (len <= 30) {
+      this.dynamicTextSize = 20;
+      this.dynamicTitleSize = [32, 28, 24, 22, 20, 18];
+      this.dynamicLineHeight = 32;
+      this.dynamicPaddingLeft = 32;
+      this.dynamicPaddingRight = 32;
+      this.dynamicPaddingTop = 28;
+      this.dynamicPaddingBottom = 28;
+      this.cardWidth = Math.min(this.baseCardWidth, 280);
+      this.dynamicMinCardHeight = Math.max(this.cardWidth + 40, 320);
+    } else if (len <= 80) {
+      this.dynamicTextSize = 19;
+      this.dynamicTitleSize = [30, 26, 22, 20, 18, 16];
+      this.dynamicLineHeight = 30;
+      this.dynamicPaddingLeft = 30;
+      this.dynamicPaddingRight = 30;
+      this.dynamicPaddingTop = 26;
+      this.dynamicPaddingBottom = 26;
+      this.cardWidth = Math.min(this.baseCardWidth, 300);
+      this.dynamicMinCardHeight = Math.max(Math.floor(this.cardWidth * 0.9), 280);
+    } else if (len <= 200) {
+      this.dynamicTextSize = 18;
+      this.dynamicTitleSize = [28, 24, 20, 18, 16, 15];
+      this.dynamicLineHeight = 28;
+      this.dynamicPaddingLeft = 28;
+      this.dynamicPaddingRight = 28;
+      this.dynamicPaddingTop = 24;
+      this.dynamicPaddingBottom = 24;
+      this.cardWidth = Math.min(this.baseCardWidth, 320);
+      this.dynamicMinCardHeight = Math.max(Math.floor(this.cardWidth * 0.8), 260);
+    } else if (len <= 500) {
+      this.dynamicTextSize = 16;
+      this.dynamicTitleSize = [24, 21, 18, 16, 14, 13];
+      this.dynamicLineHeight = 26;
       this.dynamicPaddingLeft = 24;
       this.dynamicPaddingRight = 24;
       this.dynamicPaddingTop = 20;
       this.dynamicPaddingBottom = 20;
-    } else if (len <= 200) {
-      this.dynamicTextSize = 14;
-      this.dynamicTitleSize = [20, 17, 15, 14, 12, 11];
-      this.dynamicLineHeight = 22;
+      this.cardWidth = this.baseCardWidth;
+      this.dynamicMinCardHeight = Math.max(Math.floor(this.cardWidth * 0.7), 240);
+    } else {
+      this.dynamicTextSize = 15;
+      this.dynamicTitleSize = [22, 19, 17, 15, 13, 12];
+      this.dynamicLineHeight = 24;
       this.dynamicPaddingLeft = 22;
       this.dynamicPaddingRight = 22;
       this.dynamicPaddingTop = 18;
       this.dynamicPaddingBottom = 18;
-    } else if (len <= 500) {
-      this.dynamicTextSize = 13;
-      this.dynamicTitleSize = [18, 16, 14, 13, 11, 10];
-      this.dynamicLineHeight = 20;
-      this.dynamicPaddingLeft = 20;
-      this.dynamicPaddingRight = 20;
-      this.dynamicPaddingTop = 16;
-      this.dynamicPaddingBottom = 16;
-    } else {
-      this.dynamicTextSize = 12;
-      this.dynamicTitleSize = [16, 14, 13, 12, 10, 9];
-      this.dynamicLineHeight = 18;
-      this.dynamicPaddingLeft = 18;
-      this.dynamicPaddingRight = 18;
-      this.dynamicPaddingTop = 14;
-      this.dynamicPaddingBottom = 14;
+      this.cardWidth = this.baseCardWidth;
+      this.dynamicMinCardHeight = 220;
     }
   }
 
@@ -207,11 +230,11 @@ struct Md2PngContent {
     if (index >= 0 && index < this.cardHeights.length) {
       return this.cardHeights[index];
     }
-    return this.minMdCardHeight;
+    return this.dynamicMinCardHeight;
   }
 
   private getMaxCardHeight(): number {
-    let maxH: number = this.minMdCardHeight;
+    let maxH: number = this.dynamicMinCardHeight;
     for (let i = 0; i < this.cardHeights.length; i++) {
       if (this.cardHeights[i] > maxH) {
         maxH = this.cardHeights[i];
@@ -290,6 +313,19 @@ struct Md2PngContent {
       }
     }
     this.highlightWords = newWords;
+    this.generateImage();
+  }
+
+  private async regenerateImageOnly(): Promise<void> {
+    if (!this.inputText || this.inputText.trim().length === 0) {
+      this.generatedImageUri = '';
+      return;
+    }
+    this.calcDynamicStyle();
+    this.initAllControllers();
+    if (this.highlightWords.length > 0) {
+      this.highlightWords = [...this.highlightWords];
+    }
     this.generateImage();
   }
 
@@ -556,6 +592,9 @@ struct Md2PngContent {
             .onChange((value: string) => {
               this.customKeyword = value;
             })
+            .onSubmit(() => {
+              this.addCustomKeyword();
+            })
           Text('+')
             .fontSize(16)
             .fontColor($r('app.color.idiom_blue'))
@@ -604,17 +643,26 @@ struct Md2PngContent {
                 .onReady(() => {
                   DecorPatternUtil.draw(this.canvasStore.get(index), this.cardWidth, this.getCardHeight(index), tpl.accentColor, tpl.decorPattern);
                 })
+                .onAreaChange((_oldValue: Area, newValue: Area) => {
+                  let newW: number = newValue.width as number;
+                  let newH: number = newValue.height as number;
+                  let oldW: number = _oldValue.width as number;
+                  let oldH: number = _oldValue.height as number;
+                  if (Math.abs(newW - oldW) > 1 || Math.abs(newH - oldH) > 1) {
+                    DecorPatternUtil.draw(this.canvasStore.get(index), newW, newH, tpl.accentColor, tpl.decorPattern);
+                  }
+                })
 
               Column() {
-                Markdown({ controller: this.controllerStore.get(index), text: KeywordUtil.highlightText(this.inputText, this.highlightWords) })
+                Markdown({ controller: this.controllerStore.get(index), text: KeywordUtil.highlightText(this.inputText, this.highlightWords, tpl.highlightFont, tpl.accentColor) })
                   .width('100%')
               }
               .width('100%')
               .padding({ left: this.dynamicPaddingLeft, right: this.dynamicPaddingRight, top: this.dynamicPaddingTop, bottom: this.dynamicPaddingBottom })
               .onAreaChange((_oldValue: Area, newValue: Area) => {
                 let contentH: number = newValue.height as number;
-                if (contentH < this.minMdCardHeight) {
-                  contentH = this.minMdCardHeight;
+                if (contentH < this.dynamicMinCardHeight) {
+                  contentH = this.dynamicMinCardHeight;
                 }
                 if (index >= 0 && index < this.cardHeights.length) {
                   if (Math.abs(this.cardHeights[index] - contentH) > 1) {
@@ -664,7 +712,7 @@ struct Md2PngContent {
         this.currentTemplateIndex = index;
         this.currentAccentColor = this.templates[index].accentColor;
         this.generatedImageUri = '';
-        this.scheduleRegenerate();
+        this.regenerateImageOnly();
       })
     }
     .width('100%')

@@ -88,16 +88,72 @@ export class KeywordUtil {
     }
   }
 
-  static highlightText(original: string, keywords: string[]): string {
+  static highlightText(original: string, keywords: string[], highlightFont: string = '',
+    accentColor: string = ''): string {
     if (!original || keywords.length === 0) {
       return original;
     }
-    let result: string = original;
     let sorted: string[] = keywords.slice().sort((a: string, b: string) => b.length - a.length);
+    let ranges: HighlightRange[] = [];
     for (let i = 0; i < sorted.length; i++) {
       let kw: string = sorted[i];
-      result = KeywordUtil.wrapKeyword(result, kw);
+      let kwLower: string = kw.toLowerCase();
+      let j: number = 0;
+      while (j <= original.length - kw.length) {
+        let end: number = j + kw.length;
+        let candidate: string = original.substring(j, end);
+        if (candidate.toLowerCase() !== kwLower) {
+          j++;
+          continue;
+        }
+        let beforeChar: string = j > 0 ? original.charAt(j - 1) : '';
+        let afterChar: string = end < original.length ? original.charAt(end) : '';
+        if (beforeChar === '`' || afterChar === '`') {
+          j = end;
+          continue;
+        }
+        if (beforeChar === '*' || afterChar === '*') {
+          j = end;
+          continue;
+        }
+        if (KeywordUtil.isInsideMarkdownTag(original, j)) {
+          j = end;
+          continue;
+        }
+        let overlaps: boolean = false;
+        for (let r = 0; r < ranges.length; r++) {
+          if (j < ranges[r].end && end > ranges[r].start) {
+            overlaps = true;
+            break;
+          }
+        }
+        if (overlaps) {
+          j = end;
+          continue;
+        }
+        ranges.push(new HighlightRange(j, end, kw));
+        j = end;
+      }
     }
+    if (ranges.length === 0) {
+      return original;
+    }
+    ranges.sort((a: HighlightRange, b: HighlightRange) => a.start - b.start);
+    let useFontTag: boolean = highlightFont.length > 0;
+    let result: string = '';
+    let pos: number = 0;
+    for (let i = 0; i < ranges.length; i++) {
+      let r: HighlightRange = ranges[i];
+      result += original.substring(pos, r.start);
+      let word: string = original.substring(r.start, r.end);
+      if (useFontTag) {
+        result += '**<font face="' + highlightFont + '" color="' + accentColor + '">' + word + '</font>**';
+      } else {
+        result += '**`' + word + '`**';
+      }
+      pos = r.end;
+    }
+    result += original.substring(pos);
     return result;
   }
 
@@ -215,45 +271,7 @@ export class KeywordUtil {
     return words;
   }
 
-  private static wrapKeyword(text: string, keyword: string): string {
-    let result: string = '';
-    let i: number = 0;
-    let kwLower: string = keyword.toLowerCase();
-    while (i < text.length) {
-      let end: number = i + keyword.length;
-      if (end > text.length) {
-        result += text.charAt(i);
-        i++;
-        continue;
-      }
-      let candidate: string = text.substring(i, end);
-      if (candidate.toLowerCase() !== kwLower) {
-        result += text.charAt(i);
-        i++;
-        continue;
-      }
-      let beforeChar: string = i > 0 ? text.charAt(i - 1) : '';
-      let afterChar: string = end < text.length ? text.charAt(end) : '';
-      if (beforeChar === '`' || afterChar === '`') {
-        result += candidate;
-        i = end;
-        continue;
-      }
-      if (beforeChar === '*' || afterChar === '*') {
-        result += candidate;
-        i = end;
-        continue;
-      }
-      if (KeywordUtil.isInsideMarkdownTag(text, i)) {
-        result += candidate;
-        i = end;
-        continue;
-      }
-      result += '**`' + candidate + '`**';
-      i = end;
-    }
-    return result;
-  }
+
 
   private static isInsideMarkdownTag(text: string, pos: number): boolean {
     let before: string = text.substring(Math.max(0, pos - 20), pos);
@@ -274,4 +292,16 @@ class KeywordEntry {
   count: number = 0;
   tag: string = '';
   score: number = 0;
+}
+
+class HighlightRange {
+  start: number = 0;
+  end: number = 0;
+  keyword: string = '';
+
+  constructor(start: number, end: number, keyword: string) {
+    this.start = start;
+    this.end = end;
+    this.keyword = keyword;
+  }
 }
