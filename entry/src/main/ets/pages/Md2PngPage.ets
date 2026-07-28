@@ -105,6 +105,7 @@ struct Md2PngContent {
   @State currentAccentColor: string = '#3182ce';
   @State highlightWords: string[] = [];
   @State isExtractingKeywords: boolean = false;
+  @State customKeyword: string = '';
   @State cardWidth: number = 360;
   @State cardHeights: number[] = [];
   @State dynamicTextSize: number = 13;
@@ -261,6 +262,37 @@ struct Md2PngContent {
     }, 800);
   }
 
+  private addCustomKeyword(): void {
+    let kw: string = this.customKeyword.trim();
+    if (!kw) {
+      return;
+    }
+    if (this.highlightWords.includes(kw)) {
+      this.getUIContext().getPromptAction().showToast({ message: '该词已在高亮列表中', duration: 1000 });
+      this.customKeyword = '';
+      return;
+    }
+    let newWords: string[] = [];
+    for (let i = 0; i < this.highlightWords.length; i++) {
+      newWords.push(this.highlightWords[i]);
+    }
+    newWords.push(kw);
+    this.highlightWords = newWords;
+    this.customKeyword = '';
+    this.generateImage();
+  }
+
+  private removeKeyword(word: string): void {
+    let newWords: string[] = [];
+    for (let i = 0; i < this.highlightWords.length; i++) {
+      if (this.highlightWords[i] !== word) {
+        newWords.push(this.highlightWords[i]);
+      }
+    }
+    this.highlightWords = newWords;
+    this.generateImage();
+  }
+
   private async extractAndGenerate(): Promise<void> {
     if (!this.inputText || this.inputText.trim().length === 0) {
       this.highlightWords = [];
@@ -368,6 +400,10 @@ struct Md2PngContent {
     Column() {
       this.InputSection()
 
+      if (this.highlightWords.length > 0 || this.inputText.trim().length > 0) {
+        this.HighlightWordsSection()
+      }
+
       Column() {
         Scroll() {
           Column() {
@@ -461,6 +497,83 @@ struct Md2PngContent {
     }
     .width('100%')
     .padding({ left: 16, right: 16, top: 8, bottom: 16 })
+    .backgroundColor($r('app.color.page_background'))
+  }
+
+  @Builder
+  HighlightWordsSection() {
+    Column() {
+      Row() {
+        Text('高亮词')
+          .fontSize(15)
+          .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.primary_text'))
+        if (this.isExtractingKeywords) {
+          LoadingProgress()
+            .width(16)
+            .height(16)
+            .color($r('app.color.idiom_blue'))
+            .margin({ left: 8 })
+        }
+        Blank()
+        Text('点击 \u00D7 移除，手动添加新词')
+          .fontSize(11)
+          .fontColor($r('app.color.hint_text'))
+      }
+      .width('100%')
+      .margin({ bottom: 8 })
+
+      Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
+        ForEach(this.highlightWords, (word: string) => {
+          Row() {
+            Text(word)
+              .fontSize(13)
+              .fontColor(this.currentAccentColor)
+              .fontWeight(FontWeight.Medium)
+            Text(' \u00D7')
+              .fontSize(14)
+              .fontColor($r('app.color.tertiary_text'))
+              .margin({ left: 2 })
+          }
+          .backgroundColor(this.currentAccentColor + '18')
+          .borderRadius(14)
+          .padding({ left: 10, right: 10, top: 5, bottom: 5 })
+          .margin({ right: 6, bottom: 6 })
+          .onClick(() => {
+            this.removeKeyword(word);
+          })
+        }, (word: string) => word)
+
+        Row() {
+          TextInput({ placeholder: '添加高亮词', text: this.customKeyword })
+            .fontSize(13)
+            .fontColor($r('app.color.primary_text'))
+            .placeholderColor($r('app.color.hint_text'))
+            .backgroundColor(Color.Transparent)
+            .padding(0)
+            .layoutWeight(1)
+            .height(28)
+            .onChange((value: string) => {
+              this.customKeyword = value;
+            })
+          Text('+')
+            .fontSize(16)
+            .fontColor($r('app.color.idiom_blue'))
+            .fontWeight(FontWeight.Bold)
+            .margin({ left: 4 })
+            .onClick(() => {
+              this.addCustomKeyword();
+            })
+        }
+        .height(28)
+        .backgroundColor($r('app.color.card_background'))
+        .borderRadius(14)
+        .padding({ left: 10, right: 10 })
+        .margin({ right: 6, bottom: 6 })
+      }
+    }
+    .width('100%')
+    .padding({ left: 16, right: 16, top: 8, bottom: 8 })
     .backgroundColor($r('app.color.page_background'))
   }
 

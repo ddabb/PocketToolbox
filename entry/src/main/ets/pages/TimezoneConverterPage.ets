@@ -82,20 +82,23 @@ struct TimezoneConverterContent {
 
   private initTime(): void {
     let now: Date = new Date();
-    this.baseDate = this.formatDate(now);
-    this.baseTime = this.formatTime(now);
+    let baseCity: TimezoneCity | null = this.getCityByName(this.baseCityName);
+    let offset: number = baseCity !== null ? baseCity.offset : 8;
+    let baseCityTime: Date = new Date(now.getTime() + offset * 60 * 60 * 1000);
+    this.baseDate = this.formatDate(baseCityTime);
+    this.baseTime = this.formatTime(baseCityTime);
   }
 
   private formatDate(date: Date): string {
-    let y: number = date.getFullYear();
-    let m: string = (date.getMonth() + 1).toString().padStart(2, '0');
-    let d: string = date.getDate().toString().padStart(2, '0');
+    let y: number = date.getUTCFullYear();
+    let m: string = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+    let d: string = date.getUTCDate().toString().padStart(2, '0');
     return y.toString() + '-' + m + '-' + d;
   }
 
   private formatTime(date: Date): string {
-    let h: string = date.getHours().toString().padStart(2, '0');
-    let min: string = date.getMinutes().toString().padStart(2, '0');
+    let h: string = date.getUTCHours().toString().padStart(2, '0');
+    let min: string = date.getUTCMinutes().toString().padStart(2, '0');
     return h + ':' + min;
   }
 
@@ -145,18 +148,18 @@ struct TimezoneConverterContent {
     if (baseCity === null || targetCity === null) {
       return new Date();
     }
-    let baseDateTime: Date = new Date(this.baseDate + 'T' + this.baseTime + ':00');
+    let baseDateTime: Date = new Date(this.baseDate + 'T' + this.baseTime + ':00Z');
     let offsetDiff: number = targetCity.offset - baseCity.offset;
     return new Date(baseDateTime.getTime() + offsetDiff * 60 * 60 * 1000);
   }
 
   private isWorkTime(date: Date): boolean {
-    let h: number = date.getHours();
+    let h: number = date.getUTCHours();
     return h >= 9 && h < 18;
   }
 
   private isNight(date: Date): boolean {
-    let h: number = date.getHours();
+    let h: number = date.getUTCHours();
     return h < 6 || h >= 22;
   }
 

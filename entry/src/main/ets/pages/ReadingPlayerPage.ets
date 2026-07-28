@@ -237,46 +237,70 @@ struct ReadingPlayerContent {
     List({ space: 4 }) {
       ForEach(this.currentList!.items, (item: ReadingItem, index: number) => {
         ListItem() {
-          Row() {
-            Column() {
-              Row() {
-                Text(this.getTypeIcon(item.type))
-                  .fontSize(16)
-                  .margin({ right: 6 })
-                Text(item.title)
-                  .fontSize(15)
-                  .fontWeight(this.currentIndex === index ? FontWeight.Bold : FontWeight.Medium)
-                  .fontColor(this.currentIndex === index ? $r('app.color.poetry_green') : $r('app.color.primary_text'))
-                  .maxLines(1)
-                  .textOverflow({ overflow: TextOverflow.Ellipsis })
-                  .layoutWeight(1)
-                Text(this.getTypeLabel(item.type))
-                  .fontSize(11)
-                  .fontColor($r('app.color.poetry_green'))
-                  .backgroundColor($r('app.color.poetry_green') + '18')
-                  .borderRadius(6)
-                  .padding({ left: 6, right: 6, top: 2, bottom: 2 })
-                  .margin({ left: 6 })
-              }
-              .width('100%')
-              Text(item.subtitle)
-                .fontSize(12)
-                .fontColor($r('app.color.tertiary_text'))
-                .margin({ top: 2, left: 22 })
+          Column() {
+            Row() {
+              Text(this.getTypeIcon(item.type))
+                .fontSize(16)
+                .margin({ right: 6 })
+              Text(item.title)
+                .fontSize(15)
+                .fontWeight(this.currentIndex === index ? FontWeight.Bold : FontWeight.Medium)
+                .fontColor(this.currentIndex === index ? $r('app.color.poetry_green') : $r('app.color.primary_text'))
                 .maxLines(1)
                 .textOverflow({ overflow: TextOverflow.Ellipsis })
+                .layoutWeight(1)
+              Text(this.getTypeLabel(item.type))
+                .fontSize(11)
+                .fontColor($r('app.color.poetry_green'))
+                .backgroundColor($r('app.color.poetry_green') + '18')
+                .borderRadius(6)
+                .padding({ left: 6, right: 6, top: 2, bottom: 2 })
+                .margin({ left: 6 })
             }
-            .layoutWeight(1)
-            .alignItems(HorizontalAlign.Start)
+            .width('100%')
+            Text(item.subtitle)
+              .fontSize(12)
+              .fontColor($r('app.color.tertiary_text'))
+              .margin({ top: 2, left: 22 })
+              .maxLines(1)
+              .textOverflow({ overflow: TextOverflow.Ellipsis })
 
-            Text('\u2022\u2022\u2022')
-              .fontSize(18)
-              .fontColor($r('app.color.hint_text'))
-              .margin({ left: 8 })
-              .onClick(() => {
-                this.menuItemId = item.id;
-                this.showItemMenu = true;
-              })
+            if (this.currentIndex === index && item.content) {
+              Column() {
+                Text(item.content)
+                  .fontSize(14)
+                  .fontColor($r('app.color.secondary_text'))
+                  .lineHeight(24)
+                  .width('100%')
+              }
+              .width('100%')
+              .padding({ top: 10, bottom: 4, left: 22 })
+            }
+
+            Row() {
+              if (this.currentIndex === index) {
+                Row() {
+                  Text(this.ttsState === 'speaking' ? '\u23F8' : '\u25B6')
+                    .fontSize(14)
+                    .fontColor($r('app.color.poetry_green'))
+                    .margin({ right: 4 })
+                  Text(this.ttsState === 'speaking' ? '朗读中' : '点击朗读')
+                    .fontSize(12)
+                    .fontColor($r('app.color.poetry_green'))
+                }
+              }
+              Blank()
+              Text('\u2022\u2022\u2022')
+                .fontSize(18)
+                .fontColor($r('app.color.hint_text'))
+                .margin({ left: 8 })
+                .onClick(() => {
+                  this.menuItemId = item.id;
+                  this.showItemMenu = true;
+                })
+            }
+            .width('100%')
+            .padding({ top: 4 })
           }
           .width('100%')
           .padding({ left: 14, right: 14, top: 12, bottom: 12 })
@@ -292,6 +316,8 @@ struct ReadingPlayerContent {
               this.ttsController.stop();
               this.currentIndex = index;
               this.playCurrent();
+            } else {
+              this.togglePlay();
             }
           })
         }
@@ -306,22 +332,6 @@ struct ReadingPlayerContent {
   @Builder
   PlayerControls() {
     Column() {
-      if (this.currentIndex >= 0 && this.currentList && this.currentIndex < this.currentList.items.length) {
-        Text(this.currentList!.items[this.currentIndex].title)
-          .fontSize(16)
-          .fontWeight(FontWeight.Bold)
-          .fontColor($r('app.color.primary_text'))
-          .maxLines(1)
-          .textOverflow({ overflow: TextOverflow.Ellipsis })
-          .width('100%')
-          .textAlign(TextAlign.Center)
-          .padding({ left: 24, right: 24 })
-        Text((this.currentIndex + 1).toString() + ' / ' + this.currentList!.items.length.toString())
-          .fontSize(12)
-          .fontColor($r('app.color.tertiary_text'))
-          .margin({ top: 4 })
-      }
-
       Row({ space: 24 }) {
         Text('\u23EA')
           .fontSize(28)
@@ -353,10 +363,10 @@ struct ReadingPlayerContent {
       }
       .width('100%')
       .justifyContent(FlexAlign.Center)
-      .margin({ top: 16, bottom: 16 })
+      .margin({ top: 8, bottom: 8 })
     }
     .width('100%')
-    .padding({ top: 16, bottom: 24 })
+    .padding({ top: 12, bottom: 24 })
     .backgroundColor($r('app.color.card_background'))
     .borderRadius({ topLeft: 20, topRight: 20 })
     .shadow({ radius: 10, color: '#1a000000', offsetY: -2 })

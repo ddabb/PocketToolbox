@@ -22,7 +22,7 @@ import { PoemItem, PoetDetail, PoetItem } from '../model/PoetryModels';
 import { IdiomDetailItem } from '../model/IdiomModels';
 import { XiehouyuItem } from '../model/XiehouyuModels';
 import { FavoritesUtil, FavoriteItem } from '../common/utils/FavoritesUtil';
-import { StickinessUtil, CheckInData, ChallengeProgress } from '../common/utils/StickinessUtil';
+import { StickinessUtil, CheckInData, ChallengeProgress, UserStats } from '../common/utils/StickinessUtil';
 import { bundleManager } from '@kit.AbilityKit';
 import { ConverterCategory, UnitConverterData } from '../model/UnitModels';
 
@@ -73,6 +73,9 @@ struct Index {
   @State reviewItem: FavoriteItem | null = null;
   @State reviewVisible: boolean = false;
   @State appVersionName: string = '';
+  @State mineUserStats: UserStats = new UserStats();
+  @State mineCheckInData: CheckInData = new CheckInData();
+  @State mineChallengeProgress: ChallengeProgress = new ChallengeProgress();
   private poetryVm: PoetryViewModel = PoetryViewModel.getInstance();
   private idiomVm: IdiomViewModel = IdiomViewModel.getInstance();
   private xiehouyuVm: XiehouyuViewModel = XiehouyuViewModel.getInstance();
@@ -140,6 +143,9 @@ struct Index {
     this.checkedInToday = StickinessUtil.isCheckedInToday(ctx);
     this.challengeProgress = StickinessUtil.loadChallengeProgress(ctx);
     this.loadReviewItem(ctx);
+    this.mineCheckInData = this.checkInData;
+    this.mineChallengeProgress = this.challengeProgress;
+    this.mineUserStats = StickinessUtil.loadStats(ctx);
   }
 
   private doCheckIn(): void {
@@ -388,6 +394,8 @@ struct Index {
           .padding({ top: 8, bottom: 12 })
           .alignItems(HorizontalAlign.Center)
 
+          this.CheckInAndChallengeCard()
+
           Row() {
             Column() {
               Column() {
@@ -519,8 +527,6 @@ struct Index {
           }
           .width('100%')
           .padding({ left: 16, right: 16, top: 8 })
-
-          this.CheckInAndChallengeCard()
 
           if (this.reviewVisible && this.reviewItem) {
             this.ReviewCard()
@@ -665,10 +671,7 @@ struct Index {
               .fontSize(20)
               .fontWeight(FontWeight.Bold)
               .fontColor($r('app.color.primary_text'))
-            Text('品读经典，感悟文字之美')
-              .fontSize(13)
-              .fontColor($r('app.color.tertiary_text'))
-              .margin({ top: 3 })
+
           }
           .width('100%')
           .padding({ top: 8, bottom: 12 })
@@ -697,6 +700,24 @@ struct Index {
               .color($r('app.color.border_color'))
 
             Column() {
+              Text(this.mineCheckInData.streak.toString())
+                .fontSize(22)
+                .fontWeight(FontWeight.Bold)
+                .fontColor($r('app.color.idiom_orange'))
+              Text('连续签到')
+                .fontSize(11)
+                .fontColor($r('app.color.tertiary_text'))
+                .margin({ top: 2 })
+            }
+            .layoutWeight(1)
+            .alignItems(HorizontalAlign.Center)
+
+            Divider()
+              .vertical(true)
+              .height(30)
+              .color($r('app.color.border_color'))
+
+            Column() {
               Text('\uD83D\uDCD6')
                 .fontSize(22)
                 .fontColor($r('app.color.poetry_green'))
@@ -709,26 +730,6 @@ struct Index {
             .alignItems(HorizontalAlign.Center)
             .onClick(() => {
               this.mineStack.pushPathByName('ReadingListPage', null);
-            })
-
-            Divider()
-              .vertical(true)
-              .height(30)
-              .color($r('app.color.border_color'))
-
-            Column() {
-              Text('\u2139')
-                .fontSize(22)
-                .fontColor($r('app.color.poetry_green'))
-              Text('关于')
-                .fontSize(11)
-                .fontColor($r('app.color.tertiary_text'))
-                .margin({ top: 2 })
-            }
-            .layoutWeight(1)
-            .alignItems(HorizontalAlign.Center)
-            .onClick(() => {
-              this.mineStack.pushPathByName('AboutPage', null);
             })
           }
           .width('100%')
@@ -821,6 +822,142 @@ struct Index {
             .onClick(() => {
               this.mineStack.pushPathByName('XiehouyuQueryPage', null);
             })
+          }
+          .width('100%')
+          .backgroundColor($r('app.color.card_background'))
+          .borderRadius(14)
+          .margin({ left: 16, right: 16, top: 12 })
+
+          Column() {
+            Row() {
+              Text('\uD83D\uDCC5')
+                .fontSize(20)
+                .margin({ right: 10 })
+              Text('今日签到')
+                .fontSize(15)
+                .fontColor($r('app.color.primary_text'))
+                .layoutWeight(1)
+              Text(this.mineCheckInData.lastDate === StickinessUtil.todayStr() ? '\u2713 已签到' : '未签到')
+                .fontSize(14)
+                .fontColor(this.mineCheckInData.lastDate === StickinessUtil.todayStr() ? '#27ae60' : $r('app.color.tertiary_text'))
+            }
+            .width('100%')
+            .padding({ left: 16, right: 16, top: 14, bottom: 14 })
+
+            Divider()
+              .color($r('app.color.border_color'))
+              .margin({ left: 46 })
+
+            Row() {
+              Text('\uD83D\uDD25')
+                .fontSize(20)
+                .margin({ right: 10 })
+              Text('连续签到')
+                .fontSize(15)
+                .fontColor($r('app.color.primary_text'))
+                .layoutWeight(1)
+              Text(this.mineCheckInData.streak.toString() + '天')
+                .fontSize(14)
+                .fontColor($r('app.color.idiom_orange'))
+                .fontWeight(FontWeight.Bold)
+            }
+            .width('100%')
+            .padding({ left: 16, right: 16, top: 14, bottom: 14 })
+
+            Divider()
+              .color($r('app.color.border_color'))
+              .margin({ left: 46 })
+
+            Row() {
+              Text('\uD83C\uDFC6')
+                .fontSize(20)
+                .margin({ right: 10 })
+              Text('今日挑战')
+                .fontSize(15)
+                .fontColor($r('app.color.primary_text'))
+                .layoutWeight(1)
+              Text(this.mineChallengeProgress.completed && this.mineChallengeProgress.date === StickinessUtil.todayStr() ? '已完成' : '未完成')
+                .fontSize(14)
+                .fontColor(this.mineChallengeProgress.completed && this.mineChallengeProgress.date === StickinessUtil.todayStr() ? '#27ae60' : $r('app.color.tertiary_text'))
+            }
+            .width('100%')
+            .padding({ left: 16, right: 16, top: 14, bottom: 14 })
+
+            Divider()
+              .color($r('app.color.border_color'))
+              .margin({ left: 46 })
+
+            Row() {
+              Text('\uD83D\uDC41')
+                .fontSize(20)
+                .margin({ right: 10 })
+              Text('累计浏览')
+                .fontSize(15)
+                .fontColor($r('app.color.primary_text'))
+                .layoutWeight(1)
+              Text(this.mineUserStats.browseCount.toString() + '次')
+                .fontSize(14)
+                .fontColor($r('app.color.tertiary_text'))
+            }
+            .width('100%')
+            .padding({ left: 16, right: 16, top: 14, bottom: 14 })
+
+            Divider()
+              .color($r('app.color.border_color'))
+              .margin({ left: 46 })
+
+            Row() {
+              Text('\uD83D\uDCDA')
+                .fontSize(20)
+                .margin({ right: 10 })
+              Text('累计挑战')
+                .fontSize(15)
+                .fontColor($r('app.color.primary_text'))
+                .layoutWeight(1)
+              Text(this.mineChallengeProgress.totalChallenges.toString() + '次')
+                .fontSize(14)
+                .fontColor($r('app.color.tertiary_text'))
+            }
+            .width('100%')
+            .padding({ left: 16, right: 16, top: 14, bottom: 14 })
+
+            Divider()
+              .color($r('app.color.border_color'))
+              .margin({ left: 46 })
+
+            Row() {
+              Text('\uD83C\uDF3C')
+                .fontSize(20)
+                .margin({ right: 10 })
+              Text('收藏内容')
+                .fontSize(15)
+                .fontColor($r('app.color.primary_text'))
+                .layoutWeight(1)
+              Text(this.mineUserStats.favTotal.toString() + '项')
+                .fontSize(14)
+                .fontColor($r('app.color.tertiary_text'))
+            }
+            .width('100%')
+            .padding({ left: 16, right: 16, top: 14, bottom: 14 })
+
+            Divider()
+              .color($r('app.color.border_color'))
+              .margin({ left: 46 })
+
+            Row() {
+              Text('\uD83D\uDDE3')
+                .fontSize(20)
+                .margin({ right: 10 })
+              Text('朗读内容')
+                .fontSize(15)
+                .fontColor($r('app.color.primary_text'))
+                .layoutWeight(1)
+              Text(this.mineUserStats.readingItems.toString() + '篇')
+                .fontSize(14)
+                .fontColor($r('app.color.tertiary_text'))
+            }
+            .width('100%')
+            .padding({ left: 16, right: 16, top: 14, bottom: 14 })
           }
           .width('100%')
           .backgroundColor($r('app.color.card_background'))

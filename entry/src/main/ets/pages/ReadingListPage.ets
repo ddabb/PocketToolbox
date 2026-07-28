@@ -19,6 +19,7 @@ struct ReadingListContent {
   @State showAddDialog: boolean = false;
   @State showRenameDialog: boolean = false;
   @State newListName: string = '';
+  @State listVersion: number = 0;
   private uiContext: UIContext = this.getUIContext();
   private getNavPathStack(): NavPathStack {
     return AppStorage.get('AppNavPathStack') as NavPathStack;
@@ -30,7 +31,35 @@ struct ReadingListContent {
 
   private loadLists(): void {
     ReadingListStore.invalidateCache();
-    this.lists = ReadingListStore.load(this.uiContext.getHostContext() as Context);
+    let loaded: ReadingList[] = ReadingListStore.load(this.uiContext.getHostContext() as Context);
+    let json: string = JSON.stringify(loaded);
+    let raw: Object[] = JSON.parse(json) as Object[];
+    let deepCopy: ReadingList[] = [];
+    for (let i = 0; i < raw.length; i++) {
+      let obj: Record<string, Object> = raw[i] as Record<string, Object>;
+      let list: ReadingList = new ReadingList();
+      list.id = (obj['id'] as string) || '';
+      list.name = (obj['name'] as string) || '';
+      list.createdAt = (obj['createdAt'] as number) || 0;
+      list.updatedAt = (obj['updatedAt'] as number) || 0;
+      list.lastPlayedIndex = (obj['lastPlayedIndex'] as number) || -1;
+      list.lastPlayedTime = (obj['lastPlayedTime'] as number) || 0;
+      let itemsRaw: Object[] = (obj['items'] as Object[]) || [];
+      list.items = [];
+      for (let j = 0; j < itemsRaw.length; j++) {
+        let itemObj: Record<string, Object> = itemsRaw[j] as Record<string, Object>;
+        let item: ReadingItem = new ReadingItem();
+        item.id = (itemObj['id'] as string) || '';
+        item.type = (itemObj['type'] as string) || '';
+        item.title = (itemObj['title'] as string) || '';
+        item.subtitle = (itemObj['subtitle'] as string) || '';
+        item.content = (itemObj['content'] as string) || '';
+        item.timestamp = (itemObj['timestamp'] as number) || 0;
+        list.items.push(item);
+      }
+      deepCopy.push(list);
+    }
+    this.lists = deepCopy;
   }
 
   private addList(): void {
@@ -56,6 +85,7 @@ struct ReadingListContent {
     this.editName = '';
     this.editingListId = '';
     this.showRenameDialog = false;
+    this.listVersion++;
     this.loadLists();
     this.uiContext.getPromptAction().showToast({ message: '已重命名', duration: 1000 });
   }
@@ -188,7 +218,7 @@ struct ReadingListContent {
                   this.openList(list.id);
                 })
               }
-            }, (list: ReadingList) => list.id)
+            }, (list: ReadingList) => list.id + '_' + list.name + '_' + this.listVersion.toString())
           }
           .width('100%')
           .layoutWeight(1)
