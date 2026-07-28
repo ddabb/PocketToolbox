@@ -90,6 +90,8 @@ class MdControllerStore {
   }
 }
 
+
+
 @Builder
 export function Md2PngPageBuilder() {
   NavDestination() {
@@ -358,6 +360,7 @@ struct Md2PngContent {
     }
     this.isGenerating = true;
     try {
+      await new Promise<void>((resolve: () => void) => { setTimeout(resolve, 200); });
       let uiCtx: UIContext = this.getUIContext();
       let snapshot = uiCtx.getComponentSnapshot();
       let tpl: TemplateInfo = this.templates[this.currentTemplateIndex];
@@ -389,7 +392,7 @@ struct Md2PngContent {
 
   private getHighlightedText(index: number): string {
     let tpl: TemplateInfo = this.templates[index];
-    return KeywordUtil.highlightText(this.inputText, this.highlightWords, tpl.highlightFont, tpl.accentColor);
+    return KeywordUtil.highlightText(this.inputText, this.highlightWords, tpl.highlightFont, tpl.accentColor, tpl.highlightBgColor);
   }
 
   private async saveToAlbum(): Promise<void> {

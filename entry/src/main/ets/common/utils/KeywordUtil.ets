@@ -89,7 +89,7 @@ export class KeywordUtil {
   }
 
   static highlightText(original: string, keywords: string[], highlightFont: string = '',
-    accentColor: string = ''): string {
+    accentColor: string = '', highlightBgColor: string = ''): string {
     if (!original || keywords.length === 0) {
       return original;
     }
@@ -116,10 +116,15 @@ export class KeywordUtil {
           j = end;
           continue;
         }
+        if (beforeChar === '[' || afterChar === ']') {
+          j = end;
+          continue;
+        }
         if (KeywordUtil.isInsideCodeBlock(original, j)) {
           j = end;
           continue;
         }
+    
         let overlaps: boolean = false;
         for (let r = 0; r < ranges.length; r++) {
           if (j < ranges[r].end && end > ranges[r].start) {
@@ -145,7 +150,9 @@ export class KeywordUtil {
       let r: HighlightRange = ranges[i];
       result += original.substring(pos, r.start);
       let word: string = original.substring(r.start, r.end);
-      result += '`' + word + '`';
+      let fontTag: string = highlightFont && highlightFont.length > 0 ? ' face=\"' + highlightFont + '\"' : '';
+      let bgTag: string = highlightBgColor && highlightBgColor.length > 0 ? ' style=\"background-color:' + highlightBgColor + ';padding:1px 4px;border-radius:3px\"' : '';
+      result += '<span' + bgTag + '><font color=\"' + accentColor + '\"' + fontTag + '><b>' + word + '</b></font></span>';
       pos = r.end;
     }
     result += original.substring(pos);
@@ -280,6 +287,7 @@ export class KeywordUtil {
     }
     return fenceCount % 2 !== 0;
   }
+
 }
 
 class KeywordEntry {
