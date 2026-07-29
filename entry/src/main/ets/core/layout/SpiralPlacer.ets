@@ -2,11 +2,11 @@ import { Rect, SpatialHash } from './SpatialHash';
 import { CollisionMask } from './CollisionMask';
 import { PlacedWord } from '../../model/WordItem';
 
-export interface PlaceInput {
-  text: string;
-  size: number;
-  weight: number;
-  font: string;
+export class PlaceInput {
+  text: string = '';
+  size: number = 0;
+  weight: number = 0;
+  font: string = '';
 }
 
 export class SpiralPlacer {

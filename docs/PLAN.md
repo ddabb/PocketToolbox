@@ -1,4 +1,4 @@
-# ArkTS 图云（词云）组件 — 开发计划（产品视角 v3 · 基于 PocketToolbox2 复用）
+v# ArkTS 图云（词云）组件 — 开发计划（产品视角 v3 · 基于 PocketToolbox2 复用）
 
 > 技术栈：HarmonyOS NEXT · ArkTS + ArkUI（声明式 Canvas）
 > 定位：**面向内容创作者的「粘贴文字 → 30 秒出一张能发公众号/朋友圈的词云图」工具**

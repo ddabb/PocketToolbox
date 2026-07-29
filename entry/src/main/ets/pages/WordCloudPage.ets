@@ -7,6 +7,7 @@ import { SpiralPlacer, PlaceInput } from '../core/layout/SpiralPlacer';
 import { ImageExporter } from '../core/export/ImageExporter';
 import { PlacedWord } from '../model/WordItem';
 import { TemplateInfo, Md2PngTemplates } from '../model/Md2PngModels';
+import { WordCloudView } from '../components/WordCloudView';
 import { display } from '@kit.ArkUI';
 
 @Builder
@@ -79,7 +80,7 @@ struct WordCloudContent {
         .width('100%')
         .padding({ left: 16, right: 16, top: 12 })
 
-        Row() {
+        Row({ space: 8 }) {
           Button('粘贴')
             .fontSize(14)
             .fontColor(Color.White)
@@ -105,7 +106,6 @@ struct WordCloudContent {
         .width('100%')
         .padding({ left: 16, right: 16, top: 8 })
         .justifyContent(FlexAlign.Start)
-        .space(8)
 
         this.StyleSelector()
 
@@ -149,7 +149,7 @@ struct WordCloudContent {
         .alignItems(HorizontalAlign.Center)
 
         if (this.placedWords.length > 0) {
-          Row() {
+          Row({ space: 12 }) {
             Button('保存到相册')
               .fontSize(14)
               .fontWeight(FontWeight.Bold)
@@ -177,7 +177,6 @@ struct WordCloudContent {
           }
           .width('100%')
           .padding({ left: 16, right: 16, top: 12 })
-          .space(12)
         }
 
         Text(this.isGenerating ? '正在生成词云...' : '')
