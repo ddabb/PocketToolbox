@@ -79,6 +79,11 @@
       "name": "AchievementPage",
       "pageSourceFile": "src/main/ets/pages/AchievementPage.ets",
       "buildFunction": "AchievementPageBuilder"
+    },
+    {
+      "name": "WordCloudPage",
+      "pageSourceFile": "src/main/ets/pages/WordCloudPage.ets",
+      "buildFunction": "WordCloudPageBuilder"
     }
   ]
 }

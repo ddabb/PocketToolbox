@@ -52,6 +52,42 @@ const MIN_KEYWORD_LENGTH: number = 2;
 export class KeywordUtil {
   private static extracting: boolean = false;
 
+  static async extractAllWords(text: string): Promise<Array<WordCountEntry>> {
+    if (!text || text.trim().length === 0) {
+      return [];
+    }
+    if (KeywordUtil.extracting) {
+      return [];
+    }
+    KeywordUtil.extracting = true;
+    try {
+      let segments: textProcessing.WordSegment[] = await KeywordUtil.segmentText(text);
+      let filtered: KeywordEntry[] = KeywordUtil.filterContentWords(segments);
+      if (filtered.length === 0) {
+        return [];
+      }
+      let scored: KeywordEntry[] = KeywordUtil.computeTfIdf(filtered);
+      let results: Array<WordCountEntry> = [];
+      for (let i = 0; i < scored.length; i++) {
+        if (scored[i].word.length >= MIN_KEYWORD_LENGTH) {
+          let entry: WordCountEntry = new WordCountEntry();
+          entry.word = scored[i].word;
+          entry.count = scored[i].count;
+          entry.tag = scored[i].tag;
+          entry.score = scored[i].score;
+          results.push(entry);
+        }
+      }
+      return results;
+    } catch (e) {
+      let err: BusinessError = e as BusinessError;
+      console.warn('[KeywordUtil] extractAllWords failed: ' + err.code + ' ' + err.message);
+      return [];
+    } finally {
+      KeywordUtil.extracting = false;
+    }
+  }
+
   static async extractKeywords(text: string, topN: number = TOP_N): Promise<string[]> {
     if (!text || text.trim().length === 0) {
       return [];
@@ -291,6 +327,13 @@ export class KeywordUtil {
 }
 
 class KeywordEntry {
+  word: string = '';
+  count: number = 0;
+  tag: string = '';
+  score: number = 0;
+}
+
+export class WordCountEntry {
   word: string = '';
   count: number = 0;
   tag: string = '';

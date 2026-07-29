@@ -1,0 +1,421 @@
+import { KeywordUtil, WordCountEntry } from '../common/utils/KeywordUtil';
+import { FontUtil } from '../common/utils/FontUtil';
+import { ClipboardUtil } from '../common/utils/ClipboardUtil';
+import { FontScaler, WeightedItem } from '../core/style/FontScaler';
+import { Palette, PaletteColor } from '../core/style/Palette';
+import { SpiralPlacer, PlaceInput } from '../core/layout/SpiralPlacer';
+import { ImageExporter } from '../core/export/ImageExporter';
+import { PlacedWord } from '../model/WordItem';
+import { TemplateInfo, Md2PngTemplates } from '../model/Md2PngModels';
+import { display } from '@kit.ArkUI';
+
+@Builder
+export function WordCloudPageBuilder() {
+  NavDestination() {
+    WordCloudContent()
+  }
+  .title('词云生成')
+  .backButtonIcon($r('sys.symbol.chevron_left'))
+  .menus([])
+}
+
+@Component
+struct WordCloudContent {
+  @State inputText: string = '';
+  @State placedWords: PlacedWord[] = [];
+  @State currentPaletteIndex: number = 0;
+  @State currentFontIndex: number = 0;
+  @State isGenerating: boolean = false;
+  @State canvasSize: number = 360;
+  @State generatedCachePath: string = '';
+  private uiContext: UIContext = this.getUIContext();
+  private palettes: PaletteColor[] = Palette.getAll();
+  private templates: TemplateInfo[] = Md2PngTemplates.getAll();
+  private fontNames: string[] = [
+    Md2PngTemplates.FONT_SMILEY, Md2PngTemplates.FONT_WENKAI,
+    Md2PngTemplates.FONT_MASHAN, Md2PngTemplates.FONT_KUAILE,
+    Md2PngTemplates.FONT_HUANGYOU, Md2PngTemplates.FONT_LONGCANG,
+    Md2PngTemplates.FONT_MAOMAO, Md2PngTemplates.FONT_XIAOWEI,
+    Md2PngTemplates.FONT_ZHIMANG
+  ];
+  private fontLabels: string[] = [
+    '得意黑', '霞鹜文楷', '马善政', '站酷快乐',
+    '站酷庆科黄油', '龙藏体', '刘建毛草', '站酷小薇', '志芒行'
+  ];
+  private readonly COMPONENT_ID: string = 'wordcloud_canvas';
+
+  aboutToAppear(): void {
+    FontUtil.registerAll(this.uiContext);
+    this.calcCanvasSize();
+  }
+
+  private calcCanvasSize(): void {
+    try {
+      let disp: display.Display = display.getDefaultDisplaySync();
+      let density: number = disp.densityPixels;
+      let screenWidth: number = Math.floor(disp.width / density);
+      this.canvasSize = Math.min(screenWidth - 32, 400);
+    } catch (e) {
+      this.canvasSize = 360;
+    }
+  }
+
+  build() {
+    Scroll() {
+      Column() {
+        Column() {
+          TextArea({ placeholder: '粘贴文本内容，自动分词生成词云...', text: this.inputText })
+            .width('100%')
+            .height(120)
+            .fontSize(14)
+            .fontColor($r('app.color.primary_text'))
+            .backgroundColor($r('app.color.card_background'))
+            .borderRadius(12)
+            .padding(12)
+            .onChange((value: string) => {
+              this.inputText = value;
+            })
+        }
+        .width('100%')
+        .padding({ left: 16, right: 16, top: 12 })
+
+        Row() {
+          Button('粘贴')
+            .fontSize(14)
+            .fontColor(Color.White)
+            .backgroundColor('#07c160')
+            .borderRadius(20)
+            .height(36)
+            .onClick(() => {
+              this.doPaste();
+            })
+
+          Button('生成词云')
+            .fontSize(14)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(Color.White)
+            .backgroundColor('#2563eb')
+            .borderRadius(20)
+            .height(36)
+            .enabled(!this.isGenerating)
+            .onClick(() => {
+              this.generateWordCloud();
+            })
+        }
+        .width('100%')
+        .padding({ left: 16, right: 16, top: 8 })
+        .justifyContent(FlexAlign.Start)
+        .space(8)
+
+        this.StyleSelector()
+
+        Column() {
+          Column() {
+            if (this.placedWords.length > 0) {
+              WordCloudView({
+                placedWords: this.placedWords,
+                bgColor: this.palettes[this.currentPaletteIndex].bgColor,
+                paletteColors: this.palettes[this.currentPaletteIndex].colors
+              })
+                .width(this.canvasSize)
+                .height(this.canvasSize)
+            } else {
+              Column() {
+                Text('云')
+                  .fontSize(48)
+                  .fontColor($r('app.color.hint_text'))
+                Text('粘贴文本后点击生成')
+                  .fontSize(13)
+                  .fontColor($r('app.color.tertiary_text'))
+                  .margin({ top: 8 })
+              }
+              .width('100%')
+              .height(this.canvasSize)
+              .justifyContent(FlexAlign.Center)
+              .alignItems(HorizontalAlign.Center)
+            }
+          }
+          .width(this.canvasSize)
+          .height(this.canvasSize)
+          .id(this.COMPONENT_ID)
+          .backgroundColor(this.palettes[this.currentPaletteIndex].bgColor)
+          .borderRadius(12)
+          .clip(true)
+          .alignItems(HorizontalAlign.Center)
+          .justifyContent(FlexAlign.Center)
+        }
+        .width('100%')
+        .padding({ left: 16, right: 16, top: 12 })
+        .alignItems(HorizontalAlign.Center)
+
+        if (this.placedWords.length > 0) {
+          Row() {
+            Button('保存到相册')
+              .fontSize(14)
+              .fontWeight(FontWeight.Bold)
+              .fontColor(this.getAccentColor())
+              .backgroundColor(Color.Transparent)
+              .border({ width: 1, color: this.getAccentColor(), style: BorderStyle.Solid })
+              .borderRadius(22)
+              .height(44)
+              .layoutWeight(1)
+              .onClick(() => {
+                this.saveToAlbum();
+              })
+
+            Button('分享')
+              .fontSize(14)
+              .fontWeight(FontWeight.Bold)
+              .fontColor(Color.White)
+              .backgroundColor(this.getAccentColor())
+              .borderRadius(22)
+              .height(44)
+              .layoutWeight(1)
+              .onClick(() => {
+                this.shareImage();
+              })
+          }
+          .width('100%')
+          .padding({ left: 16, right: 16, top: 12 })
+          .space(12)
+        }
+
+        Text(this.isGenerating ? '正在生成词云...' : '')
+          .fontSize(12)
+          .fontColor($r('app.color.tertiary_text'))
+          .margin({ top: 8, bottom: 16 })
+      }
+      .width('100%')
+    }
+    .width('100%')
+    .height('100%')
+    .scrollable(ScrollDirection.Vertical)
+    .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
+    .backgroundColor($r('app.color.page_background'))
+  }
+
+  @Builder
+  StyleSelector() {
+    Column() {
+      Text('配色方案')
+        .fontSize(13)
+        .fontWeight(FontWeight.Bold)
+        .fontColor($r('app.color.primary_text'))
+        .width('100%')
+        .padding({ left: 16, bottom: 6 })
+
+      Scroll() {
+        Row() {
+          ForEach(this.templates, (tpl: TemplateInfo, index: number) => {
+            Column() {
+              Column()
+                .width(28)
+                .height(28)
+                .borderRadius(14)
+                .backgroundColor(tpl.accentColor)
+                .border({
+                  width: this.currentPaletteIndex === index ? 2 : 0,
+                  color: tpl.accentColor,
+                  style: BorderStyle.Solid
+                })
+              Text(tpl.name)
+                .fontSize(10)
+                .fontColor(this.currentPaletteIndex === index ? tpl.accentColor : $r('app.color.tertiary_text'))
+                .margin({ top: 3 })
+            }
+            .padding({ left: 6, right: 6 })
+            .alignItems(HorizontalAlign.Center)
+            .onClick(() => {
+              this.currentPaletteIndex = index;
+              this.refreshColors();
+            })
+          }, (tpl: TemplateInfo) => tpl.id)
+        }
+      }
+      .scrollable(ScrollDirection.Horizontal)
+      .width('100%')
+      .padding({ left: 10, right: 10 })
+
+      Text('字体')
+        .fontSize(13)
+        .fontWeight(FontWeight.Bold)
+        .fontColor($r('app.color.primary_text'))
+        .width('100%')
+        .padding({ left: 16, top: 8, bottom: 6 })
+
+      Scroll() {
+        Row() {
+          ForEach(this.fontLabels, (label: string, index: number) => {
+            Column() {
+              Text('云')
+                .fontSize(20)
+                .fontFamily(this.fontNames[index])
+                .fontColor(this.currentFontIndex === index ? this.getAccentColor() : $r('app.color.primary_text'))
+              Text(label)
+                .fontSize(10)
+                .fontColor(this.currentFontIndex === index ? this.getAccentColor() : $r('app.color.tertiary_text'))
+                .margin({ top: 2 })
+            }
+            .padding({ left: 8, right: 8, top: 6, bottom: 6 })
+            .borderRadius(8)
+            .backgroundColor(this.currentFontIndex === index ? this.getAccentColor() + '18' : Color.Transparent)
+            .alignItems(HorizontalAlign.Center)
+            .onClick(() => {
+              this.currentFontIndex = index;
+              this.refreshFont();
+            })
+          }, (label: string) => label)
+        }
+      }
+      .scrollable(ScrollDirection.Horizontal)
+      .width('100%')
+      .padding({ left: 10, right: 10 })
+    }
+    .width('100%')
+    .padding({ top: 8 })
+  }
+
+  private async doPaste(): Promise<void> {
+    let text: string = await ClipboardUtil.paste();
+    if (text && text.length > 0) {
+      this.inputText = text;
+    }
+  }
+
+  private async generateWordCloud(): Promise<void> {
+    if (!this.inputText || this.inputText.trim().length === 0) {
+      this.uiContext.getPromptAction().showToast({ message: '请先输入或粘贴文本', duration: 1500 });
+      return;
+    }
+    this.isGenerating = true;
+    this.generatedCachePath = '';
+
+    try {
+      let wordEntries: Array<WordCountEntry> = await KeywordUtil.extractAllWords(this.inputText);
+      if (wordEntries.length === 0) {
+        this.uiContext.getPromptAction().showToast({ message: '未提取到有效词语，请输入更多文本', duration: 2000 });
+        this.isGenerating = false;
+        return;
+      }
+
+      let maxWords: number = 200;
+      let entries: Array<WordCountEntry> = wordEntries.length > maxWords ? wordEntries.slice(0, maxWords) : wordEntries;
+
+      let weightedItems: WeightedItem[] = [];
+      for (let i = 0; i < entries.length; i++) {
+        let item: WeightedItem = new WeightedItem();
+        item.text = entries[i].word;
+        item.weight = entries[i].count;
+        item.tag = entries[i].tag;
+        weightedItems.push(item);
+      }
+
+      FontScaler.scaleAll(weightedItems);
+
+      let fontName: string = this.fontNames[this.currentFontIndex];
+      let inputs: PlaceInput[] = [];
+      for (let i = 0; i < weightedItems.length; i++) {
+        let pi: PlaceInput = new PlaceInput();
+        pi.text = weightedItems[i].text;
+        pi.size = weightedItems[i].fontSize;
+        pi.weight = weightedItems[i].weight;
+        pi.font = fontName;
+        inputs.push(pi);
+      }
+
+      let placer: SpiralPlacer = new SpiralPlacer(this.canvasSize, this.canvasSize);
+      let results: PlacedWord[] = placer.place(inputs);
+
+      let palette: PaletteColor = this.palettes[this.currentPaletteIndex];
+      for (let i = 0; i < results.length; i++) {
+        if (!results[i].color || results[i].color.length === 0) {
+          results[i].color = palette.colors[i % palette.colors.length];
+        }
+        results[i].font = fontName;
+      }
+
+      this.placedWords = results;
+    } catch (e) {
+      let err: BusinessError = e as BusinessError;
+      console.error('[WordCloud] generate failed: ' + err.code + ' ' + err.message);
+      this.uiContext.getPromptAction().showToast({ message: '生成失败', duration: 2000 });
+    }
+
+    this.isGenerating = false;
+  }
+
+  private refreshColors(): void {
+    if (this.placedWords.length === 0) {
+      return;
+    }
+    let palette: PaletteColor = this.palettes[this.currentPaletteIndex];
+    let newWords: PlacedWord[] = [];
+    for (let i = 0; i < this.placedWords.length; i++) {
+      let pw: PlacedWord = new PlacedWord();
+      pw.text = this.placedWords[i].text;
+      pw.x = this.placedWords[i].x;
+      pw.y = this.placedWords[i].y;
+      pw.size = this.placedWords[i].size;
+      pw.color = palette.colors[i % palette.colors.length];
+      pw.angle = this.placedWords[i].angle;
+      pw.font = this.placedWords[i].font;
+      pw.width = this.placedWords[i].width;
+      pw.height = this.placedWords[i].height;
+      newWords.push(pw);
+    }
+    this.placedWords = newWords;
+  }
+
+  private refreshFont(): void {
+    if (this.placedWords.length === 0) {
+      return;
+    }
+    let fontName: string = this.fontNames[this.currentFontIndex];
+    let newWords: PlacedWord[] = [];
+    for (let i = 0; i < this.placedWords.length; i++) {
+      let pw: PlacedWord = new PlacedWord();
+      pw.text = this.placedWords[i].text;
+      pw.x = this.placedWords[i].x;
+      pw.y = this.placedWords[i].y;
+      pw.size = this.placedWords[i].size;
+      pw.color = this.placedWords[i].color;
+      pw.angle = this.placedWords[i].angle;
+      pw.font = fontName;
+      pw.width = this.placedWords[i].width;
+      pw.height = this.placedWords[i].height;
+      newWords.push(pw);
+    }
+    this.placedWords = newWords;
+  }
+
+  private getAccentColor(): string {
+    return this.templates[this.currentPaletteIndex].accentColor;
+  }
+
+  private async saveToAlbum(): Promise<void> {
+    try {
+      let cachePath: string = await ImageExporter.exportToCache(this.uiContext, this.COMPONENT_ID, 'wordcloud');
+      this.generatedCachePath = cachePath;
+      await ImageExporter.saveToAlbum(this.uiContext, cachePath, 'wordcloud');
+    } catch (e) {
+      let err: BusinessError = e as BusinessError;
+      console.error('[WordCloud] save failed: ' + err.code + ' ' + err.message);
+      this.uiContext.getPromptAction().showToast({ message: '保存失败', duration: 2000 });
+    }
+  }
+
+  private async shareImage(): Promise<void> {
+    try {
+      let cachePath: string = this.generatedCachePath;
+      if (!cachePath || cachePath.length === 0) {
+        cachePath = await ImageExporter.exportToCache(this.uiContext, this.COMPONENT_ID, 'wordcloud');
+        this.generatedCachePath = cachePath;
+      }
+      ImageExporter.share(this.uiContext, cachePath);
+    } catch (e) {
+      let err: BusinessError = e as BusinessError;
+      console.error('[WordCloud] share failed: ' + err.code + ' ' + err.message);
+      this.uiContext.getPromptAction().showToast({ message: '分享失败', duration: 2000 });
+    }
+  }
+}

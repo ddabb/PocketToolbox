@@ -15,6 +15,7 @@ import { ReadingListPageBuilder } from './ReadingListPage';
 import { ReadingPlayerPageBuilder } from './ReadingPlayerPage';
 import { DailyChallengePageBuilder } from './DailyChallengePage';
 import { AchievementPageBuilder } from './AchievementPage';
+import { WordCloudPageBuilder } from './WordCloudPage';
 import { PoetryViewModel } from '../viewmodel/PoetryViewModel';
 import { IdiomViewModel } from '../viewmodel/IdiomViewModel';
 import { XiehouyuViewModel } from '../viewmodel/XiehouyuViewModel';
@@ -314,6 +315,8 @@ struct Index {
       DailyChallengePageBuilder()
     } else if (name === 'AchievementPage') {
       AchievementPageBuilder()
+    } else if (name === 'WordCloudPage') {
+      WordCloudPageBuilder()
     }
   }
 
@@ -492,6 +495,37 @@ struct Index {
             .margin({ right: 4 })
             .onClick(() => {
               this.homeStack.pushPathByName('XiehouyuQueryPage', null);
+            })
+
+            Column() {
+              Column() {
+                Text('\u2601')
+                  .fontSize(28)
+              }
+              .width(44)
+              .height(44)
+              .borderRadius(12)
+              .backgroundColor('#8b5cf618')
+              .justifyContent(FlexAlign.Center)
+              .alignItems(HorizontalAlign.Center)
+              .margin({ bottom: 6 })
+              Text('词云生成')
+                .fontSize(14)
+                .fontWeight(FontWeight.Bold)
+                .fontColor($r('app.color.primary_text'))
+              Text('粘贴文本，30秒出图')
+                .fontSize(10)
+                .fontColor($r('app.color.tertiary_text'))
+                .margin({ top: 2 })
+            }
+            .layoutWeight(1)
+            .padding(12)
+            .backgroundColor($r('app.color.card_background'))
+            .borderRadius(12)
+            .alignItems(HorizontalAlign.Center)
+            .margin({ right: 4 })
+            .onClick(() => {
+              this.homeStack.pushPathByName('WordCloudPage', null);
             })
 
             Column() {
