@@ -1,5 +1,4 @@
 import { Rect, SpatialHash } from './SpatialHash';
-import { CollisionMask } from './CollisionMask';
 import { PlacedWord } from '../../model/WordItem';
 
 export class PlaceInput {
@@ -13,25 +12,20 @@ export class SpiralPlacer {
   private canvasWidth: number = 0;
   private canvasHeight: number = 0;
   private spatialHash: SpatialHash = new SpatialHash(100);
-  private collisionMask: CollisionMask | null = null;
-  private placedRects: Rect[] = [];
   private readonly SPIRAL_A: number = 1;
   private readonly SPIRAL_B: number = 1;
   private readonly DELTA_THETA: number = 0.1;
   private readonly MAX_THETA: number = 360;
   private readonly MAX_SPIRAL_FAIL: number = 200;
-  private readonly WORD_PADDING: number = 6;
+  private readonly WORD_PADDING: number = 4;
 
   constructor(width: number, height: number) {
     this.canvasWidth = width;
     this.canvasHeight = height;
-    this.collisionMask = new CollisionMask(width, height);
   }
 
   place(inputWords: PlaceInput[]): PlacedWord[] {
     this.spatialHash = new SpatialHash(100);
-    this.collisionMask = new CollisionMask(this.canvasWidth, this.canvasHeight);
-    this.placedRects = [];
 
     let sorted: PlaceInput[] = inputWords.slice();
     sorted.sort((a: PlaceInput, b: PlaceInput) => b.weight - a.weight);
@@ -63,15 +57,17 @@ export class SpiralPlacer {
     let startTheta: number = Math.random() * Math.PI * 2;
     let theta: number = startTheta;
     let failCount: number = 0;
+    let paddedW: number = w + this.WORD_PADDING * 2;
+    let paddedH: number = h + this.WORD_PADDING * 2;
 
     while (theta < startTheta + this.MAX_THETA * Math.PI) {
       let r: number = this.SPIRAL_A + this.SPIRAL_B * (theta - startTheta);
       let px: number = cx + r * Math.cos(theta);
       let py: number = cy + r * Math.sin(theta);
 
-      let rect: Rect = Rect.fromCenter(px, py, w + this.WORD_PADDING * 2, h + this.WORD_PADDING * 2);
+      let rect: Rect = Rect.fromCenter(px, py, paddedW, paddedH);
 
-      if (this.collisionMask !== null && !this.collisionMask.isInsideCanvas(rect)) {
+      if (!this.isInsideCanvas(rect)) {
         theta += this.DELTA_THETA;
         continue;
       }
@@ -86,10 +82,6 @@ export class SpiralPlacer {
       }
 
       this.spatialHash.insert(rect);
-      if (this.collisionMask !== null) {
-        this.collisionMask.markOccupied(rect, this.WORD_PADDING);
-      }
-      this.placedRects.push(rect);
 
       let pw: PlacedWord = new PlacedWord();
       pw.text = word.text;
@@ -108,12 +100,14 @@ export class SpiralPlacer {
 
   private tryMonteCarlo(word: PlaceInput, w: number, h: number): PlacedWord | null {
     let attempts: number = 500;
+    let paddedW: number = w + this.WORD_PADDING * 2;
+    let paddedH: number = h + this.WORD_PADDING * 2;
     for (let i = 0; i < attempts; i++) {
-      let px: number = w / 2 + Math.random() * (this.canvasWidth - w);
-      let py: number = h / 2 + Math.random() * (this.canvasHeight - h);
-      let rect: Rect = Rect.fromCenter(px, py, w + this.WORD_PADDING * 2, h + this.WORD_PADDING * 2);
+      let px: number = paddedW / 2 + Math.random() * (this.canvasWidth - paddedW);
+      let py: number = paddedH / 2 + Math.random() * (this.canvasHeight - paddedH);
+      let rect: Rect = Rect.fromCenter(px, py, paddedW, paddedH);
 
-      if (this.collisionMask !== null && !this.collisionMask.isInsideCanvas(rect)) {
+      if (!this.isInsideCanvas(rect)) {
         continue;
       }
       if (this.spatialHash.hasCollision(rect)) {
@@ -121,10 +115,6 @@ export class SpiralPlacer {
       }
 
       this.spatialHash.insert(rect);
-      if (this.collisionMask !== null) {
-        this.collisionMask.markOccupied(rect, this.WORD_PADDING);
-      }
-      this.placedRects.push(rect);
 
       let pw: PlacedWord = new PlacedWord();
       pw.text = word.text;
@@ -139,6 +129,11 @@ export class SpiralPlacer {
       return pw;
     }
     return null;
+  }
+
+  private isInsideCanvas(rect: Rect): boolean {
+    return rect.left >= 0 && rect.top >= 0 &&
+      rect.right <= this.canvasWidth && rect.bottom <= this.canvasHeight;
   }
 
   private estimateTextWidth(text: string, fontSize: number): number {

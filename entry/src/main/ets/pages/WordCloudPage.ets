@@ -28,10 +28,13 @@ struct WordCloudContent {
   @State currentFontIndex: number = 0;
   @State isGenerating: boolean = false;
   @State canvasSize: number = 360;
+  @State canvasPixelSize: number = 720;
   @State generatedCachePath: string = '';
+  @State progressText: string = '';
   private uiContext: UIContext = this.getUIContext();
   private palettes: PaletteColor[] = Palette.getAll();
   private templates: TemplateInfo[] = Md2PngTemplates.getAll();
+  private lastWeightedItems: WeightedItem[] = [];
   private fontNames: string[] = [
     Md2PngTemplates.FONT_SMILEY, Md2PngTemplates.FONT_WENKAI,
     Md2PngTemplates.FONT_MASHAN, Md2PngTemplates.FONT_KUAILE,
@@ -56,8 +59,10 @@ struct WordCloudContent {
       let density: number = disp.densityPixels;
       let screenWidth: number = Math.floor(disp.width / density);
       this.canvasSize = Math.min(screenWidth - 32, 400);
+      this.canvasPixelSize = this.canvasSize * Math.ceil(density);
     } catch (e) {
       this.canvasSize = 360;
+      this.canvasPixelSize = 720;
     }
   }
 
@@ -91,7 +96,7 @@ struct WordCloudContent {
               this.doPaste();
             })
 
-          Button('生成词云')
+          Button(this.isGenerating ? this.progressText : '生成词云')
             .fontSize(14)
             .fontWeight(FontWeight.Bold)
             .fontColor(Color.White)
@@ -115,24 +120,13 @@ struct WordCloudContent {
               WordCloudView({
                 placedWords: this.placedWords,
                 bgColor: this.palettes[this.currentPaletteIndex].bgColor,
-                paletteColors: this.palettes[this.currentPaletteIndex].colors
+                paletteColors: this.palettes[this.currentPaletteIndex].colors,
+                canvasPixelSize: this.canvasPixelSize
               })
                 .width(this.canvasSize)
                 .height(this.canvasSize)
             } else {
-              Column() {
-                Text('云')
-                  .fontSize(48)
-                  .fontColor($r('app.color.hint_text'))
-                Text('粘贴文本后点击生成')
-                  .fontSize(13)
-                  .fontColor($r('app.color.tertiary_text'))
-                  .margin({ top: 8 })
-              }
-              .width('100%')
-              .height(this.canvasSize)
-              .justifyContent(FlexAlign.Center)
-              .alignItems(HorizontalAlign.Center)
+              this.EmptyPlaceholder()
             }
           }
           .width(this.canvasSize)
@@ -179,7 +173,7 @@ struct WordCloudContent {
           .padding({ left: 16, right: 16, top: 12 })
         }
 
-        Text(this.isGenerating ? '正在生成词云...' : '')
+        Text(this.isGenerating ? this.progressText : '')
           .fontSize(12)
           .fontColor($r('app.color.tertiary_text'))
           .margin({ top: 8, bottom: 16 })
@@ -191,6 +185,49 @@ struct WordCloudContent {
     .scrollable(ScrollDirection.Vertical)
     .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
     .backgroundColor($r('app.color.page_background'))
+  }
+
+  @Builder
+  EmptyPlaceholder() {
+    Column() {
+      Row() {
+        Text('词')
+          .fontSize(22)
+          .fontColor($r('app.color.hint_text'))
+          .opacity(0.3)
+          .margin({ right: 6 })
+        Text('云')
+          .fontSize(28)
+          .fontColor($r('app.color.hint_text'))
+          .opacity(0.2)
+          .margin({ right: 6 })
+        Text('生')
+          .fontSize(18)
+          .fontColor($r('app.color.hint_text'))
+          .opacity(0.25)
+          .margin({ right: 6 })
+        Text('成')
+          .fontSize(24)
+          .fontColor($r('app.color.hint_text'))
+          .opacity(0.15)
+      }
+      .margin({ bottom: 12 })
+
+      Text('粘贴文本后点击生成')
+        .fontSize(13)
+        .fontColor($r('app.color.tertiary_text'))
+    }
+    .width('100%')
+    .height(this.canvasSize)
+    .justifyContent(FlexAlign.Center)
+    .alignItems(HorizontalAlign.Center)
+    .border({
+      width: 1,
+      color: $r('app.color.hint_text'),
+      style: BorderStyle.Dashed
+    })
+    .borderRadius(12)
+    .opacity(0.5)
   }
 
   @Builder
@@ -288,17 +325,21 @@ struct WordCloudContent {
     }
     this.isGenerating = true;
     this.generatedCachePath = '';
+    this.progressText = '正在分词...';
 
     try {
       let wordEntries: Array<WordCountEntry> = await KeywordUtil.extractAllWords(this.inputText);
       if (wordEntries.length === 0) {
         this.uiContext.getPromptAction().showToast({ message: '未提取到有效词语，请输入更多文本', duration: 2000 });
         this.isGenerating = false;
+        this.progressText = '';
         return;
       }
 
       let maxWords: number = 200;
       let entries: Array<WordCountEntry> = wordEntries.length > maxWords ? wordEntries.slice(0, maxWords) : wordEntries;
+
+      this.progressText = '正在布局...';
 
       let weightedItems: WeightedItem[] = [];
       for (let i = 0; i < entries.length; i++) {
@@ -310,6 +351,7 @@ struct WordCloudContent {
       }
 
       FontScaler.scaleAll(weightedItems);
+      this.lastWeightedItems = weightedItems;
 
       let fontName: string = this.fontNames[this.currentFontIndex];
       let inputs: PlaceInput[] = [];
@@ -334,6 +376,7 @@ struct WordCloudContent {
       }
 
       this.placedWords = results;
+      this.progressText = '已生成 ' + results.length + ' 个词';
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[WordCloud] generate failed: ' + err.code + ' ' + err.message);
@@ -366,25 +409,32 @@ struct WordCloudContent {
   }
 
   private refreshFont(): void {
-    if (this.placedWords.length === 0) {
+    if (this.lastWeightedItems.length === 0) {
       return;
     }
     let fontName: string = this.fontNames[this.currentFontIndex];
-    let newWords: PlacedWord[] = [];
-    for (let i = 0; i < this.placedWords.length; i++) {
-      let pw: PlacedWord = new PlacedWord();
-      pw.text = this.placedWords[i].text;
-      pw.x = this.placedWords[i].x;
-      pw.y = this.placedWords[i].y;
-      pw.size = this.placedWords[i].size;
-      pw.color = this.placedWords[i].color;
-      pw.angle = this.placedWords[i].angle;
-      pw.font = fontName;
-      pw.width = this.placedWords[i].width;
-      pw.height = this.placedWords[i].height;
-      newWords.push(pw);
+    let inputs: PlaceInput[] = [];
+    for (let i = 0; i < this.lastWeightedItems.length; i++) {
+      let pi: PlaceInput = new PlaceInput();
+      pi.text = this.lastWeightedItems[i].text;
+      pi.size = this.lastWeightedItems[i].fontSize;
+      pi.weight = this.lastWeightedItems[i].weight;
+      pi.font = fontName;
+      inputs.push(pi);
     }
-    this.placedWords = newWords;
+
+    let placer: SpiralPlacer = new SpiralPlacer(this.canvasSize, this.canvasSize);
+    let results: PlacedWord[] = placer.place(inputs);
+
+    let palette: PaletteColor = this.palettes[this.currentPaletteIndex];
+    for (let i = 0; i < results.length; i++) {
+      if (!results[i].color || results[i].color.length === 0) {
+        results[i].color = palette.colors[i % palette.colors.length];
+      }
+      results[i].font = fontName;
+    }
+
+    this.placedWords = results;
   }
 
   private getAccentColor(): string {

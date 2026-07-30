@@ -11,12 +11,25 @@ export class PaletteColor {
 }
 
 export class Palette {
+  private static readonly WORD_CLOUD_PALETTES: Record<string, string[]> = {
+    'default': ['#2563eb', '#1e40af', '#3b82f6', '#60a5fa', '#1d4ed8', '#93c5fd', '#1e3a5f', '#7dd3fc'],
+    'wechat': ['#059669', '#047857', '#10b981', '#34d399', '#065f46', '#6ee7b7', '#0d9488', '#a7f3d0'],
+    'xiaohongshu': ['#dc2626', '#ef4444', '#f87171', '#b91c1c', '#fb923c', '#f97316', '#fca5a5', '#ea580c'],
+    'douyin': ['#fe2c55', '#00f2ea', '#ff0050', '#25f4ee', '#ff6b9d', '#00c4b4', '#e6003a', '#008f87'],
+    'ink': ['#1f2937', '#4b5563', '#6b7280', '#374151', '#9ca3af', '#111827', '#78716c', '#57534e'],
+    'cyberpunk': ['#ff00ff', '#00ffff', '#ff0080', '#8000ff', '#00ff80', '#ffff00', '#ff4081', '#40c4ff'],
+    'minimalist': ['#0070f3', '#333333', '#666666', '#1a1a1a', '#171717', '#525252', '#0a0a0a', '#a3a3a3'],
+    'neon': ['#ff00ff', '#00ffff', '#39ff14', '#ff6ec7', '#ffff00', '#7b68ee', '#ff4500', '#00ff7f'],
+    'nature': ['#16a34a', '#15803d', '#22c55e', '#4ade80', '#166534', '#86efac', '#a3e635', '#65a30d'],
+    'nordic': ['#5B8FA8', '#475569', '#0ea5e9', '#64748b', '#0284c7', '#94a3b8', '#334155', '#7dd3fc'],
+  };
+
   static getAll(): PaletteColor[] {
     let templates: TemplateInfo[] = Md2PngTemplates.getAll();
     let palettes: PaletteColor[] = [];
     for (let i = 0; i < templates.length; i++) {
       let tpl: TemplateInfo = templates[i];
-      let colors: string[] = Palette.derivePalette(tpl);
+      let colors: string[] = Palette.getWordCloudColors(tpl.id);
       palettes.push(new PaletteColor(tpl.bgColor, colors));
     }
     return palettes;
@@ -24,7 +37,7 @@ export class Palette {
 
   static getById(id: string): PaletteColor {
     let tpl: TemplateInfo = Md2PngTemplates.getById(id);
-    let colors: string[] = Palette.derivePalette(tpl);
+    let colors: string[] = Palette.getWordCloudColors(tpl.id);
     return new PaletteColor(tpl.bgColor, colors);
   }
 
@@ -46,85 +59,11 @@ export class Palette {
     return ids;
   }
 
-  private static derivePalette(tpl: TemplateInfo): string[] {
-    let colors: string[] = [];
-    if (tpl.accentColor && tpl.accentColor.length > 0) {
-      colors.push(tpl.accentColor);
+  private static getWordCloudColors(templateId: string): string[] {
+    let palette: string[] | undefined = Palette.WORD_CLOUD_PALETTES[templateId];
+    if (palette !== undefined && palette.length > 0) {
+      return palette;
     }
-    if (tpl.textColor && tpl.textColor.length > 0) {
-      colors.push(tpl.textColor);
-    }
-    if (tpl.headerColor && tpl.headerColor.length > 0) {
-      colors.push(tpl.headerColor);
-    }
-    colors.push(Palette.lighten(tpl.accentColor, 40));
-    colors.push(Palette.darken(tpl.accentColor, 30));
-    let extras: string[] = Palette.generateVariants(tpl.accentColor);
-    for (let i = 0; i < extras.length; i++) {
-      colors.push(extras[i]);
-    }
-    return colors;
-  }
-
-  private static lighten(hex: string, percent: number): string {
-    let rgb: number[] = Palette.hexToRgb(hex);
-    if (rgb.length < 3) {
-      return '#888888';
-    }
-    let r: number = Math.min(255, rgb[0] + Math.floor((255 - rgb[0]) * percent / 100));
-    let g: number = Math.min(255, rgb[1] + Math.floor((255 - rgb[1]) * percent / 100));
-    let b: number = Math.min(255, rgb[2] + Math.floor((255 - rgb[2]) * percent / 100));
-    return Palette.rgbToHex(r, g, b);
-  }
-
-  private static darken(hex: string, percent: number): string {
-    let rgb: number[] = Palette.hexToRgb(hex);
-    if (rgb.length < 3) {
-      return '#222222';
-    }
-    let r: number = Math.max(0, Math.floor(rgb[0] * (100 - percent) / 100));
-    let g: number = Math.max(0, Math.floor(rgb[1] * (100 - percent) / 100));
-    let b: number = Math.max(0, Math.floor(rgb[2] * (100 - percent) / 100));
-    return Palette.rgbToHex(r, g, b);
-  }
-
-  private static generateVariants(baseHex: string): string[] {
-    let rgb: number[] = Palette.hexToRgb(baseHex);
-    if (rgb.length < 3) {
-      return [];
-    }
-    let results: string[] = [];
-    results.push(Palette.rgbToHex(Math.min(255, rgb[1]), Math.min(255, rgb[2]), rgb[0]));
-    results.push(Palette.rgbToHex(Math.min(255, rgb[2]), rgb[0], Math.min(255, rgb[1])));
-    results.push(Palette.rgbToHex(
-      Math.min(255, Math.floor((rgb[0] + rgb[1]) / 2)),
-      Math.min(255, Math.floor((rgb[1] + rgb[2]) / 2)),
-      Math.min(255, Math.floor((rgb[2] + rgb[0]) / 2))
-    ));
-    return results;
-  }
-
-  private static hexToRgb(hex: string): number[] {
-    if (!hex || hex.length < 7) {
-      return [];
-    }
-    let h: string = hex.startsWith('#') ? hex.substring(1) : hex;
-    if (h.length < 6) {
-      return [];
-    }
-    let r: number = parseInt(h.substring(0, 2), 16);
-    let g: number = parseInt(h.substring(2, 4), 16);
-    let b: number = parseInt(h.substring(4, 6), 16);
-    if (isNaN(r) || isNaN(g) || isNaN(b)) {
-      return [];
-    }
-    return [r, g, b];
-  }
-
-  private static rgbToHex(r: number, g: number, b: number): string {
-    let rs: string = r.toString(16).padStart(2, '0');
-    let gs: string = g.toString(16).padStart(2, '0');
-    let bs: string = b.toString(16).padStart(2, '0');
-    return '#' + rs + gs + bs;
+    return ['#333333', '#666666', '#999999', '#1a1a1a', '#4a4a4a', '#7a7a7a'];
   }
 }
