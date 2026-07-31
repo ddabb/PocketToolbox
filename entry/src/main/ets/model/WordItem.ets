@@ -16,3 +16,16 @@ export class PlacedWord {
   width: number = 0;
   height: number = 0;
 }
+
+export class CloudWord {
+  text: string = '';
+  weight: number = 1;
+  fontSize: number = 0;
+  custom: boolean = false;
+
+  constructor(text: string, weight: number, custom: boolean) {
+    this.text = text;
+    this.weight = weight;
+    this.custom = custom;
+  }
+}
