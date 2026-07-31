@@ -31,11 +31,6 @@
       "buildFunction": "FavoritesPageBuilder"
     },
     {
-      "name": "MinePage",
-      "pageSourceFile": "src/main/ets/pages/MinePage.ets",
-      "buildFunction": "MinePageBuilder"
-    },
-    {
       "name": "AboutPage",
       "pageSourceFile": "src/main/ets/pages/AboutPage.ets",
       "buildFunction": "AboutPageBuilder"
@@ -79,6 +74,16 @@
       "name": "AchievementPage",
       "pageSourceFile": "src/main/ets/pages/AchievementPage.ets",
       "buildFunction": "AchievementPageBuilder"
+    },
+    {
+      "name": "GcdLcmPage",
+      "pageSourceFile": "src/main/ets/pages/GcdLcmPage.ets",
+      "buildFunction": "GcdLcmPageBuilder"
+    },
+    {
+      "name": "PrimeFactorPage",
+      "pageSourceFile": "src/main/ets/pages/PrimeFactorPage.ets",
+      "buildFunction": "PrimeFactorPageBuilder"
     }
   ]
 }

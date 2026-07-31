@@ -13,11 +13,36 @@
           "profile": "D:/keystore/Release .p7b",
           "certpath": "D:/keystore/发布证书.cer"
         }
+      },
+      {
+        "name": "debug",
+        "type": "HarmonyOS",
+        "material": {
+          "storeFile": "D:/keystore/debug.p12",
+          "storePassword": "00000018007A20EFD49DDEC56936DE8AABA286A8D8486707873CF73D51606707B791B8FA60A21B11",
+          "keyAlias": "debug",
+          "keyPassword": "0000001813D20CB87A92A23A5B8A96CB4F5576C3F72835F3B0330C41EB69B99577D53A4044B5FE74",
+          "signAlg": "SHA256withECDSA",
+          "profile": "D:/keystore/调试证书Debug.p7b",
+          "certpath": "D:/keystore/调试证书.cer"
+        }
       }
     ],
     "products": [
       {
         "name": "default",
+        "signingConfig": "debug",
+        "targetSdkVersion": "5.1.0(18)",
+        "compatibleSdkVersion": "5.1.0(18)",
+        "runtimeOS": "HarmonyOS",
+        "buildOption": {
+          "strictMode": {
+            "caseSensitiveCheck": true,
+            "useNormalizedOHMUrl": true
+          }
+        }
+      },      {
+        "name": "release",
         "signingConfig": "release",
         "targetSdkVersion": "5.1.0(18)",
         "compatibleSdkVersion": "5.1.0(18)",
@@ -47,7 +72,7 @@
         {
           "name": "default",
           "applyToProducts": [
-            "default"
+            "default", "release"
           ]
         }
       ]

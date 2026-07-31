@@ -23,15 +23,11 @@ struct UnitCategoryContent {
         ForEach(this.categories, (cat: ConverterCategory) => {
           Row() {
             Column() {
-              Text(cat.icon)
-                .fontSize(28)
+              Image($r('app.media.' + cat.icon))
+                .width(48)
+                .height(48)
+                .borderRadius(14)
             }
-            .width(48)
-            .height(48)
-            .borderRadius(14)
-            .backgroundColor(cat.color + '18')
-            .justifyContent(FlexAlign.Center)
-            .alignItems(HorizontalAlign.Center)
             .margin({ right: 12 })
 
             Column() {

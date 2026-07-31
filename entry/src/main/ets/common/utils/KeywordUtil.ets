@@ -146,13 +146,11 @@ export class KeywordUtil {
     ranges.sort((a: HighlightRange, b: HighlightRange) => a.start - b.start);
     let result: string = '';
     let pos: number = 0;
-    for (let i = 0; i < ranges.length; i++) {
+    for (let i: number = 0; i < ranges.length; i++) {
       let r: HighlightRange = ranges[i];
       result += original.substring(pos, r.start);
       let word: string = original.substring(r.start, r.end);
-      let fontTag: string = highlightFont && highlightFont.length > 0 ? ' face=\"' + highlightFont + '\"' : '';
-      let bgTag: string = highlightBgColor && highlightBgColor.length > 0 ? ' style=\"background-color:' + highlightBgColor + ';padding:1px 4px;border-radius:3px\"' : '';
-      result += '<span' + bgTag + '><font color=\"' + accentColor + '\"' + fontTag + '><b>' + word + '</b></font></span>';
+      result += '`' + word + '`';
       pos = r.end;
     }
     result += original.substring(pos);

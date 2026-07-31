@@ -1,3 +1,5 @@
+import { pasteboard } from '@kit.BasicServicesKit';
+
 @Observed
 class BaseValueItem {
   name: string = '';
@@ -87,6 +89,33 @@ struct BaseConverterContent {
     ['777', '\u516B\u8FDB\u5236'],
     ['FF', '\u5341\u516D\u8FDB\u5236']
   ];
+
+  private copyAllResults(): void {
+    let hasValue: boolean = false;
+    for (let i = 0; i < this.baseValues.length; i++) {
+      if (this.baseValues[i].value.length > 0) {
+        hasValue = true;
+        break;
+      }
+    }
+    if (!hasValue) {
+      return;
+    }
+    let lines: string[] = [];
+    for (let i = 0; i < this.baseValues.length; i++) {
+      if (this.baseValues[i].value.length > 0) {
+        lines.push(this.baseValues[i].name + '：' + this.baseValues[i].value);
+      }
+    }
+    try {
+      let systemPasteboard: pasteboard.SystemPasteboard = pasteboard.getSystemPasteboard();
+      let pasteData: pasteboard.PasteData = pasteboard.createData(pasteboard.MIMETYPE_TEXT_PLAIN, lines.join('\n'));
+      systemPasteboard.setData(pasteData);
+      this.getUIContext().getPromptAction().showToast({ message: '已复制转换结果', duration: 1000 });
+    } catch (e) {
+      this.getUIContext().getPromptAction().showToast({ message: '复制失败', duration: 1000 });
+    }
+  }
 
   aboutToAppear(): void {
     this.baseValues = [
@@ -311,6 +340,18 @@ struct BaseConverterContent {
         .clip(true)
         .margin({ left: 16, right: 16, top: 8 })
         .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
+
+        Row() {
+          Text('复制转换结果')
+            .fontSize(13)
+            .fontColor($r('app.color.idiom_blue'))
+        }
+        .width('100%')
+        .justifyContent(FlexAlign.End)
+        .padding({ left: 16, right: 16, top: 4, bottom: 4 })
+        .onClick(() => {
+          this.copyAllResults();
+        })
 
         if (this.errorMsg.length > 0) {
           Text(this.errorMsg)

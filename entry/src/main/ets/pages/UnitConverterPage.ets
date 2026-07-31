@@ -1,4 +1,5 @@
 import { UnitItem, UnitConverterData, ConverterCategory } from '../model/UnitModels';
+import { pasteboard } from '@kit.BasicServicesKit';
 
 @Observed
 class UnitValueItem {
@@ -185,6 +186,36 @@ struct UnitConverterContent {
     this.suppressOnChange = false;
   }
 
+  private copyAllResults(): void {
+    if (this.category === null) {
+      return;
+    }
+    let hasValue: boolean = false;
+    for (let i = 0; i < this.unitValues.length; i++) {
+      if (this.unitValues[i].value.length > 0) {
+        hasValue = true;
+        break;
+      }
+    }
+    if (!hasValue) {
+      return;
+    }
+    let lines: string[] = [];
+    for (let i = 0; i < this.unitValues.length; i++) {
+      if (this.unitValues[i].value.length > 0) {
+        lines.push(this.unitValues[i].name + '：' + this.unitValues[i].value);
+      }
+    }
+    try {
+      let systemPasteboard: pasteboard.SystemPasteboard = pasteboard.getSystemPasteboard();
+      let pasteData: pasteboard.PasteData = pasteboard.createData(pasteboard.MIMETYPE_TEXT_PLAIN, lines.join('\n'));
+      systemPasteboard.setData(pasteData);
+      this.getUIContext().getPromptAction().showToast({ message: '已复制转换结果', duration: 1000 });
+    } catch (e) {
+      this.getUIContext().getPromptAction().showToast({ message: '复制失败', duration: 1000 });
+    }
+  }
+
   build() {
     Column() {
       List({ space: 0 }) {
@@ -210,6 +241,18 @@ struct UnitConverterContent {
       .clip(true)
       .margin({ left: 16, right: 16, top: 8 })
       .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
+
+      Row() {
+        Text('复制转换结果')
+          .fontSize(13)
+          .fontColor($r('app.color.idiom_blue'))
+      }
+      .width('100%')
+      .justifyContent(FlexAlign.End)
+      .padding({ left: 16, right: 16, top: 4, bottom: 4 })
+      .onClick(() => {
+        this.copyAllResults();
+      })
 
       Scroll() {
         Column() {
