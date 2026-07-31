@@ -46,6 +46,7 @@ class MdControllerStore {
   applyTemplate(index: number, tpl: TemplateInfo, textSize: number, titleSize: number[], lineHeight: number): void {
     let ctrl: MarkdownController = this.get(index);
     let isDark: boolean = this.isDarkColor(tpl.bgColor);
+    let inlineCodeColor: string = isDark ? tpl.accentColor : tpl.headerColor;
     let ts: [number, number, number, number, number, number] = [
       titleSize[0], titleSize[1], titleSize[2], titleSize[3], titleSize[4], titleSize[5]
     ];
@@ -61,7 +62,7 @@ class MdControllerStore {
       .setQuoteBackgroundColor(tpl.quoteBgColor)
       .setQuoteBorderRadius(6)
       .setQuoteBorderWidth(2)
-      .setInlineCodeColor(tpl.accentColor)
+      .setInlineCodeColor(inlineCodeColor)
       .setInlineCodeBackgroundColor(tpl.highlightBgColor || tpl.codeBgColor)
       .setInlineCodeBackgroundRadius(3)
       .setCodeBlockTheme(isDark ? 'dark' : 'light')
@@ -178,9 +179,9 @@ struct Md2PngContent {
   private calcDynamicStyle(): void {
     let len: number = this.inputText.length;
     if (len <= 30) {
-      this.dynamicTextSize = 20;
-      this.dynamicTitleSize = [32, 28, 24, 22, 20, 18];
-      this.dynamicLineHeight = 32;
+      this.dynamicTextSize = 22;
+      this.dynamicTitleSize = [34, 30, 26, 24, 22, 20];
+      this.dynamicLineHeight = 36;
       this.dynamicPaddingLeft = 32;
       this.dynamicPaddingRight = 32;
       this.dynamicPaddingTop = 28;
@@ -188,9 +189,9 @@ struct Md2PngContent {
       this.cardWidth = Math.min(this.baseCardWidth, 280);
       this.dynamicMinCardHeight = Math.max(this.cardWidth + 40, 320);
     } else if (len <= 80) {
-      this.dynamicTextSize = 19;
-      this.dynamicTitleSize = [30, 26, 22, 20, 18, 16];
-      this.dynamicLineHeight = 30;
+      this.dynamicTextSize = 21;
+      this.dynamicTitleSize = [32, 28, 24, 22, 20, 18];
+      this.dynamicLineHeight = 34;
       this.dynamicPaddingLeft = 30;
       this.dynamicPaddingRight = 30;
       this.dynamicPaddingTop = 26;
@@ -198,9 +199,9 @@ struct Md2PngContent {
       this.cardWidth = Math.min(this.baseCardWidth, 300);
       this.dynamicMinCardHeight = Math.max(Math.floor(this.cardWidth * 0.9), 280);
     } else if (len <= 200) {
-      this.dynamicTextSize = 18;
-      this.dynamicTitleSize = [28, 24, 20, 18, 16, 15];
-      this.dynamicLineHeight = 28;
+      this.dynamicTextSize = 20;
+      this.dynamicTitleSize = [30, 26, 22, 20, 18, 17];
+      this.dynamicLineHeight = 32;
       this.dynamicPaddingLeft = 28;
       this.dynamicPaddingRight = 28;
       this.dynamicPaddingTop = 24;
@@ -208,9 +209,9 @@ struct Md2PngContent {
       this.cardWidth = Math.min(this.baseCardWidth, 320);
       this.dynamicMinCardHeight = Math.max(Math.floor(this.cardWidth * 0.8), 260);
     } else if (len <= 500) {
-      this.dynamicTextSize = 16;
-      this.dynamicTitleSize = [24, 21, 18, 16, 14, 13];
-      this.dynamicLineHeight = 26;
+      this.dynamicTextSize = 18;
+      this.dynamicTitleSize = [26, 23, 20, 18, 16, 15];
+      this.dynamicLineHeight = 28;
       this.dynamicPaddingLeft = 24;
       this.dynamicPaddingRight = 24;
       this.dynamicPaddingTop = 20;
@@ -218,9 +219,9 @@ struct Md2PngContent {
       this.cardWidth = this.baseCardWidth;
       this.dynamicMinCardHeight = Math.max(Math.floor(this.cardWidth * 0.7), 240);
     } else {
-      this.dynamicTextSize = 15;
-      this.dynamicTitleSize = [22, 19, 17, 15, 13, 12];
-      this.dynamicLineHeight = 24;
+      this.dynamicTextSize = 17;
+      this.dynamicTitleSize = [24, 21, 19, 17, 15, 14];
+      this.dynamicLineHeight = 26;
       this.dynamicPaddingLeft = 22;
       this.dynamicPaddingRight = 22;
       this.dynamicPaddingTop = 18;
@@ -392,7 +393,41 @@ struct Md2PngContent {
 
   private getHighlightedText(index: number): string {
     let tpl: TemplateInfo = this.templates[index];
-    return KeywordUtil.highlightText(this.inputText, this.highlightWords, tpl.highlightFont, tpl.accentColor, tpl.highlightBgColor);
+    let isDark: boolean = this.isDarkBgColor(tpl.bgColor);
+    let highlightTextColor: string = isDark ? tpl.accentColor : tpl.headerColor;
+    return KeywordUtil.highlightText(this.inputText, this.highlightWords, tpl.highlightFont, highlightTextColor, tpl.highlightBgColor);
+  }
+
+  private isDarkBgColor(color: string): boolean {
+    let c: string = color.toLowerCase();
+    if (c.startsWith('#')) {
+      let hex: string = c.substring(1);
+      if (hex.length >= 6) {
+        let r: number = parseInt(hex.substring(0, 2), 16);
+        let g: number = parseInt(hex.substring(2, 4), 16);
+        let b: number = parseInt(hex.substring(4, 6), 16);
+        return (r * 299 + g * 587 + b * 114) / 1000 < 128;
+      }
+    }
+    return false;
+  }
+
+  private getHighlightTagBgColor(): string {
+    let tpl: TemplateInfo = this.templates[this.currentTemplateIndex];
+    let bg: string = tpl.highlightBgColor;
+    if (bg && bg.length > 0) {
+      return bg;
+    }
+    return this.currentAccentColor + '18';
+  }
+
+  private getHighlightTagTextColor(): string {
+    let tpl: TemplateInfo = this.templates[this.currentTemplateIndex];
+    let isDark: boolean = this.isDarkBgColor(tpl.bgColor);
+    if (isDark) {
+      return tpl.accentColor;
+    }
+    return tpl.headerColor;
   }
 
   private async saveToAlbum(): Promise<void> {
@@ -574,14 +609,14 @@ struct Md2PngContent {
           Row() {
             Text(word)
               .fontSize(13)
-              .fontColor(this.currentAccentColor)
+              .fontColor(this.getHighlightTagTextColor())
               .fontWeight(FontWeight.Medium)
             Text(' \u00D7')
               .fontSize(14)
               .fontColor($r('app.color.tertiary_text'))
               .margin({ left: 2 })
           }
-          .backgroundColor(this.currentAccentColor + '18')
+          .backgroundColor(this.getHighlightTagBgColor())
           .borderRadius(14)
           .padding({ left: 10, right: 10, top: 5, bottom: 5 })
           .margin({ right: 6, bottom: 6 })

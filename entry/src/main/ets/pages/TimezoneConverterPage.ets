@@ -63,10 +63,12 @@ struct TimezoneConverterContent {
   @State showCityPicker: boolean = false;
   @State pickerMode: string = 'add';
   @State searchKeyword: string = '';
+  @State pendingBaseCityName: string = '';
   @State meetingSuggestion: string = '';
   @State meetingSuggestionType: number = 0;
   @State cityTimeInfos: CityTimeInfo[] = [];
   @State meetingCityInfos: MeetingCityInfo[] = [];
+  @State calcVersion: number = 0;
   private allCities: TimezoneCity[] = [];
   private regionGroups: TimezoneRegion[] = [];
   private readonly PREF_NAME: string = 'timezone_prefs';
@@ -78,6 +80,7 @@ struct TimezoneConverterContent {
     this.regionGroups = TimezoneDataLoader.getRegions();
     this.initTime();
     this.loadPrefs();
+    this.recalcCityTimeInfos();
   }
 
   private initTime(): void {
@@ -148,9 +151,17 @@ struct TimezoneConverterContent {
     if (baseCity === null || targetCity === null) {
       return new Date();
     }
-    let baseDateTime: Date = new Date(this.baseDate + 'T' + this.baseTime + ':00Z');
-    let offsetDiff: number = targetCity.offset - baseCity.offset;
-    return new Date(baseDateTime.getTime() + offsetDiff * 60 * 60 * 1000);
+    let parts: string[] = this.baseDate.split('-');
+    let y: number = parseInt(parts[0]);
+    let m: number = parseInt(parts[1]) - 1;
+    let d: number = parseInt(parts[2]);
+    let timeParts: string[] = this.baseTime.split(':');
+    let h: number = parseInt(timeParts[0]);
+    let min: number = parseInt(timeParts[1]);
+    let baseLocalMs: number = Date.UTC(y, m, d, h, min, 0);
+    let utcMs: number = baseLocalMs - baseCity.offset * 60 * 60 * 1000;
+    let targetLocalMs: number = utcMs + targetCity.offset * 60 * 60 * 1000;
+    return new Date(targetLocalMs);
   }
 
   private isWorkTime(date: Date): boolean {
@@ -188,6 +199,7 @@ struct TimezoneConverterContent {
       infos.push(info);
     }
     this.cityTimeInfos = infos;
+    this.calcVersion++;
   }
 
   private recalcMeetingCityInfos(): void {
@@ -237,14 +249,25 @@ struct TimezoneConverterContent {
   private openCityPicker(mode: string): void {
     this.pickerMode = mode;
     this.searchKeyword = '';
+    if (mode === 'base') {
+      this.pendingBaseCityName = this.baseCityName;
+    }
     this.showCityPicker = true;
+  }
+
+  private confirmBaseCity(): void {
+    if (this.pendingBaseCityName.length === 0 || this.pendingBaseCityName === this.baseCityName) {
+      this.showCityPicker = false;
+      return;
+    }
+    this.baseCityName = this.pendingBaseCityName;
+    this.showCityPicker = false;
+    this.recalcCityTimeInfos();
   }
 
   private selectCity(cityName: string): void {
     if (this.pickerMode === 'base') {
-      this.baseCityName = cityName;
-      this.showCityPicker = false;
-      this.recalcCityTimeInfos();
+      this.pendingBaseCityName = cityName;
     } else if (this.pickerMode === 'add') {
       if (!this.selectedCities.includes(cityName)) {
         let newCities: string[] = [];
@@ -271,6 +294,18 @@ struct TimezoneConverterContent {
     }
   }
 
+  private removeSelectedCity(cityName: string): void {
+    let newCities: string[] = [];
+    for (let i = 0; i < this.selectedCities.length; i++) {
+      if (this.selectedCities[i] !== cityName) {
+        newCities.push(this.selectedCities[i]);
+      }
+    }
+    this.selectedCities = newCities;
+    this.savePrefs();
+    this.recalcCityTimeInfos();
+  }
+
   private getFilteredCitiesForRegion(region: TimezoneRegion): CitySelectItem[] {
     let result: CitySelectItem[] = [];
     let keyword: string = this.searchKeyword.toLowerCase();
@@ -288,10 +323,26 @@ struct TimezoneConverterContent {
           continue;
         }
       }
-      let isSelected: boolean = selectedList.includes(city.city);
+      let isSelected: boolean = this.pickerMode === 'base' ?
+        city.city === this.pendingBaseCityName : selectedList.includes(city.city);
       result.push(new CitySelectItem(city.city, city.country, city.offset, city.abbr, isSelected));
     }
     return result;
+  }
+
+  private onDateChange(value: DatePickerResult): void {
+    let y: string = (value.year ?? 2024).toString();
+    let m: string = ((value.month ?? 0) + 1).toString().padStart(2, '0');
+    let d: string = (value.day ?? 1).toString().padStart(2, '0');
+    this.baseDate = y + '-' + m + '-' + d;
+    this.recalcCityTimeInfos();
+  }
+
+  private onTimeChange(value: TimePickerResult): void {
+    let h: string = (value.hour ?? 0).toString().padStart(2, '0');
+    let m: string = (value.minute ?? 0).toString().padStart(2, '0');
+    this.baseTime = h + ':' + m;
+    this.recalcCityTimeInfos();
   }
 
   build() {
@@ -402,6 +453,14 @@ struct TimezoneConverterContent {
                 .padding({ left: 6, right: 6, top: 2, bottom: 2 })
             }
             .margin({ left: 8 })
+
+            Text('\u00D7')
+              .fontSize(18)
+              .fontColor($r('app.color.hint_text'))
+              .margin({ left: 8 })
+              .onClick(() => {
+                this.removeSelectedCity(info.cityName);
+              })
           }
           .width('100%')
           .padding({ left: 16, right: 16, top: 12, bottom: 12 })
@@ -409,7 +468,7 @@ struct TimezoneConverterContent {
           .borderRadius(10)
           .margin({ left: 16, right: 16, top: 6 })
           .alignItems(VerticalAlign.Center)
-        }, (info: CityTimeInfo) => info.cityName)
+        }, (info: CityTimeInfo) => info.cityName + '_' + this.calcVersion.toString())
 
         Row() {
           Button('添加城市')
@@ -463,11 +522,7 @@ struct TimezoneConverterContent {
             selected: new Date(this.baseDate + 'T00:00:00')
           })
             .onChange((value: DatePickerResult) => {
-              let y: string = (value.year ?? 2024).toString();
-              let m: string = ((value.month ?? 0) + 1).toString().padStart(2, '0');
-              let d: string = (value.day ?? 1).toString().padStart(2, '0');
-              this.baseDate = y + '-' + m + '-' + d;
-              this.recalcCityTimeInfos();
+              this.onDateChange(value);
             })
         }
         .layoutWeight(1)
@@ -477,10 +532,7 @@ struct TimezoneConverterContent {
             selected: new Date('2024-01-01T' + this.baseTime + ':00')
           })
             .onChange((value: TimePickerResult) => {
-              let h: string = (value.hour ?? 0).toString().padStart(2, '0');
-              let m: string = (value.minute ?? 0).toString().padStart(2, '0');
-              this.baseTime = h + ':' + m;
-              this.recalcCityTimeInfos();
+              this.onTimeChange(value);
             })
         }
         .layoutWeight(1)
@@ -735,15 +787,17 @@ struct TimezoneConverterContent {
                 ForEach(this.favoriteCities, (name: string) => {
                   Text(name)
                     .fontSize(13)
-                    .fontColor($r('app.color.idiom_blue'))
-                    .backgroundColor($r('app.color.idiom_blue') + '12')
+                    .fontColor(this.pickerMode === 'base' && this.pendingBaseCityName === name ?
+                      Color.White : $r('app.color.idiom_blue'))
+                    .backgroundColor(this.pickerMode === 'base' && this.pendingBaseCityName === name ?
+                      $r('app.color.idiom_blue') : $r('app.color.idiom_blue') + '12')
                     .borderRadius(8)
                     .padding({ left: 10, right: 10, top: 6, bottom: 6 })
                     .margin({ right: 6, bottom: 6 })
                     .onClick(() => {
                       this.selectCity(name);
                     })
-                }, (name: string) => name)
+                }, (name: string) => name + '_' + (this.pickerMode === 'base' && this.pendingBaseCityName === name ? '1' : '0'))
               }
             }
 
@@ -760,7 +814,7 @@ struct TimezoneConverterContent {
                   Row() {
                     Text(item.city)
                       .fontSize(14)
-                      .fontColor($r('app.color.primary_text'))
+                      .fontColor(item.isSelected ? $r('app.color.idiom_blue') : $r('app.color.primary_text'))
                       .layoutWeight(1)
                     Text(item.country + ' UTC' + this.getOffsetText(item.offset))
                       .fontSize(12)
@@ -774,16 +828,45 @@ struct TimezoneConverterContent {
                   }
                   .width('100%')
                   .padding({ top: 10, bottom: 10 })
+                  .backgroundColor(item.isSelected && this.pickerMode === 'base' ? $r('app.color.idiom_blue') + '12' : Color.Transparent)
+                  .borderRadius(8)
                   .onClick(() => {
                     this.selectCity(item.city);
                   })
-                }, (item: CitySelectItem) => item.city)
+                }, (item: CitySelectItem) => item.city + '_' + (item.isSelected ? '1' : '0'))
               }
             }, (region: TimezoneRegion) => region.name)
           }
         }
         .layoutWeight(1)
         .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
+
+        if (this.pickerMode === 'base') {
+          Row() {
+            Button('取消')
+              .fontSize(14)
+              .fontColor($r('app.color.tertiary_text'))
+              .backgroundColor($r('app.color.page_background'))
+              .borderRadius(20)
+              .height(40)
+              .layoutWeight(1)
+              .onClick(() => {
+                this.showCityPicker = false;
+              })
+            Button('确定')
+              .fontSize(14)
+              .fontColor(Color.White)
+              .backgroundColor($r('app.color.idiom_blue'))
+              .borderRadius(20)
+              .height(40)
+              .layoutWeight(1)
+              .onClick(() => {
+                this.confirmBaseCity();
+              })
+          }
+          .width('100%')
+          .margin({ top: 12 })
+        }
       }
       .width('100%')
       .height('70%')

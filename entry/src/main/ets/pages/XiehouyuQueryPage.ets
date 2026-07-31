@@ -9,6 +9,7 @@ import { buildXiehouyuMarkdown } from '../common/utils/ShareImageUtil';
 import { Md2PngTemplates } from '../model/Md2PngModels';
 import { AddToReadingListUtil, AddToListResult } from '../common/utils/AddToReadingListUtil';
 import { ReadingList } from '../model/ReadingListModels';
+import { StickinessUtil } from '../common/utils/StickinessUtil';
 
 class XiehouyuListDataSource implements IDataSource {
   private listeners: DataChangeListener[] = [];
@@ -288,6 +289,7 @@ struct XiehouyuQueryContent {
     let ctx: Context = this.uiContext.getHostContext() as Context;
     this.isFav = FavoritesUtil.isFavorite(ctx, 'xiehouyu', item.riddle);
     this.detailDialogController.open();
+    StickinessUtil.incrementBrowseCount(ctx);
   }
 
   private onCopyItem(item: XiehouyuItem): void {

@@ -7,6 +7,7 @@ import { buildPoemMarkdown } from '../common/utils/ShareImageUtil';
 import { Md2PngTemplates } from '../model/Md2PngModels';
 import { AddToReadingListUtil, AddToListResult } from '../common/utils/AddToReadingListUtil';
 import { ReadingList, ReadingItem } from '../model/ReadingListModels';
+import { StickinessUtil } from '../common/utils/StickinessUtil';
 
 class DynastyQueryParam {
   dynasty: string = '';
@@ -47,6 +48,7 @@ export struct PoemContentContent {
     this.poetName = this.poemParam.a || '';
     this.isFav = FavoritesUtil.isFavorite(this.uiContext.getHostContext() as Context, 'poem', this.poemParam.n);
     AppStorage.setOrCreate('PoemFavStatus', this.isFav);
+    StickinessUtil.incrementBrowseCount(this.uiContext.getHostContext() as Context);
     console.info('[PoemContent] poem=' + this.poemParam.n + ', poet=' + this.poetName);
   }
 

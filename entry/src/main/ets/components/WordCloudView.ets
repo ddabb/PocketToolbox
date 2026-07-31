@@ -54,8 +54,9 @@ export struct WordCloudView {
       let drawY: number = pw.y * scale;
       ctx.save();
       ctx.translate(drawX, drawY);
-      if (pw.angle === 90) {
-        ctx.rotate(Math.PI / 2);
+      // 支持任意角度（0 / ±45 / 90 等）的旋转绘制，单位为度
+      if (pw.angle !== 0) {
+        ctx.rotate(pw.angle * Math.PI / 180);
       }
       ctx.font = drawSize.toString() + 'px ' + (pw.font && pw.font.length > 0 ? pw.font : 'sans-serif');
       ctx.textAlign = 'center';

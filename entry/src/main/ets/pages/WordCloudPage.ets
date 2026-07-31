@@ -47,6 +47,8 @@ struct WordCloudContent {
     '站酷庆科黄油', '龙藏体', '刘建毛草', '站酷小薇', '志芒行'
   ];
   private readonly COMPONENT_ID: string = 'wordcloud_canvas';
+  /** 单页最多放置词数：过多会导致螺旋布局耗时与过度拥挤 */
+  private readonly MAX_WORDS: number = 180;
 
   aboutToAppear(): void {
     FontUtil.registerAll(this.uiContext);
@@ -58,7 +60,9 @@ struct WordCloudContent {
       let disp: display.Display = display.getDefaultDisplaySync();
       let density: number = disp.densityPixels;
       let screenWidth: number = Math.floor(disp.width / density);
+      // 留出两侧各 16dp 边距；将画布尺寸限制在 400dp 以内保证紧凑美观
       this.canvasSize = Math.min(screenWidth - 32, 400);
+      // 渲染像素 = 逻辑尺寸 × 密度，保证导出图清晰
       this.canvasPixelSize = this.canvasSize * Math.ceil(density);
     } catch (e) {
       this.canvasSize = 360;
@@ -336,11 +340,13 @@ struct WordCloudContent {
         return;
       }
 
-      let maxWords: number = 200;
+      let maxWords: number = this.MAX_WORDS;
+      // 截断多余词语：词过多会导致螺旋布局耗时严重且整体拥挤
       let entries: Array<WordCountEntry> = wordEntries.length > maxWords ? wordEntries.slice(0, maxWords) : wordEntries;
 
       this.progressText = '正在布局...';
 
+      // 步骤 1：根据词频生成 WeightedItem，并通过 FontScaler 完成字号映射
       let weightedItems: WeightedItem[] = [];
       for (let i = 0; i < entries.length; i++) {
         let item: WeightedItem = new WeightedItem();
@@ -354,6 +360,7 @@ struct WordCloudContent {
       this.lastWeightedItems = weightedItems;
 
       let fontName: string = this.fontNames[this.currentFontIndex];
+      // 步骤 2：构建布局输入（此时字号已被 FontScaler 映射到紧凑区间）
       let inputs: PlaceInput[] = [];
       for (let i = 0; i < weightedItems.length; i++) {
         let pi: PlaceInput = new PlaceInput();
@@ -364,9 +371,11 @@ struct WordCloudContent {
         inputs.push(pi);
       }
 
+      // 步骤 3：使用紧凑螺旋布局器完成排布
       let placer: SpiralPlacer = new SpiralPlacer(this.canvasSize, this.canvasSize);
       let results: PlacedWord[] = placer.place(inputs);
 
+      // 步骤 4：为每个词语分色（按调色板顺序循环）
       let palette: PaletteColor = this.palettes[this.currentPaletteIndex];
       for (let i = 0; i < results.length; i++) {
         if (!results[i].color || results[i].color.length === 0) {

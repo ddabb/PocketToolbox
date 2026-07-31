@@ -4,6 +4,7 @@ import { ClipboardUtil } from '../common/utils/ClipboardUtil';
 import { ErrorState } from '../components/ErrorState';
 import { DetailModal } from '../components/DetailModal';
 import { FavoritesUtil } from '../common/utils/FavoritesUtil';
+import { StickinessUtil } from '../common/utils/StickinessUtil';
 import { preferences } from '@kit.ArkData';
 
 class IdiomListDataSource implements IDataSource {
@@ -98,6 +99,7 @@ struct IdiomQueryContent {
         if (detail) {
           this.detailItem = detail;
           this.detailDialogController.open();
+          StickinessUtil.incrementBrowseCount(ctx);
         }
       }
     }, 0);
@@ -214,10 +216,12 @@ struct IdiomQueryContent {
   }
 
   private onWordTap(word: string): void {
-    let detail: IdiomDetailItem | null = this.viewModel.findIdiomDetail(this.uiContext.getHostContext() as Context, word);
+    let ctx: Context = this.uiContext.getHostContext() as Context;
+    let detail: IdiomDetailItem | null = this.viewModel.findIdiomDetail(ctx, word);
     if (detail) {
       this.detailItem = detail;
       this.detailDialogController.open();
+      StickinessUtil.incrementBrowseCount(ctx);
     } else {
       this.uiContext.getPromptAction().showToast({ message: '暂无详情', duration: 1000 });
     }

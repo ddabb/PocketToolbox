@@ -4,7 +4,6 @@ import { XiehouyuQueryPageBuilder } from './XiehouyuQueryPage';
 import { PoetryDetailPageBuilder } from './PoetryDetailPage';
 import { PoemContentPageBuilder } from './PoemContentPage';
 import { FavoritesPageBuilder } from './FavoritesPage';
-import { MinePageBuilder } from './MinePage';
 import { AboutPageBuilder } from './AboutPage';
 import { Md2PngPageBuilder } from './Md2PngPage';
 import { UnitCategoryPageBuilder } from './UnitCategoryPage';
@@ -16,6 +15,8 @@ import { ReadingPlayerPageBuilder } from './ReadingPlayerPage';
 import { DailyChallengePageBuilder } from './DailyChallengePage';
 import { AchievementPageBuilder } from './AchievementPage';
 import { WordCloudPageBuilder } from './WordCloudPage';
+import { GcdLcmPageBuilder } from './GcdLcmPage';
+import { PrimeFactorPageBuilder } from './PrimeFactorPage';
 import { PoetryViewModel } from '../viewmodel/PoetryViewModel';
 import { IdiomViewModel } from '../viewmodel/IdiomViewModel';
 import { XiehouyuViewModel } from '../viewmodel/XiehouyuViewModel';
@@ -24,6 +25,7 @@ import { IdiomDetailItem } from '../model/IdiomModels';
 import { XiehouyuItem } from '../model/XiehouyuModels';
 import { FavoritesUtil, FavoriteItem } from '../common/utils/FavoritesUtil';
 import { StickinessUtil, CheckInData, ChallengeProgress, UserStats } from '../common/utils/StickinessUtil';
+import { ReadingListStore, ReadingList } from '../model/ReadingListModels';
 import { bundleManager } from '@kit.AbilityKit';
 import { ConverterCategory, UnitConverterData } from '../model/UnitModels';
 
@@ -80,6 +82,21 @@ struct Index {
   private poetryVm: PoetryViewModel = PoetryViewModel.getInstance();
   private idiomVm: IdiomViewModel = IdiomViewModel.getInstance();
   private xiehouyuVm: XiehouyuViewModel = XiehouyuViewModel.getInstance();
+  private readonly DAILY_PADDING: number = 12;
+  private readonly DAILY_RADIUS: number = 12;
+  private readonly DAILY_HEADER_ICON_SIZE: number = 13;
+  private readonly DAILY_HEADER_TITLE_SIZE: number = 12;
+  private readonly DAILY_HEADER_MARGIN_BOTTOM: number = 5;
+  private readonly DAILY_LOADING_SIZE: number = 15;
+  private readonly DAILY_SKELETON_RADIUS: number = 4;
+  private readonly POEM_HEADER_ICON_SIZE: number = 14;
+  private readonly POEM_HEADER_MARGIN_BOTTOM: number = 6;
+  private readonly POEM_TITLE_SIZE: number = 15;
+  private readonly POEM_CONTENT_SIZE: number = 12;
+  private readonly IDIOM_WORD_SIZE: number = 18;
+  private readonly IDIOM_MEANING_SIZE: number = 11;
+  private readonly XIEHOUYU_QUESTION_SIZE: number = 13;
+  private readonly XIEHOUYU_ANSWER_SIZE: number = 12;
 
   aboutToAppear(): void {
     AppStorage.setOrCreate('AppNavPathStack', this.homeStack);
@@ -101,6 +118,8 @@ struct Index {
 
   private buildToolItems(): void {
     let tools: ToolItem[] = [];
+    tools.push(new ToolItem('gcd_lcm', '公约/倍数', '最大公约数、最小公倍数', 'unit_gcd_lcm', '#e74c3c', 'GcdLcmPage'));
+    tools.push(new ToolItem('prime_factor', '质因数分解', '分解合数为质数乘积', 'unit_prime_factor', '#9b59b6', 'PrimeFactorPage'));
     let cats: ConverterCategory[] = UnitConverterData.getCategories();
     for (let i = 0; i < cats.length; i++) {
       let cat: ConverterCategory = cats[i];
@@ -144,8 +163,29 @@ struct Index {
     this.checkedInToday = StickinessUtil.isCheckedInToday(ctx);
     this.challengeProgress = StickinessUtil.loadChallengeProgress(ctx);
     this.loadReviewItem(ctx);
-    this.mineCheckInData = this.checkInData;
-    this.mineChallengeProgress = this.challengeProgress;
+    this.mineCheckInData = StickinessUtil.loadCheckIn(ctx);
+    this.mineChallengeProgress = StickinessUtil.loadChallengeProgress(ctx);
+    FavoritesUtil.invalidateCache();
+    let favs: FavoriteItem[] = FavoritesUtil.load(ctx);
+    let poemCount: number = 0;
+    let idiomCount: number = 0;
+    let xiehouyuCount: number = 0;
+    for (let i = 0; i < favs.length; i++) {
+      if (favs[i].type === 'poem') {
+        poemCount++;
+      } else if (favs[i].type === 'idiom') {
+        idiomCount++;
+      } else if (favs[i].type === 'xiehouyu') {
+        xiehouyuCount++;
+      }
+    }
+    StickinessUtil.syncFavStats(ctx, poemCount, idiomCount, xiehouyuCount);
+    let readingItemCount: number = 0;
+    let readingLists: ReadingList[] = ReadingListStore.load(ctx);
+    for (let i = 0; i < readingLists.length; i++) {
+      readingItemCount += readingLists[i].items.length;
+    }
+    StickinessUtil.syncReadingStats(ctx, readingItemCount);
     this.mineUserStats = StickinessUtil.loadStats(ctx);
   }
 
@@ -293,8 +333,6 @@ struct Index {
       PoemContentPageBuilder(param)
     } else if (name === 'FavoritesPage') {
       FavoritesPageBuilder()
-    } else if (name === 'MinePage') {
-      MinePageBuilder()
     } else if (name === 'AboutPage') {
       AboutPageBuilder()
     } else if (name === 'Md2PngPage') {
@@ -317,6 +355,10 @@ struct Index {
       AchievementPageBuilder()
     } else if (name === 'WordCloudPage') {
       WordCloudPageBuilder()
+    } else if (name === 'GcdLcmPage') {
+      GcdLcmPageBuilder()
+    } else if (name === 'PrimeFactorPage') {
+      PrimeFactorPageBuilder()
     }
   }
 
@@ -352,6 +394,7 @@ struct Index {
           this.mineStack.clear();
           AppStorage.setOrCreate('AppNavPathStack', this.mineStack);
           this.loadFavCount();
+          this.loadStickinessData();
         }
       })
     }
@@ -468,15 +511,11 @@ struct Index {
           Row() {
             Column() {
               Column() {
-                Text('\uD83E\uDD14')
-                  .fontSize(28)
+                Image($r('app.media.mine_xiehouyu'))
+                  .width(44)
+                  .height(44)
+                  .borderRadius(12)
               }
-              .width(44)
-              .height(44)
-              .borderRadius(12)
-              .backgroundColor('#bf5b0418')
-              .justifyContent(FlexAlign.Center)
-              .alignItems(HorizontalAlign.Center)
               .margin({ bottom: 6 })
               Text('歇后语')
                 .fontSize(14)
@@ -567,26 +606,33 @@ struct Index {
           }
 
           Row() {
-            if (this.dailyIdiom) {
-              Column() {
+            Column() {
+              if (this.dailyIdiom) {
                 this.DailyIdiomCardInner()
+              } else {
+                this.DailyIdiomSkeleton()
               }
-              .layoutWeight(1)
-              .padding({ right: 5 })
             }
-            if (this.dailyXiehouyu) {
-              Column() {
+            .layoutWeight(1)
+            .padding({ right: 5 })
+
+            Column() {
+              if (this.dailyXiehouyu) {
                 this.DailyXiehouyuCardInner()
+              } else {
+                this.DailyXiehouyuSkeleton()
               }
-              .layoutWeight(1)
-              .padding({ left: 5 })
             }
+            .layoutWeight(1)
+            .padding({ left: 5 })
           }
           .width('100%')
           .padding({ left: 16, right: 16, top: 8 })
 
           if (this.dailyPoemTitle) {
             this.DailyPoemCard()
+          } else {
+            this.DailyPoemSkeleton()
           }
         }
         .width('100%')
@@ -617,7 +663,7 @@ struct Index {
               .fontSize(22)
               .fontWeight(FontWeight.Bold)
               .fontColor($r('app.color.primary_text'))
-            Text('实用单位换算工具集')
+            Text('实用计算与换算工具集')
               .fontSize(13)
               .fontColor($r('app.color.tertiary_text'))
               .margin({ top: 3 })
@@ -633,47 +679,32 @@ struct Index {
             .width('100%')
             .padding({ left: 16, bottom: 8 })
 
-          ForEach(this.unitTools, (tool: ToolItem) => {
-            Row() {
+          Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
+            ForEach(this.unitTools, (tool: ToolItem) => {
               Column() {
-                Text(tool.icon)
-                  .fontSize(24)
-              }
-              .width(40)
-              .height(40)
-              .borderRadius(10)
-              .backgroundColor(tool.color + '18')
-              .justifyContent(FlexAlign.Center)
-              .alignItems(HorizontalAlign.Center)
-              .margin({ right: 10 })
+                Image($r('app.media.' + tool.icon))
+                  .width(56)
+                  .height(56)
+                  .borderRadius(14)
 
-              Column() {
                 Text(tool.title)
-                  .fontSize(15)
-                  .fontWeight(FontWeight.Bold)
-                  .fontColor($r('app.color.primary_text'))
-                Text(tool.subtitle)
                   .fontSize(12)
-                  .fontColor($r('app.color.tertiary_text'))
-                  .margin({ top: 2 })
+                  .fontColor($r('app.color.primary_text'))
+                  .margin({ top: 6 })
                   .maxLines(1)
                   .textOverflow({ overflow: TextOverflow.Ellipsis })
+                  .constraintSize({ maxWidth: 72 })
               }
-              .layoutWeight(1)
-
-              Text('\u203A')
-                .fontSize(18)
-                .fontColor($r('app.color.hint_text'))
-            }
-            .width('100%')
-            .padding({ left: 16, right: 16, top: 12, bottom: 12 })
-            .backgroundColor($r('app.color.card_background'))
-            .borderRadius(12)
-            .margin({ left: 16, right: 16, bottom: 8 })
-            .onClick(() => {
-              this.toolStack.pushPathByName(tool.page, tool.param);
-            })
-          }, (tool: ToolItem) => tool.id)
+              .width('25%')
+              .padding({ top: 8, bottom: 12 })
+              .alignItems(HorizontalAlign.Center)
+              .onClick(() => {
+                this.toolStack.pushPathByName(tool.page, tool.param);
+              })
+            }, (tool: ToolItem) => tool.id)
+          }
+          .width('100%')
+          .padding({ left: 8, right: 8 })
         }
         .width('100%')
         .padding({ bottom: 16 })
@@ -713,20 +744,17 @@ struct Index {
 
           Row() {
             Column() {
-              Text(this.favCount.toString())
+              Text(this.mineCheckInData.totalDays.toString())
                 .fontSize(22)
                 .fontWeight(FontWeight.Bold)
-                .fontColor($r('app.color.danger_red'))
-              Text('收藏总数')
+                .fontColor('#27ae60')
+              Text('累计签到')
                 .fontSize(11)
                 .fontColor($r('app.color.tertiary_text'))
                 .margin({ top: 2 })
             }
             .layoutWeight(1)
             .alignItems(HorizontalAlign.Center)
-            .onClick(() => {
-              this.mineStack.pushPathByName('FavoritesPage', null);
-            })
 
             Divider()
               .vertical(true)
@@ -840,8 +868,10 @@ struct Index {
               .margin({ left: 46 })
 
             Row() {
-              Text('\uD83E\uDD14')
-                .fontSize(20)
+              Image($r('app.media.mine_xiehouyu'))
+                .width(20)
+                .height(20)
+                .borderRadius(5)
                 .margin({ right: 10 })
               Text('歇后语')
                 .fontSize(15)
@@ -960,25 +990,6 @@ struct Index {
               .margin({ left: 46 })
 
             Row() {
-              Text('\uD83C\uDF3C')
-                .fontSize(20)
-                .margin({ right: 10 })
-              Text('收藏内容')
-                .fontSize(15)
-                .fontColor($r('app.color.primary_text'))
-                .layoutWeight(1)
-              Text(this.mineUserStats.favTotal.toString() + '项')
-                .fontSize(14)
-                .fontColor($r('app.color.tertiary_text'))
-            }
-            .width('100%')
-            .padding({ left: 16, right: 16, top: 14, bottom: 14 })
-
-            Divider()
-              .color($r('app.color.border_color'))
-              .margin({ left: 46 })
-
-            Row() {
               Text('\uD83D\uDDE3')
                 .fontSize(20)
                 .margin({ right: 10 })
@@ -1022,38 +1033,38 @@ struct Index {
     Column() {
       Row() {
         Text('\uD83C\uDF3C')
-          .fontSize(14)
+          .fontSize(this.POEM_HEADER_ICON_SIZE)
           .margin({ right: 4 })
         Text('每日一诗')
-          .fontSize(13)
+          .fontSize(this.DAILY_HEADER_TITLE_SIZE + 1)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.poetry_green'))
         Blank()
         Text('\uD83D\uDD04')
-          .fontSize(16)
+          .fontSize(this.DAILY_LOADING_SIZE + 1)
           .fontColor($r('app.color.poetry_green'))
           .onClick(() => {
             this.refreshPoem();
           })
       }
       .width('100%')
-      .margin({ bottom: 6 })
+      .margin({ bottom: this.POEM_HEADER_MARGIN_BOTTOM })
       Text(this.dailyPoemTitle)
-        .fontSize(15)
+        .fontSize(this.POEM_TITLE_SIZE)
         .fontColor($r('app.color.primary_text'))
         .fontWeight(FontWeight.Medium)
         .width('100%')
         .margin({ bottom: 3 })
       Text(this.dailyPoemContent)
-        .fontSize(12)
+        .fontSize(this.POEM_CONTENT_SIZE)
         .fontColor($r('app.color.secondary_text'))
         .lineHeight(20)
         .width('100%')
     }
     .width('100%')
-    .padding(12)
+    .padding(this.DAILY_PADDING)
     .backgroundColor($r('app.color.poetry_card_bg'))
-    .borderRadius(12)
+    .borderRadius(this.DAILY_RADIUS)
     .margin({ left: 16, right: 16, bottom: 8 })
     .onClick(() => {
       if (this.dailyPoemItem) {
@@ -1069,38 +1080,38 @@ struct Index {
     Column() {
       Row() {
         Text('\uD83D\uDCD6')
-          .fontSize(13)
+          .fontSize(this.DAILY_HEADER_ICON_SIZE)
           .margin({ right: 3 })
         Text('每日成语')
-          .fontSize(12)
+          .fontSize(this.DAILY_HEADER_TITLE_SIZE)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.idiom_blue'))
         Blank()
         Text('\uD83D\uDD04')
-          .fontSize(15)
+          .fontSize(this.DAILY_LOADING_SIZE)
           .fontColor($r('app.color.idiom_blue'))
           .onClick(() => {
             this.refreshIdiom();
           })
       }
-      .margin({ bottom: 5 })
+      .margin({ bottom: this.DAILY_HEADER_MARGIN_BOTTOM })
       Text(this.dailyIdiom)
-        .fontSize(18)
+        .fontSize(this.IDIOM_WORD_SIZE)
         .fontColor($r('app.color.primary_text'))
         .fontWeight(FontWeight.Bold)
         .letterSpacing(2)
         .margin({ bottom: 3 })
       Text(this.dailyIdiomMeaning)
-        .fontSize(11)
+        .fontSize(this.IDIOM_MEANING_SIZE)
         .fontColor($r('app.color.secondary_text'))
         .lineHeight(16)
         .maxLines(2)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
     }
     .width('100%')
-    .padding(12)
+    .padding(this.DAILY_PADDING)
     .backgroundColor($r('app.color.idiom_card_bg'))
-    .borderRadius(12)
+    .borderRadius(this.DAILY_RADIUS)
     .onClick(() => {
       this.homeStack.pushPathByName('IdiomQueryPage', this.dailyIdiom);
     })
@@ -1111,42 +1122,170 @@ struct Index {
     Column() {
       Row() {
         Text('\uD83E\uDD14')
-          .fontSize(13)
+          .fontSize(this.DAILY_HEADER_ICON_SIZE)
           .margin({ right: 3 })
         Text('每日歇后语')
-          .fontSize(12)
+          .fontSize(this.DAILY_HEADER_TITLE_SIZE)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.idiom_orange'))
         Blank()
         Text('\uD83D\uDD04')
-          .fontSize(15)
+          .fontSize(this.DAILY_LOADING_SIZE)
           .fontColor($r('app.color.idiom_orange'))
           .onClick(() => {
             this.refreshXiehouyu();
           })
       }
-      .margin({ bottom: 5 })
+      .margin({ bottom: this.DAILY_HEADER_MARGIN_BOTTOM })
       Text(this.dailyXiehouyu)
-        .fontSize(13)
+        .fontSize(this.XIEHOUYU_QUESTION_SIZE)
         .fontColor($r('app.color.primary_text'))
         .fontWeight(FontWeight.Medium)
         .maxLines(1)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
         .margin({ bottom: 2 })
       Text('—— ' + this.dailyXiehouyuAnswer)
-        .fontSize(12)
+        .fontSize(this.XIEHOUYU_ANSWER_SIZE)
         .fontColor($r('app.color.idiom_orange'))
         .fontWeight(FontWeight.Bold)
         .maxLines(1)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
     }
     .width('100%')
-    .padding(12)
+    .padding(this.DAILY_PADDING)
     .backgroundColor($r('app.color.xiehouyu_card_bg'))
-    .borderRadius(12)
+    .borderRadius(this.DAILY_RADIUS)
     .onClick(() => {
       this.homeStack.pushPathByName('XiehouyuQueryPage', null);
     })
+  }
+
+  @Builder
+  DailyIdiomSkeleton() {
+    Column() {
+      Row() {
+        Text('\uD83D\uDCD6')
+          .fontSize(this.DAILY_HEADER_ICON_SIZE)
+          .margin({ right: 3 })
+        Text('每日成语')
+          .fontSize(this.DAILY_HEADER_TITLE_SIZE)
+          .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.idiom_blue'))
+        Blank()
+        LoadingProgress()
+          .width(this.DAILY_LOADING_SIZE)
+          .height(this.DAILY_LOADING_SIZE)
+          .color($r('app.color.idiom_blue'))
+      }
+      .margin({ bottom: this.DAILY_HEADER_MARGIN_BOTTOM })
+      Row()
+        .width(80)
+        .height(this.IDIOM_WORD_SIZE + 4)
+        .borderRadius(this.DAILY_SKELETON_RADIUS)
+        .backgroundColor($r('app.color.idiom_blue') + '12')
+        .margin({ bottom: 3 })
+      Row()
+        .width('100%')
+        .height(this.IDIOM_MEANING_SIZE + 3)
+        .borderRadius(this.DAILY_SKELETON_RADIUS)
+        .backgroundColor($r('app.color.idiom_blue') + '0a')
+      Row()
+        .width('70%')
+        .height(this.IDIOM_MEANING_SIZE + 3)
+        .borderRadius(this.DAILY_SKELETON_RADIUS)
+        .backgroundColor($r('app.color.idiom_blue') + '0a')
+        .margin({ top: 4 })
+    }
+    .width('100%')
+    .padding(this.DAILY_PADDING)
+    .backgroundColor($r('app.color.idiom_card_bg'))
+    .borderRadius(this.DAILY_RADIUS)
+  }
+
+  @Builder
+  DailyXiehouyuSkeleton() {
+    Column() {
+      Row() {
+        Text('\uD83E\uDD14')
+          .fontSize(this.DAILY_HEADER_ICON_SIZE)
+          .margin({ right: 3 })
+        Text('每日歇后语')
+          .fontSize(this.DAILY_HEADER_TITLE_SIZE)
+          .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.idiom_orange'))
+        Blank()
+        LoadingProgress()
+          .width(this.DAILY_LOADING_SIZE)
+          .height(this.DAILY_LOADING_SIZE)
+          .color($r('app.color.idiom_orange'))
+      }
+      .margin({ bottom: this.DAILY_HEADER_MARGIN_BOTTOM })
+      Row()
+        .width('80%')
+        .height(this.XIEHOUYU_QUESTION_SIZE + 3)
+        .borderRadius(this.DAILY_SKELETON_RADIUS)
+        .backgroundColor($r('app.color.idiom_orange') + '12')
+        .margin({ bottom: 2 })
+      Row()
+        .width('60%')
+        .height(this.XIEHOUYU_ANSWER_SIZE + 4)
+        .borderRadius(this.DAILY_SKELETON_RADIUS)
+        .backgroundColor($r('app.color.idiom_orange') + '0a')
+    }
+    .width('100%')
+    .padding(this.DAILY_PADDING)
+    .backgroundColor($r('app.color.xiehouyu_card_bg'))
+    .borderRadius(this.DAILY_RADIUS)
+  }
+
+  @Builder
+  DailyPoemSkeleton() {
+    Column() {
+      Row() {
+        Text('\uD83C\uDF3C')
+          .fontSize(this.POEM_HEADER_ICON_SIZE)
+          .margin({ right: 4 })
+        Text('每日一诗')
+          .fontSize(this.DAILY_HEADER_TITLE_SIZE + 1)
+          .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.poetry_green'))
+        Blank()
+        LoadingProgress()
+          .width(this.DAILY_LOADING_SIZE)
+          .height(this.DAILY_LOADING_SIZE)
+          .color($r('app.color.poetry_green'))
+      }
+      .width('100%')
+      .margin({ bottom: this.POEM_HEADER_MARGIN_BOTTOM })
+      Row()
+        .width('60%')
+        .height(this.POEM_TITLE_SIZE + 3)
+        .borderRadius(this.DAILY_SKELETON_RADIUS)
+        .backgroundColor($r('app.color.poetry_green') + '12')
+        .margin({ bottom: 3 })
+      Row()
+        .width('100%')
+        .height(this.POEM_CONTENT_SIZE + 2)
+        .borderRadius(this.DAILY_SKELETON_RADIUS)
+        .backgroundColor($r('app.color.poetry_green') + '0a')
+      Row()
+        .width('90%')
+        .height(this.POEM_CONTENT_SIZE + 2)
+        .borderRadius(this.DAILY_SKELETON_RADIUS)
+        .backgroundColor($r('app.color.poetry_green') + '0a')
+        .margin({ top: 3 })
+      Row()
+        .width('75%')
+        .height(this.POEM_CONTENT_SIZE + 2)
+        .borderRadius(this.DAILY_SKELETON_RADIUS)
+        .backgroundColor($r('app.color.poetry_green') + '0a')
+        .margin({ top: 3 })
+    }
+    .width('100%')
+    .padding(this.DAILY_PADDING)
+    .backgroundColor($r('app.color.poetry_card_bg'))
+    .borderRadius(this.DAILY_RADIUS)
+    .margin({ left: 16, right: 16, bottom: 8 })
   }
 
   @Builder

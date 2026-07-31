@@ -41,6 +41,18 @@
             "useNormalizedOHMUrl": true
           }
         }
+      },      {
+        "name": "release",
+        "signingConfig": "release",
+        "targetSdkVersion": "5.1.0(18)",
+        "compatibleSdkVersion": "5.1.0(18)",
+        "runtimeOS": "HarmonyOS",
+        "buildOption": {
+          "strictMode": {
+            "caseSensitiveCheck": true,
+            "useNormalizedOHMUrl": true
+          }
+        }
       }
     ],
     "buildModeSet": [
@@ -60,7 +72,7 @@
         {
           "name": "default",
           "applyToProducts": [
-            "default"
+            "default", "release"
           ]
         }
       ]

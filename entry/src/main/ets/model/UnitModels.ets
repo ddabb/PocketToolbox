@@ -167,7 +167,7 @@ export class TimezoneDataLoader {
 
 export class UnitConverterData {
   private static categories: ConverterCategory[] = [
-    new ConverterCategory('length', '长度换算', '\uD83D\uDCF0', '#3498db', [
+    new ConverterCategory('length', '长度换算', 'unit_length', '#3498db', [
       new UnitItem('纳米', 1e-9, 1e9),
       new UnitItem('微米', 1e-6, 1e6),
       new UnitItem('毫米', 0.001, 1000),
@@ -185,7 +185,7 @@ export class UnitConverterData {
       new UnitItem('尺', 0.333333, 3),
       new UnitItem('寸', 0.0333333, 30)
     ]),
-    new ConverterCategory('area', '面积换算', '\uD83D\uDDE3\uFE0F', '#9b59b6', [
+    new ConverterCategory('area', '面积换算', 'unit_area', '#9b59b6', [
       new UnitItem('平方毫米', 0.000001, 1000000),
       new UnitItem('平方厘米', 0.0001, 10000),
       new UnitItem('平方分米', 0.01, 100),
@@ -199,7 +199,7 @@ export class UnitConverterData {
       new UnitItem('英亩', 4046.86, 0.000247105),
       new UnitItem('平方英里', 2589988.11, 3.86102e-7)
     ]),
-    new ConverterCategory('weight', '重量换算', '\u2696\uFE0F', '#e67e22', [
+    new ConverterCategory('weight', '重量换算', 'unit_weight', '#e67e22', [
       new UnitItem('千克', 1, 1),
       new UnitItem('克', 0.001, 1000),
       new UnitItem('毫克', 0.000001, 1000000),
@@ -207,22 +207,22 @@ export class UnitConverterData {
       new UnitItem('磅', 0.45359237, 2.20462),
       new UnitItem('盎司', 0.02834952, 35.274)
     ]),
-    new ConverterCategory('volume', '体积换算', '\uD83E\uDDEA', '#1abc9c', [
+    new ConverterCategory('volume', '体积换算', 'unit_volume', '#1abc9c', [
       new UnitItem('立方米', 1, 1),
       new UnitItem('升', 0.001, 1000),
       new UnitItem('分升', 0.0001, 10000),
       new UnitItem('毫升', 0.000001, 1000000),
       new UnitItem('加仑', 0.00378541, 264.172)
     ]),
-    new ConverterCategory('temperature', '温度换算', '\uD83C\uDF21\uFE0F', '#e74c3c', [], true),
-    new ConverterCategory('speed', '速度换算', '\uD83D\uDE80', '#2ecc71', [
+    new ConverterCategory('temperature', '温度换算', 'unit_temperature', '#e74c3c', [], true),
+    new ConverterCategory('speed', '速度换算', 'unit_speed', '#2ecc71', [
       new UnitItem('米/秒', 1, 1),
       new UnitItem('千米/小时', 0.277778, 3.6),
       new UnitItem('英里/小时', 0.44704, 2.23694),
       new UnitItem('节', 0.514444, 1.94384),
       new UnitItem('光速', 299792458, 1 / 299792458)
     ]),
-    new ConverterCategory('time', '时间换算', '\u23F0', '#f39c12', [
+    new ConverterCategory('time', '时间换算', 'unit_time', '#f39c12', [
       new UnitItem('毫秒', 0.001, 1000),
       new UnitItem('秒', 1, 1),
       new UnitItem('分钟', 60, 1 / 60),
@@ -234,7 +234,7 @@ export class UnitConverterData {
       new UnitItem('十年', 315360000, 1 / 315360000),
       new UnitItem('世纪', 3153600000, 1 / 3153600000)
     ]),
-    new ConverterCategory('pressure', '压力换算', '\uD83D\uDCC8', '#34495e', [
+    new ConverterCategory('pressure', '压力换算', 'unit_pressure', '#34495e', [
       new UnitItem('帕斯卡', 1, 1),
       new UnitItem('千帕', 1000, 0.001),
       new UnitItem('兆帕', 1000000, 0.000001),
@@ -243,7 +243,7 @@ export class UnitConverterData {
       new UnitItem('毫米汞柱', 133.322, 0.00750062),
       new UnitItem('磅每平方英寸', 6894.76, 0.000145038)
     ]),
-    new ConverterCategory('energy', '能量换算', '\u26A1', '#8e44ad', [
+    new ConverterCategory('energy', '能量换算', 'unit_energy', '#8e44ad', [
       new UnitItem('焦耳', 1, 1),
       new UnitItem('千焦', 1000, 0.001),
       new UnitItem('兆焦', 1000000, 0.000001),
@@ -252,8 +252,8 @@ export class UnitConverterData {
       new UnitItem('英热单位', 1055.06, 9.47817e-4),
       new UnitItem('电子伏特', 1.60218e-19, 6.24151e18)
     ]),
-    new ConverterCategory('base', '进制转换', '\uD83D\uDD04', '#16a085', [], false, true),
-    new ConverterCategory('timezone', '时区转换', '\uD83C\uDF0D', '#2980b9', [], false, false, true)
+    new ConverterCategory('base', '进制转换', 'unit_base', '#16a085', [], false, true),
+    new ConverterCategory('timezone', '时区转换', 'unit_timezone', '#2980b9', [], false, false, true)
   ];
 
   static getCategories(): ConverterCategory[] {
@@ -326,7 +326,7 @@ export class UnitConverterData {
       return '0';
     }
     let absResult: number = Math.abs(result);
-    let precision: number = absResult >= 1 ? 6 : 8;
+    let precision: number = absResult >= 1 ? 8 : 10;
     let fixed: string = result.toFixed(precision);
     let parts: string[] = fixed.split('.');
     let intPart: string = parts[0];

@@ -272,6 +272,13 @@ export class StickinessUtil {
     StickinessUtil.checkAchievements(context, stats);
   }
 
+  static syncReadingStats(context: Context, readingItemCount: number): void {
+    let stats: UserStats = StickinessUtil.loadStats(context);
+    stats.readingItems = readingItemCount;
+    StickinessUtil.saveStats(context, stats);
+    StickinessUtil.checkAchievements(context, stats);
+  }
+
   static loadAchievements(context: Context): AchievementItem[] {
     let stats: UserStats = StickinessUtil.loadStats(context);
     let unlockedMap: Record<string, number> = StickinessUtil.loadUnlockedMap(context);
