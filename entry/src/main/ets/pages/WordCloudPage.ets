@@ -2,14 +2,16 @@ import { KeywordUtil, WordCountEntry } from '../common/utils/KeywordUtil';
 import { FontUtil } from '../common/utils/FontUtil';
 import { FontScaler, WeightedItem } from '../core/style/FontScaler';
 import { Palette, PaletteColor } from '../core/style/Palette';
-import { BitmapPlacer, WordSprite } from '../core/layout/BitmapPlacer';
 import { ShapeDef } from '../core/layout/ShapeDef';
 import { ImageExporter } from '../core/export/ImageExporter';
 import { PlacedWord, CloudWord } from '../model/WordItem';
 import { TemplateInfo, Md2PngTemplates } from '../model/Md2PngModels';
 import { WordCloudView } from '../components/WordCloudView';
-import { runPlacementAsync, SpriteData, WordCloudInput } from '../core/layout/WordCloudTask';
+import { runPlacementAsync, WordInput, WordCloudInput } from '../core/layout/WordCloudTask';
 import { display } from '@kit.ArkUI';
+import { BusinessError } from '@kit.BasicServicesKit';
+import { image } from '@kit.ImageKit';
+import { LengthMetricsUnit } from '@kit.ArkUI';
 
 @Builder
 export function WordCloudPageBuilder() {
@@ -615,57 +617,24 @@ struct WordCloudContent {
     this.isGenerating = true;
     this.placedWords = [];
     this.generatedCachePath = '';
-    this.progressValue = 5;
-    this.progressText = '准备数据...';
-    await this.delay(50);
+    this.progressValue = 10;
+    this.progressText = '布局中...';
 
     try {
-      let weightedItems: WeightedItem[] = [];
+      let wordInputs: WordInput[] = [];
       for (let i: number = 0; i < this.cloudWords.length; i++) {
-        let item: WeightedItem = new WeightedItem();
-        item.text = this.cloudWords[i].text;
-        item.weight = this.cloudWords[i].weight;
-        item.tag = '';
-        weightedItems.push(item);
+        let wi: WordInput = {
+          text: this.cloudWords[i].text,
+          weight: this.cloudWords[i].weight,
+        };
+        wordInputs.push(wi);
       }
-
-      this.progressValue = 15;
-      this.progressText = '计算字号...';
-      await this.delay(30);
 
       let fontName: string = this.fontNames[this.currentFontIndex];
-      let shape: ShapeDef = this.shapes[this.currentShapeIndex];
       let layoutSize: number = this.LAYOUT_CANVAS_SIZE;
 
-      FontScaler.scaleAll(weightedItems, layoutSize, shape.shapeRatio);
-
-      let spriteDataList: SpriteData[] = [];
-      let placer: BitmapPlacer = new BitmapPlacer(layoutSize);
-      for (let i: number = 0; i < weightedItems.length; i++) {
-        let sprite: WordSprite = placer.makeSprite(
-          weightedItems[i].text,
-          weightedItems[i].fontSize,
-          fontName,
-          weightedItems[i].weight,
-          0
-        );
-        let sd: SpriteData = {
-          text: sprite.text,
-          fontSize: sprite.fontSize,
-          font: sprite.font,
-          weight: sprite.weight,
-          width: sprite.width,
-          height: sprite.height,
-        };
-        spriteDataList.push(sd);
-      }
-
-      this.progressValue = 40;
-      this.progressText = '布局中...';
-      await this.delay(30);
-
       let input: WordCloudInput = {
-        words: spriteDataList,
+        words: wordInputs,
         canvasSize: layoutSize,
         shapeIndex: this.currentShapeIndex,
         fontName: fontName,
@@ -675,9 +644,8 @@ struct WordCloudContent {
       let result = await runPlacementAsync(input);
       console.info('[WordCloud] placement done, placed=' + result.count.toString());
 
-      this.progressValue = 80;
+      this.progressValue = 90;
       this.progressText = '着色中...';
-      await this.delay(20);
 
       let palette: PaletteColor = this.palettes[this.currentPaletteIndex];
       let placedResults: PlacedWord[] = [];
@@ -696,12 +664,15 @@ struct WordCloudContent {
         placedResults.push(pw);
       }
 
-      this.progressValue = 95;
-      this.progressText = '渲染中...';
-
       this.placedWords = placedResults;
-      this.lastWeightedItems = weightedItems;
-      await this.delay(50);
+      this.lastWeightedItems = [];
+      for (let i: number = 0; i < this.cloudWords.length; i++) {
+        let item: WeightedItem = new WeightedItem();
+        item.text = this.cloudWords[i].text;
+        item.weight = this.cloudWords[i].weight;
+        item.tag = '';
+        this.lastWeightedItems.push(item);
+      }
 
       this.progressValue = 100;
       this.progressText = '已生成 ' + placedResults.length.toString() + ' 个词';
@@ -712,14 +683,6 @@ struct WordCloudContent {
     }
 
     this.isGenerating = false;
-  }
-
-  private delay(ms: number): Promise<void> {
-    return new Promise<void>((resolve: () => void) => {
-      setTimeout(() => {
-        resolve();
-      }, ms);
-    });
   }
 
   private refreshColors(): void {
@@ -751,29 +714,17 @@ struct WordCloudContent {
     let fontName: string = this.fontNames[this.currentFontIndex];
     let layoutSize: number = this.LAYOUT_CANVAS_SIZE;
 
-    let spriteDataList: SpriteData[] = [];
-    let placer: BitmapPlacer = new BitmapPlacer(layoutSize);
+    let wordInputs: WordInput[] = [];
     for (let i: number = 0; i < this.lastWeightedItems.length; i++) {
-      let sprite: WordSprite = placer.makeSprite(
-        this.lastWeightedItems[i].text,
-        this.lastWeightedItems[i].fontSize,
-        fontName,
-        this.lastWeightedItems[i].weight,
-        0
-      );
-      let sd: SpriteData = {
-        text: sprite.text,
-        fontSize: sprite.fontSize,
-        font: sprite.font,
-        weight: sprite.weight,
-        width: sprite.width,
-        height: sprite.height,
+      let wi: WordInput = {
+        text: this.lastWeightedItems[i].text,
+        weight: this.lastWeightedItems[i].weight,
       };
-      spriteDataList.push(sd);
+      wordInputs.push(wi);
     }
 
     let input: WordCloudInput = {
-      words: spriteDataList,
+      words: wordInputs,
       canvasSize: layoutSize,
       shapeIndex: this.currentShapeIndex,
       fontName: fontName,
@@ -807,10 +758,46 @@ struct WordCloudContent {
     return this.templates[this.currentPaletteIndex].accentColor;
   }
 
+  private renderExportPixelMap(): image.PixelMap {
+    let exportSize: number = this.LAYOUT_CANVAS_SIZE * 2;
+    let off: OffscreenCanvas = new OffscreenCanvas(exportSize, exportSize, LengthMetricsUnit.PX);
+    let ctx: OffscreenCanvasRenderingContext2D = off.getContext('2d', new RenderingContextSettings(true)) as OffscreenCanvasRenderingContext2D;
+    let palette: PaletteColor = this.palettes[this.currentPaletteIndex];
+    let colors: string[] = palette.colors.length > 0 ? palette.colors : ['#333333'];
+
+    ctx.clearRect(0, 0, exportSize, exportSize);
+    ctx.fillStyle = palette.bgColor;
+    ctx.fillRect(0, 0, exportSize, exportSize);
+
+    let scale: number = exportSize / this.LAYOUT_CANVAS_SIZE;
+    for (let i: number = 0; i < this.placedWords.length; i++) {
+      let pw: PlacedWord = this.placedWords[i];
+      let color: string = pw.color && pw.color.length > 0 ? pw.color : colors[i % colors.length];
+      let drawSize: number = pw.size * scale;
+      let drawX: number = pw.x * scale;
+      let drawY: number = pw.y * scale;
+      ctx.save();
+      ctx.translate(drawX, drawY);
+      if (pw.angle !== 0) {
+        ctx.rotate(pw.angle * Math.PI / 180);
+      }
+      ctx.font = drawSize.toString() + 'px ' + (pw.font && pw.font.length > 0 ? pw.font : 'sans-serif');
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = color;
+      ctx.fillText(pw.text, 0, 0);
+      ctx.restore();
+    }
+
+    return ctx.getPixelMap(0, 0, exportSize, exportSize);
+  }
+
   private async saveToAlbum(): Promise<void> {
     try {
-      let cachePath: string = await ImageExporter.exportToCache(this.uiContext, this.COMPONENT_ID, 'wordcloud');
+      let pm: image.PixelMap = this.renderExportPixelMap();
+      let cachePath: string = await ImageExporter.pixelMapToCache(this.uiContext, pm, 'wordcloud');
       this.generatedCachePath = cachePath;
+      pm.release();
       await ImageExporter.saveToAlbum(this.uiContext, cachePath, 'wordcloud');
     } catch (e) {
       let err: BusinessError = e as BusinessError;
@@ -823,8 +810,10 @@ struct WordCloudContent {
     try {
       let cachePath: string = this.generatedCachePath;
       if (!cachePath || cachePath.length === 0) {
-        cachePath = await ImageExporter.exportToCache(this.uiContext, this.COMPONENT_ID, 'wordcloud');
+        let pm: image.PixelMap = this.renderExportPixelMap();
+        cachePath = await ImageExporter.pixelMapToCache(this.uiContext, pm, 'wordcloud');
         this.generatedCachePath = cachePath;
+        pm.release();
       }
       ImageExporter.share(this.uiContext, cachePath);
     } catch (e) {

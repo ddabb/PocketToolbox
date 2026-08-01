@@ -70,6 +70,7 @@ struct Index {
   @State xiehouyuOffset: number = 0;
   @StorageLink('favCount') favCount: number = 0;
   @State unitTools: ToolItem[] = [];
+  @State creativeTools: ToolItem[] = [];
   @State checkInData: CheckInData = new CheckInData();
   @State checkedInToday: boolean = false;
   @State challengeProgress: ChallengeProgress = new ChallengeProgress();
@@ -137,6 +138,10 @@ struct Index {
       }
     }
     this.unitTools = tools;
+    this.creativeTools = [
+      new ToolItem('word_cloud', '词云生成', '粘贴文本，30秒出图', '', '#8b5cf6', 'WordCloudPage'),
+      new ToolItem('md2png', '文字转图片', 'Markdown文本生成图片', '', '#9b59b6', 'Md2PngPage')
+    ];
   }
 
   private getUnitSubtitle(cat: ConverterCategory): string {
@@ -500,15 +505,11 @@ struct Index {
             .backgroundColor($r('app.color.card_background'))
             .borderRadius(12)
             .alignItems(HorizontalAlign.Center)
-            .margin({ left: 4 })
+            .margin({ left: 4, right: 4 })
             .onClick(() => {
               this.homeStack.pushPathByName('IdiomQueryPage', null);
             })
-          }
-          .width('100%')
-          .padding({ left: 16, right: 16 })
 
-          Row() {
             Column() {
               Column() {
                 Image($r('app.media.mine_xiehouyu'))
@@ -531,75 +532,13 @@ struct Index {
             .backgroundColor($r('app.color.card_background'))
             .borderRadius(12)
             .alignItems(HorizontalAlign.Center)
-            .margin({ right: 4 })
+            .margin({ left: 4 })
             .onClick(() => {
               this.homeStack.pushPathByName('XiehouyuQueryPage', null);
             })
-
-            Column() {
-              Column() {
-                Text('\u2601')
-                  .fontSize(28)
-              }
-              .width(44)
-              .height(44)
-              .borderRadius(12)
-              .backgroundColor('#8b5cf618')
-              .justifyContent(FlexAlign.Center)
-              .alignItems(HorizontalAlign.Center)
-              .margin({ bottom: 6 })
-              Text('词云生成')
-                .fontSize(14)
-                .fontWeight(FontWeight.Bold)
-                .fontColor($r('app.color.primary_text'))
-              Text('粘贴文本，30秒出图')
-                .fontSize(10)
-                .fontColor($r('app.color.tertiary_text'))
-                .margin({ top: 2 })
-            }
-            .layoutWeight(1)
-            .padding(12)
-            .backgroundColor($r('app.color.card_background'))
-            .borderRadius(12)
-            .alignItems(HorizontalAlign.Center)
-            .margin({ right: 4 })
-            .onClick(() => {
-              this.homeStack.pushPathByName('WordCloudPage', null);
-            })
-
-            Column() {
-              Column() {
-                Text('\uD83D\uDDBC\uFE0F')
-                  .fontSize(28)
-              }
-              .width(44)
-              .height(44)
-              .borderRadius(12)
-              .backgroundColor('#9b59b618')
-              .justifyContent(FlexAlign.Center)
-              .alignItems(HorizontalAlign.Center)
-              .margin({ bottom: 6 })
-              Text('文字转图片')
-                .fontSize(14)
-                .fontWeight(FontWeight.Bold)
-                .fontColor($r('app.color.primary_text'))
-              Text('Markdown文本生成图片')
-                .fontSize(10)
-                .fontColor($r('app.color.tertiary_text'))
-                .margin({ top: 2 })
-            }
-            .layoutWeight(1)
-            .padding(12)
-            .backgroundColor($r('app.color.card_background'))
-            .borderRadius(12)
-            .alignItems(HorizontalAlign.Center)
-            .margin({ left: 4 })
-            .onClick(() => {
-              this.homeStack.pushPathByName('Md2PngPage', null);
-            })
           }
           .width('100%')
-          .padding({ left: 16, right: 16, top: 8 })
+          .padding({ left: 16, right: 16 })
 
           if (this.reviewVisible && this.reviewItem) {
             this.ReviewCard()
@@ -705,9 +644,50 @@ struct Index {
           }
           .width('100%')
           .padding({ left: 8, right: 8 })
-        }
-        .width('100%')
-        .padding({ bottom: 16 })
+
+          Text('创意工具')
+            .fontSize(15)
+            .fontWeight(FontWeight.Bold)
+            .fontColor($r('app.color.primary_text'))
+            .width('100%')
+            .padding({ left: 16, bottom: 8, top: 8 })
+
+          Row() {
+            ForEach(this.creativeTools, (tool: ToolItem) => {
+              Column() {
+                Column() {
+                  Text(tool.id === 'word_cloud' ? '\u2601' : '\uD83D\uDDBC\uFE0F')
+                    .fontSize(24)
+                    .fontColor('#ffffff')
+                }
+                .width(56)
+                .height(56)
+                .borderRadius(14)
+                .backgroundColor(tool.color)
+                .justifyContent(FlexAlign.Center)
+                .alignItems(HorizontalAlign.Center)
+
+                Text(tool.title)
+                  .fontSize(12)
+                  .fontColor($r('app.color.primary_text'))
+                  .margin({ top: 6 })
+                  .maxLines(1)
+                  .textOverflow({ overflow: TextOverflow.Ellipsis })
+                  .constraintSize({ maxWidth: 72 })
+              }
+              .width('25%')
+              .padding({ top: 8, bottom: 12 })
+              .alignItems(HorizontalAlign.Center)
+              .onClick(() => {
+                this.toolStack.pushPathByName(tool.page, null);
+              })
+            }, (tool: ToolItem) => tool.id)
+          }
+          .width('100%')
+          .padding({ left: 8, right: 8 })
+         }
+         .width('100%')
+         .padding({ bottom: 16 })
       }
       .width('100%')
       .height('100%')

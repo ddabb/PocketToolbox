@@ -2,14 +2,11 @@ import { taskpool } from '@kit.ArkTS';
 import { BitmapPlacer, WordSprite } from './BitmapPlacer';
 import { ShapeDef } from './ShapeDef';
 import { PlacedWord } from '../../model/WordItem';
+import { FontScaler, WeightedItem } from '../style/FontScaler';
 
-export interface SpriteData {
+export interface WordInput {
   text: string;
-  fontSize: number;
-  font: string;
   weight: number;
-  width: number;
-  height: number;
 }
 
 export interface PlacedData {
@@ -23,7 +20,7 @@ export interface PlacedData {
 }
 
 export interface WordCloudInput {
-  words: SpriteData[];
+  words: WordInput[];
   canvasSize: number;
   shapeIndex: number;
   fontName: string;
@@ -37,15 +34,27 @@ export interface WordCloudResult {
 @Concurrent
 function computePlacement(input: WordCloudInput): WordCloudResult {
   let shape: ShapeDef = ShapeDef.SHAPES[input.shapeIndex];
-  let placer: BitmapPlacer = new BitmapPlacer(input.canvasSize);
+  let layoutSize: number = input.canvasSize;
 
-  let sprites: WordSprite[] = [];
+  let weightedItems: WeightedItem[] = [];
   for (let i: number = 0; i < input.words.length; i++) {
+    let item: WeightedItem = new WeightedItem();
+    item.text = input.words[i].text;
+    item.weight = input.words[i].weight;
+    item.tag = '';
+    weightedItems.push(item);
+  }
+
+  FontScaler.scaleAll(weightedItems, layoutSize, shape.shapeRatio);
+
+  let placer: BitmapPlacer = new BitmapPlacer(layoutSize);
+  let sprites: WordSprite[] = [];
+  for (let i: number = 0; i < weightedItems.length; i++) {
     let sprite: WordSprite = placer.makeSprite(
-      input.words[i].text,
-      input.words[i].fontSize,
-      input.words[i].font,
-      input.words[i].weight,
+      weightedItems[i].text,
+      weightedItems[i].fontSize,
+      input.fontName,
+      weightedItems[i].weight,
       0
     );
     sprites.push(sprite);
@@ -76,5 +85,5 @@ function computePlacement(input: WordCloudInput): WordCloudResult {
 
 export async function runPlacementAsync(input: WordCloudInput): Promise<WordCloudResult> {
   let task: taskpool.Task = new taskpool.Task(computePlacement, input);
-  return await taskpool.execute(task) as WordCloudResult;
+  return await taskpool.execute(task, taskpool.Priority.HIGH) as WordCloudResult;
 }

@@ -1,3 +1,5 @@
+import { image } from '@kit.ImageKit';
+import { LengthMetricsUnit } from '@kit.ArkUI';
 import { PlacedWord } from '../model/WordItem';
 
 @Component
@@ -71,6 +73,39 @@ export struct WordCloudView {
       ctx.fillText(pw.text, 0, 0);
       ctx.restore();
     }
+  }
+
+  renderToPixelMap(pixelSize: number): image.PixelMap {
+    let off: OffscreenCanvas = new OffscreenCanvas(pixelSize, pixelSize, LengthMetricsUnit.PX);
+    let ctx: OffscreenCanvasRenderingContext2D = off.getContext('2d', new RenderingContextSettings(true)) as OffscreenCanvasRenderingContext2D;
+
+    let scale: number = pixelSize / this.canvasSize;
+    let colors: string[] = this.paletteColors.length > 0 ? this.paletteColors : ['#333333'];
+
+    ctx.clearRect(0, 0, pixelSize, pixelSize);
+    ctx.fillStyle = this.bgColor;
+    ctx.fillRect(0, 0, pixelSize, pixelSize);
+
+    for (let i: number = 0; i < this.placedWords.length; i++) {
+      let pw: PlacedWord = this.placedWords[i];
+      let color: string = pw.color && pw.color.length > 0 ? pw.color : colors[i % colors.length];
+      let drawSize: number = pw.size * scale;
+      let drawX: number = pw.x * scale;
+      let drawY: number = pw.y * scale;
+      ctx.save();
+      ctx.translate(drawX, drawY);
+      if (pw.angle !== 0) {
+        ctx.rotate(pw.angle * Math.PI / 180);
+      }
+      ctx.font = drawSize.toString() + 'px ' + (pw.font && pw.font.length > 0 ? pw.font : 'sans-serif');
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = color;
+      ctx.fillText(pw.text, 0, 0);
+      ctx.restore();
+    }
+
+    return ctx.getPixelMap(0, 0, pixelSize, pixelSize);
   }
 
   private nextColor(colors: string[]): string {
