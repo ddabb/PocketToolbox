@@ -1,5 +1,10 @@
-import { ShapeDef } from './ShapeDef';
+import { ShapeDef, GlyphMask } from './ShapeDef';
 import { PlacedWord } from '../../model/WordItem';
+
+export class RandomPoint {
+  x: number = 0;
+  y: number = 0;
+}
 
 export class WordSprite {
   text: string = '';
@@ -18,24 +23,34 @@ export class BitmapPlacer {
   private canvasSize: number = 0;
   private board: Uint32Array = new Uint32Array(0);
   private boardWidth: number = 0;
-  private readonly SPIRAL_STEP: number = 0.1;
-  private readonly MAX_SPIRAL_FAIL: number = 500;
-  private readonly WORD_PADDING: number = 2;
+  private shapeOutside: Uint8Array = new Uint8Array(0);
+  private readonly SPIRAL_STEP: number = 0.7;
+  private readonly SPIRAL_TURNS: number = 0.22;
+  private readonly MAX_SPIRAL_FAIL: number = 20000;
+  private readonly WORD_PADDING: number = 1;
+  private readonly RANDOM_STARTS: number = 90;
+  private readonly MAX_SPIRAL_T: number = 4000;
 
   constructor(canvasSize: number) {
     this.canvasSize = canvasSize;
     this.boardWidth = Math.ceil(canvasSize / 32);
     this.board = new Uint32Array(this.boardWidth * canvasSize);
+    this.shapeOutside = new Uint8Array(canvasSize * canvasSize);
   }
 
-  place(words: WordSprite[], shapeFn: (theta: number) => number): PlacedWord[] {
+  place(words: WordSprite[], shapeOrFn: ShapeDef | ((theta: number) => number)): PlacedWord[] {
+    let shape: ShapeDef;
+    if (typeof shapeOrFn === 'function') {
+      shape = new ShapeDef('legacy', 'legacy', shapeOrFn as ((theta: number) => number), 0.6);
+    } else {
+      shape = shapeOrFn;
+    }
     console.info('[BitmapPlacer] place START, words=' + words.length.toString() +
       ', canvasSize=' + this.canvasSize.toString() +
-      ', boardWidth=' + this.boardWidth.toString());
+      ', mode=' + (shape.bitmap ? 'bitmap' : 'polar'));
     this.board.fill(0);
-    console.info('[BitmapPlacer] board cleared, applying shape mask...');
-    this.applyShapeMask(shapeFn);
-    console.info('[BitmapPlacer] shape mask applied');
+    this.shapeOutside.fill(0);
+    this.buildShapeMask(shape);
 
     let sorted: WordSprite[] = words.slice();
     sorted.sort((a: WordSprite, b: WordSprite): number => { return b.weight - a.weight; });
@@ -43,22 +58,34 @@ export class BitmapPlacer {
     let cx: number = this.canvasSize / 2;
     let cy: number = this.canvasSize / 2;
     let results: PlacedWord[] = [];
-    let total: number = sorted.length;
-    let headCount: number = Math.max(1, Math.floor(total * 0.2));
     let failCount: number = 0;
 
     for (let i: number = 0; i < sorted.length; i++) {
       let word: WordSprite = sorted[i];
+      let headCount: number = Math.max(1, Math.floor(sorted.length * 0.2));
       let angles: number[];
       if (i < headCount) {
         angles = [0, 90];
       } else {
-        angles = [0, 90];
+        angles = [0, 90, 45, 135];
       }
 
       let placed: PlacedWord | null = null;
-      for (let ai: number = 0; ai < angles.length && placed === null; ai++) {
-        placed = this.trySpiralPlace(word, cx, cy, angles[ai], shapeFn);
+
+      for (let s: number = 0; s < this.RANDOM_STARTS && placed === null; s++) {
+        let start: RandomPoint | null = this.randomPointInShape(cx, cy, shape);
+        if (start === null) {
+          continue;
+        }
+        for (let ai: number = 0; ai < angles.length && placed === null; ai++) {
+          placed = this.trySpiralFrom(word, start.x, start.y, cx, cy, angles[ai], shape);
+        }
+      }
+
+      if (placed === null) {
+        for (let ai: number = 0; ai < angles.length && placed === null; ai++) {
+          placed = this.trySpiralFrom(word, cx, cy, cx, cy, angles[ai], shape);
+        }
       }
 
       if (placed !== null) {
@@ -68,23 +95,43 @@ export class BitmapPlacer {
       }
     }
     console.info('[BitmapPlacer] place DONE, placed=' + results.length.toString() +
-      ', failed=' + failCount.toString() + '/' + total.toString());
+      ', failed=' + failCount.toString() + '/' + sorted.length.toString());
     return results;
   }
 
-  private applyShapeMask(shapeFn: (theta: number) => number): void {
+  private buildShapeMask(shape: ShapeDef): void {
     let cx: number = this.canvasSize / 2;
     let cy: number = this.canvasSize / 2;
-    let maxR: number = cx * 0.9;
+    let maxR: number = cx * 0.98;
+
+    if (shape.bitmap) {
+      let bm: GlyphMask = shape.bitmap;
+      let s: number = bm.size;
+      let scale: number = this.canvasSize / s;
+      for (let y: number = 0; y < this.canvasSize; y++) {
+        let sy: number = Math.min(s - 1, Math.floor(y / scale));
+        for (let x: number = 0; x < this.canvasSize; x++) {
+          let sx: number = Math.min(s - 1, Math.floor(x / scale));
+          if (bm.data[sy * s + sx] !== 1) {
+            this.shapeOutside[y * this.canvasSize + x] = 1;
+            let wordIdx: number = Math.floor(x / 32);
+            let bitIdx: number = x % 32;
+            this.board[y * this.boardWidth + wordIdx] |= (1 << bitIdx);
+          }
+        }
+      }
+      return;
+    }
 
     for (let y: number = 0; y < this.canvasSize; y++) {
       for (let x: number = 0; x < this.canvasSize; x++) {
         let dx: number = x - cx;
-        let dy: number = y - cy;
+        let dy: number = cy - y;
         let r: number = Math.sqrt(dx * dx + dy * dy);
         let theta: number = Math.atan2(dy, dx);
-        let rMax: number = shapeFn(theta) * maxR;
+        let rMax: number = shape.maskAt(theta) * maxR;
         if (r > rMax) {
+          this.shapeOutside[y * this.canvasSize + x] = 1;
           let wordIdx: number = Math.floor(x / 32);
           let bitIdx: number = x % 32;
           this.board[y * this.boardWidth + wordIdx] |= (1 << bitIdx);
@@ -93,8 +140,52 @@ export class BitmapPlacer {
     }
   }
 
-  private trySpiralPlace(word: WordSprite, cx: number, cy: number,
-    angle: number, shapeFn: (theta: number) => number): PlacedWord | null {
+  private isOutsideShape(x: number, y: number): boolean {
+    let ix: number = Math.floor(x);
+    let iy: number = Math.floor(y);
+    if (ix < 0 || iy < 0 || ix >= this.canvasSize || iy >= this.canvasSize) {
+      return true;
+    }
+    return this.shapeOutside[iy * this.canvasSize + ix] === 1;
+  }
+
+  private boxOutsideShape(x1: number, y1: number, x2: number, y2: number): boolean {
+    let step: number = 3;
+    for (let y: number = y1; y <= y2; y += step) {
+      for (let x: number = x1; x <= x2; x += step) {
+        if (this.isOutsideShape(x, y)) {
+          return true;
+        }
+      }
+    }
+    let corners: number[][] = [
+      [x1, y1], [x2, y1], [x1, y2], [x2, y2]
+    ];
+    for (let c: number = 0; c < 4; c++) {
+      if (this.isOutsideShape(corners[c][0], corners[c][1])) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private randomPointInShape(cx: number, cy: number,
+    shape: ShapeDef): RandomPoint | null {
+    for (let attempt: number = 0; attempt < 50; attempt++) {
+      let rx: number = Math.random() * (this.canvasSize - 1);
+      let ry: number = Math.random() * (this.canvasSize - 1);
+      if (!this.isOutsideShape(rx, ry)) {
+        let pt: RandomPoint = new RandomPoint();
+        pt.x = rx;
+        pt.y = ry;
+        return pt;
+      }
+    }
+    return null;
+  }
+
+  private trySpiralFrom(word: WordSprite, sx: number, sy: number,
+    cx: number, cy: number, angle: number, shape: ShapeDef): PlacedWord | null {
     let w: number = word.width;
     let h: number = word.height;
     if (angle === 90) {
@@ -108,22 +199,12 @@ export class BitmapPlacer {
 
     let t: number = 0;
     let failCount: number = 0;
-    let maxR: number = (this.canvasSize / 2) * 0.9;
 
-    while (t < 200) {
-      let r: number = 0.1 * t;
-      let px: number = cx + r * Math.cos(t);
-      let py: number = cy + r * Math.sin(t);
-
-      let dx: number = px - cx;
-      let dy: number = py - cy;
-      let dist: number = Math.sqrt(dx * dx + dy * dy);
-      let theta: number = Math.atan2(dy, dx);
-      let rMax: number = shapeFn(theta) * maxR;
-      if (dist > rMax) {
-        t += this.SPIRAL_STEP;
-        continue;
-      }
+    while (t < this.MAX_SPIRAL_T) {
+      let r: number = this.SPIRAL_STEP * t;
+      let a: number = t * this.SPIRAL_TURNS;
+      let px: number = sx + r * Math.cos(a);
+      let py: number = sy + r * Math.sin(a);
 
       let x1: number = Math.floor(px - halfW);
       let y1: number = Math.floor(py - halfH);
@@ -131,7 +212,12 @@ export class BitmapPlacer {
       let y2: number = Math.ceil(py + halfH);
 
       if (x1 < 0 || y1 < 0 || x2 >= this.canvasSize || y2 >= this.canvasSize) {
-        t += this.SPIRAL_STEP;
+        t += 1;
+        continue;
+      }
+
+      if (this.boxOutsideShape(x1, y1, x2, y2)) {
+        t += 1;
         continue;
       }
 
@@ -140,7 +226,7 @@ export class BitmapPlacer {
         if (failCount > this.MAX_SPIRAL_FAIL) {
           return null;
         }
-        t += this.SPIRAL_STEP;
+        t += 1;
         continue;
       }
 

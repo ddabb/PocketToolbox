@@ -1,6 +1,5 @@
 import { KeywordUtil, WordCountEntry } from '../common/utils/KeywordUtil';
 import { FontUtil } from '../common/utils/FontUtil';
-import { ClipboardUtil } from '../common/utils/ClipboardUtil';
 import { FontScaler, WeightedItem } from '../core/style/FontScaler';
 import { Palette, PaletteColor } from '../core/style/Palette';
 import { BitmapPlacer, WordSprite } from '../core/layout/BitmapPlacer';
@@ -9,6 +8,7 @@ import { ImageExporter } from '../core/export/ImageExporter';
 import { PlacedWord, CloudWord } from '../model/WordItem';
 import { TemplateInfo, Md2PngTemplates } from '../model/Md2PngModels';
 import { WordCloudView } from '../components/WordCloudView';
+import { runPlacementAsync, SpriteData, WordCloudInput } from '../core/layout/WordCloudTask';
 import { display } from '@kit.ArkUI';
 
 @Builder
@@ -38,11 +38,12 @@ struct WordCloudContent {
   @State progressValue: number = 0;
   @State customWord: string = '';
   @State customCount: string = '1';
+  @State directWordsText: string = '';
   private uiContext: UIContext = this.getUIContext();
   private palettes: PaletteColor[] = Palette.getAll();
   private templates: TemplateInfo[] = Md2PngTemplates.getAll();
   private lastWeightedItems: WeightedItem[] = [];
-  private shapes: ShapeDef[] = ShapeDef.getAll();
+  private shapes: ShapeDef[] = ShapeDef.SHAPES;
   private shapeIcons: string[] = ['●', '♥', '★', '◆', '▲', '■', '⬠', '⬡', '✚', '☁'];
   private fontNames: string[] = [
     Md2PngTemplates.FONT_SMILEY, Md2PngTemplates.FONT_WENKAI,
@@ -57,6 +58,7 @@ struct WordCloudContent {
   ];
   private readonly COMPONENT_ID: string = 'wordcloud_canvas';
   private readonly MAX_WORDS: number = 180;
+  private readonly LAYOUT_CANVAS_SIZE: number = 1000;
 
   aboutToAppear(): void {
     FontUtil.registerAll(this.uiContext);
@@ -80,33 +82,51 @@ struct WordCloudContent {
     Scroll() {
       Column() {
         Column() {
-          TextArea({ placeholder: '粘贴文本内容，自动分词生成词云...', text: this.inputText })
+          Text('词语编辑')
+            .fontSize(15)
+            .fontWeight(FontWeight.Bold)
+            .fontColor($r('app.color.primary_text'))
             .width('100%')
-            .height(120)
+            .margin({ bottom: 8 })
+
+          TextArea({ placeholder: '每行输入一个词语，可用冒号指定权重\n例如：\n创新:5\n科技:3\n未来', text: this.directWordsText })
+            .width('100%')
+            .height(140)
             .fontSize(14)
             .fontColor($r('app.color.primary_text'))
             .backgroundColor($r('app.color.card_background'))
             .borderRadius(12)
             .padding(12)
             .onChange((value: string) => {
-              this.inputText = value;
+              this.directWordsText = value;
+              this.parseDirectWords();
             })
         }
         .width('100%')
         .padding({ left: 16, right: 16, top: 12 })
 
         Row({ space: 8 }) {
-          Button('粘贴')
+          Button('示例')
             .fontSize(14)
             .fontColor(Color.White)
             .backgroundColor('#07c160')
             .borderRadius(20)
             .height(36)
             .onClick(() => {
-              this.doPaste();
+              this.loadExample();
             })
 
-          Button(this.isExtracting ? '分词中...' : '提取词语')
+          Button('清空')
+            .fontSize(14)
+            .fontColor($r('app.color.tertiary_text'))
+            .backgroundColor($r('app.color.card_background'))
+            .borderRadius(20)
+            .height(36)
+            .onClick(() => {
+              this.clearWords();
+            })
+
+          Button(this.isExtracting ? '分词中...' : '从文本提取')
             .fontSize(14)
             .fontWeight(FontWeight.Bold)
             .fontColor(Color.White)
@@ -115,35 +135,33 @@ struct WordCloudContent {
             .height(36)
             .enabled(!this.isExtracting)
             .onClick(() => {
-              this.extractWords();
+              this.extractWordsToDirect();
             })
         }
         .width('100%')
         .padding({ left: 16, right: 16, top: 8 })
         .justifyContent(FlexAlign.Start)
 
-        if (this.cloudWords.length > 0 || this.isExtracting) {
-          this.WordsEditorSection()
+        if (this.cloudWords.length > 0) {
+          this.WordsTagSection()
         }
 
-        if (this.cloudWords.length > 0) {
-          Row({ space: 8 }) {
-            Button(this.isGenerating ? this.progressText : '生成词云')
-              .fontSize(14)
-              .fontWeight(FontWeight.Bold)
-              .fontColor(Color.White)
-              .backgroundColor('#2563eb')
-              .borderRadius(20)
-              .height(36)
-              .enabled(!this.isGenerating)
-              .layoutWeight(1)
-              .onClick(() => {
-                this.generateWordCloud();
-              })
-          }
-          .width('100%')
-          .padding({ left: 16, right: 16, top: 8 })
+        Row({ space: 8 }) {
+          Button(this.isGenerating ? this.progressText : '生成词云')
+            .fontSize(14)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(Color.White)
+            .backgroundColor('#2563eb')
+            .borderRadius(20)
+            .height(36)
+            .enabled(!this.isGenerating && this.cloudWords.length > 0)
+            .layoutWeight(1)
+            .onClick(() => {
+              this.generateWordCloud();
+            })
         }
+        .width('100%')
+        .padding({ left: 16, right: 16, top: 8 })
 
         this.StyleSelector()
 
@@ -155,7 +173,7 @@ struct WordCloudContent {
                 bgColor: this.palettes[this.currentPaletteIndex].bgColor,
                 paletteColors: this.palettes[this.currentPaletteIndex].colors,
                 canvasPixelSize: this.canvasPixelSize,
-                canvasSize: this.canvasSize
+                canvasSize: this.LAYOUT_CANVAS_SIZE
               })
                 .width(this.canvasSize)
                 .height(this.canvasSize)
@@ -244,27 +262,20 @@ struct WordCloudContent {
   }
 
   @Builder
-  WordsEditorSection() {
+  WordsTagSection() {
     Column() {
       Row() {
-        Text('参与词语')
-          .fontSize(15)
-          .fontWeight(FontWeight.Bold)
+        Text('参与词语 (' + this.cloudWords.length.toString() + ')')
+          .fontSize(13)
+          .fontWeight(FontWeight.Medium)
           .fontColor($r('app.color.primary_text'))
-        if (this.isExtracting) {
-          LoadingProgress()
-            .width(16)
-            .height(16)
-            .color($r('app.color.idiom_blue'))
-            .margin({ left: 8 })
-        }
         Blank()
-        Text('点击 × 移除，手动添加新词')
+        Text('点击 × 移除')
           .fontSize(11)
           .fontColor($r('app.color.hint_text'))
       }
       .width('100%')
-      .margin({ bottom: 8 })
+      .margin({ bottom: 6 })
 
       Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
         ForEach(this.cloudWords, (entry: CloudWord, index: number) => {
@@ -289,59 +300,9 @@ struct WordCloudContent {
           .padding({ left: 10, right: 10, top: 5, bottom: 5 })
           .margin({ right: 6, bottom: 6 })
           .onClick(() => {
-            this.removeWord(entry.text);
+            this.removeWordAndSync(entry.text);
           })
         }, (entry: CloudWord, index: number) => entry.text + '_' + entry.weight.toString())
-
-        Row() {
-          TextInput({ placeholder: '词语', text: this.customWord })
-            .fontSize(13)
-            .fontColor($r('app.color.primary_text'))
-            .placeholderColor($r('app.color.hint_text'))
-            .backgroundColor(Color.Transparent)
-            .padding(0)
-            .layoutWeight(1)
-            .height(28)
-            .maxLength(10)
-            .onChange((value: string) => {
-              this.customWord = value;
-            })
-            .onSubmit(() => {
-              this.addCustomWord();
-            })
-          Text('×')
-            .fontSize(13)
-            .fontColor($r('app.color.idiom_blue'))
-            .fontWeight(FontWeight.Medium)
-            .margin({ left: 4, right: 4 })
-          TextInput({ placeholder: '权重', text: this.customCount })
-            .fontSize(13)
-            .fontColor($r('app.color.primary_text'))
-            .placeholderColor($r('app.color.hint_text'))
-            .backgroundColor(Color.Transparent)
-            .padding(0)
-            .width(32)
-            .height(28)
-            .type(InputType.Number)
-            .inputFilter('^[0-9]*$', () => { return 0; })
-            .maxLength(2)
-            .onChange((value: string) => {
-              this.customCount = value;
-            })
-          Text('+')
-            .fontSize(16)
-            .fontColor($r('app.color.idiom_blue'))
-            .fontWeight(FontWeight.Bold)
-            .margin({ left: 4 })
-            .onClick(() => {
-              this.addCustomWord();
-            })
-        }
-        .height(28)
-        .backgroundColor($r('app.color.card_background'))
-        .borderRadius(14)
-        .padding({ left: 10, right: 10 })
-        .margin({ right: 6, bottom: 6 })
       }
     }
     .width('100%')
@@ -374,7 +335,7 @@ struct WordCloudContent {
       }
       .margin({ bottom: 12 })
 
-      Text('粘贴文本后点击生成')
+      Text('输入词语后点击生成')
         .fontSize(13)
         .fontColor($r('app.color.tertiary_text'))
     }
@@ -447,7 +408,7 @@ struct WordCloudContent {
               Text(this.shapeIcons[index])
                 .fontSize(20)
                 .fontColor(this.currentShapeIndex === index ? this.getAccentColor() : $r('app.color.tertiary_text'))
-              Text(shape.name)
+              Text(shape.label)
                 .fontSize(10)
                 .fontColor(this.currentShapeIndex === index ? this.getAccentColor() : $r('app.color.tertiary_text'))
                 .margin({ top: 2 })
@@ -505,16 +466,111 @@ struct WordCloudContent {
     .padding({ top: 8 })
   }
 
-  private async doPaste(): Promise<void> {
-    let text: string = await ClipboardUtil.paste();
-    if (text && text.length > 0) {
-      this.inputText = text;
+  private parseDirectWords(): void {
+    let raw: string = this.directWordsText;
+    if (!raw || raw.trim().length === 0) {
+      this.cloudWords = [];
+      return;
     }
+    let lines: string[] = raw.split('\n');
+    let newWords: CloudWord[] = [];
+    for (let i: number = 0; i < lines.length && newWords.length < this.MAX_WORDS; i++) {
+      let line: string = lines[i].trim();
+      if (line.length === 0) {
+        continue;
+      }
+      let parts: string[] = line.split(new RegExp('[:：]'));
+      let text: string = parts[0].trim();
+      if (text.length === 0) {
+        continue;
+      }
+      let weight: number = 1;
+      if (parts.length > 1) {
+        let parsed: number = parseInt(parts[1].trim());
+        if (!isNaN(parsed) && parsed > 0) {
+          weight = parsed;
+        }
+      }
+      let found: boolean = false;
+      for (let j: number = 0; j < newWords.length; j++) {
+        if (newWords[j].text === text) {
+          let merged: CloudWord = new CloudWord(text, newWords[j].weight + weight, newWords[j].custom);
+          newWords[j] = merged;
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        newWords.push(new CloudWord(text, weight, true));
+      }
+    }
+    this.cloudWords = newWords;
   }
 
-  private async extractWords(): Promise<void> {
+  private removeWordAndSync(word: string): void {
+    let newWords: CloudWord[] = [];
+    for (let i: number = 0; i < this.cloudWords.length; i++) {
+      if (this.cloudWords[i].text !== word) {
+        newWords.push(this.cloudWords[i]);
+      }
+    }
+    this.cloudWords = newWords;
+    this.syncDirectTextFromWords();
+  }
+
+  private syncDirectTextFromWords(): void {
+    let lines: string[] = [];
+    for (let i: number = 0; i < this.cloudWords.length; i++) {
+      let w: CloudWord = this.cloudWords[i];
+      if (w.weight > 1) {
+        lines.push(w.text + ':' + w.weight.toString());
+      } else {
+        lines.push(w.text);
+      }
+    }
+    this.directWordsText = lines.join('\n');
+  }
+
+  private loadExample(): void {
+    let exampleData: string[][] = [
+      ['分词', '8'], ['语言', '5'], ['文本', '4'], ['技术', '3'], ['模型', '3'], ['任务', '3'],
+      ['机器', '3'], ['规则', '3'], ['中文', '3'], ['词汇', '3'], ['条件随机场', '3'], ['理解', '3'],
+      ['算法', '2'], ['人工智能', '2'], ['自然语言处理', '2'], ['领域', '2'], ['边界', '2'], ['单元', '2'],
+      ['情感', '2'], ['含义', '2'], ['语法', '2'], ['网络', '2'], ['新词', '2'], ['机器学习', '2'],
+      ['隐马尔可夫', '2'], ['语料', '2'], ['共现', '2'], ['深度学习', '2'], ['语义', '2'], ['歧义', '2'],
+      ['切分', '2'], ['词性标注', '2'], ['命名实体', '2'], ['句法分析', '2'], ['人类', '2'], ['字符', '2'],
+      ['词典', '2'], ['计算机', '2'], ['大数据', '2'], ['信息', '2'], ['知识', '2'], ['基石', '2'],
+      ['系统', '2'], ['发展', '2'], ['方法', '2'], ['关系', '2'],
+      ['统计模型', '1'], ['双向长短期记忆', '1'], ['搜索引擎', '1'],
+      ['智能客服', '1'], ['情感分析', '1'], ['大脑', '1'], ['散文', '1'],
+      ['意合语言', '1'], ['连续', '1'], ['片段', '1'], ['内涵', '1'], ['认知', '1'], ['人工', '1'],
+      ['精确度', '1'], ['挑战性', '1'], ['魅力', '1'], ['分支', '1'], ['高级', '1'], ['钥匙', '1'],
+      ['大门', '1'], ['浩瀚', '1'], ['海洋', '1'], ['有价值', '1'], ['碎片', '1'], ['不可或缺', '1'],
+    ];
+    let lines: string[] = [];
+    for (let i: number = 0; i < exampleData.length; i++) {
+      let text: string = exampleData[i][0];
+      let weight: string = exampleData[i][1];
+      if (weight === '1') {
+        lines.push(text);
+      } else {
+        lines.push(text + ':' + weight);
+      }
+    }
+    this.directWordsText = lines.join('\n');
+    this.parseDirectWords();
+  }
+
+  private clearWords(): void {
+    this.directWordsText = '';
+    this.cloudWords = [];
+    this.placedWords = [];
+    this.generatedCachePath = '';
+  }
+
+  private async extractWordsToDirect(): Promise<void> {
     if (!this.inputText || this.inputText.trim().length === 0) {
-      this.uiContext.getPromptAction().showToast({ message: '请先输入或粘贴文本', duration: 1500 });
+      this.uiContext.getPromptAction().showToast({ message: '请先输入或粘贴文本到上方编辑区', duration: 1500 });
       return;
     }
     this.isExtracting = true;
@@ -527,61 +583,27 @@ struct WordCloudContent {
       }
       let maxWords: number = this.MAX_WORDS;
       let entries: Array<WordCountEntry> = wordEntries.length > maxWords ? wordEntries.slice(0, maxWords) : wordEntries;
+      let lines: string[] = [];
       let newWords: CloudWord[] = [];
       for (let i: number = 0; i < entries.length; i++) {
         newWords.push(new CloudWord(entries[i].word, entries[i].count, false));
+        if (entries[i].count > 1) {
+          lines.push(entries[i].word + ':' + entries[i].count.toString());
+        } else {
+          lines.push(entries[i].word);
+        }
+      }
+      if (this.directWordsText.length > 0) {
+        this.directWordsText = this.directWordsText + '\n' + lines.join('\n');
+      } else {
+        this.directWordsText = lines.join('\n');
       }
       this.cloudWords = newWords;
+      this.syncDirectTextFromWords();
     } catch (e) {
       this.uiContext.getPromptAction().showToast({ message: '分词失败', duration: 2000 });
     }
     this.isExtracting = false;
-  }
-
-  private removeWord(word: string): void {
-    let newWords: CloudWord[] = [];
-    for (let i: number = 0; i < this.cloudWords.length; i++) {
-      if (this.cloudWords[i].text !== word) {
-        newWords.push(this.cloudWords[i]);
-      }
-    }
-    this.cloudWords = newWords;
-  }
-
-  private addCustomWord(): void {
-    let w: string = this.customWord.trim();
-    if (!w) {
-      return;
-    }
-    let c: number = parseInt(this.customCount);
-    if (isNaN(c) || c < 1) {
-      c = 1;
-    }
-    for (let i: number = 0; i < this.cloudWords.length; i++) {
-      if (this.cloudWords[i].text === w) {
-        let newWords: CloudWord[] = [];
-        for (let j: number = 0; j < this.cloudWords.length; j++) {
-          if (this.cloudWords[j].text === w) {
-            newWords.push(new CloudWord(w, this.cloudWords[j].weight + c, this.cloudWords[j].custom));
-          } else {
-            newWords.push(this.cloudWords[j]);
-          }
-        }
-        this.cloudWords = newWords;
-        this.customWord = '';
-        this.customCount = '1';
-        this.uiContext.getPromptAction().showToast({ message: '已累加权重', duration: 1000 });
-        return;
-      }
-    }
-    let newWords: CloudWord[] = [];
-    for (let i: number = 0; i < this.cloudWords.length; i++) {
-      newWords.push(this.cloudWords[i]);
-    }
-    newWords.push(new CloudWord(w, c, true));
-    this.cloudWords = newWords;
-    this.customWord = '';
-    this.customCount = '1';
   }
 
   private async generateWordCloud(): Promise<void> {
@@ -606,30 +628,19 @@ struct WordCloudContent {
         item.tag = '';
         weightedItems.push(item);
       }
-      console.info('[WordCloud] weightedItems created, count=' + weightedItems.length.toString());
 
       this.progressValue = 15;
       this.progressText = '计算字号...';
       await this.delay(30);
 
-      FontScaler.scaleAll(weightedItems, this.canvasSize);
-      console.info('[WordCloud] FontScaler done, canvasSize=' + this.canvasSize.toString() +
-        ', minFont=' + FontScaler.getMinFont(this.canvasSize).toString() +
-        ', maxFont=' + FontScaler.getMaxFont(this.canvasSize).toString() +
-        ', sample[0].fontSize=' + (weightedItems.length > 0 ? weightedItems[0].fontSize.toString() : 'N/A'));
-
-      this.lastWeightedItems = weightedItems;
-
-      this.progressValue = 25;
-      this.progressText = '创建精灵...';
-      await this.delay(30);
-
       let fontName: string = this.fontNames[this.currentFontIndex];
-      let shapeFn: (theta: number) => number = this.shapes[this.currentShapeIndex].fn;
-      console.info('[WordCloud] font=' + fontName + ', shape=' + this.shapes[this.currentShapeIndex].id);
+      let shape: ShapeDef = this.shapes[this.currentShapeIndex];
+      let layoutSize: number = this.LAYOUT_CANVAS_SIZE;
 
-      let placer: BitmapPlacer = new BitmapPlacer(this.canvasSize);
-      let sprites: WordSprite[] = [];
+      FontScaler.scaleAll(weightedItems, layoutSize, shape.shapeRatio);
+
+      let spriteDataList: SpriteData[] = [];
+      let placer: BitmapPlacer = new BitmapPlacer(layoutSize);
       for (let i: number = 0; i < weightedItems.length; i++) {
         let sprite: WordSprite = placer.makeSprite(
           weightedItems[i].text,
@@ -638,42 +649,62 @@ struct WordCloudContent {
           weightedItems[i].weight,
           0
         );
-        sprites.push(sprite);
+        let sd: SpriteData = {
+          text: sprite.text,
+          fontSize: sprite.fontSize,
+          font: sprite.font,
+          weight: sprite.weight,
+          width: sprite.width,
+          height: sprite.height,
+        };
+        spriteDataList.push(sd);
       }
-      console.info('[WordCloud] sprites created, count=' + sprites.length.toString() +
-        ', sprite[0] text=' + (sprites.length > 0 ? sprites[0].text : 'N/A') +
-        ' w=' + (sprites.length > 0 ? sprites[0].width.toString() : 'N/A') +
-        ' h=' + (sprites.length > 0 ? sprites[0].height.toString() : 'N/A'));
 
       this.progressValue = 40;
       this.progressText = '布局中...';
       await this.delay(30);
 
-      console.info('[WordCloud] calling placer.place...');
-      let results: PlacedWord[] = placer.place(sprites, shapeFn);
-      console.info('[WordCloud] placer.place returned, results=' + results.length.toString());
+      let input: WordCloudInput = {
+        words: spriteDataList,
+        canvasSize: layoutSize,
+        shapeIndex: this.currentShapeIndex,
+        fontName: fontName,
+      };
+
+      console.info('[WordCloud] calling runPlacementAsync...');
+      let result = await runPlacementAsync(input);
+      console.info('[WordCloud] placement done, placed=' + result.count.toString());
 
       this.progressValue = 80;
       this.progressText = '着色中...';
       await this.delay(20);
 
       let palette: PaletteColor = this.palettes[this.currentPaletteIndex];
-      for (let i: number = 0; i < results.length; i++) {
-        if (!results[i].color || results[i].color.length === 0) {
-          results[i].color = palette.colors[i % palette.colors.length];
-        }
-        results[i].font = fontName;
+      let placedResults: PlacedWord[] = [];
+      for (let i: number = 0; i < result.placed.length; i++) {
+        let pd = result.placed[i];
+        let pw: PlacedWord = new PlacedWord();
+        pw.text = pd.text;
+        pw.x = pd.x;
+        pw.y = pd.y;
+        pw.size = pd.size;
+        pw.color = palette.colors[i % palette.colors.length];
+        pw.angle = pd.angle;
+        pw.font = fontName;
+        pw.width = pd.width;
+        pw.height = pd.height;
+        placedResults.push(pw);
       }
 
       this.progressValue = 95;
       this.progressText = '渲染中...';
 
-      this.placedWords = results;
+      this.placedWords = placedResults;
+      this.lastWeightedItems = weightedItems;
       await this.delay(50);
 
       this.progressValue = 100;
-      this.progressText = '已生成 ' + results.length.toString() + ' 个词';
-      console.info('[WordCloud] DONE, placedWords=' + this.placedWords.length.toString());
+      this.progressText = '已生成 ' + placedResults.length.toString() + ' 个词';
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[WordCloud] generate FAILED: code=' + err.code + ' msg=' + err.message);
@@ -713,15 +744,15 @@ struct WordCloudContent {
     this.placedWords = newWords;
   }
 
-  private refreshFont(): void {
+  private async refreshFont(): Promise<void> {
     if (this.lastWeightedItems.length === 0) {
       return;
     }
     let fontName: string = this.fontNames[this.currentFontIndex];
-    let shapeFn: (theta: number) => number = this.shapes[this.currentShapeIndex].fn;
+    let layoutSize: number = this.LAYOUT_CANVAS_SIZE;
 
-    let placer: BitmapPlacer = new BitmapPlacer(this.canvasSize);
-    let sprites: WordSprite[] = [];
+    let spriteDataList: SpriteData[] = [];
+    let placer: BitmapPlacer = new BitmapPlacer(layoutSize);
     for (let i: number = 0; i < this.lastWeightedItems.length; i++) {
       let sprite: WordSprite = placer.makeSprite(
         this.lastWeightedItems[i].text,
@@ -730,20 +761,46 @@ struct WordCloudContent {
         this.lastWeightedItems[i].weight,
         0
       );
-      sprites.push(sprite);
+      let sd: SpriteData = {
+        text: sprite.text,
+        fontSize: sprite.fontSize,
+        font: sprite.font,
+        weight: sprite.weight,
+        width: sprite.width,
+        height: sprite.height,
+      };
+      spriteDataList.push(sd);
     }
 
-    let results: PlacedWord[] = placer.place(sprites, shapeFn);
+    let input: WordCloudInput = {
+      words: spriteDataList,
+      canvasSize: layoutSize,
+      shapeIndex: this.currentShapeIndex,
+      fontName: fontName,
+    };
 
-    let palette: PaletteColor = this.palettes[this.currentPaletteIndex];
-    for (let i: number = 0; i < results.length; i++) {
-      if (!results[i].color || results[i].color.length === 0) {
-        results[i].color = palette.colors[i % palette.colors.length];
+    try {
+      let result = await runPlacementAsync(input);
+      let palette: PaletteColor = this.palettes[this.currentPaletteIndex];
+      let placedResults: PlacedWord[] = [];
+      for (let i: number = 0; i < result.placed.length; i++) {
+        let pd = result.placed[i];
+        let pw: PlacedWord = new PlacedWord();
+        pw.text = pd.text;
+        pw.x = pd.x;
+        pw.y = pd.y;
+        pw.size = pd.size;
+        pw.color = palette.colors[i % palette.colors.length];
+        pw.angle = pd.angle;
+        pw.font = fontName;
+        pw.width = pd.width;
+        pw.height = pd.height;
+        placedResults.push(pw);
       }
-      results[i].font = fontName;
+      this.placedWords = placedResults;
+    } catch (e) {
+      console.error('[WordCloud] refreshFont failed');
     }
-
-    this.placedWords = results;
   }
 
   private getAccentColor(): string {
