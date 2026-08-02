@@ -77,7 +77,7 @@ export class WordCloudRenderUtil {
     ctx.beginPath();
     for (let i: number = 0; i < pts.length; i++) {
       let x: number = cx + pts[i][0] * maxR;
-      let y: number = cy + pts[i][1] * maxR;
+      let y: number = cy - pts[i][1] * maxR;
       if (i === 0) {
         ctx.moveTo(x, y);
       } else {
@@ -96,7 +96,7 @@ export class WordCloudRenderUtil {
     ctx.beginPath();
     for (let i: number = 0; i < pts.length; i++) {
       let x: number = cx + pts[i][0] * maxR;
-      let y: number = cy + pts[i][1] * maxR;
+      let y: number = cy - pts[i][1] * maxR;
       if (i === 0) {
         ctx.moveTo(x, y);
       } else {
