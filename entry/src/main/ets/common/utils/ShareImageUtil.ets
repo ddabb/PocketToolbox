@@ -100,57 +100,61 @@ export function buildXiehouyuMarkdown(item: XiehouyuItem): string {
 
 export async function generateShareImage(uiContext: UIContext, componentId: string, prefix: string): Promise<string> {
   let snapshot = uiContext.getComponentSnapshot();
-  let pixelMap: image.PixelMap = await snapshot.get(componentId);
+  let pixelMap: image.PixelMap = await snapshot.get(componentId, { scale: 2, waitUntilRenderFinished: true });
   let packer: image.ImagePacker = image.createImagePacker();
   let packOpts: image.PackingOption = {
     format: 'image/png',
     quality: 100
   };
-  let arrayBuffer: ArrayBuffer = await packer.packing(pixelMap, packOpts);
   let context: common.UIAbilityContext = uiContext.getHostContext() as common.UIAbilityContext;
   let dir: string = context.cacheDir;
   let fileName: string = prefix + '_' + Date.now() + '.png';
   let filePath: string = dir + '/' + fileName;
   let file: fs.File = fs.openSync(filePath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.TRUNC);
-  fs.writeSync(file.fd, arrayBuffer);
-  fs.closeSync(file);
-  packer.release();
-  pixelMap.release();
-  return filePath;
+  try {
+    await packer.packToFile(pixelMap, file.fd, packOpts);
+  } finally {
+    fs.closeSync(file.fd);
+    packer.release();
+    pixelMap.release();
+  }
+  return file.path;
 }
 
-export async function saveImageToAlbum(uiContext: UIContext, cachePath: string, prefix: string): Promise<void> {
+export async function savePixelMapToAlbum(uiContext: UIContext, pixelMap: image.PixelMap): Promise<void> {
   try {
     let context: common.UIAbilityContext = uiContext.getHostContext() as common.UIAbilityContext;
+    let dir: string = context.cacheDir;
+    let fileName: string = 'save_tmp_' + Date.now() + '.png';
+    let filePath: string = dir + '/' + fileName;
+    let file: fs.File = fs.openSync(filePath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.TRUNC);
+    let packer: image.ImagePacker = image.createImagePacker();
+    let packOpts: image.PackingOption = { format: 'image/png', quality: 100 };
+    try {
+      await packer.packToFile(pixelMap, file.fd, packOpts);
+    } finally {
+      fs.closeSync(file.fd);
+      packer.release();
+    }
     let helper: photoAccessHelper.PhotoAccessHelper = photoAccessHelper.getPhotoAccessHelper(context);
-    let srcFileUri: string = fileUri.getUriFromPath(cachePath);
+    let srcFileUri: string = fileUri.getUriFromPath(filePath);
     let srcFileUris: Array<string> = [srcFileUri];
-    let photoCreationConfigs: Array<photoAccessHelper.PhotoCreationConfig> = [
-      {
-        title: prefix + '_' + Date.now(),
-        fileNameExtension: 'png',
-        photoType: photoAccessHelper.PhotoType.IMAGE,
-        subtype: photoAccessHelper.PhotoSubtype.DEFAULT,
-      }
-    ];
+    let photoCreationConfigs: Array<photoAccessHelper.PhotoCreationConfig> = [{
+      fileNameExtension: 'png',
+      photoType: photoAccessHelper.PhotoType.IMAGE,
+    }];
     let desFileUris: Array<string> = await helper.showAssetsCreationDialog(srcFileUris, photoCreationConfigs);
     if (desFileUris.length > 0) {
-      let sourceFile: fs.File = fs.openSync(cachePath, fs.OpenMode.READ_ONLY);
-      let destFile: fs.File = fs.openSync(desFileUris[0], fs.OpenMode.READ_WRITE);
-      let buf: ArrayBuffer = new ArrayBuffer(4096);
-      let readLen: number = fs.readSync(sourceFile.fd, buf);
-      while (readLen > 0) {
-        let writeOpts: WriteOptions = { length: readLen };
-        fs.writeSync(destFile.fd, buf, writeOpts);
-        readLen = fs.readSync(sourceFile.fd, buf);
-      }
-      fs.closeSync(sourceFile);
-      fs.closeSync(destFile);
+      let srcFile: fs.File = fs.openSync(filePath, fs.OpenMode.READ_ONLY);
+      let desFile: fs.File = await fs.open(desFileUris[0], fs.OpenMode.READ_WRITE);
+      await fs.copyFile(srcFile.fd, desFile.fd);
+      fs.closeSync(srcFile);
+      await fs.close(desFile.fd);
       uiContext.getPromptAction().showToast({ message: '已保存到相册', duration: 1000 });
     }
   } catch (e) {
     let err: BusinessError = e as BusinessError;
-    console.error('[ShareUtil] saveToAlbum failed: ' + err.code + ' ' + err.message);
+    console.error('[ShareUtil] savePixelMapToAlbum failed: ' + err.code + ' ' + err.message);
     uiContext.getPromptAction().showToast({ message: '保存失败', duration: 2000 });
   }
 }

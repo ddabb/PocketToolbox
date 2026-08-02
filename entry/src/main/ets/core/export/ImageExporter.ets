@@ -1,7 +1,8 @@
 import { image } from '@kit.ImageKit';
 import { fileIo as fs } from '@kit.CoreFileKit';
 import { common } from '@kit.AbilityKit';
-import { generateShareImage, saveImageToAlbum, shareImageViaPanel } from '../../common/utils/ShareImageUtil';
+import { generateShareImage, savePixelMapToAlbum, shareImageViaPanel } from '../../common/utils/ShareImageUtil';
+import { photoAccessHelper } from '@kit.MediaLibraryKit';
 
 export class ImageExporter {
   static async exportToCache(uiContext: UIContext, componentId: string, prefix: string): Promise<string> {
@@ -9,25 +10,27 @@ export class ImageExporter {
   }
 
   static async pixelMapToCache(uiContext: UIContext, pixelMap: image.PixelMap, prefix: string): Promise<string> {
-    let packer: image.ImagePacker = image.createImagePacker();
-    let packOpts: image.PackingOption = {
-      format: 'image/png',
-      quality: 100
-    };
-    let arrayBuffer: ArrayBuffer = await packer.packing(pixelMap, packOpts);
     let context: common.UIAbilityContext = uiContext.getHostContext() as common.UIAbilityContext;
     let dir: string = context.cacheDir;
     let fileName: string = prefix + '_' + Date.now() + '.png';
     let filePath: string = dir + '/' + fileName;
     let file: fs.File = fs.openSync(filePath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.TRUNC);
-    fs.writeSync(file.fd, arrayBuffer);
-    fs.closeSync(file);
-    packer.release();
-    return filePath;
+    let packer: image.ImagePacker = image.createImagePacker();
+    let packOpts: image.PackingOption = {
+      format: 'image/png',
+      quality: 100
+    };
+    try {
+      await packer.packToFile(pixelMap, file.fd, packOpts);
+    } finally {
+      fs.closeSync(file.fd);
+      packer.release();
+    }
+    return file.path;
   }
 
-  static async saveToAlbum(uiContext: UIContext, cachePath: string, prefix: string): Promise<void> {
-    return saveImageToAlbum(uiContext, cachePath, prefix);
+  static async saveToAlbum(uiContext: UIContext, pixelMap: image.PixelMap): Promise<void> {
+    return savePixelMapToAlbum(uiContext, pixelMap);
   }
 
   static share(uiContext: UIContext, cachePath: string): void {

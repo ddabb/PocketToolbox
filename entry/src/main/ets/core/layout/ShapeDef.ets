@@ -111,7 +111,7 @@ export class ShapeDef {
 
   containsPixel(px: number, py: number): boolean {
     if (!this.bitmap) {
-      return false;
+      return true;
     }
     let s: number = this.bitmap.size;
     let ix: number = Math.floor(px);
@@ -198,55 +198,98 @@ export class ShapeDef {
   }
 
   static readonly circleFn: (theta: number) => number = () => 1;
+  static readonly cardioidFn: (theta: number) => number = (theta: number) => {
+    let t: number = -theta;
+    let sinT: number = Math.sin(t);
+    let cosT: number = Math.cos(t);
+    let r: number = (Math.sqrt(Math.abs(cosT)) * sinT) / (sinT + 1.4) - 2 * sinT + 2;
+    return r / 2.2;
+  };
+  static readonly heartParam: (t: number) => [number, number] = (t: number) => {
+    let sinT: number = Math.sin(t);
+    let cosT: number = Math.cos(t);
+    let x: number = 16 * sinT * sinT * sinT;
+    let y: number = 13 * cosT - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+    return [x, y];
+  };
   static readonly star5Fn: (theta: number) => number = (theta: number) => {
+    let points: number = 5;
+    let outerR: number = 1.0;
+    let innerR: number = 0.382;
+    let sector: number = Math.PI / points;
     let t: number = theta - Math.PI / 2;
-    let m: number = 0.382;
-    let k: number = 5;
-    let nrm: number = (k * m - m) / (2 * (k - 1)) * (1 - m) + m;
-    let f: number = (Math.cos(k * t) * (1 - m) + (k * m - 1)) / (k - 1) / nrm;
-    return Math.max(0.2, f);
+    t = ((t % (2 * sector)) + (2 * sector)) % (2 * sector);
+    if (t < sector) {
+      let ratio: number = t / sector;
+      return outerR + (innerR - outerR) * ratio;
+    } else {
+      let ratio: number = (t - sector) / sector;
+      return innerR + (outerR - innerR) * ratio;
+    }
   };
-  static readonly diamondFn: (theta: number) => number = (theta: number) => 1 / (Math.abs(Math.cos(theta)) + Math.abs(Math.sin(theta)));
+  static readonly diamondFn: (theta: number) => number = (theta: number) => {
+    let t: number = ((theta % (Math.PI / 2)) + (Math.PI / 2)) % (Math.PI / 2);
+    return 1 / (Math.cos(t) + Math.sin(t));
+  };
   static readonly triangleFn: (theta: number) => number = (theta: number) => {
-    let k: number = 3;
-    let m: number = 0.1;
-    let nrm: number = (m + (1 - m) * Math.cos(Math.PI / k)) / Math.cos(((1 - (1 - m) * Math.tan(Math.PI / k) * Math.tan((2 * Math.PI) / k)) * Math.PI) / (2 * k));
-    let f: number = Math.cos((k * theta) / 2) / Math.cos(((k * theta) / 2) - ((Math.PI / k) * (1 - (1 - m) * Math.tan(Math.PI / k) * Math.tan((2 * Math.PI) / k))));
-    return Math.max(0.2, f / nrm);
+    let sector: number = (2 * Math.PI) / 3;
+    let t: number = (((theta + Math.PI / 2) % sector) + sector) % sector;
+    return 1 / (Math.cos(t) + Math.sqrt(3) * Math.sin(t));
   };
-  static readonly squareFn: (theta: number) => number = (theta: number) => Math.max(Math.abs(Math.cos(theta)), Math.abs(Math.sin(theta))) / 1;
+  static readonly squareFn: (theta: number) => number = (theta: number) => {
+    let absCos: number = Math.abs(Math.cos(theta));
+    let absSin: number = Math.abs(Math.sin(theta));
+    let maxVal: number = Math.max(absCos, absSin);
+    if (maxVal < 1e-10) {
+      return 1;
+    }
+    let SQRT1_2: number = 0.7071067811865476;
+    return SQRT1_2 / maxVal;
+  };
   static readonly pentagonFn: (theta: number) => number = (theta: number) => {
-    let k: number = 5;
-    let m: number = 0.36;
-    let nrm: number = (m + (1 - m) * Math.cos(Math.PI / k)) / Math.cos(((1 - (1 - m) * Math.tan(Math.PI / k) * Math.tan((2 * Math.PI) / k)) * Math.PI) / (2 * k));
-    let f: number = Math.cos((k * theta) / 2) / Math.cos(((k * theta) / 2) - ((Math.PI / k) * (1 - (1 - m) * Math.tan(Math.PI / k) * Math.tan((2 * Math.PI) / k))));
-    return Math.max(0.3, f / nrm);
+    let sides: number = 5;
+    let sector: number = (2 * Math.PI) / sides;
+    let t: number = (((theta + Math.PI / 2) % sector) + sector) % sector;
+    return 1 / (Math.cos(t) + 0.7265 * Math.sin(t));
   };
   static readonly hexagonFn: (theta: number) => number = (theta: number) => {
-    let k: number = 6;
-    let m: number = 0.3;
-    let nrm: number = (m + (1 - m) * Math.cos(Math.PI / k)) / Math.cos(((1 - (1 - m) * Math.tan(Math.PI / k) * Math.tan((2 * Math.PI) / k)) * Math.PI) / (2 * k));
-    let f: number = Math.cos((k * theta) / 2) / Math.cos(((k * theta) / 2) - ((Math.PI / k) * (1 - (1 - m) * Math.tan(Math.PI / k) * Math.tan((2 * Math.PI) / k))));
-    return Math.max(0.4, f / nrm);
+    let sector: number = Math.PI / 3;
+    let t: number = ((theta % sector) + sector) % sector;
+    let phi: number = Math.abs(t - sector / 2);
+    return Math.cos(Math.PI / 6) / Math.cos(phi);
   };
   static readonly crossFn: (theta: number) => number = (theta: number) => {
-    let k: number = 4;
-    let m: number = 0.5;
-    let nrm: number = (m + (1 - m) * Math.cos(Math.PI / k)) / Math.cos(((1 - (1 - m) * Math.tan(Math.PI / k) * Math.tan((2 * Math.PI) / k)) * Math.PI) / (2 * k));
-    let f: number = Math.cos((k * theta) / 2) / Math.cos(((k * theta) / 2) - ((Math.PI / k) * (1 - (1 - m) * Math.tan(Math.PI / k) * Math.tan((2 * Math.PI) / k))));
-    return Math.max(0.15, f / nrm);
+    let armWidth: number = 0.28;
+    let absCos: number = Math.abs(Math.cos(theta));
+    let absSin: number = Math.abs(Math.sin(theta));
+    let rH: number = Infinity;
+    let rV: number = Infinity;
+    if (absSin > 1e-8) {
+      rH = armWidth / absSin;
+    }
+    if (absCos > 1e-8) {
+      rV = armWidth / absCos;
+    }
+    return Math.min(Math.max(rH, rV), 1.0);
   };
   static readonly cloudFn: (theta: number) => number = (theta: number) => {
-    let base: number = 1.0;
-    let bumps: number = 0.16 * Math.cos(5 * theta) + 0.06 * Math.cos(3 * theta + 0.6) + 0.04 * Math.sin(2 * theta);
-    return Math.max(0.55, base + bumps);
+    let bump: number = 0.16 * Math.cos(5 * theta) + 0.06 * Math.cos(3 * theta + 0.6);
+    let r: number = 0.9 + bump;
+    let s: number = Math.sin(theta);
+    if (s < 0) {
+      r = r * (1 + 0.12 * s);
+    }
+    return r / 1.05;
   };
-  static readonly ellipseFn: (theta: number) => number = (theta: number) => 1 / Math.sqrt(Math.pow(Math.cos(theta), 2) + Math.pow(Math.sin(theta) / 1.6, 2));
-  static readonly cardioidFn: (theta: number) => number = (theta: number) => 1 - Math.cos(theta + Math.PI);
-  static readonly heartParam: (t: number) => [number, number] = (t: number) => {
-    let x: number = 16 * Math.pow(Math.sin(t), 3);
-    let y: number = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
-    return [x / 17, -y / 17];
+  static readonly ovalFn: (theta: number) => number = (theta: number) => {
+    let b: number = 0.7;
+    let cosT: number = Math.cos(theta);
+    let sinT: number = Math.sin(theta);
+    return b / Math.sqrt(b * b * cosT * cosT + sinT * sinT);
+  };
+  static readonly leafFn: (theta: number) => number = (theta: number) => {
+    let s: number = Math.abs(Math.sin(theta));
+    return Math.pow(s, 0.55);
   };
   static readonly leafParam: (t: number) => [number, number] = (t: number) => {
     let x: number = 0.5 * Math.sin(t) * (1 + 0.25 * Math.cos(t)) + 0.05 * Math.sin(2 * t);
@@ -255,19 +298,18 @@ export class ShapeDef {
   };
 
   static readonly SHAPES: ShapeDef[] = [
-    new ShapeDef('circle', '圆形', ShapeDef.circleFn, 0.75),
-    new ShapeDef('heart', '心形', ShapeDef.cardioidFn, 0.55, ),
-    new ShapeDef('star5', '五角星', ShapeDef.star5Fn, 0.55),
+    new ShapeDef('circle', '圆形', ShapeDef.circleFn, 1.0),
+    new ShapeDef('cardioid', '心形', ShapeDef.cardioidFn, 0.5).setParam(ShapeDef.heartParam),
+    new ShapeDef('star5', '五角星', ShapeDef.star5Fn, 0.4),
     new ShapeDef('diamond', '菱形', ShapeDef.diamondFn, 0.5),
-    new ShapeDef('triangle', '三角形', ShapeDef.triangleFn, 0.5),
+    new ShapeDef('triangle', '三角', ShapeDef.triangleFn, 0.38),
     new ShapeDef('square', '方形', ShapeDef.squareFn, 0.6),
-    new ShapeDef('pentagon', '五边形', ShapeDef.pentagonFn, 0.62),
-    new ShapeDef('hexagon', '六边形', ShapeDef.hexagonFn, 0.64),
-    new ShapeDef('cross', '十字', ShapeDef.crossFn, 0.45),
-    new ShapeDef('cloud', '云朵', ShapeDef.cloudFn, 0.55),
-    new ShapeDef('ellipse', '椭圆', ShapeDef.ellipseFn, 0.7),
-    new ShapeDef('heart2', '心形(参数)', ShapeDef.cardioidFn, 0.55).setParam(ShapeDef.heartParam),
-    new ShapeDef('leaf', '叶片', ShapeDef.cardioidFn, 0.5).setParam(ShapeDef.leafParam),
+    new ShapeDef('pentagon', '五边', ShapeDef.pentagonFn, 0.76),
+    new ShapeDef('hexagon', '六边', ShapeDef.hexagonFn, 0.83),
+    new ShapeDef('cross', '十字', ShapeDef.crossFn, 0.35),
+    new ShapeDef('cloud', '云朵', ShapeDef.cloudFn, 0.58),
+    new ShapeDef('oval', '椭圆', ShapeDef.ovalFn, 0.7),
+    new ShapeDef('leaf', '叶片', ShapeDef.leafFn, 0.42).setParam(ShapeDef.leafParam),
   ];
 
   setParam(p: (t: number) => [number, number]): ShapeDef {
@@ -307,12 +349,12 @@ export class ShapeDef {
     ctx.putImageData(img, 0, 0);
   }
 
-  static getShapeById(id: string): ShapeDef | undefined {
+  static getShapeById(id: string): ShapeDef {
     for (let i = 0; i < ShapeDef.SHAPES.length; i++) {
       if (ShapeDef.SHAPES[i].id === id) {
         return ShapeDef.SHAPES[i];
       }
     }
-    return undefined;
+    return ShapeDef.SHAPES[0];
   }
 }

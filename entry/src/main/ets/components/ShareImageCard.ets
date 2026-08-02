@@ -1,9 +1,32 @@
 import { Markdown, MarkdownController } from '@luvi/lv-markdown-in';
-import { generateShareImage, saveImageToAlbum, shareImageViaPanel } from '../common/utils/ShareImageUtil';
+import { shareImageViaPanel } from '../common/utils/ShareImageUtil';
 import { ShareTemplateInfo } from '../model/Md2PngModels';
 import { BusinessError } from '@kit.BasicServicesKit';
 import { display } from '@kit.ArkUI';
 import { DecorPatternUtil } from '../common/utils/DecorPatternUtil';
+import { image } from '@kit.ImageKit';
+import { fileIo as fs, fileUri } from '@kit.CoreFileKit';
+import { common } from '@kit.AbilityKit';
+import { photoAccessHelper } from '@kit.MediaLibraryKit';
+import { taskpool } from '@kit.ArkTS';
+
+@Concurrent
+function packPixelMapToCacheFile(pixelMap: image.PixelMap, filePath: string): Promise<string> {
+  return new Promise<string>((resolve, reject) => {
+    let file: fs.File = fs.openSync(filePath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.TRUNC);
+    let packer: image.ImagePacker = image.createImagePacker();
+    let packOpts: image.PackingOption = { format: 'image/png', quality: 100 };
+    packer.packToFile(pixelMap, file.fd, packOpts).then(() => {
+      fs.closeSync(file.fd);
+      packer.release();
+      resolve(filePath);
+    }).catch((err: BusinessError) => {
+      fs.closeSync(file.fd);
+      packer.release();
+      reject(err);
+    });
+  });
+}
 
 @Component
 export struct ShareImageCard {
@@ -23,6 +46,7 @@ export struct ShareImageCard {
   @State decorPattern: string = '';
   private readonly minCardHeight: number = 320;
   private canvasReady: boolean = false;
+  private cachedPixelMap: image.PixelMap | undefined = undefined;
   private mdController: MarkdownController = new MarkdownController();
   private decorCanvasCtx: CanvasRenderingContext2D = new CanvasRenderingContext2D(new RenderingContextSettings(true));
 
@@ -124,32 +148,62 @@ export struct ShareImageCard {
     this.redrawDecor();
   }
 
-  async doGenerate(): Promise<void> {
-    this.isGenerating = true;
+  private async takeSnapshot(): Promise<image.PixelMap | undefined> {
     try {
       let uiCtx: UIContext = this.getUIContext();
-      this.generatedImageUri = await generateShareImage(uiCtx, this.cardId, 'share');
+      let snapshot = uiCtx.getComponentSnapshot();
+      let pixelMap: image.PixelMap = await snapshot.get(this.cardId, { scale: 2, waitUntilRenderFinished: true });
+      return pixelMap;
+    } catch (e) {
+      let err: BusinessError = e as BusinessError;
+      console.error('[ShareCard] snapshot failed: ' + err.code + ' ' + err.message);
+      return undefined;
+    }
+  }
+
+  private async pixelMapToCache(uiContext: UIContext, pixelMap: image.PixelMap, prefix: string): Promise<string> {
+    let context: common.UIAbilityContext = uiContext.getHostContext() as common.UIAbilityContext;
+    let dir: string = context.cacheDir;
+    let fileName: string = prefix + '_' + Date.now() + '.png';
+    let filePath: string = dir + '/' + fileName;
+    let task: taskpool.Task = new taskpool.Task(packPixelMapToCacheFile, pixelMap, filePath);
+    return await taskpool.execute(task, taskpool.Priority.HIGH) as string;
+  }
+
+  async doGenerate(): Promise<string> {
+    this.isGenerating = true;
+    let result: string = '';
+    try {
+      let pixelMap: image.PixelMap | undefined = await this.takeSnapshot();
+      if (!pixelMap) {
+        this.getUIContext().getPromptAction().showToast({ message: '截图失败', duration: 2000 });
+        this.isGenerating = false;
+        return '';
+      }
+      this.cachedPixelMap = pixelMap;
+      let uiCtx: UIContext = this.getUIContext();
+      result = await this.pixelMapToCache(uiCtx, pixelMap, 'share');
+      this.generatedImageUri = result;
       uiCtx.getPromptAction().showToast({ message: '图片已生成', duration: 1000 });
     } catch (e) {
       let err: BusinessError = e as BusinessError;
-      console.error('[ShareCard] generate failed: ' + err.message);
+      console.error('[ShareCard] generate failed: ' + err.code + ' ' + err.message);
       this.getUIContext().getPromptAction().showToast({ message: '生成失败', duration: 2000 });
     }
     this.isGenerating = false;
+    return result;
   }
 
   async doGenerateAndShare(): Promise<void> {
     this.isGenerating = true;
     try {
-      let uiCtx: UIContext = this.getUIContext();
-      this.generatedImageUri = await generateShareImage(uiCtx, this.cardId, 'share');
-      if (this.generatedImageUri) {
-        shareImageViaPanel(uiCtx, this.generatedImageUri);
+      let cachePath: string = await this.doGenerate();
+      if (cachePath) {
+        shareImageViaPanel(this.getUIContext(), cachePath);
       }
     } catch (e) {
       let err: BusinessError = e as BusinessError;
-      console.error('[ShareCard] generateAndShare failed: ' + err.message);
-      this.getUIContext().getPromptAction().showToast({ message: '生成失败', duration: 2000 });
+      console.error('[ShareCard] generateAndShare failed: ' + err.code + ' ' + err.message);
     }
     this.isGenerating = false;
     this.onAutoShared();
@@ -157,14 +211,70 @@ export struct ShareImageCard {
 
   async doSave(): Promise<void> {
     if (!this.generatedImageUri) {
+      this.getUIContext().getPromptAction().showToast({ message: '请先生成图片', duration: 1500 });
       return;
     }
+    let uiCtx: UIContext = this.getUIContext();
     try {
-      await saveImageToAlbum(this.getUIContext(), this.generatedImageUri, 'share');
+      let context: common.UIAbilityContext = uiCtx.getHostContext() as common.UIAbilityContext;
+      let helper: photoAccessHelper.PhotoAccessHelper = photoAccessHelper.getPhotoAccessHelper(context);
+      let srcFileUri: string = fileUri.getUriFromPath(this.generatedImageUri);
+      let srcFileUris: Array<string> = [srcFileUri];
+      let photoCreationConfigs: Array<photoAccessHelper.PhotoCreationConfig> = [{
+        title: 'share_' + Date.now(),
+        fileNameExtension: 'png',
+        photoType: photoAccessHelper.PhotoType.IMAGE,
+      }];
+      let desFileUris: Array<string> = await helper.showAssetsCreationDialog(srcFileUris, photoCreationConfigs);
+      if (desFileUris.length > 0) {
+        let srcFile: fs.File = await fs.open(this.generatedImageUri, fs.OpenMode.READ_ONLY);
+        let desFile: fs.File = await fs.open(desFileUris[0], fs.OpenMode.WRITE_ONLY);
+        await fs.copyFile(srcFile.fd, desFile.fd);
+        await fs.close(srcFile);
+        await fs.close(desFile.fd);
+        uiCtx.getPromptAction().showToast({ message: '已保存到相册', duration: 1000 });
+      }
     } catch (e) {
       let err: BusinessError = e as BusinessError;
-      console.error('[ShareCard] save failed: ' + err.message);
-      this.getUIContext().getPromptAction().showToast({ message: '保存失败', duration: 2000 });
+      console.error('[ShareCard] save failed: ' + err.code + ' ' + err.message);
+      uiCtx.getPromptAction().showToast({ message: '保存失败', duration: 2000 });
+    }
+  }
+
+  async doSaveFromPixelMap(): Promise<void> {
+    let pixelMap: image.PixelMap | undefined = this.cachedPixelMap;
+    if (!pixelMap) {
+      pixelMap = await this.takeSnapshot();
+    }
+    if (!pixelMap) {
+      this.getUIContext().getPromptAction().showToast({ message: '截图失败', duration: 2000 });
+      return;
+    }
+    let uiCtx: UIContext = this.getUIContext();
+    try {
+      let cachePath: string = await this.pixelMapToCache(uiCtx, pixelMap, 'save_tmp');
+      let context: common.UIAbilityContext = uiCtx.getHostContext() as common.UIAbilityContext;
+      let helper: photoAccessHelper.PhotoAccessHelper = photoAccessHelper.getPhotoAccessHelper(context);
+      let srcFileUri: string = fileUri.getUriFromPath(cachePath);
+      let srcFileUris: Array<string> = [srcFileUri];
+      let photoCreationConfigs: Array<photoAccessHelper.PhotoCreationConfig> = [{
+        title: 'share_' + Date.now(),
+        fileNameExtension: 'png',
+        photoType: photoAccessHelper.PhotoType.IMAGE,
+      }];
+      let desFileUris: Array<string> = await helper.showAssetsCreationDialog(srcFileUris, photoCreationConfigs);
+      if (desFileUris.length > 0) {
+        let srcFile: fs.File = await fs.open(cachePath, fs.OpenMode.READ_ONLY);
+        let desFile: fs.File = await fs.open(desFileUris[0], fs.OpenMode.WRITE_ONLY);
+        await fs.copyFile(srcFile.fd, desFile.fd);
+        await fs.close(srcFile);
+        await fs.close(desFile.fd);
+        uiCtx.getPromptAction().showToast({ message: '已保存到相册', duration: 1000 });
+      }
+    } catch (e) {
+      let err: BusinessError = e as BusinessError;
+      console.error('[ShareCard] savePixelMap failed: ' + err.code + ' ' + err.message);
+      uiCtx.getPromptAction().showToast({ message: '保存失败', duration: 2000 });
     }
   }
 
@@ -245,15 +355,14 @@ export struct ShareImageCard {
               this.doShare();
             })
 
-          Text('保存图片')
+          Text('保存')
             .fontSize(13)
-            .fontColor(this.resolvedAccentColor)
-            .backgroundColor(Color.Transparent)
-            .border({ width: 1, color: this.resolvedAccentColor, style: BorderStyle.Solid })
+            .fontColor('#ffffff')
+            .backgroundColor(this.resolvedAccentColor)
             .borderRadius(16)
-            .padding({ left: 24, right: 24, top: 6, bottom: 6 })
+            .padding({ left: 16, right: 16, top: 6, bottom: 6 })
             .onClick(() => {
-              this.doSave();
+              this.doSaveFromPixelMap();
             })
         }
       }

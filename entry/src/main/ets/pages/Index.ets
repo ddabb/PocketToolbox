@@ -538,7 +538,7 @@ struct Index {
             })
           }
           .width('100%')
-          .padding({ left: 16, right: 16 })
+          .padding({ left: 16, right: 16, top: 12 })
 
           if (this.reviewVisible && this.reviewItem) {
             this.ReviewCard()
@@ -566,7 +566,7 @@ struct Index {
             .padding({ left: 5 })
           }
           .width('100%')
-          .padding({ left: 16, right: 16, top: 8 })
+          .padding({ left: 16, right: 16, top: 12 })
 
           if (this.dailyPoemTitle) {
             this.DailyPoemCard()
@@ -1045,7 +1045,7 @@ struct Index {
     .padding(this.DAILY_PADDING)
     .backgroundColor($r('app.color.poetry_card_bg'))
     .borderRadius(this.DAILY_RADIUS)
-    .margin({ left: 16, right: 16, bottom: 8 })
+    .margin({ left: 16, right: 16, top: 8, bottom: 8 })
     .onClick(() => {
       if (this.dailyPoemItem) {
         this.homeStack.pushPathByName('PoemContentPage', this.dailyPoemItem);
@@ -1363,7 +1363,7 @@ struct Index {
       })
     }
     .width('100%')
-    .padding({ left: 16, right: 16, top: 8 })
+    .padding({ left: 16, right: 16, top: 12 })
   }
 
   @Builder
@@ -1402,7 +1402,7 @@ struct Index {
     .padding(12)
     .backgroundColor($r('app.color.poetry_card_bg'))
     .borderRadius(12)
-    .margin({ left: 16, right: 16, bottom: 8 })
+    .margin({ left: 16, right: 16, top: 8, bottom: 8 })
     .onClick(() => {
       this.homeStack.pushPathByName('FavoritesPage', null);
     })

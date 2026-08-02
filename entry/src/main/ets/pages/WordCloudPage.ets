@@ -41,12 +41,17 @@ struct WordCloudContent {
   @State customWord: string = '';
   @State customCount: string = '1';
   @State directWordsText: string = '';
+  @State showWordsDialog: boolean = false;
   private uiContext: UIContext = this.getUIContext();
   private palettes: PaletteColor[] = Palette.getAll();
   private templates: TemplateInfo[] = Md2PngTemplates.getAll();
   private lastWeightedItems: WeightedItem[] = [];
   private shapes: ShapeDef[] = ShapeDef.SHAPES;
-  private shapeIcons: string[] = ['●', '♥', '★', '◆', '▲', '■', '⬠', '⬡', '✚', '☁'];
+  private shapeIcons: string[] = [
+    'shape_circle', 'shape_cardioid', 'shape_star5', 'shape_diamond',
+    'shape_triangle', 'shape_square', 'shape_pentagon', 'shape_hexagon',
+    'shape_cross', 'shape_cloud', 'shape_oval', 'shape_leaf'
+  ];
   private fontNames: string[] = [
     Md2PngTemplates.FONT_SMILEY, Md2PngTemplates.FONT_WENKAI,
     Md2PngTemplates.FONT_MASHAN, Md2PngTemplates.FONT_KUAILE,
@@ -145,7 +150,21 @@ struct WordCloudContent {
         .justifyContent(FlexAlign.Start)
 
         if (this.cloudWords.length > 0) {
-          this.WordsTagSection()
+          Row() {
+            Text('参与词语 (' + this.cloudWords.length.toString() + ')')
+              .fontSize(13)
+              .fontWeight(FontWeight.Medium)
+              .fontColor($r('app.color.primary_text'))
+            Blank()
+            Text('点击编辑 ›')
+              .fontSize(12)
+              .fontColor(this.getAccentColor())
+          }
+          .width('100%')
+          .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+          .onClick(() => {
+            this.showWordsDialog = true;
+          })
         }
 
         Row({ space: 8 }) {
@@ -212,18 +231,26 @@ struct WordCloudContent {
 
         if (this.placedWords.length > 0) {
           Row({ space: 12 }) {
-            Button('保存到相册')
-              .fontSize(14)
-              .fontWeight(FontWeight.Bold)
-              .fontColor(this.getAccentColor())
-              .backgroundColor(Color.Transparent)
-              .border({ width: 1, color: this.getAccentColor(), style: BorderStyle.Solid })
-              .borderRadius(22)
-              .height(44)
-              .layoutWeight(1)
-              .onClick(() => {
-                this.saveToAlbum();
-              })
+            Column() {
+              SaveButton({ icon: SaveIconStyle.FULL_FILLED, text: SaveDescription.SAVE_IMAGE, buttonType: ButtonType.Normal })
+                .fontSize(14)
+                .fontWeight(FontWeight.Bold)
+                .fontColor(this.getAccentColor())
+                .backgroundColor(Color.Transparent)
+                .borderRadius(22)
+                .height(44)
+                .onClick(async (_event: ClickEvent, result: SaveButtonOnClickResult) => {
+                  if (result === SaveButtonOnClickResult.SUCCESS) {
+                    await this.saveToAlbum();
+                  } else {
+                    this.uiContext.getPromptAction().showToast({ message: '授权失败', duration: 1500 });
+                  }
+                })
+            }
+            .border({ width: 1, color: this.getAccentColor(), style: BorderStyle.Solid })
+            .borderRadius(22)
+            .height(44)
+            .layoutWeight(1)
 
             Button('分享')
               .fontSize(14)
@@ -261,54 +288,147 @@ struct WordCloudContent {
     .scrollable(ScrollDirection.Vertical)
     .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
     .backgroundColor($r('app.color.page_background'))
+    .bindContentCover(this.showWordsDialog, this.WordsEditCover(), {
+      modalTransition: ModalTransition.NONE,
+      onDisappear: () => {
+        this.showWordsDialog = false;
+      }
+    })
   }
 
   @Builder
-  WordsTagSection() {
+  WordsEditCover() {
     Column() {
       Row() {
         Text('参与词语 (' + this.cloudWords.length.toString() + ')')
-          .fontSize(13)
-          .fontWeight(FontWeight.Medium)
+          .fontSize(18)
+          .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.primary_text'))
         Blank()
-        Text('点击 × 移除')
-          .fontSize(11)
-          .fontColor($r('app.color.hint_text'))
+        Button('完成')
+          .fontSize(14)
+          .fontColor(Color.White)
+          .backgroundColor('#2563eb')
+          .borderRadius(18)
+          .height(32)
+          .padding({ left: 16, right: 16 })
+          .onClick(() => {
+            this.showWordsDialog = false;
+          })
       }
       .width('100%')
-      .margin({ bottom: 6 })
+      .padding({ left: 16, right: 16, top: 16, bottom: 12 })
 
-      Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
-        ForEach(this.cloudWords, (entry: CloudWord, index: number) => {
-          Row() {
-            Text(entry.text)
-              .fontSize(13)
-              .fontColor(this.getAccentColor())
-              .fontWeight(FontWeight.Medium)
-            if (entry.weight > 1) {
-              Text('×' + entry.weight.toString())
-                .fontSize(10)
+      Row() {
+        TextInput({ placeholder: '输入词语', text: this.customWord })
+          .fontSize(14)
+          .fontColor($r('app.color.primary_text'))
+          .backgroundColor($r('app.color.card_background'))
+          .borderRadius(8)
+          .layoutWeight(1)
+          .height(36)
+          .padding({ left: 8, right: 8 })
+          .onChange((value: string) => {
+            this.customWord = value;
+          })
+
+        TextInput({ placeholder: '权重', text: this.customCount })
+          .fontSize(14)
+          .fontColor($r('app.color.primary_text'))
+          .backgroundColor($r('app.color.card_background'))
+          .borderRadius(8)
+          .type(InputType.Number)
+          .width(60)
+          .height(36)
+          .padding({ left: 8, right: 8 })
+          .margin({ left: 6 })
+          .onChange((value: string) => {
+            this.customCount = value;
+          })
+
+        Button('添加')
+          .fontSize(13)
+          .fontColor(Color.White)
+          .backgroundColor(this.getAccentColor())
+          .borderRadius(18)
+          .height(32)
+          .padding({ left: 12, right: 12 })
+          .margin({ left: 6 })
+          .onClick(() => {
+            this.addCustomWordFromDialog();
+          })
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, bottom: 12 })
+
+      if (this.cloudWords.length > 0) {
+        Text('点击词语可移除')
+          .fontSize(11)
+          .fontColor($r('app.color.hint_text'))
+          .width('100%')
+          .padding({ left: 16, bottom: 6 })
+
+        Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
+          ForEach(this.cloudWords, (entry: CloudWord, index: number) => {
+            Row() {
+              Text(entry.text)
+                .fontSize(13)
+                .fontColor(this.getAccentColor())
+                .fontWeight(FontWeight.Medium)
+              if (entry.weight > 1) {
+                Text('×' + entry.weight.toString())
+                  .fontSize(10)
+                  .fontColor($r('app.color.tertiary_text'))
+                  .margin({ left: 2 })
+              }
+              Text(' ×')
+                .fontSize(12)
                 .fontColor($r('app.color.tertiary_text'))
                 .margin({ left: 2 })
             }
-            Text(' ×')
-              .fontSize(12)
-              .fontColor($r('app.color.tertiary_text'))
-              .margin({ left: 2 })
-          }
-          .backgroundColor(this.getAccentColor() + '14')
-          .borderRadius(14)
-          .padding({ left: 10, right: 10, top: 5, bottom: 5 })
-          .margin({ right: 6, bottom: 6 })
-          .onClick(() => {
-            this.removeWordAndSync(entry.text);
-          })
-        }, (entry: CloudWord, index: number) => entry.text + '_' + entry.weight.toString())
+            .backgroundColor(this.getAccentColor() + '14')
+            .borderRadius(14)
+            .padding({ left: 10, right: 10, top: 5, bottom: 5 })
+            .margin({ right: 6, bottom: 6 })
+            .onClick(() => {
+              this.removeWordAndSync(entry.text);
+            })
+          }, (entry: CloudWord, index: number) => entry.text + '_' + entry.weight.toString())
+        }
+        .width('100%')
+        .padding({ left: 16, right: 16 })
       }
+
+      Row({ space: 8 }) {
+        Button('示例')
+          .fontSize(14)
+          .fontColor(Color.White)
+          .backgroundColor('#07c160')
+          .borderRadius(20)
+          .height(36)
+          .onClick(() => {
+            this.loadExample();
+          })
+
+        Button('清空')
+          .fontSize(14)
+          .fontColor($r('app.color.tertiary_text'))
+          .backgroundColor($r('app.color.card_background'))
+          .borderRadius(20)
+          .height(36)
+          .onClick(() => {
+            this.clearWords();
+          })
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, top: 12 })
+      .justifyContent(FlexAlign.Start)
     }
     .width('100%')
-    .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+    .height('70%')
+    .backgroundColor($r('app.color.page_background'))
+    .borderRadius({ topLeft: 20, topRight: 20 })
+    .padding({ bottom: 24 })
   }
 
   @Builder
@@ -407,9 +527,10 @@ struct WordCloudContent {
         Row() {
           ForEach(this.shapes, (shape: ShapeDef, index: number) => {
             Column() {
-              Text(this.shapeIcons[index])
-                .fontSize(20)
-                .fontColor(this.currentShapeIndex === index ? this.getAccentColor() : $r('app.color.tertiary_text'))
+              Image($r('app.media.' + this.shapeIcons[index]))
+                .width(24)
+                .height(24)
+                .fillColor(this.currentShapeIndex === index ? this.getAccentColor() : $r('app.color.tertiary_text'))
               Text(shape.label)
                 .fontSize(10)
                 .fontColor(this.currentShapeIndex === index ? this.getAccentColor() : $r('app.color.tertiary_text'))
@@ -561,6 +682,33 @@ struct WordCloudContent {
     }
     this.directWordsText = lines.join('\n');
     this.parseDirectWords();
+  }
+
+  private addCustomWordFromDialog(): void {
+    let word: string = this.customWord.trim();
+    if (word.length === 0) {
+      return;
+    }
+    let weight: number = 1;
+    let parsed: number = parseInt(this.customCount);
+    if (!isNaN(parsed) && parsed > 0) {
+      weight = parsed;
+    }
+    let found: boolean = false;
+    for (let i: number = 0; i < this.cloudWords.length; i++) {
+      if (this.cloudWords[i].text === word) {
+        let merged: CloudWord = new CloudWord(word, this.cloudWords[i].weight + weight, true);
+        this.cloudWords[i] = merged;
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      this.cloudWords.push(new CloudWord(word, weight, true));
+    }
+    this.syncDirectTextFromWords();
+    this.customWord = '';
+    this.customCount = '1';
   }
 
   private clearWords(): void {
@@ -792,19 +940,21 @@ struct WordCloudContent {
     return ctx.getPixelMap(0, 0, exportSize, exportSize);
   }
 
-  private async saveToAlbum(): Promise<void> {
-    try {
-      let pm: image.PixelMap = this.renderExportPixelMap();
-      let cachePath: string = await ImageExporter.pixelMapToCache(this.uiContext, pm, 'wordcloud');
-      this.generatedCachePath = cachePath;
-      pm.release();
-      await ImageExporter.saveToAlbum(this.uiContext, cachePath, 'wordcloud');
-    } catch (e) {
-      let err: BusinessError = e as BusinessError;
-      console.error('[WordCloud] save failed: ' + err.code + ' ' + err.message);
-      this.uiContext.getPromptAction().showToast({ message: '保存失败', duration: 2000 });
-    }
-  }
+   private cachedPixelMap: image.PixelMap | undefined = undefined;
+
+   private async saveToAlbum(): Promise<void> {
+     try {
+       let pm: image.PixelMap = this.renderExportPixelMap();
+       this.cachedPixelMap = pm;
+       await ImageExporter.saveToAlbum(this.uiContext, pm);
+       let cachePath: string = await ImageExporter.pixelMapToCache(this.uiContext, pm, 'wordcloud');
+       this.generatedCachePath = cachePath;
+     } catch (e) {
+       let err: BusinessError = e as BusinessError;
+       console.error('[WordCloud] save failed: ' + err.code + ' ' + err.message);
+       this.uiContext.getPromptAction().showToast({ message: '保存失败', duration: 2000 });
+     }
+   }
 
   private async shareImage(): Promise<void> {
     try {

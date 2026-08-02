@@ -109,6 +109,7 @@ struct Md2PngContent {
   @State currentTemplateIndex: number = 0;
   @State generatedImageUri: string = '';
   @State isGenerating: boolean = false;
+  private cachedPixelMap: image.PixelMap | undefined = undefined;
   @State currentAccentColor: string = '#3182ce';
   @State highlightWords: string[] = [];
   @State isExtractingKeywords: boolean = false;
@@ -366,23 +367,25 @@ struct Md2PngContent {
       let snapshot = uiCtx.getComponentSnapshot();
       let tpl: TemplateInfo = this.templates[this.currentTemplateIndex];
       let cardId: string = 'md_card_' + tpl.id;
-      let pixelMap: image.PixelMap = await snapshot.get(cardId);
+      let pixelMap: image.PixelMap = await snapshot.get(cardId, { scale: 2, waitUntilRenderFinished: true });
       let packer: image.ImagePacker = image.createImagePacker();
       let packOpts: image.PackingOption = {
         format: 'image/png',
         quality: 100
       };
-      let arrayBuffer: ArrayBuffer = await packer.packing(pixelMap, packOpts);
       let context: common.UIAbilityContext = uiCtx.getHostContext() as common.UIAbilityContext;
       let dir: string = context.cacheDir;
       let fileName: string = 'md2png_' + Date.now() + '.png';
       let filePath: string = dir + '/' + fileName;
       let file: fs.File = fs.openSync(filePath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.TRUNC);
-      fs.writeSync(file.fd, arrayBuffer);
-      fs.closeSync(file);
-      this.generatedImageUri = filePath;
-      packer.release();
-      pixelMap.release();
+      try {
+        await packer.packToFile(pixelMap, file.fd, packOpts);
+        this.cachedPixelMap = pixelMap;
+      } finally {
+        fs.closeSync(file.fd);
+        packer.release();
+      }
+      this.generatedImageUri = file.path;
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[Md2Png] generate failed: ' + err.message);
@@ -431,42 +434,47 @@ struct Md2PngContent {
   }
 
   private async saveToAlbum(): Promise<void> {
-    if (!this.generatedImageUri) {
+    let pixelMap: image.PixelMap | undefined = this.cachedPixelMap;
+    if (!pixelMap) {
+      this.getUIContext().getPromptAction().showToast({ message: '请先生成图片', duration: 1500 });
       return;
     }
+    let uiCtx: UIContext = this.getUIContext();
     try {
-      let uiCtx: UIContext = this.getUIContext();
       let context: common.UIAbilityContext = uiCtx.getHostContext() as common.UIAbilityContext;
+      let dir: string = context.cacheDir;
+      let fileName: string = 'save_tmp_' + Date.now() + '.png';
+      let filePath: string = dir + '/' + fileName;
+      let file: fs.File = fs.openSync(filePath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.TRUNC);
+      let packer: image.ImagePacker = image.createImagePacker();
+      let packOpts: image.PackingOption = { format: 'image/png', quality: 100 };
+      try {
+        await packer.packToFile(pixelMap, file.fd, packOpts);
+      } finally {
+        fs.closeSync(file.fd);
+        packer.release();
+      }
       let helper: photoAccessHelper.PhotoAccessHelper = photoAccessHelper.getPhotoAccessHelper(context);
-      let srcFileUri: string = fileUri.getUriFromPath(this.generatedImageUri);
+      let srcFileUri: string = fileUri.getUriFromPath(filePath);
       let srcFileUris: Array<string> = [srcFileUri];
-      let photoCreationConfigs: Array<photoAccessHelper.PhotoCreationConfig> = [
-        {
-          title: 'md2png_' + Date.now(),
-          fileNameExtension: 'png',
-          photoType: photoAccessHelper.PhotoType.IMAGE,
-          subtype: photoAccessHelper.PhotoSubtype.DEFAULT,
-        }
-      ];
+      let photoCreationConfigs: Array<photoAccessHelper.PhotoCreationConfig> = [{
+        title: 'md2png_' + Date.now(),
+        fileNameExtension: 'png',
+        photoType: photoAccessHelper.PhotoType.IMAGE,
+      }];
       let desFileUris: Array<string> = await helper.showAssetsCreationDialog(srcFileUris, photoCreationConfigs);
       if (desFileUris.length > 0) {
-        let sourceFile: fs.File = fs.openSync(this.generatedImageUri, fs.OpenMode.READ_ONLY);
-        let destFile: fs.File = fs.openSync(desFileUris[0], fs.OpenMode.READ_WRITE);
-        let buf: ArrayBuffer = new ArrayBuffer(4096);
-        let readLen: number = fs.readSync(sourceFile.fd, buf);
-        while (readLen > 0) {
-          let writeOpts: WriteOptions = { length: readLen };
-          fs.writeSync(destFile.fd, buf, writeOpts);
-          readLen = fs.readSync(sourceFile.fd, buf);
-        }
-        fs.closeSync(sourceFile);
-        fs.closeSync(destFile);
+        let srcFile: fs.File = await fs.open(filePath, fs.OpenMode.READ_ONLY);
+        let desFile: fs.File = await fs.open(desFileUris[0], fs.OpenMode.WRITE_ONLY);
+        await fs.copyFile(srcFile.fd, desFile.fd);
+        await fs.close(srcFile);
+        await fs.close(desFile.fd);
         uiCtx.getPromptAction().showToast({ message: '已保存到相册', duration: 1000 });
       }
     } catch (e) {
       let err: BusinessError = e as BusinessError;
-      console.error('[Md2Png] save failed: ' + err.message);
-      this.getUIContext().getPromptAction().showToast({ message: '保存失败', duration: 2000 });
+      console.error('[Md2Png] save failed: ' + err.code + ' ' + err.message);
+      uiCtx.getPromptAction().showToast({ message: '保存失败', duration: 2000 });
     }
   }
 
@@ -802,16 +810,11 @@ struct Md2PngContent {
             this.doShare();
           })
 
-        Button('保存到相册')
+        Button('保存图片')
           .fontSize(15)
           .fontWeight(FontWeight.Bold)
-          .fontColor(this.currentAccentColor)
-          .backgroundColor(Color.Transparent)
-          .border({
-            width: 1,
-            color: this.currentAccentColor,
-            style: BorderStyle.Solid
-          })
+          .fontColor('#ffffff')
+          .backgroundColor(this.currentAccentColor)
           .borderRadius(22)
           .height(44)
           .layoutWeight(1)
