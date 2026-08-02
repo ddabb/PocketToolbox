@@ -237,8 +237,8 @@ struct WordCloudContent {
                 .fontWeight(FontWeight.Bold)
                 .fontColor(this.getAccentColor())
                 .backgroundColor(Color.Transparent)
-                .borderRadius(22)
-                .height(44)
+                .borderRadius(21)
+                .height(42)
                 .onClick(async (_event: ClickEvent, result: SaveButtonOnClickResult) => {
                   if (result === SaveButtonOnClickResult.SUCCESS) {
                     await this.saveToAlbum();
@@ -247,10 +247,11 @@ struct WordCloudContent {
                   }
                 })
             }
-            .border({ width: 1, color: this.getAccentColor(), style: BorderStyle.Solid })
+            .backgroundColor(this.getAccentColor())
             .borderRadius(22)
             .height(44)
             .layoutWeight(1)
+            .padding(1)
 
             Button('分享')
               .fontSize(14)
