@@ -42,6 +42,75 @@ export class TemplateInfo {
   }
 }
 
+/**
+ * 高亮关键字定义：支持指定第几次出现的位置进行高亮
+ * - word: 关键字文本
+ * - source: 来源（'auto' 自动提取 / 'manual' 手动添加）
+ * - selectedIndices: 选中高亮的出现序号（从0开始），如 [0,2] 表示高亮第1次和第3次出现
+ */
+export class HighlightKeyword {
+  word: string = '';
+  source: string = 'auto';
+  selectedIndices: number[] = [0];
+
+  constructor(word: string, source: string = 'auto', selectedIndices: number[] = [0]) {
+    this.word = word;
+    this.source = source;
+    this.selectedIndices = selectedIndices;
+  }
+}
+
+/**
+ * 单个关键字在高亮处理后的统计信息
+ * - word: 关键字文本
+ * - occurrences: 在文本中的总出现次数
+ * - highlightedCount: 实际被高亮的次数
+ */
+export class HighlightStats {
+  word: string = '';
+  occurrences: number = 0;
+  highlightedCount: number = 0;
+
+  constructor(word: string = '', occurrences: number = 0, highlightedCount: number = 0) {
+    this.word = word;
+    this.occurrences = occurrences;
+    this.highlightedCount = highlightedCount;
+  }
+}
+
+/**
+ * 高亮处理结果
+ * - text: 处理后的文本（包含高亮标记）
+ * - stats: 每个关键字的统计信息
+ */
+export class HighlightResult {
+  text: string = '';
+  stats: HighlightStats[] = [];
+
+  constructor(text: string = '', stats: HighlightStats[] = []) {
+    this.text = text;
+    this.stats = stats;
+  }
+}
+
+/**
+ * 关键字在文本中某次出现的上下文片段
+ * - index: 出现序号（从0开始）
+ * - position: 在原文中的起始字符位置
+ * - context: 前后各取若干字符的上下文预览
+ */
+export class KeywordOccurrenceContext {
+  index: number = 0;
+  position: number = 0;
+  context: string = '';
+
+  constructor(index: number = 0, position: number = 0, context: string = '') {
+    this.index = index;
+    this.position = position;
+    this.context = context;
+  }
+}
+
 export class ShareTemplateInfo {
   accentColor: string = '';
   bgColor: string = '';

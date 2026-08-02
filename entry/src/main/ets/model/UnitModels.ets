@@ -110,19 +110,37 @@ export class TimezoneDataLoader {
   private static regions: TimezoneRegion[] = [];
   private static loaded: boolean = false;
 
-  static load(context: Context): void {
+  static load(context: Context): boolean {
     if (TimezoneDataLoader.loaded) {
-      return;
+      return TimezoneDataLoader.cities.length > 0;
+    }
+    if (context === null || context === undefined) {
+      console.error('[TimezoneData] load failed: context is null/undefined');
+      TimezoneDataLoader.cities = [];
+      TimezoneDataLoader.regions = [];
+      return false;
     }
     try {
       let data: TimezoneFileData = RawFileUtil.readJson<TimezoneFileData>(context, 'timezone/timezone_cities.json');
+      if (data === null || data === undefined || data.regions === null || data.regions === undefined) {
+        console.error('[TimezoneData] load failed: data or regions is null');
+        TimezoneDataLoader.cities = [];
+        TimezoneDataLoader.regions = [];
+        return false;
+      }
       let allCities: TimezoneCity[] = [];
       let allRegions: TimezoneRegion[] = [];
       for (let i = 0; i < data.regions.length; i++) {
         let regionRaw: TimezoneRegionRaw = data.regions[i];
+        if (regionRaw === null || regionRaw.cities === null) {
+          continue;
+        }
         let cityNames: string[] = [];
         for (let j = 0; j < regionRaw.cities.length; j++) {
           let c: TimezoneCityRaw = regionRaw.cities[j];
+          if (c === null || c.city === null || c.city.length === 0) {
+            continue;
+          }
           let city: TimezoneCity = new TimezoneCity(c.city, c.zone, c.offset, c.country, c.abbr, c.lat, c.lng);
           allCities.push(city);
           cityNames.push(c.city);
@@ -132,6 +150,8 @@ export class TimezoneDataLoader {
       TimezoneDataLoader.cities = allCities;
       TimezoneDataLoader.regions = allRegions;
       TimezoneDataLoader.loaded = true;
+      console.info('[TimezoneData] load success: regions=' + allRegions.length + ', cities=' + allCities.length);
+      return allCities.length > 0;
     } catch (e) {
       let errMsg: string = '';
       if (e instanceof Error) {
@@ -140,11 +160,19 @@ export class TimezoneDataLoader {
       console.error('[TimezoneData] load failed: ' + errMsg);
       TimezoneDataLoader.cities = [];
       TimezoneDataLoader.regions = [];
+      return false;
     }
   }
 
   static isLoaded(): boolean {
     return TimezoneDataLoader.loaded;
+  }
+
+  static reload(context: Context): boolean {
+    TimezoneDataLoader.loaded = false;
+    TimezoneDataLoader.cities = [];
+    TimezoneDataLoader.regions = [];
+    return TimezoneDataLoader.load(context);
   }
 
   static getCities(): TimezoneCity[] {

@@ -1,5 +1,6 @@
 import { textProcessing } from '@kit.NaturalLanguageKit';
 import { BusinessError } from '@kit.BasicServicesKit';
+import { HighlightKeyword, HighlightStats, HighlightResult, KeywordOccurrenceContext } from '../../model/Md2PngModels';
 
 const STOP_WORDS: Set<string> = new Set([
   '的', '了', '在', '是', '我', '有', '和', '就', '不', '人', '都', '一', '一个',
@@ -124,60 +125,65 @@ export class KeywordUtil {
     }
   }
 
-  static highlightText(original: string, keywords: string[], highlightFont: string = '',
-    accentColor: string = '', highlightBgColor: string = ''): string {
+  static highlightText(original: string, keywords: HighlightKeyword[], highlightFont: string = '',
+    accentColor: string = '', highlightBgColor: string = ''): HighlightResult {
     if (!original || keywords.length === 0) {
-      return original;
+      return new HighlightResult(original, []);
     }
-    let sorted: string[] = keywords.slice().sort((a: string, b: string) => b.length - a.length);
+    // 关键字按长度倒序，长词优先匹配，避免短词嵌入长词中被切割
+    let sorted: HighlightKeyword[] = keywords.slice().sort(
+      (a: HighlightKeyword, b: HighlightKeyword) => b.word.length - a.word.length
+    );
     let ranges: HighlightRange[] = [];
+    let stats: HighlightStats[] = [];
+
     for (let i = 0; i < sorted.length; i++) {
-      let kw: string = sorted[i];
-      let kwLower: string = kw.toLowerCase();
-      let j: number = 0;
-      while (j <= original.length - kw.length) {
-        let end: number = j + kw.length;
-        let candidate: string = original.substring(j, end);
-        if (candidate.toLowerCase() !== kwLower) {
-          j++;
+      let kw: HighlightKeyword = sorted[i];
+      // 找出该 keyword 在原文中的所有有效出现位置（过滤代码块、内联代码、链接、加粗等）
+      let allPositions: number[] = KeywordUtil.findAllValidOccurrences(original, kw.word);
+      let occurrences: number = allPositions.length;
+      let highlightedCount: number = 0;
+
+      // 按 selectedIndices 选择要高亮的出现序号
+      // selectedIndices 中超出 occurrences 范围的序号会被自动截断
+      let wanted: Set<number> = new Set<number>();
+      for (let k = 0; k < kw.selectedIndices.length; k++) {
+        let idx: number = kw.selectedIndices[k];
+        if (idx >= 0 && idx < occurrences) {
+          wanted.add(idx);
+        }
+      }
+      // 若 selectedIndices 全部超出范围，且存在至少一次出现，则降级高亮首次出现
+      if (wanted.size === 0 && occurrences > 0) {
+        wanted.add(0);
+      }
+
+      for (let j = 0; j < allPositions.length; j++) {
+        if (!wanted.has(j)) {
           continue;
         }
-        let beforeChar: string = j > 0 ? original.charAt(j - 1) : '';
-        let afterChar: string = end < original.length ? original.charAt(end) : '';
-        if (beforeChar === '`' || afterChar === '`') {
-          j = end;
-          continue;
-        }
-        if (beforeChar === '*' || afterChar === '*') {
-          j = end;
-          continue;
-        }
-        if (beforeChar === '[' || afterChar === ']') {
-          j = end;
-          continue;
-        }
-        if (KeywordUtil.isInsideCodeBlock(original, j)) {
-          j = end;
-          continue;
-        }
-    
+        let start: number = allPositions[j];
+        let end: number = start + kw.word.length;
+        // 与已加入的 ranges 去重叠（先到先得，长词优先）
         let overlaps: boolean = false;
         for (let r = 0; r < ranges.length; r++) {
-          if (j < ranges[r].end && end > ranges[r].start) {
+          if (start < ranges[r].end && end > ranges[r].start) {
             overlaps = true;
             break;
           }
         }
         if (overlaps) {
-          j = end;
           continue;
         }
-        ranges.push(new HighlightRange(j, end, kw));
-        j = end;
+        ranges.push(new HighlightRange(start, end, kw.word));
+        highlightedCount++;
       }
+
+      stats.push(new HighlightStats(kw.word, occurrences, highlightedCount));
     }
+
     if (ranges.length === 0) {
-      return original;
+      return new HighlightResult(original, stats);
     }
     ranges.sort((a: HighlightRange, b: HighlightRange) => a.start - b.start);
     let result: string = '';
@@ -190,7 +196,80 @@ export class KeywordUtil {
       pos = r.end;
     }
     result += original.substring(pos);
-    return result;
+    return new HighlightResult(result, stats);
+  }
+
+  /**
+   * 查找关键字在原文中的所有有效出现位置（已过滤代码块、内联代码、链接、加粗等）
+   * 返回每个出现位置的起始字符索引，按出现顺序排列
+   */
+  static findOccurrences(text: string, word: string, contextRadius: number = 8): KeywordOccurrenceContext[] {
+    if (!text || !word || word.length === 0) {
+      return [];
+    }
+    let positions: number[] = KeywordUtil.findAllValidOccurrences(text, word);
+    let contexts: KeywordOccurrenceContext[] = [];
+    for (let i = 0; i < positions.length; i++) {
+      let p: number = positions[i];
+      let ctxStart: number = Math.max(0, p - contextRadius);
+      let ctxEnd: number = Math.min(text.length, p + word.length + contextRadius);
+      let prefix: string = ctxStart > 0 ? '…' : '';
+      let suffix: string = ctxEnd < text.length ? '…' : '';
+      let ctx: string = prefix + text.substring(ctxStart, ctxEnd).replace(/\n/g, ' ') + suffix;
+      contexts.push(new KeywordOccurrenceContext(i, p, ctx));
+    }
+    return contexts;
+  }
+
+  /**
+   * 统计关键字在原文中的有效出现次数（轻量方法，不计算上下文）
+   */
+  static countOccurrences(text: string, word: string): number {
+    if (!text || !word || word.length === 0) {
+      return 0;
+    }
+    return KeywordUtil.findAllValidOccurrences(text, word).length;
+  }
+
+  /**
+   * 内部方法：查找关键字在原文中的所有有效出现位置（仅过滤 Markdown 语法区，不做去重叠）
+   */
+  private static findAllValidOccurrences(original: string, kw: string): number[] {
+    if (!original || !kw || kw.length === 0) {
+      return [];
+    }
+    let kwLower: string = kw.toLowerCase();
+    let positions: number[] = [];
+    let j: number = 0;
+    while (j <= original.length - kw.length) {
+      let end: number = j + kw.length;
+      let candidate: string = original.substring(j, end);
+      if (candidate.toLowerCase() !== kwLower) {
+        j++;
+        continue;
+      }
+      let beforeChar: string = j > 0 ? original.charAt(j - 1) : '';
+      let afterChar: string = end < original.length ? original.charAt(end) : '';
+      if (beforeChar === '`' || afterChar === '`') {
+        j = end;
+        continue;
+      }
+      if (beforeChar === '*' || afterChar === '*') {
+        j = end;
+        continue;
+      }
+      if (beforeChar === '[' || afterChar === ']') {
+        j = end;
+        continue;
+      }
+      if (KeywordUtil.isInsideCodeBlock(original, j)) {
+        j = end;
+        continue;
+      }
+      positions.push(j);
+      j = end;
+    }
+    return positions;
   }
 
   private static async segmentText(text: string): Promise<textProcessing.WordSegment[]> {

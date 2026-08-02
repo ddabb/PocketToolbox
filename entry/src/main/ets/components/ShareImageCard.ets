@@ -8,25 +8,6 @@ import { image } from '@kit.ImageKit';
 import { fileIo as fs, fileUri } from '@kit.CoreFileKit';
 import { common } from '@kit.AbilityKit';
 import { photoAccessHelper } from '@kit.MediaLibraryKit';
-import { taskpool } from '@kit.ArkTS';
-
-@Concurrent
-function packPixelMapToCacheFile(pixelMap: image.PixelMap, filePath: string): Promise<string> {
-  return new Promise<string>((resolve, reject) => {
-    let file: fs.File = fs.openSync(filePath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.TRUNC);
-    let packer: image.ImagePacker = image.createImagePacker();
-    let packOpts: image.PackingOption = { format: 'image/png', quality: 100 };
-    packer.packToFile(pixelMap, file.fd, packOpts).then(() => {
-      fs.closeSync(file.fd);
-      packer.release();
-      resolve(filePath);
-    }).catch((err: BusinessError) => {
-      fs.closeSync(file.fd);
-      packer.release();
-      reject(err);
-    });
-  });
-}
 
 @Component
 export struct ShareImageCard {
@@ -166,8 +147,16 @@ export struct ShareImageCard {
     let dir: string = context.cacheDir;
     let fileName: string = prefix + '_' + Date.now() + '.png';
     let filePath: string = dir + '/' + fileName;
-    let task: taskpool.Task = new taskpool.Task(packPixelMapToCacheFile, pixelMap, filePath);
-    return await taskpool.execute(task, taskpool.Priority.HIGH) as string;
+    let file: fs.File = fs.openSync(filePath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.TRUNC);
+    let packer: image.ImagePacker = image.createImagePacker();
+    let packOpts: image.PackingOption = { format: 'image/png', quality: 100 };
+    try {
+      await packer.packToFile(pixelMap, file.fd, packOpts);
+    } finally {
+      fs.closeSync(file.fd);
+      packer.release();
+    }
+    return filePath;
   }
 
   async doGenerate(): Promise<string> {
@@ -184,7 +173,9 @@ export struct ShareImageCard {
       let uiCtx: UIContext = this.getUIContext();
       result = await this.pixelMapToCache(uiCtx, pixelMap, 'share');
       this.generatedImageUri = result;
-      uiCtx.getPromptAction().showToast({ message: '图片已生成', duration: 1000 });
+      if (!this.autoShare) {
+        uiCtx.getPromptAction().showToast({ message: '图片已生成', duration: 1000 });
+      }
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[ShareCard] generate failed: ' + err.code + ' ' + err.message);
@@ -200,10 +191,13 @@ export struct ShareImageCard {
       let cachePath: string = await this.doGenerate();
       if (cachePath) {
         shareImageViaPanel(this.getUIContext(), cachePath);
+      } else {
+        this.getUIContext().getPromptAction().showToast({ message: '生成图片失败，无法分享', duration: 2000 });
       }
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[ShareCard] generateAndShare failed: ' + err.code + ' ' + err.message);
+      this.getUIContext().getPromptAction().showToast({ message: '分享失败', duration: 2000 });
     }
     this.isGenerating = false;
     this.onAutoShared();
@@ -331,43 +325,45 @@ export struct ShareImageCard {
           .margin({ top: 12 })
       }
 
-      Row({ space: 8 }) {
-        Text(this.isGenerating ? '生成中...' : '生成图片')
-          .fontSize(13)
-          .fontColor('#ffffff')
-          .backgroundColor(this.resolvedAccentColor)
-          .borderRadius(16)
-          .padding({ left: 16, right: 16, top: 6, bottom: 6 })
-          .enabled(!this.isGenerating)
-          .onClick(() => {
-            this.doGenerate();
-          })
-
-        if (this.generatedImageUri) {
-          Text('分享')
-            .fontSize(13)
-            .fontColor(this.resolvedAccentColor)
-            .backgroundColor(Color.Transparent)
-            .border({ width: 1, color: this.resolvedAccentColor, style: BorderStyle.Solid })
-            .borderRadius(16)
-            .padding({ left: 16, right: 16, top: 6, bottom: 6 })
-            .onClick(() => {
-              this.doShare();
-            })
-
-          Text('保存')
+      if (!this.autoShare) {
+        Row({ space: 8 }) {
+          Text(this.isGenerating ? '生成中...' : '生成图片')
             .fontSize(13)
             .fontColor('#ffffff')
             .backgroundColor(this.resolvedAccentColor)
             .borderRadius(16)
             .padding({ left: 16, right: 16, top: 6, bottom: 6 })
+            .enabled(!this.isGenerating)
             .onClick(() => {
-              this.doSaveFromPixelMap();
+              this.doGenerate();
             })
+
+          if (this.generatedImageUri) {
+            Text('分享')
+              .fontSize(13)
+              .fontColor(this.resolvedAccentColor)
+              .backgroundColor(Color.Transparent)
+              .border({ width: 1, color: this.resolvedAccentColor, style: BorderStyle.Solid })
+              .borderRadius(16)
+              .padding({ left: 16, right: 16, top: 6, bottom: 6 })
+              .onClick(() => {
+                this.doShare();
+              })
+
+            Text('保存')
+              .fontSize(13)
+              .fontColor('#ffffff')
+              .backgroundColor(this.resolvedAccentColor)
+              .borderRadius(16)
+              .padding({ left: 16, right: 16, top: 6, bottom: 6 })
+              .onClick(() => {
+                this.doSaveFromPixelMap();
+              })
+          }
         }
+        .margin({ top: 12 })
+        .justifyContent(FlexAlign.Center)
       }
-      .margin({ top: 12 })
-      .justifyContent(FlexAlign.Center)
     }
     .width('100%')
   }

@@ -179,7 +179,6 @@ export struct FavDetailModal {
                     this.showShareCard = false;
                   }
                 })
-                  .position({ x: -10000, y: 0 })
               }
             }
             .padding({ left: 20, right: 20, bottom: 20 })

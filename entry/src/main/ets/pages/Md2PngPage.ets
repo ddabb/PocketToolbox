@@ -1,4 +1,4 @@
-import { TemplateInfo, Md2PngTemplates } from '../model/Md2PngModels';
+import { TemplateInfo, Md2PngTemplates, HighlightKeyword, HighlightStats, HighlightResult, KeywordOccurrenceContext } from '../model/Md2PngModels';
 import { image } from '@kit.ImageKit';
 import { fileIo as fs, WriteOptions, fileUri } from '@kit.CoreFileKit';
 import { photoAccessHelper } from '@kit.MediaLibraryKit';
@@ -111,9 +111,22 @@ struct Md2PngContent {
   @State isGenerating: boolean = false;
   private cachedPixelMap: image.PixelMap | undefined = undefined;
   @State currentAccentColor: string = '#3182ce';
-  @State highlightWords: string[] = [];
+  // 当前生效的高亮关键字列表（auto + manual，按 source 字段区分）
+  @State highlightKeywords: HighlightKeyword[] = [];
+  // 用户主动移除的关键字黑名单（仅对 auto 提取有效，避免下次又被自动加回）
+  @State removedKeywords: string[] = [];
+  // 用户是否手动编辑过高亮词（添加/移除/调整位置），用于决定是否弹窗询问覆盖
+  @State userEditedKeywords: boolean = false;
+  // 关键字出现次数统计（用于 UI 显示 ·N）
+  @State keywordStats: HighlightStats[] = [];
   @State isExtractingKeywords: boolean = false;
   @State customKeyword: string = '';
+  // 位置选择浮层状态
+  @State showPositionPanel: boolean = false;
+  @State editingWord: string = '';
+  @State editingWordOccurrences: KeywordOccurrenceContext[] = [];
+  @State editingWordSelectedIndices: number[] = [];
+  @State editingWordSource: string = 'auto';
   @State cardWidth: number = 360;
   @State cardHeights: number[] = [];
   @State dynamicTextSize: number = 18;
@@ -296,30 +309,211 @@ struct Md2PngContent {
     if (!kw) {
       return;
     }
-    if (this.highlightWords.includes(kw)) {
-      this.getUIContext().getPromptAction().showToast({ message: '该词已在高亮列表中', duration: 1000 });
-      this.customKeyword = '';
-      return;
+    for (let i = 0; i < this.highlightKeywords.length; i++) {
+      if (this.highlightKeywords[i].word === kw) {
+        this.getUIContext().getPromptAction().showToast({ message: '该词已在高亮列表中', duration: 1000 });
+        this.customKeyword = '';
+        return;
+      }
     }
-    let newWords: string[] = [];
-    for (let i = 0; i < this.highlightWords.length; i++) {
-      newWords.push(this.highlightWords[i]);
+    let newKw: HighlightKeyword = new HighlightKeyword(kw, 'manual', [0]);
+    let newArr: HighlightKeyword[] = [];
+    for (let i = 0; i < this.highlightKeywords.length; i++) {
+      newArr.push(this.highlightKeywords[i]);
     }
-    newWords.push(kw);
-    this.highlightWords = newWords;
+    newArr.push(newKw);
+    this.highlightKeywords = newArr;
+    // 若该词之前在黑名单中，移出黑名单
+    this.removeFromRemovedList(kw);
+    this.userEditedKeywords = true;
     this.customKeyword = '';
+    this.computeKeywordStats();
     this.generateImage();
   }
 
-  private removeKeyword(word: string): void {
-    let newWords: string[] = [];
-    for (let i = 0; i < this.highlightWords.length; i++) {
-      if (this.highlightWords[i] !== word) {
-        newWords.push(this.highlightWords[i]);
+  private removeFromRemovedList(word: string): void {
+    let newArr: string[] = [];
+    for (let i = 0; i < this.removedKeywords.length; i++) {
+      if (this.removedKeywords[i] !== word) {
+        newArr.push(this.removedKeywords[i]);
       }
     }
-    this.highlightWords = newWords;
+    this.removedKeywords = newArr;
+  }
+
+  private removeKeyword(word: string): void {
+    let newArr: HighlightKeyword[] = [];
+    let removedSource: string = '';
+    for (let i = 0; i < this.highlightKeywords.length; i++) {
+      if (this.highlightKeywords[i].word !== word) {
+        newArr.push(this.highlightKeywords[i]);
+      } else {
+        removedSource = this.highlightKeywords[i].source;
+      }
+    }
+    this.highlightKeywords = newArr;
+    // auto 来源的词加入黑名单，避免下次自动提取又被加回
+    if (removedSource === 'auto') {
+      let newRemoved: string[] = [];
+      for (let i = 0; i < this.removedKeywords.length; i++) {
+        newRemoved.push(this.removedKeywords[i]);
+      }
+      newRemoved.push(word);
+      this.removedKeywords = newRemoved;
+    }
+    this.userEditedKeywords = true;
+    this.computeKeywordStats();
     this.generateImage();
+  }
+
+  /**
+   * 打开位置选择浮层，加载该关键字在当前文本中的所有出现位置
+   */
+  private openPositionPanel(word: string): void {
+    let occurrences: KeywordOccurrenceContext[] = KeywordUtil.findOccurrences(this.inputText, word, 8);
+    let selectedIndices: number[] = [];
+    for (let i = 0; i < this.highlightKeywords.length; i++) {
+      if (this.highlightKeywords[i].word === word) {
+        selectedIndices = this.highlightKeywords[i].selectedIndices;
+        this.editingWordSource = this.highlightKeywords[i].source;
+        break;
+      }
+    }
+    this.editingWord = word;
+    this.editingWordOccurrences = occurrences;
+    this.editingWordSelectedIndices = selectedIndices;
+    this.showPositionPanel = true;
+  }
+
+  private closePositionPanel(): void {
+    this.showPositionPanel = false;
+  }
+
+  /**
+   * 切换某个出现位置的选中状态
+   */
+  private toggleOccurrence(index: number): void {
+    let newArr: number[] = [];
+    let exists: boolean = false;
+    for (let i = 0; i < this.editingWordSelectedIndices.length; i++) {
+      if (this.editingWordSelectedIndices[i] === index) {
+        exists = true;
+      } else {
+        newArr.push(this.editingWordSelectedIndices[i]);
+      }
+    }
+    if (!exists) {
+      newArr.push(index);
+      newArr.sort((a: number, b: number) => a - b);
+    }
+    this.editingWordSelectedIndices = newArr;
+    this.applyEditingWordIndices();
+  }
+
+  /**
+   * 将浮层中编辑的 selectedIndices 应用回 highlightKeywords
+   */
+  private applyEditingWordIndices(): void {
+    let newArr: HighlightKeyword[] = [];
+    for (let i = 0; i < this.highlightKeywords.length; i++) {
+      if (this.highlightKeywords[i].word === this.editingWord) {
+        newArr.push(new HighlightKeyword(
+          this.highlightKeywords[i].word,
+          this.highlightKeywords[i].source,
+          this.editingWordSelectedIndices
+        ));
+      } else {
+        newArr.push(this.highlightKeywords[i]);
+      }
+    }
+    this.highlightKeywords = newArr;
+    this.userEditedKeywords = true;
+    this.computeKeywordStats();
+    this.generateImage();
+  }
+
+  private selectAllOccurrences(): void {
+    let all: number[] = [];
+    for (let i = 0; i < this.editingWordOccurrences.length; i++) {
+      all.push(i);
+    }
+    this.editingWordSelectedIndices = all;
+    this.applyEditingWordIndices();
+  }
+
+  private selectNoneOccurrences(): void {
+    this.editingWordSelectedIndices = [];
+    this.applyEditingWordIndices();
+  }
+
+  /**
+   * 计算所有关键字在当前文本中的出现次数统计，用于 UI 显示
+   */
+  private computeKeywordStats(): void {
+    let stats: HighlightStats[] = [];
+    for (let i = 0; i < this.highlightKeywords.length; i++) {
+      let kw: HighlightKeyword = this.highlightKeywords[i];
+      let occ: number = KeywordUtil.countOccurrences(this.inputText, kw.word);
+      let highlighted: number = 0;
+      for (let k = 0; k < kw.selectedIndices.length; k++) {
+        if (kw.selectedIndices[k] >= 0 && kw.selectedIndices[k] < occ) {
+          highlighted++;
+        }
+      }
+      stats.push(new HighlightStats(kw.word, occ, highlighted));
+    }
+    this.keywordStats = stats;
+  }
+
+  /**
+   * 根据当前 inputText 截断各关键字中超出范围的 selectedIndices
+   * 用于"保留当前高亮词"分支：文本变化后位置序号可能失效
+   */
+  private trimSelectedIndices(): void {
+    let newArr: HighlightKeyword[] = [];
+    for (let i = 0; i < this.highlightKeywords.length; i++) {
+      let kw: HighlightKeyword = this.highlightKeywords[i];
+      let occ: number = KeywordUtil.countOccurrences(this.inputText, kw.word);
+      let newIndices: number[] = [];
+      for (let k = 0; k < kw.selectedIndices.length; k++) {
+        if (kw.selectedIndices[k] >= 0 && kw.selectedIndices[k] < occ) {
+          newIndices.push(kw.selectedIndices[k]);
+        }
+      }
+      // 若全部超出范围且仍有出现，降级为首次出现
+      if (newIndices.length === 0 && occ > 0) {
+        newIndices = [0];
+      }
+      newArr.push(new HighlightKeyword(kw.word, kw.source, newIndices));
+    }
+    this.highlightKeywords = newArr;
+    this.computeKeywordStats();
+  }
+
+  /**
+   * 弹窗询问用户是否用新提取结果覆盖已编辑的高亮词
+   */
+  private showOverwriteConfirmDialog(): void {
+    this.getUIContext().showAlertDialog({
+      title: '已手动调整过高亮词',
+      message: '检测到当前高亮词已被手动调整。是否用新文本的提取结果覆盖？\n\n点击外部空白处取消（保持当前高亮词不变）。',
+      primaryButton: {
+        value: '保留当前（推荐）',
+        action: () => {
+          // 保留列表，基于新文本重新匹配位置，截断超出的 selectedIndices
+          this.trimSelectedIndices();
+          this.userEditedKeywords = true;
+          this.generateImage();
+        }
+      },
+      secondaryButton: {
+        value: '用新结果覆盖',
+        action: () => {
+          this.userEditedKeywords = false;
+          this.doExtractAndApply();
+        }
+      }
+    });
   }
 
   private async regenerateImageOnly(): Promise<void> {
@@ -329,29 +523,89 @@ struct Md2PngContent {
     }
     this.calcDynamicStyle();
     this.initAllControllers();
-    if (this.highlightWords.length > 0) {
-      this.highlightWords = [...this.highlightWords];
-    }
+    // 切换模板时也需要重新计算统计（文本未变，但模板切换不应改变 stats，此处保持幂等）
+    this.computeKeywordStats();
     this.generateImage();
   }
 
   private async extractAndGenerate(): Promise<void> {
     if (!this.inputText || this.inputText.trim().length === 0) {
-      this.highlightWords = [];
+      this.highlightKeywords = [];
+      this.removedKeywords = [];
+      this.userEditedKeywords = false;
+      this.keywordStats = [];
       this.generatedImageUri = '';
       return;
     }
     this.calcDynamicStyle();
     this.initAllControllers();
+    // 若用户已手动编辑过高亮词，弹窗询问是否覆盖
+    if (this.userEditedKeywords && this.highlightKeywords.length > 0) {
+      this.showOverwriteConfirmDialog();
+      return;
+    }
+    await this.doExtractAndApply();
+  }
+
+  /**
+   * 执行自动提取并应用到 highlightKeywords（保留 manual 关键字，过滤黑名单）
+   */
+  private async doExtractAndApply(): Promise<void> {
     this.isExtractingKeywords = true;
     try {
       let topN: number = this.getKeywordTopN();
       let keywords: string[] = await KeywordUtil.extractKeywords(this.inputText, topN);
-      this.highlightWords = keywords;
+      // 保留 manual 关键字
+      let manualList: HighlightKeyword[] = [];
+      for (let i = 0; i < this.highlightKeywords.length; i++) {
+        if (this.highlightKeywords[i].source === 'manual') {
+          manualList.push(this.highlightKeywords[i]);
+        }
+      }
+      // 新提取的 auto 关键字（过滤黑名单 + 已在 manual 中的去重）
+      let autoList: HighlightKeyword[] = [];
+      let existingWords: Set<string> = new Set<string>();
+      for (let i = 0; i < manualList.length; i++) {
+        existingWords.add(manualList[i].word);
+      }
+      for (let i = 0; i < keywords.length; i++) {
+        let w: string = keywords[i];
+        if (existingWords.has(w)) {
+          continue;
+        }
+        let isRemoved: boolean = false;
+        for (let r = 0; r < this.removedKeywords.length; r++) {
+          if (this.removedKeywords[r] === w) {
+            isRemoved = true;
+            break;
+          }
+        }
+        if (isRemoved) {
+          continue;
+        }
+        autoList.push(new HighlightKeyword(w, 'auto', [0]));
+        existingWords.add(w);
+      }
+      let combined: HighlightKeyword[] = [];
+      for (let i = 0; i < manualList.length; i++) {
+        combined.push(manualList[i]);
+      }
+      for (let i = 0; i < autoList.length; i++) {
+        combined.push(autoList[i]);
+      }
+      this.highlightKeywords = combined;
     } catch (e) {
-      this.highlightWords = [];
+      // 提取失败时保留 manual 关键字
+      let manualList: HighlightKeyword[] = [];
+      for (let i = 0; i < this.highlightKeywords.length; i++) {
+        if (this.highlightKeywords[i].source === 'manual') {
+          manualList.push(this.highlightKeywords[i]);
+        }
+      }
+      this.highlightKeywords = manualList;
     }
     this.isExtractingKeywords = false;
+    this.computeKeywordStats();
     this.generateImage();
   }
 
@@ -398,7 +652,10 @@ struct Md2PngContent {
     let tpl: TemplateInfo = this.templates[index];
     let isDark: boolean = this.isDarkBgColor(tpl.bgColor);
     let highlightTextColor: string = isDark ? tpl.accentColor : tpl.headerColor;
-    return KeywordUtil.highlightText(this.inputText, this.highlightWords, tpl.highlightFont, highlightTextColor, tpl.highlightBgColor);
+    let result: HighlightResult = KeywordUtil.highlightText(
+      this.inputText, this.highlightKeywords, tpl.highlightFont, highlightTextColor, tpl.highlightBgColor
+    );
+    return result.text;
   }
 
   private isDarkBgColor(color: string): boolean {
@@ -431,6 +688,32 @@ struct Md2PngContent {
       return tpl.accentColor;
     }
     return tpl.headerColor;
+  }
+
+  /**
+   * 查询某个关键字的统计信息（出现次数、已高亮次数）
+   */
+  private getKeywordStats(word: string): HighlightStats {
+    for (let i = 0; i < this.keywordStats.length; i++) {
+      if (this.keywordStats[i].word === word) {
+        return this.keywordStats[i];
+      }
+    }
+    return new HighlightStats(word, 0, 0);
+  }
+
+  /**
+   * 格式化选中的出现序号为显示文本，如 [0,2] -> "(1,3)"
+   */
+  private formatSelectedIndices(indices: number[]): string {
+    if (indices.length === 0) {
+      return '';
+    }
+    let parts: string[] = [];
+    for (let i = 0; i < indices.length; i++) {
+      parts.push((indices[i] + 1).toString());
+    }
+    return '(' + parts.join(',') + ')';
   }
 
   private async saveToAlbum(): Promise<void> {
@@ -486,34 +769,42 @@ struct Md2PngContent {
   }
 
   build() {
-    Column() {
-      this.InputSection()
-
-      if (this.highlightWords.length > 0 || this.inputText.trim().length > 0) {
-        this.HighlightWordsSection()
-      }
-
+    Stack() {
       Column() {
-        Scroll() {
-          Column() {
-            this.PreviewSwiper()
-            this.ActionButtons()
+        this.InputSection()
+
+        if (this.highlightKeywords.length > 0 || this.inputText.trim().length > 0) {
+          this.HighlightWordsSection()
+        }
+
+        Column() {
+          Scroll() {
+            Column() {
+              this.PreviewSwiper()
+              this.ActionButtons()
+            }
+            .width('100%')
           }
           .width('100%')
+          .layoutWeight(1)
+          .scrollable(ScrollDirection.Vertical)
+          .align(Alignment.Top)
+          .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
         }
         .width('100%')
         .layoutWeight(1)
-        .scrollable(ScrollDirection.Vertical)
-        .align(Alignment.Top)
-        .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
+        .padding({ left: 16, right: 16, bottom: 16 })
       }
       .width('100%')
-      .layoutWeight(1)
-      .padding({ left: 16, right: 16, bottom: 16 })
+      .height('100%')
+      .backgroundColor($r('app.color.page_background'))
+
+      if (this.showPositionPanel) {
+        this.PositionPanel()
+      }
     }
     .width('100%')
     .height('100%')
-    .backgroundColor($r('app.color.page_background'))
   }
 
   @Builder
@@ -605,7 +896,7 @@ struct Md2PngContent {
             .margin({ left: 8 })
         }
         Blank()
-        Text('点击 \u00D7 移除，手动添加新词')
+        Text('点击词选择高亮位置，× 移除')
           .fontSize(11)
           .fontColor($r('app.color.hint_text'))
       }
@@ -613,25 +904,50 @@ struct Md2PngContent {
       .margin({ bottom: 8 })
 
       Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
-        ForEach(this.highlightWords, (word: string) => {
+        ForEach(this.highlightKeywords, (kw: HighlightKeyword) => {
           Row() {
-            Text(word)
-              .fontSize(13)
-              .fontColor(this.getHighlightTagTextColor())
-              .fontWeight(FontWeight.Medium)
+            // 点击词文本区域：打开位置选择面板
+            Row() {
+              if (kw.source === 'manual') {
+                Text('★')
+                  .fontSize(11)
+                  .fontColor(this.getHighlightTagTextColor())
+                  .margin({ right: 3 })
+              }
+              Text(kw.word)
+                .fontSize(13)
+                .fontColor(this.getHighlightTagTextColor())
+                .fontWeight(FontWeight.Medium)
+                .maxLines(1)
+                .textOverflow({ overflow: TextOverflow.Ellipsis })
+                .constraintSize({ maxWidth: 120 })
+              // 出现次数徽标（单次出现时不显示）
+              if (this.buildOccurrenceBadge(kw.word).length > 0) {
+                Text(this.buildOccurrenceBadge(kw.word))
+                  .fontSize(11)
+                  .fontColor(this.getHighlightTagTextColor())
+                  .margin({ left: 4 })
+              }
+            }
+            .onClick(() => {
+              this.openPositionPanel(kw.word);
+            })
+
+            // × 移除按钮
             Text(' \u00D7')
               .fontSize(14)
               .fontColor($r('app.color.tertiary_text'))
               .margin({ left: 2 })
+              .onClick(() => {
+                this.removeKeyword(kw.word);
+              })
           }
           .backgroundColor(this.getHighlightTagBgColor())
           .borderRadius(14)
           .padding({ left: 10, right: 10, top: 5, bottom: 5 })
           .margin({ right: 6, bottom: 6 })
-          .onClick(() => {
-            this.removeKeyword(word);
-          })
-        }, (word: string) => word)
+          .alignItems(VerticalAlign.Center)
+        }, (kw: HighlightKeyword) => kw.word + '_' + kw.source)
 
         Row() {
           TextInput({ placeholder: '添加高亮词', text: this.customKeyword })
@@ -667,6 +983,196 @@ struct Md2PngContent {
     .width('100%')
     .padding({ left: 16, right: 16, top: 8, bottom: 8 })
     .backgroundColor($r('app.color.page_background'))
+  }
+
+  /**
+   * 构建关键字出现次数与选中位置的徽标文本
+   * - 无出现：'·0'（灰色提示）
+   * - 单次出现：''（空串，不显示徽标）
+   * - 多次出现：'·N (1,3)' 显示总数和选中的位置序号
+   */
+  private buildOccurrenceBadge(word: string): string {
+    let stats: HighlightStats = this.getKeywordStats(word);
+    let occ: number = stats.occurrences;
+    if (occ === 0) {
+      return '·0';
+    }
+    if (occ === 1) {
+      return '';
+    }
+    // 查找该关键字的 selectedIndices
+    let indices: number[] = [];
+    for (let i = 0; i < this.highlightKeywords.length; i++) {
+      if (this.highlightKeywords[i].word === word) {
+        indices = this.highlightKeywords[i].selectedIndices;
+        break;
+      }
+    }
+    // 计算有效选中的序号（截断到 occ 范围内）
+    let validSelected: number[] = [];
+    for (let i = 0; i < indices.length; i++) {
+      if (indices[i] >= 0 && indices[i] < occ) {
+        validSelected.push(indices[i]);
+      }
+    }
+    let badge: string = '·' + occ.toString();
+    // 多次出现且选中了部分位置时，显示具体序号
+    if (validSelected.length > 0) {
+      badge += ' ' + this.formatSelectedIndices(validSelected);
+    }
+    return badge;
+  }
+
+  /**
+   * 位置选择浮层：显示关键字在文本中的所有出现位置，支持勾选要高亮的位置
+   */
+  @Builder
+  PositionPanel() {
+    Stack() {
+      // 半透明遮罩
+      Column()
+        .width('100%')
+        .height('100%')
+        .backgroundColor('rgba(0,0,0,0.4)')
+        .onClick(() => {
+          this.closePositionPanel();
+        })
+
+      // 面板内容
+      Column() {
+        // 标题行
+        Row() {
+          Text(this.editingWord)
+            .fontSize(16)
+            .fontWeight(FontWeight.Bold)
+            .fontColor($r('app.color.primary_text'))
+            .maxLines(1)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
+            .constraintSize({ maxWidth: 160 })
+          Text('  共 ' + this.editingWordOccurrences.length.toString() + ' 次出现')
+            .fontSize(13)
+            .fontColor($r('app.color.tertiary_text'))
+          Blank()
+          Text('关闭')
+            .fontSize(14)
+            .fontColor($r('app.color.idiom_blue'))
+            .onClick(() => {
+              this.closePositionPanel();
+            })
+        }
+        .width('100%')
+        .padding({ left: 16, right: 16, top: 16, bottom: 12 })
+
+        if (this.editingWordOccurrences.length === 0) {
+          Column() {
+            Text('当前文本中未找到该关键字')
+              .fontSize(13)
+              .fontColor($r('app.color.hint_text'))
+              .padding(20)
+          }
+          .width('100%')
+          .alignItems(HorizontalAlign.Center)
+        } else {
+          // 出现位置列表
+          Scroll() {
+            Column() {
+              ForEach(this.editingWordOccurrences, (ctx: KeywordOccurrenceContext) => {
+                Row() {
+                  Checkbox()
+                    .select(this.isOccurrenceSelected(ctx.index))
+                    .onChange((checked: boolean) => {
+                      this.toggleOccurrence(ctx.index);
+                    })
+                    .margin({ right: 10 })
+                  Column() {
+                    Text('第 ' + (ctx.index + 1).toString() + ' 次')
+                      .fontSize(12)
+                      .fontColor($r('app.color.tertiary_text'))
+                    Text(ctx.context)
+                      .fontSize(13)
+                      .fontColor($r('app.color.primary_text'))
+                      .maxLines(2)
+                      .textOverflow({ overflow: TextOverflow.Ellipsis })
+                      .margin({ top: 2 })
+                  }
+                  .alignItems(HorizontalAlign.Start)
+                  .layoutWeight(1)
+                }
+                .width('100%')
+                .padding({ left: 16, right: 16, top: 10, bottom: 10 })
+                .onClick(() => {
+                  this.toggleOccurrence(ctx.index);
+                })
+              }, (ctx: KeywordOccurrenceContext) => ctx.index.toString())
+            }
+            .width('100%')
+          }
+          .width('100%')
+          .layoutWeight(1)
+          .scrollable(ScrollDirection.Vertical)
+          .scrollBar(BarState.Auto)
+
+          // 底部操作按钮
+          Row({ space: 8 }) {
+            Button('全选')
+              .fontSize(13)
+              .fontColor($r('app.color.idiom_blue'))
+              .backgroundColor($r('app.color.idiom_blue') + '18')
+              .borderRadius(16)
+              .height(32)
+              .layoutWeight(1)
+              .onClick(() => {
+                this.selectAllOccurrences();
+              })
+            Button('全不选')
+              .fontSize(13)
+              .fontColor($r('app.color.tertiary_text'))
+              .backgroundColor($r('app.color.card_background'))
+              .borderRadius(16)
+              .height(32)
+              .layoutWeight(1)
+              .onClick(() => {
+                this.selectNoneOccurrences();
+              })
+            if (this.editingWordSource === 'manual') {
+              Button('移除该词')
+                .fontSize(13)
+                .fontColor('#dc2626')
+                .backgroundColor('rgba(220,38,38,0.12)')
+                .borderRadius(16)
+                .height(32)
+                .layoutWeight(1)
+                .onClick(() => {
+                  let word: string = this.editingWord;
+                  this.closePositionPanel();
+                  this.removeKeyword(word);
+                })
+            }
+          }
+          .width('100%')
+          .padding({ left: 16, right: 16, top: 8, bottom: 16 })
+        }
+      }
+      .width('100%')
+      .height('60%')
+      .backgroundColor($r('app.color.card_background'))
+      .borderRadius({ topLeft: 16, topRight: 16 })
+    }
+    .width('100%')
+    .height('100%')
+    .alignContent(Alignment.Bottom)
+  }
+
+  /**
+   * 判断某个出现序号是否被选中（用于 Checkbox 显示状态）
+   */
+  private isOccurrenceSelected(index: number): boolean {
+    for (let i = 0; i < this.editingWordSelectedIndices.length; i++) {
+      if (this.editingWordSelectedIndices[i] === index) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Builder
