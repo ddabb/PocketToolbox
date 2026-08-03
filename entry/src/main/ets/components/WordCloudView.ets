@@ -2,50 +2,60 @@ import { image } from '@kit.ImageKit';
 import { LengthMetricsUnit } from '@kit.ArkUI';
 import { PlacedWord } from '../model/WordItem';
 
+/**
+ * WordCloudView — 词云预览组件
+ * 使用 OffscreenCanvas 渲染后以 Image 展示，与导出逻辑完全一致，
+ * 避免 Canvas 组件像素尺寸在不同设备上的缩放异常问题。
+ */
 @Component
 export struct WordCloudView {
   @Prop @Watch('onDataChange') placedWords: PlacedWord[] = [];
   @Prop @Watch('onDataChange') bgColor: string = '#ffffff';
-  @Prop @Watch('onDataChange') paletteColors: string[] = [];
-  @Prop canvasPixelSize: number = 720;
-  @Prop canvasSize: number = 360;
-  private settings: RenderingContextSettings = new RenderingContextSettings(true);
-  private context: CanvasRenderingContext2D = new CanvasRenderingContext2D(this.settings);
-  private ready: boolean = false;
-  private pendingDraw: boolean = false;
+  @Prop layoutSize: number = 800;
+  @State private displayPixel: image.PixelMap | undefined = undefined;
+  private readonly DISPLAY_SCALE: number = 2;
 
   build() {
-    Canvas(this.context)
-      .width(this.canvasPixelSize + 'px')
-      .height(this.canvasPixelSize + 'px')
-      .onReady(() => {
-        this.ready = true;
-        if (this.placedWords.length > 0 || this.pendingDraw) {
-          this.pendingDraw = false;
-          this.drawWordCloud();
-        }
-      })
+    Image(this.displayPixel)
+      .width('100%')
+      .height('100%')
+      .objectFit(ImageFit.Contain)
+      .interpolation(ImageInterpolation.Medium)
   }
 
-  private onDataChange(): void {
-    if (this.ready) {
-      this.drawWordCloud();
-    } else {
-      this.pendingDraw = true;
+  aboutToAppear(): void {
+    if (this.placedWords.length > 0) {
+      this.renderDisplay();
     }
   }
 
-  // P1优化: 提取公共绘制逻辑, 消除 drawWordCloud 与 renderToPixelMap 之间的重复代码
-  // color/font 由 generateWordCloud/refreshColors/refreshFont 保证有效, 移除冗余空检查和参数
-  private drawWords(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
-    scale: number, bgColor: string, width: number, height: number): void {
-    ctx.clearRect(0, 0, width, height);
-    ctx.fillStyle = bgColor;
-    ctx.fillRect(0, 0, width, height);
+  aboutToDisappear(): void {
+    if (this.displayPixel !== undefined) {
+      this.displayPixel.release();
+      this.displayPixel = undefined;
+    }
+  }
 
+  private onDataChange(): void {
+    this.renderDisplay();
+  }
+
+  private renderDisplay(): void {
     let words: PlacedWord[] = this.placedWords;
-    let count: number = words.length;
-    for (let i: number = 0; i < count; i++) {
+    if (words.length === 0) {
+      return;
+    }
+    let pixelSize: number = this.layoutSize * this.DISPLAY_SCALE;
+    let off: OffscreenCanvas = new OffscreenCanvas(pixelSize, pixelSize, LengthMetricsUnit.PX);
+    let ctx: OffscreenCanvasRenderingContext2D = off.getContext('2d',
+      new RenderingContextSettings(true)) as OffscreenCanvasRenderingContext2D;
+
+    ctx.clearRect(0, 0, pixelSize, pixelSize);
+    ctx.fillStyle = this.bgColor;
+    ctx.fillRect(0, 0, pixelSize, pixelSize);
+
+    let scale: number = pixelSize / this.layoutSize;
+    for (let i: number = 0; i < words.length; i++) {
       let pw: PlacedWord = words[i];
       ctx.save();
       ctx.translate(pw.x * scale, pw.y * scale);
@@ -59,30 +69,40 @@ export struct WordCloudView {
       ctx.fillText(pw.text, 0, 0);
       ctx.restore();
     }
-  }
 
-  private drawWordCloud(): void {
-    if (this.placedWords.length === 0) {
-      return;
+    let old: image.PixelMap | undefined = this.displayPixel;
+    this.displayPixel = ctx.getPixelMap(0, 0, pixelSize, pixelSize);
+    if (old !== undefined) {
+      old.release();
     }
-    let w: number = this.canvasPixelSize;
-    if (w <= 0) {
-      return;
-    }
-    this.drawWords(this.context,
-      this.canvasPixelSize / this.canvasSize,
-      this.bgColor, w, w);
   }
 
   renderToPixelMap(pixelSize: number): image.PixelMap {
     let off: OffscreenCanvas = new OffscreenCanvas(pixelSize, pixelSize, LengthMetricsUnit.PX);
-    let ctx: OffscreenCanvasRenderingContext2D = off.getContext('2d', new RenderingContextSettings(true)) as OffscreenCanvasRenderingContext2D;
+    let ctx: OffscreenCanvasRenderingContext2D = off.getContext('2d',
+      new RenderingContextSettings(true)) as OffscreenCanvasRenderingContext2D;
 
-    this.drawWords(ctx,
-      pixelSize / this.canvasSize,
-      this.bgColor, pixelSize, pixelSize);
+    ctx.clearRect(0, 0, pixelSize, pixelSize);
+    ctx.fillStyle = this.bgColor;
+    ctx.fillRect(0, 0, pixelSize, pixelSize);
+
+    let scale: number = pixelSize / this.layoutSize;
+    let words: PlacedWord[] = this.placedWords;
+    for (let i: number = 0; i < words.length; i++) {
+      let pw: PlacedWord = words[i];
+      ctx.save();
+      ctx.translate(pw.x * scale, pw.y * scale);
+      if (pw.angle !== 0) {
+        ctx.rotate(pw.angle * Math.PI / 180);
+      }
+      ctx.font = (pw.size * scale).toString() + 'px ' + pw.font;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = pw.color;
+      ctx.fillText(pw.text, 0, 0);
+      ctx.restore();
+    }
 
     return ctx.getPixelMap(0, 0, pixelSize, pixelSize);
   }
-
 }

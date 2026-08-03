@@ -6,7 +6,7 @@ import { BusinessError } from '@kit.BasicServicesKit';
 import { common } from '@kit.AbilityKit';
 import { pasteboard } from '@kit.BasicServicesKit';
 import { Markdown, MarkdownController } from '@luvi/lv-markdown-in';
-import { display } from '@kit.ArkUI';
+import { display, promptAction } from '@kit.ArkUI';
 import { preferences } from '@kit.ArkData';
 import { DecorPatternUtil } from '../common/utils/DecorPatternUtil';
 import { shareImageViaPanel } from '../common/utils/ShareImageUtil';
@@ -432,8 +432,8 @@ struct Md2PngContent {
           { text: '继续编辑', color: '#666666' },
           { text: '放弃', color: '#dc2626' },
         ]
-      }).then((result: Record<string, number>) => {
-        if (result && result.index === 1) {
+      }).then((result: promptAction.ShowDialogSuccessResponse) => {
+        if (result.index === 1) {
           this.showPositionPanel = false;
           this.positionPanelDirty = false;
         }

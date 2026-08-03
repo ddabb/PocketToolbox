@@ -143,36 +143,27 @@ export struct ImageSaveShareBar {
   }
 
   build() {
-    Row({ space: 12 }) {
-      Column() {
-        SaveButton({ icon: SaveIconStyle.FULL_FILLED, text: SaveDescription.SAVE_IMAGE, buttonType: ButtonType.Normal })
-          .fontSize(14)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(this.accentColor)
-          .backgroundColor(Color.Transparent)
-          .borderRadius(21)
-          .height(42)
-          .onClick(async (_event: ClickEvent, result: SaveButtonOnClickResult) => {
-            if (result === SaveButtonOnClickResult.SUCCESS) {
-              await this.saveToAlbum();
-            } else {
-              this.getUIContext().getPromptAction().showToast({ message: '授权失败', duration: 1500 });
-            }
-          })
-      }
-      .backgroundColor(this.accentColor)
-      .borderRadius(22)
-      .height(44)
-      .layoutWeight(1)
-      .padding(1)
-
-      Button('分享')
-        .fontSize(14)
+    Row({ space: 10 }) {
+      Button('保存图片')
+        .fontSize(13)
         .fontWeight(FontWeight.Bold)
         .fontColor(Color.White)
         .backgroundColor(this.accentColor)
-        .borderRadius(22)
-        .height(44)
+        .borderRadius(19)
+        .height(38)
+        .layoutWeight(1)
+        .enabled(!this.isBusy)
+        .onClick(async () => {
+          await this.saveToAlbum();
+        })
+
+      Button('分享')
+        .fontSize(13)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(Color.White)
+        .backgroundColor(this.accentColor)
+        .borderRadius(19)
+        .height(38)
         .layoutWeight(1)
         .enabled(!this.isBusy)
         .onClick(() => {

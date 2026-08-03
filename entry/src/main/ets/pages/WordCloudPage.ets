@@ -25,12 +25,12 @@ export function WordCloudPageBuilder() {
 
 @Component
 struct WordCloudContent {
-  @State inputText: string = '';
   @State cloudWords: CloudWord[] = [];
   @State placedWords: PlacedWord[] = [];
   @State currentPaletteIndex: number = 0;
   @State currentFontIndex: number = 0;
   @State currentShapeIndex: number = 0;
+  @State forceRepeat: boolean = false;
   @State isGenerating: boolean = false;
   @State isExtracting: boolean = false;
   @State canvasSize: number = 360;
@@ -40,6 +40,7 @@ struct WordCloudContent {
   @State customWord: string = '';
   @State customCount: string = '1';
   @State directWordsText: string = '';
+  @State rawSourceText: string = '';
   @State showWordsDialog: boolean = false;
   @State showSettingsDialog: boolean = false;
   private uiContext: UIContext = this.getUIContext();
@@ -88,111 +89,85 @@ struct WordCloudContent {
   build() {
     Scroll() {
       Column() {
+        // 词语编辑区 — 紧凑排版
         Column() {
-          Text('词语编辑')
-            .fontSize(15)
-            .fontWeight(FontWeight.Bold)
-            .fontColor($r('app.color.primary_text'))
-            .width('100%')
-            .margin({ bottom: 8 })
+          Row() {
+            Text('词语编辑')
+              .fontSize(14)
+              .fontWeight(FontWeight.Bold)
+              .fontColor($r('app.color.primary_text'))
+            Blank()
+            if (this.rawSourceText.length > 0) {
+              Text('还原原文')
+                .fontSize(11)
+                .fontColor(this.getAccentColor())
+                .onClick(() => {
+                  this.directWordsText = this.rawSourceText;
+                  this.rawSourceText = '';
+                })
+            }
+          }
+          .width('100%')
 
-          TextArea({ placeholder: '每行输入一个词语，可用冒号指定权重\n例如：\n创新:5\n科技:3\n未来', text: this.directWordsText })
+          TextArea({ placeholder: '每行一个词语，冒号指定权重  例如: 创新:5', text: this.directWordsText })
             .width('100%')
-            .height(140)
-            .fontSize(14)
+            .height(96)
+            .fontSize(13)
             .fontColor($r('app.color.primary_text'))
             .backgroundColor($r('app.color.card_background'))
-            .borderRadius(12)
-            .padding(12)
+            .borderRadius(10)
+            .padding(10)
+            .margin({ top: 6 })
             .onChange((value: string) => {
               this.directWordsText = value;
               this.parseDirectWords();
             })
         }
         .width('100%')
-        .padding({ left: 16, right: 16, top: 12 })
+        .padding({ left: 16, right: 16, top: 10 })
 
-        Row({ space: 8 }) {
+        // 操作按钮行 + 词语计数
+        Row({ space: 6 }) {
           Button('示例')
-            .fontSize(14)
+            .fontSize(13)
             .fontColor(Color.White)
             .backgroundColor('#07c160')
-            .borderRadius(20)
-            .height(36)
-            .onClick(() => {
-              this.loadExample();
-            })
+            .borderRadius(16)
+            .height(32)
+            .onClick(() => { this.loadExample(); })
 
           Button('清空')
-            .fontSize(14)
+            .fontSize(13)
             .fontColor($r('app.color.tertiary_text'))
             .backgroundColor($r('app.color.card_background'))
-            .borderRadius(20)
-            .height(36)
-            .onClick(() => {
-              this.clearWords();
-            })
+            .borderRadius(16)
+            .height(32)
+            .onClick(() => { this.clearWords(); })
 
           Button(this.isExtracting ? '分词中...' : '从文本提取')
-            .fontSize(14)
+            .fontSize(13)
             .fontWeight(FontWeight.Bold)
             .fontColor(Color.White)
             .backgroundColor('#2563eb')
-            .borderRadius(20)
-            .height(36)
+            .borderRadius(16)
+            .height(32)
             .enabled(!this.isExtracting)
-            .onClick(() => {
-              this.extractWordsToDirect();
-            })
-        }
-        .width('100%')
-        .padding({ left: 16, right: 16, top: 8 })
-        .justifyContent(FlexAlign.Start)
+            .onClick(() => { this.extractWordsToDirect(); })
 
-        if (this.cloudWords.length > 0) {
-          Row() {
-            Text('参与词语 (' + this.cloudWords.length.toString() + ')')
-              .fontSize(13)
-              .fontWeight(FontWeight.Medium)
-              .fontColor($r('app.color.primary_text'))
-            Blank()
-            Text('点击编辑 ›')
+          Blank()
+
+          if (this.cloudWords.length > 0) {
+            Text('共' + this.cloudWords.length.toString() + '词')
               .fontSize(12)
-              .fontColor(this.getAccentColor())
+              .fontColor($r('app.color.tertiary_text'))
+              .onClick(() => { this.showWordsDialog = true; })
           }
-          .width('100%')
-          .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-          .onClick(() => {
-            this.showWordsDialog = true;
-          })
-        }
-
-        Row({ space: 8 }) {
-          Button(this.isGenerating ? this.progressText : '生成词云')
-            .fontSize(14)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(Color.White)
-            .backgroundColor('#2563eb')
-            .borderRadius(20)
-            .height(36)
-            .enabled(!this.isGenerating && this.cloudWords.length > 0)
-            .layoutWeight(1)
-            .onClick(() => {
-              this.generateWordCloud();
-            })
-
-          Button('设置')
-            .fontSize(14)
-            .fontColor($r('app.color.tertiary_text'))
-            .backgroundColor($r('app.color.card_background'))
-            .borderRadius(20)
-            .height(36)
-            .onClick(() => {
-              this.showSettingsDialog = true;
-            })
         }
         .width('100%')
         .padding({ left: 16, right: 16, top: 8 })
+
+        // 配色/形状/字体 — 画布上方
+        this.StyleThumbBar()
 
         Column() {
           Column() {
@@ -200,9 +175,7 @@ struct WordCloudContent {
               WordCloudView({
                 placedWords: this.placedWords,
                 bgColor: this.palettes[this.currentPaletteIndex].bgColor,
-                paletteColors: this.palettes[this.currentPaletteIndex].colors,
-                canvasPixelSize: this.canvasPixelSize,
-                canvasSize: this.LAYOUT_CANVAS_SIZE
+                layoutSize: this.LAYOUT_CANVAS_SIZE
               })
                 .width(this.canvasSize)
                 .height(this.canvasSize)
@@ -234,20 +207,17 @@ struct WordCloudContent {
           .justifyContent(FlexAlign.Center)
         }
         .width('100%')
-        .padding({ left: 16, right: 16, top: 12 })
+        .padding({ left: 16, right: 16, top: 8 })
         .alignItems(HorizontalAlign.Center)
 
         if (this.placedWords.length > 0) {
-          // 风格快捷缩略图工具栏
-          this.StyleThumbBar()
-
           ImageSaveShareBar({
             accentColor: this.getAccentColor(),
             onPmForSave: (): image.PixelMap => this.renderExportPixelMap(),
             onPmForShare: (): image.PixelMap => this.renderExportPixelMap(),
           })
             .width('100%')
-            .padding({ left: 16, right: 16, top: 8 })
+            .padding({ left: 16, right: 16, top: 6 })
         }
 
         // 底部留白避免被导航栏遮挡
@@ -434,138 +404,121 @@ struct WordCloudContent {
     .borderRadius({ topLeft: 20, topRight: 20 })
   }
 
-  // 词云下方风格快捷缩略图栏
+  // 词云下方紧凑风格工具栏
   @Builder
   StyleThumbBar() {
     Column() {
-      Text('风格')
-        .fontSize(12)
-        .fontWeight(FontWeight.Medium)
-        .fontColor($r('app.color.tertiary_text'))
-        .width('100%')
-        .padding({ left: 16, bottom: 4 })
-
-      // 配色缩略图
-      Row() {
+      // 配色 — 两行显示
+      Row({ space: 4 }) {
         Text('配色')
-          .fontSize(12)
+          .fontSize(11)
           .fontColor($r('app.color.tertiary_text'))
-          .width(36)
-        Scroll() {
-          Row({ space: 5 }) {
-            ForEach(this.templates, (tpl: TemplateInfo, index: number) => {
-              Column() {
-                Row({ space: 1 }) {
-                  ForEach(this.palettes[index].colors.slice(0, 4), (color: string) => {
-                    Column()
-                      .width(12)
-                      .height(14)
-                      .borderRadius(2)
-                      .backgroundColor(color)
-                  })
-                }
-              }
-              .width(52)
-              .height(16)
-              .borderRadius(6)
-              .border({
-                width: this.currentPaletteIndex === index ? 2 : 0,
-                color: this.getTemplateAccent(index)
+          .width(32)
+        Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
+          ForEach(this.templates, (tpl: TemplateInfo, index: number) => {
+            Row({ space: 0 }) {
+              ForEach(this.palettes[index].colors.slice(0, 4), (color: string) => {
+                Column()
+                  .width(10).height(12).borderRadius(2).backgroundColor(color)
               })
-              .onClick(() => {
-                this.currentPaletteIndex = index;
-                this.refreshColors();
-              })
-            })
-          }
-          .padding({ left: 2, right: 2 })
+            }
+            .width(44).height(14).borderRadius(5)
+            .margin({ right: 4, bottom: 3 })
+            .border({ width: this.currentPaletteIndex === index ? 1.5 : 0,
+              color: this.getTemplateAccent(index) })
+            .onClick(() => { this.currentPaletteIndex = index; this.refreshColors(); })
+          })
         }
-        .scrollable(ScrollDirection.Horizontal)
-        .scrollBar(BarState.Off)
-        .height(22)
         .layoutWeight(1)
       }
-      .width('100%')
-      .height(26)
-      .padding({ left: 16, right: 16 })
-      .alignItems(VerticalAlign.Center)
+      .width('100%').padding({ left: 16, right: 16 }).alignItems(VerticalAlign.Top)
 
-      // 形状缩略图
-      Row() {
+      // 形状行
+      Row({ space: 4 }) {
         Text('形状')
-          .fontSize(12)
+          .fontSize(11)
           .fontColor($r('app.color.tertiary_text'))
-          .width(36)
+          .width(32)
         Scroll() {
-          Row({ space: 4 }) {
+          Row({ space: 2 }) {
             ForEach(this.shapes, (shape: ShapeDef, index: number) => {
               Image($r('app.media.' + this.shapeIcons[index]))
-                .width(20)
-                .height(20)
+                .width(18).height(18)
                 .fillColor(this.currentShapeIndex === index ? this.getAccentColor() : $r('app.color.tertiary_text'))
-                .backgroundColor(this.currentShapeIndex === index ? this.getAccentColor() + '14' : Color.Transparent)
-                .borderRadius(5)
-                .padding(3)
-                .onClick(() => {
-                  this.currentShapeIndex = index;
-                })
+                .borderRadius(4).padding(2)
+                .border({ width: this.currentShapeIndex === index ? 1.5 : 0,
+                  color: this.getAccentColor(), radius: 6 })
+                .onClick(() => { this.currentShapeIndex = index; })
             })
           }
-          .padding({ left: 2, right: 2 })
         }
-        .scrollable(ScrollDirection.Horizontal)
-        .scrollBar(BarState.Off)
-        .height(26)
-        .layoutWeight(1)
+        .scrollable(ScrollDirection.Horizontal).scrollBar(BarState.Off).height(22).layoutWeight(1)
       }
-      .width('100%')
-      .height(30)
-      .padding({ left: 16, right: 16 })
-      .alignItems(VerticalAlign.Center)
-      .margin({ top: 4 })
+      .width('100%').height(26).padding({ left: 16, right: 16 }).alignItems(VerticalAlign.Center)
 
-      // 字体缩略图
-      Row() {
+      // 字体行
+      Row({ space: 4 }) {
         Text('字体')
-          .fontSize(12)
+          .fontSize(11)
           .fontColor($r('app.color.tertiary_text'))
-          .width(36)
+          .width(32)
         Scroll() {
-          Row({ space: 5 }) {
+          Row({ space: 3 }) {
             ForEach(this.fontNames, (fontName: string, index: number) => {
               Text('云')
-                .fontSize(16)
-                .fontFamily(fontName)
+                .fontSize(15).fontFamily(fontName)
                 .fontColor(this.currentFontIndex === index ? this.getAccentColor() : $r('app.color.tertiary_text'))
-                .backgroundColor(this.currentFontIndex === index ? this.getAccentColor() + '14' : Color.Transparent)
-                .borderRadius(6)
-                .width(28)
-                .height(22)
-                .textAlign(TextAlign.Center)
-                .onClick(() => {
-                  this.currentFontIndex = index;
-                  this.refreshFont();
-                })
+                .borderRadius(4).width(24).height(20).textAlign(TextAlign.Center)
+                .border({ width: this.currentFontIndex === index ? 1.5 : 0,
+                  color: this.getAccentColor(), radius: 6 })
+                .onClick(() => { this.currentFontIndex = index; this.refreshFont(); })
             })
           }
-          .padding({ left: 2, right: 2 })
         }
-        .scrollable(ScrollDirection.Horizontal)
-        .scrollBar(BarState.Off)
-        .height(26)
-        .layoutWeight(1)
+        .scrollable(ScrollDirection.Horizontal).scrollBar(BarState.Off).height(22).layoutWeight(1)
+      }
+      .width('100%').height(26).padding({ left: 16, right: 16 }).alignItems(VerticalAlign.Center)
+
+      // 当前配置提示
+      Text('配色: ' + this.templates[this.currentPaletteIndex].name +
+        ' | 形状: ' + this.shapes[this.currentShapeIndex].label +
+        ' | 字体: ' + this.fontLabels[this.currentFontIndex])
+        .fontSize(10)
+        .fontColor($r('app.color.tertiary_text'))
+        .width('100%')
+        .padding({ left: 16, right: 16 })
+
+      // 强制重复开关
+      Row({ space: 4 }) {
+        Toggle({ type: ToggleType.Checkbox, isOn: this.forceRepeat })
+          .selectedColor(this.getAccentColor())
+          .width(16).height(16)
+          .onChange((isOn: boolean) => { this.forceRepeat = isOn; })
+        Text('词少时强制重复填充')
+          .fontSize(11)
+          .fontColor($r('app.color.tertiary_text'))
       }
       .width('100%')
-      .height(30)
-      .padding({ left: 16, right: 16 })
-      .alignItems(VerticalAlign.Center)
-      .margin({ top: 4 })
+      .padding({ left: 16, right: 16, top: 4 })
+
+      // 生成词云按钮
+      Button(this.isGenerating ? '生成中...' : '生成词云')
+        .fontSize(14)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(Color.White)
+        .backgroundColor('#2563eb')
+        .borderRadius(18)
+        .height(38)
+        .width('100%')
+        .margin({ left: 16, right: 16, top: 6, bottom: 8 })
+        .enabled(!this.isGenerating && this.cloudWords.length > 0)
+        .onClick(() => { this.generateWordCloud(); })
     }
     .width('100%')
-    .padding({ top: 10, bottom: 6 })
+    .padding({ top: 6 })
     .backgroundColor($r('app.color.card_background'))
-    .borderRadius(12)
-    .margin({ left: 16, right: 16, top: 8 })
+    .borderRadius(10)
+    .margin({ left: 16, right: 16, top: 6 })
   }
 
   @Builder
@@ -837,6 +790,7 @@ struct WordCloudContent {
         lines.push(text + ':' + weight);
       }
     }
+    this.rawSourceText = '';
     this.directWordsText = lines.join('\n');
     this.parseDirectWords();
   }
@@ -869,19 +823,20 @@ struct WordCloudContent {
   }
 
   private clearWords(): void {
-     this.directWordsText = '';
-     this.cloudWords = [];
-     this.placedWords = [];
-   }
+    this.directWordsText = '';
+    this.rawSourceText = '';
+    this.cloudWords = [];
+    this.placedWords = [];
+  }
 
   private async extractWordsToDirect(): Promise<void> {
-    if (!this.inputText || this.inputText.trim().length === 0) {
+    if (!this.directWordsText || this.directWordsText.trim().length === 0) {
       this.uiContext.getPromptAction().showToast({ message: '请先输入或粘贴文本到上方编辑区', duration: 1500 });
       return;
     }
     this.isExtracting = true;
     try {
-      let wordEntries: Array<WordCountEntry> = await KeywordUtil.extractAllWords(this.inputText);
+      let wordEntries: Array<WordCountEntry> = await KeywordUtil.extractAllWords(this.directWordsText);
       if (wordEntries.length === 0) {
         this.uiContext.getPromptAction().showToast({ message: '未提取到有效词语', duration: 2000 });
         this.isExtracting = false;
@@ -899,13 +854,10 @@ struct WordCloudContent {
           lines.push(entries[i].word);
         }
       }
-      if (this.directWordsText.length > 0) {
-        this.directWordsText = this.directWordsText + '\n' + lines.join('\n');
-      } else {
-        this.directWordsText = lines.join('\n');
-      }
+      // 暂存原文，替换为提取后的关键词列表
+      this.rawSourceText = this.directWordsText;
+      this.directWordsText = lines.join('\n');
       this.cloudWords = newWords;
-      this.syncDirectTextFromWords();
     } catch (e) {
       this.uiContext.getPromptAction().showToast({ message: '分词失败', duration: 2000 });
     }
@@ -935,6 +887,18 @@ struct WordCloudContent {
 
       let fontName: string = this.fontNames[this.currentFontIndex];
       let layoutSize: number = this.LAYOUT_CANVAS_SIZE;
+
+      // 强制重复：词少时循环补充到足够填充形状
+      if (this.forceRepeat && wordInputs.length < 30) {
+        let target: number = Math.min(wordInputs.length * 8, this.MAX_WORDS);
+        let repeated: WordInput[] = [];
+        while (repeated.length < target) {
+          for (let i: number = 0; i < wordInputs.length && repeated.length < target; i++) {
+            repeated.push(wordInputs[i]);
+          }
+        }
+        wordInputs = repeated;
+      }
 
       let input: WordCloudInput = {
         words: wordInputs,

@@ -71,7 +71,6 @@ struct Index {
   @StorageLink('favCount') favCount: number = 0;
   @State mathTools: ToolItem[] = [];
   @State unitTools: ToolItem[] = [];
-  @State baseTimezoneTools: ToolItem[] = [];
   @State creativeTools: ToolItem[] = [];
   @State checkInData: CheckInData = new CheckInData();
   @State checkedInToday: boolean = false;
@@ -126,14 +125,13 @@ struct Index {
     ];
 
     let unitTools: ToolItem[] = [];
-    let baseTimezoneTools: ToolItem[] = [];
     let cats: ConverterCategory[] = UnitConverterData.getCategories();
     for (let i = 0; i < cats.length; i++) {
       let cat: ConverterCategory = cats[i];
       if (cat.isBase) {
-        baseTimezoneTools.push(new ToolItem(cat.id, cat.title, '二进制/八进制/十六进制/Base64', cat.icon, cat.color, 'BaseConverterPage'));
+        unitTools.push(new ToolItem(cat.id, cat.title, '二进制/八进制/十六进制/Base64', cat.icon, cat.color, 'BaseConverterPage'));
       } else if (cat.isTimezone) {
-        baseTimezoneTools.push(new ToolItem(cat.id, cat.title, '全球城市时区对照与会议协调', cat.icon, cat.color, 'TimezoneConverterPage'));
+        unitTools.push(new ToolItem(cat.id, cat.title, '全球城市时区对照与会议协调', cat.icon, cat.color, 'TimezoneConverterPage'));
       } else {
         let sub: string = this.getUnitSubtitle(cat);
         let param: Record<string, Object> = {
@@ -144,7 +142,6 @@ struct Index {
       }
     }
     this.unitTools = unitTools;
-    this.baseTimezoneTools = baseTimezoneTools;
 
     this.creativeTools = [
       new ToolItem('word_cloud', '词云生成', '粘贴文本，30秒出图', '', '#8b5cf6', 'WordCloudPage'),
@@ -697,17 +694,14 @@ struct Index {
           .padding({ top: 8, bottom: 12 })
           .alignItems(HorizontalAlign.Center)
 
-          this.ToolSectionTitle('数学计算', 0)
+          this.ToolSectionTitle('创意工具', 0)
+          this.CreativeToolGrid(this.creativeTools)
+
+          this.ToolSectionTitle('数学计算', 8)
           this.ImageToolGrid(this.mathTools)
 
           this.ToolSectionTitle('单位换算', 8)
           this.ImageToolGrid(this.unitTools)
-
-          this.ToolSectionTitle('进制与时区', 8)
-          this.ImageToolGrid(this.baseTimezoneTools)
-
-          this.ToolSectionTitle('创意工具', 8)
-          this.CreativeToolGrid(this.creativeTools)
         }
         .width('100%')
         .padding({ bottom: 16 })
