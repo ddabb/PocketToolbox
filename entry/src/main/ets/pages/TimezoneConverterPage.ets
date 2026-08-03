@@ -657,7 +657,7 @@ struct TimezoneConverterContent {
                 this.recalcCityTimeInfos();
               }
             })
-        }, (cityName: string) => cityName + '_' + this.baseDate)
+        }, (cityName: string) => cityName + '_' + this.calcVersion.toString())
       }
     }
     .width('100%')
@@ -877,7 +877,7 @@ struct TimezoneConverterContent {
                     .onClick(() => {
                       this.selectCity(name);
                     })
-                }, (name: string) => name + '_' + this.baseDate + '_' + (this.pickerMode === 'base' && this.pendingBaseCityName === name ? '1' : '0'))
+                }, (name: string) => name + '_' + this.calcVersion.toString() + '_' + (this.pickerMode === 'base' && this.pendingBaseCityName === name ? '1' : '0'))
               }
             }
 

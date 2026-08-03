@@ -113,6 +113,8 @@ struct Md2PngContent {
   @State currentAccentColor: string = '#3182ce';
   // 当前生效的高亮关键字列表（auto + manual，按 source 字段区分）
   @State highlightKeywords: HighlightKeyword[] = [];
+  @State keywordVersion: number = 0;
+  @State highlightedTexts: string[] = [];
   // 用户主动移除的关键字黑名单（仅对 auto 提取有效，避免下次又被自动加回）
   @State removedKeywords: string[] = [];
   // 用户是否手动编辑过高亮词（添加/移除/调整位置），用于决定是否弹窗询问覆盖
@@ -144,6 +146,7 @@ struct Md2PngContent {
   private canvasStore: MdCanvasStore = new MdCanvasStore();
   private swiperController: SwiperController = new SwiperController();
   private regenerateTimer: number = -1;
+  private generateTimer: number = -1;
   private readonly markdownExample: string = '# 欢迎使用文字转图片\n\n输入 **Markdown** 或普通文本，选择喜欢的模板，一键生成精美图片！\n\n## 功能特点\n\n- 支持多种精美模板\n- 支持Markdown语法\n- 一键保存到相册\n\n> 让文字更有表现力\n\n`代码片段` 也能高亮显示';
   private readonly textExample: string = '今天天气真好，阳光明媚，微风不燥。\n出门走走，看花开花落，心情格外舒畅。\n把生活里的美好，藏进最平凡的句子。';
 
@@ -154,10 +157,13 @@ struct Md2PngContent {
     this.initAllControllers();
     this.calcCardSize();
     let heights: number[] = [];
+    let texts: string[] = [];
     for (let i: number = 0; i < this.templates.length; i++) {
       heights.push(this.dynamicMinCardHeight);
+      texts.push('');
     }
     this.cardHeights = heights;
+    this.highlightedTexts = texts;
   }
 
   private initAllControllers(): void {
@@ -323,11 +329,11 @@ struct Md2PngContent {
     }
     newArr.push(newKw);
     this.highlightKeywords = newArr;
-    // 若该词之前在黑名单中，移出黑名单
     this.removeFromRemovedList(kw);
     this.userEditedKeywords = true;
     this.customKeyword = '';
     this.computeKeywordStats();
+    this.refreshHighlightedTexts();
     this.generateImage();
   }
 
@@ -352,7 +358,6 @@ struct Md2PngContent {
       }
     }
     this.highlightKeywords = newArr;
-    // auto 来源的词加入黑名单，避免下次自动提取又被加回
     if (removedSource === 'auto') {
       let newRemoved: string[] = [];
       for (let i = 0; i < this.removedKeywords.length; i++) {
@@ -363,6 +368,7 @@ struct Md2PngContent {
     }
     this.userEditedKeywords = true;
     this.computeKeywordStats();
+    this.refreshHighlightedTexts();
     this.generateImage();
   }
 
@@ -407,12 +413,8 @@ struct Md2PngContent {
       newArr.sort((a: number, b: number) => a - b);
     }
     this.editingWordSelectedIndices = newArr;
-    this.applyEditingWordIndices();
   }
 
-  /**
-   * 将浮层中编辑的 selectedIndices 应用回 highlightKeywords
-   */
   private applyEditingWordIndices(): void {
     let newArr: HighlightKeyword[] = [];
     for (let i = 0; i < this.highlightKeywords.length; i++) {
@@ -420,15 +422,22 @@ struct Md2PngContent {
         newArr.push(new HighlightKeyword(
           this.highlightKeywords[i].word,
           this.highlightKeywords[i].source,
-          this.editingWordSelectedIndices
+          this.editingWordSelectedIndices.slice()
         ));
       } else {
         newArr.push(this.highlightKeywords[i]);
       }
     }
     this.highlightKeywords = newArr;
+    this.keywordVersion++;
     this.userEditedKeywords = true;
     this.computeKeywordStats();
+    this.refreshHighlightedTexts();
+  }
+
+  private confirmEditingWord(): void {
+    this.applyEditingWordIndices();
+    this.closePositionPanel();
     this.generateImage();
   }
 
@@ -438,12 +447,10 @@ struct Md2PngContent {
       all.push(i);
     }
     this.editingWordSelectedIndices = all;
-    this.applyEditingWordIndices();
   }
 
   private selectNoneOccurrences(): void {
     this.editingWordSelectedIndices = [];
-    this.applyEditingWordIndices();
   }
 
   /**
@@ -488,6 +495,7 @@ struct Md2PngContent {
     }
     this.highlightKeywords = newArr;
     this.computeKeywordStats();
+    this.refreshHighlightedTexts();
   }
 
   /**
@@ -523,8 +531,8 @@ struct Md2PngContent {
     }
     this.calcDynamicStyle();
     this.initAllControllers();
-    // 切换模板时也需要重新计算统计（文本未变，但模板切换不应改变 stats，此处保持幂等）
     this.computeKeywordStats();
+    this.refreshHighlightedTexts();
     this.generateImage();
   }
 
@@ -534,6 +542,7 @@ struct Md2PngContent {
       this.removedKeywords = [];
       this.userEditedKeywords = false;
       this.keywordStats = [];
+      this.highlightedTexts = [];
       this.generatedImageUri = '';
       return;
     }
@@ -595,7 +604,6 @@ struct Md2PngContent {
       }
       this.highlightKeywords = combined;
     } catch (e) {
-      // 提取失败时保留 manual 关键字
       let manualList: HighlightKeyword[] = [];
       for (let i = 0; i < this.highlightKeywords.length; i++) {
         if (this.highlightKeywords[i].source === 'manual') {
@@ -606,10 +614,21 @@ struct Md2PngContent {
     }
     this.isExtractingKeywords = false;
     this.computeKeywordStats();
+    this.refreshHighlightedTexts();
     this.generateImage();
   }
 
-  private async generateImage(): Promise<void> {
+  private generateImage(): void {
+    if (this.generateTimer !== -1) {
+      clearTimeout(this.generateTimer);
+    }
+    this.generateTimer = setTimeout(() => {
+      this.generateTimer = -1;
+      this.doGenerateImage();
+    }, 300);
+  }
+
+  private async doGenerateImage(): Promise<void> {
     if (!this.inputText || this.inputText.trim().length === 0) {
       this.generatedImageUri = '';
       return;
@@ -649,13 +668,24 @@ struct Md2PngContent {
   }
 
   private getHighlightedText(index: number): string {
-    let tpl: TemplateInfo = this.templates[index];
-    let isDark: boolean = this.isDarkBgColor(tpl.bgColor);
-    let highlightTextColor: string = isDark ? tpl.accentColor : tpl.headerColor;
-    let result: HighlightResult = KeywordUtil.highlightText(
-      this.inputText, this.highlightKeywords, tpl.highlightFont, highlightTextColor, tpl.highlightBgColor
-    );
-    return result.text;
+    if (index >= 0 && index < this.highlightedTexts.length) {
+      return this.highlightedTexts[index];
+    }
+    return this.inputText;
+  }
+
+  private refreshHighlightedTexts(): void {
+    let texts: string[] = [];
+    for (let i = 0; i < this.templates.length; i++) {
+      let tpl: TemplateInfo = this.templates[i];
+      let isDark: boolean = this.isDarkBgColor(tpl.bgColor);
+      let highlightTextColor: string = isDark ? tpl.accentColor : tpl.headerColor;
+      let result: HighlightResult = KeywordUtil.highlightText(
+        this.inputText, this.highlightKeywords, tpl.highlightFont, highlightTextColor, tpl.highlightBgColor
+      );
+      texts.push(result.text);
+    }
+    this.highlightedTexts = texts;
   }
 
   private isDarkBgColor(color: string): boolean {
@@ -947,7 +977,7 @@ struct Md2PngContent {
           .padding({ left: 10, right: 10, top: 5, bottom: 5 })
           .margin({ right: 6, bottom: 6 })
           .alignItems(VerticalAlign.Center)
-        }, (kw: HighlightKeyword) => kw.word + '_' + kw.source)
+        }, (kw: HighlightKeyword) => kw.word + '_' + kw.source + '_' + this.keywordVersion.toString())
 
         Row() {
           TextInput({ placeholder: '添加高亮词', text: this.customKeyword })
@@ -1080,9 +1110,6 @@ struct Md2PngContent {
                 Row() {
                   Checkbox()
                     .select(this.isOccurrenceSelected(ctx.index))
-                    .onChange((checked: boolean) => {
-                      this.toggleOccurrence(ctx.index);
-                    })
                     .margin({ right: 10 })
                   Column() {
                     Text('第 ' + (ctx.index + 1).toString() + ' 次')
@@ -1149,6 +1176,21 @@ struct Md2PngContent {
                 })
             }
           }
+          Row() {
+            Button('确定')
+              .fontSize(15)
+              .fontWeight(FontWeight.Bold)
+              .fontColor('#ffffff')
+              .backgroundColor($r('app.color.idiom_blue'))
+              .borderRadius(20)
+              .height(40)
+              .width('100%')
+              .onClick(() => {
+                this.confirmEditingWord();
+              })
+          }
+          .width('100%')
+          .padding({ left: 16, right: 16, top: 4, bottom: 16 })
           .width('100%')
           .padding({ left: 16, right: 16, top: 8, bottom: 16 })
         }

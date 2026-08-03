@@ -3,10 +3,10 @@ import { FontUtil } from '../common/utils/FontUtil';
 import { FontScaler, WeightedItem } from '../core/style/FontScaler';
 import { Palette, PaletteColor } from '../core/style/Palette';
 import { ShapeDef } from '../core/layout/ShapeDef';
-import { ImageExporter } from '../core/export/ImageExporter';
 import { PlacedWord, CloudWord } from '../model/WordItem';
 import { TemplateInfo, Md2PngTemplates } from '../model/Md2PngModels';
 import { WordCloudView } from '../components/WordCloudView';
+import { ImageSaveShareBar } from '../components/ImageSaveShareBar';
 import { runPlacementAsync, WordInput, WordCloudInput } from '../core/layout/WordCloudTask';
 import { display } from '@kit.ArkUI';
 import { BusinessError } from '@kit.BasicServicesKit';
@@ -23,6 +23,11 @@ export function WordCloudPageBuilder() {
   .menus([])
 }
 
+/**
+ * 词云生成页面。
+ * 保存/分享功能使用独立的 ImageSaveShareBar 组件，
+ * 与 ShareImageCard（成语/诗词/歇后语的分享卡片）完全解耦。
+ */
 @Component
 struct WordCloudContent {
   @State inputText: string = '';
@@ -35,7 +40,6 @@ struct WordCloudContent {
   @State isExtracting: boolean = false;
   @State canvasSize: number = 360;
   @State canvasPixelSize: number = 720;
-  @State generatedCachePath: string = '';
   @State progressText: string = '';
   @State progressValue: number = 0;
   @State customWord: string = '';
@@ -230,43 +234,13 @@ struct WordCloudContent {
         .alignItems(HorizontalAlign.Center)
 
         if (this.placedWords.length > 0) {
-          Row({ space: 12 }) {
-            Column() {
-              SaveButton({ icon: SaveIconStyle.FULL_FILLED, text: SaveDescription.SAVE_IMAGE, buttonType: ButtonType.Normal })
-                .fontSize(14)
-                .fontWeight(FontWeight.Bold)
-                .fontColor(this.getAccentColor())
-                .backgroundColor(Color.Transparent)
-                .borderRadius(21)
-                .height(42)
-                .onClick(async (_event: ClickEvent, result: SaveButtonOnClickResult) => {
-                  if (result === SaveButtonOnClickResult.SUCCESS) {
-                    await this.saveToAlbum();
-                  } else {
-                    this.uiContext.getPromptAction().showToast({ message: '授权失败', duration: 1500 });
-                  }
-                })
-            }
-            .backgroundColor(this.getAccentColor())
-            .borderRadius(22)
-            .height(44)
-            .layoutWeight(1)
-            .padding(1)
-
-            Button('分享')
-              .fontSize(14)
-              .fontWeight(FontWeight.Bold)
-              .fontColor(Color.White)
-              .backgroundColor(this.getAccentColor())
-              .borderRadius(22)
-              .height(44)
-              .layoutWeight(1)
-              .onClick(() => {
-                this.shareImage();
-              })
-          }
-          .width('100%')
-          .padding({ left: 16, right: 16, top: 12 })
+          ImageSaveShareBar({
+            accentColor: this.getAccentColor(),
+            onPmForSave: (): image.PixelMap => this.renderExportPixelMap(),
+            onPmForShare: (): image.PixelMap => this.renderExportPixelMap(),
+          })
+            .width('100%')
+            .padding({ left: 16, right: 16, top: 12 })
         }
 
         if (this.isGenerating) {
@@ -713,11 +687,10 @@ struct WordCloudContent {
   }
 
   private clearWords(): void {
-    this.directWordsText = '';
-    this.cloudWords = [];
-    this.placedWords = [];
-    this.generatedCachePath = '';
-  }
+     this.directWordsText = '';
+     this.cloudWords = [];
+     this.placedWords = [];
+   }
 
   private async extractWordsToDirect(): Promise<void> {
     if (!this.inputText || this.inputText.trim().length === 0) {
@@ -765,7 +738,6 @@ struct WordCloudContent {
     }
     this.isGenerating = true;
     this.placedWords = [];
-    this.generatedCachePath = '';
     this.progressValue = 10;
     this.progressText = '布局中...';
 
@@ -907,6 +879,11 @@ struct WordCloudContent {
     return this.templates[this.currentPaletteIndex].accentColor;
   }
 
+  /**
+   * 使用离屏 Canvas 将已布局的词云渲染为高分辨率 PixelMap。
+   * 导出尺寸为布局尺寸的 2 倍，确保清晰度。
+   * 由 ImageSaveShareBar 的 onPmForSave / onPmForShare 回调调用。
+   */
   private renderExportPixelMap(): image.PixelMap {
     let exportSize: number = this.LAYOUT_CANVAS_SIZE * 2;
     let off: OffscreenCanvas = new OffscreenCanvas(exportSize, exportSize, LengthMetricsUnit.PX);
@@ -939,38 +916,5 @@ struct WordCloudContent {
     }
 
     return ctx.getPixelMap(0, 0, exportSize, exportSize);
-  }
-
-   private cachedPixelMap: image.PixelMap | undefined = undefined;
-
-   private async saveToAlbum(): Promise<void> {
-     try {
-       let pm: image.PixelMap = this.renderExportPixelMap();
-       this.cachedPixelMap = pm;
-       await ImageExporter.saveToAlbum(this.uiContext, pm);
-       let cachePath: string = await ImageExporter.pixelMapToCache(this.uiContext, pm, 'wordcloud');
-       this.generatedCachePath = cachePath;
-     } catch (e) {
-       let err: BusinessError = e as BusinessError;
-       console.error('[WordCloud] save failed: ' + err.code + ' ' + err.message);
-       this.uiContext.getPromptAction().showToast({ message: '保存失败', duration: 2000 });
-     }
-   }
-
-  private async shareImage(): Promise<void> {
-    try {
-      let cachePath: string = this.generatedCachePath;
-      if (!cachePath || cachePath.length === 0) {
-        let pm: image.PixelMap = this.renderExportPixelMap();
-        cachePath = await ImageExporter.pixelMapToCache(this.uiContext, pm, 'wordcloud');
-        this.generatedCachePath = cachePath;
-        pm.release();
-      }
-      ImageExporter.share(this.uiContext, cachePath);
-    } catch (e) {
-      let err: BusinessError = e as BusinessError;
-      console.error('[WordCloud] share failed: ' + err.code + ' ' + err.message);
-      this.uiContext.getPromptAction().showToast({ message: '分享失败', duration: 2000 });
-    }
   }
 }

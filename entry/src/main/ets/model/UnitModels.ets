@@ -86,24 +86,7 @@ export class MeetingResultItem {
   isNight: boolean = false;
 }
 
-class TimezoneCityRaw {
-  city: string = '';
-  zone: string = '';
-  offset: number = 0;
-  country: string = '';
-  abbr: string = '';
-  lat: number = 0;
-  lng: number = 0;
-}
 
-class TimezoneRegionRaw {
-  name: string = '';
-  cities: TimezoneCityRaw[] = [];
-}
-
-class TimezoneFileData {
-  regions: TimezoneRegionRaw[] = [];
-}
 
 export class TimezoneDataLoader {
   private static cities: TimezoneCity[] = [];
@@ -121,31 +104,42 @@ export class TimezoneDataLoader {
       return false;
     }
     try {
-      let data: TimezoneFileData = RawFileUtil.readJson<TimezoneFileData>(context, 'timezone/timezone_cities.json');
-      if (data === null || data === undefined || data.regions === null || data.regions === undefined) {
-        console.error('[TimezoneData] load failed: data or regions is null');
+      let raw: Object = RawFileUtil.readJson<Object>(context, 'timezone/timezone_cities.json');
+      let root: Record<string, Object> = raw as Record<string, Object>;
+      let regionsRaw: Object[] = root['regions'] as Object[];
+      if (regionsRaw === null || regionsRaw === undefined) {
+        console.error('[TimezoneData] load failed: regions is null');
         TimezoneDataLoader.cities = [];
         TimezoneDataLoader.regions = [];
         return false;
       }
       let allCities: TimezoneCity[] = [];
       let allRegions: TimezoneRegion[] = [];
-      for (let i = 0; i < data.regions.length; i++) {
-        let regionRaw: TimezoneRegionRaw = data.regions[i];
-        if (regionRaw === null || regionRaw.cities === null) {
+      for (let i = 0; i < regionsRaw.length; i++) {
+        let regionObj: Record<string, Object> = regionsRaw[i] as Record<string, Object>;
+        let regionName: string = regionObj['name'] as string;
+        let citiesRaw: Object[] = regionObj['cities'] as Object[];
+        if (citiesRaw === null || citiesRaw === undefined) {
           continue;
         }
         let cityNames: string[] = [];
-        for (let j = 0; j < regionRaw.cities.length; j++) {
-          let c: TimezoneCityRaw = regionRaw.cities[j];
-          if (c === null || c.city === null || c.city.length === 0) {
+        for (let j = 0; j < citiesRaw.length; j++) {
+          let cObj: Record<string, Object> = citiesRaw[j] as Record<string, Object>;
+          let cityName: string = cObj['city'] as string;
+          if (cityName === null || cityName === undefined || cityName.length === 0) {
             continue;
           }
-          let city: TimezoneCity = new TimezoneCity(c.city, c.zone, c.offset, c.country, c.abbr, c.lat, c.lng);
+          let zone: string = cObj['zone'] as string;
+          let offset: number = cObj['offset'] as number;
+          let country: string = cObj['country'] as string;
+          let abbr: string = cObj['abbr'] as string;
+          let lat: number = cObj['lat'] as number;
+          let lng: number = cObj['lng'] as number;
+          let city: TimezoneCity = new TimezoneCity(cityName, zone ?? '', offset ?? 0, country ?? '', abbr ?? '', lat ?? 0, lng ?? 0);
           allCities.push(city);
-          cityNames.push(c.city);
+          cityNames.push(cityName);
         }
-        allRegions.push(new TimezoneRegion(regionRaw.name, cityNames));
+        allRegions.push(new TimezoneRegion(regionName ?? '', cityNames));
       }
       TimezoneDataLoader.cities = allCities;
       TimezoneDataLoader.regions = allRegions;
