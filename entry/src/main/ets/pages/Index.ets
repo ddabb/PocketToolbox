@@ -69,7 +69,9 @@ struct Index {
   @State idiomOffset: number = 0;
   @State xiehouyuOffset: number = 0;
   @StorageLink('favCount') favCount: number = 0;
+  @State mathTools: ToolItem[] = [];
   @State unitTools: ToolItem[] = [];
+  @State baseTimezoneTools: ToolItem[] = [];
   @State creativeTools: ToolItem[] = [];
   @State checkInData: CheckInData = new CheckInData();
   @State checkedInToday: boolean = false;
@@ -118,26 +120,32 @@ struct Index {
   }
 
   private buildToolItems(): void {
-    let tools: ToolItem[] = [];
-    tools.push(new ToolItem('gcd_lcm', '公约/倍数', '最大公约数、最小公倍数', 'unit_gcd_lcm', '#e74c3c', 'GcdLcmPage'));
-    tools.push(new ToolItem('prime_factor', '质因数分解', '分解合数为质数乘积', 'unit_prime_factor', '#9b59b6', 'PrimeFactorPage'));
+    this.mathTools = [
+      new ToolItem('gcd_lcm', '公约/倍数', '最大公约数、最小公倍数', 'unit_gcd_lcm', '#e74c3c', 'GcdLcmPage'),
+      new ToolItem('prime_factor', '质因数分解', '分解合数为质数乘积', 'unit_prime_factor', '#9b59b6', 'PrimeFactorPage')
+    ];
+
+    let unitTools: ToolItem[] = [];
+    let baseTimezoneTools: ToolItem[] = [];
     let cats: ConverterCategory[] = UnitConverterData.getCategories();
     for (let i = 0; i < cats.length; i++) {
       let cat: ConverterCategory = cats[i];
       if (cat.isBase) {
-        tools.push(new ToolItem(cat.id, cat.title, '二进制/八进制/十六进制/Base64', cat.icon, cat.color, 'BaseConverterPage'));
+        baseTimezoneTools.push(new ToolItem(cat.id, cat.title, '二进制/八进制/十六进制/Base64', cat.icon, cat.color, 'BaseConverterPage'));
       } else if (cat.isTimezone) {
-        tools.push(new ToolItem(cat.id, cat.title, '全球城市时区对照与会议协调', cat.icon, cat.color, 'TimezoneConverterPage'));
+        baseTimezoneTools.push(new ToolItem(cat.id, cat.title, '全球城市时区对照与会议协调', cat.icon, cat.color, 'TimezoneConverterPage'));
       } else {
         let sub: string = this.getUnitSubtitle(cat);
         let param: Record<string, Object> = {
           'categoryId': cat.id as Object,
           'title': cat.title as Object
         };
-        tools.push(new ToolItem(cat.id, cat.title, sub, cat.icon, cat.color, 'UnitConverterPage', param));
+        unitTools.push(new ToolItem(cat.id, cat.title, sub, cat.icon, cat.color, 'UnitConverterPage', param));
       }
     }
-    this.unitTools = tools;
+    this.unitTools = unitTools;
+    this.baseTimezoneTools = baseTimezoneTools;
+
     this.creativeTools = [
       new ToolItem('word_cloud', '词云生成', '粘贴文本，30秒出图', '', '#8b5cf6', 'WordCloudPage'),
       new ToolItem('md2png', '文字转图片', 'Markdown文本生成图片', '', '#9b59b6', 'Md2PngPage')
@@ -200,6 +208,7 @@ struct Index {
     if (ok) {
       this.checkInData = StickinessUtil.loadCheckIn(ctx);
       this.checkedInToday = true;
+      this.mineCheckInData = StickinessUtil.loadCheckIn(ctx);
       this.getUIContext().getPromptAction().showToast({ message: '签到成功！连续' + this.checkInData.streak.toString() + '天', duration: 1500 });
     }
   }
@@ -590,6 +599,83 @@ struct Index {
   }
 
   @Builder
+  ToolSectionTitle(title: string, paddingTop: number) {
+    Text(title)
+      .fontSize(15)
+      .fontWeight(FontWeight.Bold)
+      .fontColor($r('app.color.primary_text'))
+      .width('100%')
+      .padding({ left: 16, bottom: 8, top: paddingTop })
+  }
+
+  @Builder
+  ImageToolGrid(tools: ToolItem[]) {
+    Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
+      ForEach(tools, (tool: ToolItem) => {
+        Column() {
+          Image($r('app.media.' + tool.icon))
+            .width(56)
+            .height(56)
+            .borderRadius(14)
+
+          Text(tool.title)
+            .fontSize(12)
+            .fontColor($r('app.color.primary_text'))
+            .margin({ top: 6 })
+            .maxLines(1)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
+            .constraintSize({ maxWidth: 72 })
+        }
+        .width('25%')
+        .padding({ top: 8, bottom: 12 })
+        .alignItems(HorizontalAlign.Center)
+        .onClick(() => {
+          this.toolStack.pushPathByName(tool.page, tool.param);
+        })
+      }, (tool: ToolItem) => tool.id)
+    }
+    .width('100%')
+    .padding({ left: 8, right: 8 })
+  }
+
+  @Builder
+  CreativeToolGrid(tools: ToolItem[]) {
+    Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
+      ForEach(tools, (tool: ToolItem) => {
+        Column() {
+          Column() {
+            Text(tool.id === 'word_cloud' ? '\u2601' : '\uD83D\uDDBC\uFE0F')
+              .fontSize(24)
+              .fontColor('#ffffff')
+          }
+          .width(56)
+          .height(56)
+          .borderRadius(14)
+          .backgroundColor(tool.color)
+          .justifyContent(FlexAlign.Center)
+          .alignItems(HorizontalAlign.Center)
+
+          Text(tool.title)
+            .fontSize(12)
+            .fontColor($r('app.color.primary_text'))
+            .margin({ top: 6 })
+            .maxLines(1)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
+            .constraintSize({ maxWidth: 72 })
+        }
+        .width('25%')
+        .padding({ top: 8, bottom: 12 })
+        .alignItems(HorizontalAlign.Center)
+        .onClick(() => {
+          this.toolStack.pushPathByName(tool.page, tool.param);
+        })
+      }, (tool: ToolItem) => tool.id)
+    }
+    .width('100%')
+    .padding({ left: 8, right: 8 })
+  }
+
+  @Builder
   ToolContent() {
     Navigation(this.toolStack) {
       Scroll() {
@@ -611,83 +697,20 @@ struct Index {
           .padding({ top: 8, bottom: 12 })
           .alignItems(HorizontalAlign.Center)
 
-          Text('单位换算')
-            .fontSize(15)
-            .fontWeight(FontWeight.Bold)
-            .fontColor($r('app.color.primary_text'))
-            .width('100%')
-            .padding({ left: 16, bottom: 8 })
+          this.ToolSectionTitle('数学计算', 0)
+          this.ImageToolGrid(this.mathTools)
 
-          Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
-            ForEach(this.unitTools, (tool: ToolItem) => {
-              Column() {
-                Image($r('app.media.' + tool.icon))
-                  .width(56)
-                  .height(56)
-                  .borderRadius(14)
+          this.ToolSectionTitle('单位换算', 8)
+          this.ImageToolGrid(this.unitTools)
 
-                Text(tool.title)
-                  .fontSize(12)
-                  .fontColor($r('app.color.primary_text'))
-                  .margin({ top: 6 })
-                  .maxLines(1)
-                  .textOverflow({ overflow: TextOverflow.Ellipsis })
-                  .constraintSize({ maxWidth: 72 })
-              }
-              .width('25%')
-              .padding({ top: 8, bottom: 12 })
-              .alignItems(HorizontalAlign.Center)
-              .onClick(() => {
-                this.toolStack.pushPathByName(tool.page, tool.param);
-              })
-            }, (tool: ToolItem) => tool.id)
-          }
-          .width('100%')
-          .padding({ left: 8, right: 8 })
+          this.ToolSectionTitle('进制与时区', 8)
+          this.ImageToolGrid(this.baseTimezoneTools)
 
-          Text('创意工具')
-            .fontSize(15)
-            .fontWeight(FontWeight.Bold)
-            .fontColor($r('app.color.primary_text'))
-            .width('100%')
-            .padding({ left: 16, bottom: 8, top: 8 })
-
-          Row() {
-            ForEach(this.creativeTools, (tool: ToolItem) => {
-              Column() {
-                Column() {
-                  Text(tool.id === 'word_cloud' ? '\u2601' : '\uD83D\uDDBC\uFE0F')
-                    .fontSize(24)
-                    .fontColor('#ffffff')
-                }
-                .width(56)
-                .height(56)
-                .borderRadius(14)
-                .backgroundColor(tool.color)
-                .justifyContent(FlexAlign.Center)
-                .alignItems(HorizontalAlign.Center)
-
-                Text(tool.title)
-                  .fontSize(12)
-                  .fontColor($r('app.color.primary_text'))
-                  .margin({ top: 6 })
-                  .maxLines(1)
-                  .textOverflow({ overflow: TextOverflow.Ellipsis })
-                  .constraintSize({ maxWidth: 72 })
-              }
-              .width('25%')
-              .padding({ top: 8, bottom: 12 })
-              .alignItems(HorizontalAlign.Center)
-              .onClick(() => {
-                this.toolStack.pushPathByName(tool.page, null);
-              })
-            }, (tool: ToolItem) => tool.id)
-          }
-          .width('100%')
-          .padding({ left: 8, right: 8 })
-         }
-         .width('100%')
-         .padding({ bottom: 16 })
+          this.ToolSectionTitle('创意工具', 8)
+          this.CreativeToolGrid(this.creativeTools)
+        }
+        .width('100%')
+        .padding({ bottom: 16 })
       }
       .width('100%')
       .height('100%')
@@ -883,10 +906,15 @@ struct Index {
                 .layoutWeight(1)
               Text(this.mineCheckInData.lastDate === StickinessUtil.todayStr() ? '\u2713 已签到' : '未签到')
                 .fontSize(14)
-                .fontColor(this.mineCheckInData.lastDate === StickinessUtil.todayStr() ? '#27ae60' : $r('app.color.tertiary_text'))
+                .fontColor(this.mineCheckInData.lastDate === StickinessUtil.todayStr() ? '#27ae60' : $r('app.color.idiom_orange'))
             }
             .width('100%')
             .padding({ left: 16, right: 16, top: 14, bottom: 14 })
+            .onClick(() => {
+              if (this.mineCheckInData.lastDate !== StickinessUtil.todayStr()) {
+                this.doCheckIn();
+              }
+            })
 
             Divider()
               .color($r('app.color.border_color'))
