@@ -36,35 +36,38 @@ function computePlacement(input: WordCloudInput): WordCloudResult {
   let shape: ShapeDef = ShapeDef.SHAPES[input.shapeIndex];
   let layoutSize: number = input.canvasSize;
 
-  let weightedItems: WeightedItem[] = [];
-  for (let i: number = 0; i < input.words.length; i++) {
+  // P1优化: 预分配数组, 避免 push() 的动态扩容开销
+  let wordCount: number = input.words.length;
+  let weightedItems: WeightedItem[] = new Array(wordCount);
+  for (let i: number = 0; i < wordCount; i++) {
     let item: WeightedItem = new WeightedItem();
     item.text = input.words[i].text;
     item.weight = input.words[i].weight;
     item.tag = '';
-    weightedItems.push(item);
+    weightedItems[i] = item;
   }
 
   FontScaler.scaleAll(weightedItems, layoutSize, shape.shapeRatio);
 
   let placer: BitmapPlacer = new BitmapPlacer(layoutSize);
-  let sprites: WordSprite[] = [];
-  for (let i: number = 0; i < weightedItems.length; i++) {
-    let sprite: WordSprite = placer.makeSprite(
+  let sprites: WordSprite[] = new Array(wordCount);
+  for (let i: number = 0; i < wordCount; i++) {
+    sprites[i] = placer.makeSprite(
       weightedItems[i].text,
       weightedItems[i].fontSize,
       input.fontName,
       weightedItems[i].weight,
       0
     );
-    sprites.push(sprite);
   }
 
   let results: PlacedWord[] = placer.place(sprites, shape);
 
-  let placedData: PlacedData[] = [];
-  for (let i: number = 0; i < results.length; i++) {
-    let pd: PlacedData = {
+  // P1优化: 预分配结果数组
+  let resultCount: number = results.length;
+  let placedData: PlacedData[] = new Array(resultCount);
+  for (let i: number = 0; i < resultCount; i++) {
+    placedData[i] = {
       text: results[i].text,
       x: results[i].x,
       y: results[i].y,
@@ -73,14 +76,12 @@ function computePlacement(input: WordCloudInput): WordCloudResult {
       width: results[i].width,
       height: results[i].height,
     };
-    placedData.push(pd);
   }
 
-  let result: WordCloudResult = {
+  return {
     placed: placedData,
-    count: placedData.length,
+    count: resultCount,
   };
-  return result;
 }
 
 export async function runPlacementAsync(input: WordCloudInput): Promise<WordCloudResult> {

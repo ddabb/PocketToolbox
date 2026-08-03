@@ -51,16 +51,17 @@ const TOP_N: number = 5;
 const MIN_KEYWORD_LENGTH: number = 2;
 
 export class KeywordUtil {
-  private static extracting: boolean = false;
+  private static extractingAllWords: boolean = false;
+  private static extractingKeywords: boolean = false;
 
   static async extractAllWords(text: string): Promise<Array<WordCountEntry>> {
     if (!text || text.trim().length === 0) {
       return [];
     }
-    if (KeywordUtil.extracting) {
+    if (KeywordUtil.extractingAllWords) {
       return [];
     }
-    KeywordUtil.extracting = true;
+    KeywordUtil.extractingAllWords = true;
     try {
       let segments: textProcessing.WordSegment[] = await KeywordUtil.segmentText(text);
       let filtered: KeywordEntry[] = KeywordUtil.filterContentWords(segments);
@@ -85,7 +86,7 @@ export class KeywordUtil {
       console.warn('[KeywordUtil] extractAllWords failed: ' + err.code + ' ' + err.message);
       return [];
     } finally {
-      KeywordUtil.extracting = false;
+      KeywordUtil.extractingAllWords = false;
     }
   }
 
@@ -96,10 +97,10 @@ export class KeywordUtil {
     if (topN <= 0) {
       topN = TOP_N;
     }
-    if (KeywordUtil.extracting) {
+    if (KeywordUtil.extractingKeywords) {
       return [];
     }
-    KeywordUtil.extracting = true;
+    KeywordUtil.extractingKeywords = true;
     try {
       let segments: textProcessing.WordSegment[] = await KeywordUtil.segmentText(text);
       let filtered: KeywordEntry[] = KeywordUtil.filterContentWords(segments);
@@ -121,7 +122,7 @@ export class KeywordUtil {
       console.warn('[KeywordUtil] extract failed: ' + err.code + ' ' + err.message);
       return [];
     } finally {
-      KeywordUtil.extracting = false;
+      KeywordUtil.extractingKeywords = false;
     }
   }
 

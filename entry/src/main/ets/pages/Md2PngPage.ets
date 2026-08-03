@@ -7,10 +7,14 @@ import { common } from '@kit.AbilityKit';
 import { pasteboard } from '@kit.BasicServicesKit';
 import { Markdown, MarkdownController } from '@luvi/lv-markdown-in';
 import { display } from '@kit.ArkUI';
+import { preferences } from '@kit.ArkData';
 import { DecorPatternUtil } from '../common/utils/DecorPatternUtil';
 import { shareImageViaPanel } from '../common/utils/ShareImageUtil';
 import { KeywordUtil } from '../common/utils/KeywordUtil';
 import { FontUtil } from '../common/utils/FontUtil';
+
+const PREF_NAME: string = 'md2png_settings';
+const KEY_HIGHLIGHT_CONFIG: string = 'highlight_config';
 
 class MdCanvasStore {
   private contexts: CanvasRenderingContext2D[] = [];
@@ -129,6 +133,10 @@ struct Md2PngContent {
   @State editingWordOccurrences: KeywordOccurrenceContext[] = [];
   @State editingWordSelectedIndices: number[] = [];
   @State editingWordSource: string = 'auto';
+  /** 位置面板是否有未保存的修改 */
+  private positionPanelDirty: boolean = false;
+  /** 高亮配置是否已从存储恢复 */
+  private highlightConfigRestored: boolean = false;
   @State cardWidth: number = 360;
   @State cardHeights: number[] = [];
   @State dynamicTextSize: number = 18;
@@ -156,6 +164,7 @@ struct Md2PngContent {
     FontUtil.registerAll(this.getUIContext());
     this.initAllControllers();
     this.calcCardSize();
+    this.loadHighlightConfig();
     let heights: number[] = [];
     let texts: string[] = [];
     for (let i: number = 0; i < this.templates.length; i++) {
@@ -335,6 +344,22 @@ struct Md2PngContent {
     this.computeKeywordStats();
     this.refreshHighlightedTexts();
     this.generateImage();
+    this.saveHighlightConfig();
+  }
+
+  /**
+   * 重置所有高亮词：清除手动添加和自动提取的关键词、黑名单，重新提取
+   */
+  private resetHighlightWords(): void {
+    this.highlightKeywords = [];
+    this.removedKeywords = [];
+    this.userEditedKeywords = false;
+    this.keywordStats = [];
+    this.highlightedTexts = [];
+    this.keywordVersion++;
+    this.saveHighlightConfig();
+    // 重新触发自动提取
+    this.scheduleRegenerate();
   }
 
   private removeFromRemovedList(word: string): void {
@@ -370,6 +395,7 @@ struct Md2PngContent {
     this.computeKeywordStats();
     this.refreshHighlightedTexts();
     this.generateImage();
+    this.saveHighlightConfig();
   }
 
   /**
@@ -388,11 +414,34 @@ struct Md2PngContent {
     this.editingWord = word;
     this.editingWordOccurrences = occurrences;
     this.editingWordSelectedIndices = selectedIndices;
+    this.positionPanelDirty = false;
     this.showPositionPanel = true;
   }
 
-  private closePositionPanel(): void {
-    this.showPositionPanel = false;
+  /**
+   * 关闭位置选择面板
+   * @param skipDirtyCheck 跳过脏状态确认（用于"移除该词"等操作）
+   */
+  private closePositionPanel(skipDirtyCheck: boolean = false): void {
+    if (this.positionPanelDirty && !skipDirtyCheck) {
+      let uiCtx = this.getUIContext();
+      uiCtx.getPromptAction().showDialog({
+        title: '放弃修改？',
+        message: '当前的位置选择尚未保存，是否放弃修改？',
+        buttons: [
+          { text: '继续编辑', color: '#666666' },
+          { text: '放弃', color: '#dc2626' },
+        ]
+      }).then((result: Record<string, number>) => {
+        if (result && result.index === 1) {
+          this.showPositionPanel = false;
+          this.positionPanelDirty = false;
+        }
+      });
+    } else {
+      this.showPositionPanel = false;
+      this.positionPanelDirty = false;
+    }
   }
 
   /**
@@ -413,6 +462,7 @@ struct Md2PngContent {
       newArr.sort((a: number, b: number) => a - b);
     }
     this.editingWordSelectedIndices = newArr;
+    this.positionPanelDirty = true;
   }
 
   private applyEditingWordIndices(): void {
@@ -437,8 +487,10 @@ struct Md2PngContent {
 
   private confirmEditingWord(): void {
     this.applyEditingWordIndices();
+    this.positionPanelDirty = false;  // 已确认保存，清除脏标记
     this.closePositionPanel();
     this.generateImage();
+    this.saveHighlightConfig();
   }
 
   private selectAllOccurrences(): void {
@@ -447,10 +499,12 @@ struct Md2PngContent {
       all.push(i);
     }
     this.editingWordSelectedIndices = all;
+    this.positionPanelDirty = true;
   }
 
   private selectNoneOccurrences(): void {
     this.editingWordSelectedIndices = [];
+    this.positionPanelDirty = true;
   }
 
   /**
@@ -512,6 +566,7 @@ struct Md2PngContent {
           this.trimSelectedIndices();
           this.userEditedKeywords = true;
           this.generateImage();
+          this.saveHighlightConfig();
         }
       },
       secondaryButton: {
@@ -544,6 +599,7 @@ struct Md2PngContent {
       this.keywordStats = [];
       this.highlightedTexts = [];
       this.generatedImageUri = '';
+      this.saveHighlightConfig();
       return;
     }
     this.calcDynamicStyle();
@@ -616,6 +672,7 @@ struct Md2PngContent {
     this.computeKeywordStats();
     this.refreshHighlightedTexts();
     this.generateImage();
+    this.saveHighlightConfig();
   }
 
   private generateImage(): void {
@@ -798,6 +855,60 @@ struct Md2PngContent {
     shareImageViaPanel(this.getUIContext(), this.generatedImageUri);
   }
 
+  /**
+   * 持久化保存高亮词配置
+   */
+  private saveHighlightConfig(): void {
+    try {
+      let context: common.Context = this.getUIContext().getHostContext()!;
+      let pref: preferences.Preferences = preferences.getPreferencesSync(context, { name: PREF_NAME });
+      let config: Record<string, Object> = {
+        'keywords': JSON.stringify(this.highlightKeywords),
+        'removed': JSON.stringify(this.removedKeywords),
+        'userEdited': this.userEditedKeywords,
+      };
+      pref.putSync(KEY_HIGHLIGHT_CONFIG, JSON.stringify(config));
+      pref.flush();
+      console.info('[Md2Png] highlight config saved');
+    } catch (e) {
+      console.warn('[Md2Png] saveHighlightConfig failed: ' + JSON.stringify(e));
+    }
+  }
+
+  /**
+   * 从持久化存储恢复高亮词配置
+   */
+  private loadHighlightConfig(): void {
+    try {
+      let context: common.Context = this.getUIContext().getHostContext()!;
+      let pref: preferences.Preferences = preferences.getPreferencesSync(context, { name: PREF_NAME });
+      let raw: string = pref.getSync(KEY_HIGHLIGHT_CONFIG, '') as string;
+      if (!raw || raw.length === 0) {
+        return;
+      }
+      let config: Record<string, Object> = JSON.parse(raw) as Record<string, Object>;
+      if (config['keywords']) {
+        let keywords: HighlightKeyword[] = JSON.parse(config['keywords'] as string) as HighlightKeyword[];
+        if (keywords && keywords.length > 0) {
+          this.highlightKeywords = keywords;
+          this.highlightConfigRestored = true;
+        }
+      }
+      if (config['removed']) {
+        let removed: string[] = JSON.parse(config['removed'] as string) as string[];
+        if (removed && removed.length > 0) {
+          this.removedKeywords = removed;
+        }
+      }
+      if (config['userEdited'] !== undefined) {
+        this.userEditedKeywords = Boolean(config['userEdited']);
+      }
+      console.info('[Md2Png] highlight config restored, keywords: ' + this.highlightKeywords.length);
+    } catch (e) {
+      console.warn('[Md2Png] loadHighlightConfig failed: ' + JSON.stringify(e));
+    }
+  }
+
   build() {
     Stack() {
       Column() {
@@ -925,8 +1036,16 @@ struct Md2PngContent {
             .color($r('app.color.idiom_blue'))
             .margin({ left: 8 })
         }
+        // 快捷操作按钮
+        Text('重置')
+          .fontSize(12)
+          .fontColor($r('app.color.idiom_blue'))
+          .margin({ left: 12 })
+          .onClick(() => {
+            this.resetHighlightWords();
+          })
         Blank()
-        Text('点击词选择高亮位置，× 移除')
+        Text('轻点词调整位置  \u00D7移除')
           .fontSize(11)
           .fontColor($r('app.color.hint_text'))
       }
@@ -934,12 +1053,43 @@ struct Md2PngContent {
       .margin({ bottom: 8 })
 
       Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
+        // 添加高亮词输入行
+        Row() {
+          TextInput({ placeholder: '添加高亮词', text: this.customKeyword })
+            .fontSize(13)
+            .fontColor($r('app.color.primary_text'))
+            .placeholderColor($r('app.color.hint_text'))
+            .backgroundColor(Color.Transparent)
+            .padding(0)
+            .layoutWeight(1)
+            .height(28)
+            .onChange((value: string) => {
+              this.customKeyword = value;
+            })
+            .onSubmit(() => {
+              this.addCustomKeyword();
+            })
+          Text('+')
+            .fontSize(16)
+            .fontColor($r('app.color.idiom_blue'))
+            .fontWeight(FontWeight.Bold)
+            .margin({ left: 4 })
+            .onClick(() => {
+              this.addCustomKeyword();
+            })
+        }
+        .height(28)
+        .backgroundColor($r('app.color.card_background'))
+        .borderRadius(14)
+        .padding({ left: 10, right: 10 })
+        .margin({ right: 6, bottom: 6 })
+
         ForEach(this.highlightKeywords, (kw: HighlightKeyword) => {
           Row() {
             // 点击词文本区域：打开位置选择面板
             Row() {
               if (kw.source === 'manual') {
-                Text('★')
+                Text('\u2605')  // ★ 用户自定义标记
                   .fontSize(11)
                   .fontColor(this.getHighlightTagTextColor())
                   .margin({ right: 3 })
@@ -978,36 +1128,6 @@ struct Md2PngContent {
           .margin({ right: 6, bottom: 6 })
           .alignItems(VerticalAlign.Center)
         }, (kw: HighlightKeyword) => kw.word + '_' + kw.source + '_' + this.keywordVersion.toString())
-
-        Row() {
-          TextInput({ placeholder: '添加高亮词', text: this.customKeyword })
-            .fontSize(13)
-            .fontColor($r('app.color.primary_text'))
-            .placeholderColor($r('app.color.hint_text'))
-            .backgroundColor(Color.Transparent)
-            .padding(0)
-            .layoutWeight(1)
-            .height(28)
-            .onChange((value: string) => {
-              this.customKeyword = value;
-            })
-            .onSubmit(() => {
-              this.addCustomKeyword();
-            })
-          Text('+')
-            .fontSize(16)
-            .fontColor($r('app.color.idiom_blue'))
-            .fontWeight(FontWeight.Bold)
-            .margin({ left: 4 })
-            .onClick(() => {
-              this.addCustomKeyword();
-            })
-        }
-        .height(28)
-        .backgroundColor($r('app.color.card_background'))
-        .borderRadius(14)
-        .padding({ left: 10, right: 10 })
-        .margin({ right: 6, bottom: 6 })
       }
     }
     .width('100%')
@@ -1110,6 +1230,9 @@ struct Md2PngContent {
                 Row() {
                   Checkbox()
                     .select(this.isOccurrenceSelected(ctx.index))
+                    .onChange((checked: boolean) => {
+                      this.toggleOccurrence(ctx.index);
+                    })
                     .margin({ right: 10 })
                   Column() {
                     Text('第 ' + (ctx.index + 1).toString() + ' 次')
@@ -1124,12 +1247,12 @@ struct Md2PngContent {
                   }
                   .alignItems(HorizontalAlign.Start)
                   .layoutWeight(1)
+                  .onClick(() => {
+                    this.toggleOccurrence(ctx.index);
+                  })
                 }
                 .width('100%')
                 .padding({ left: 16, right: 16, top: 10, bottom: 10 })
-                .onClick(() => {
-                  this.toggleOccurrence(ctx.index);
-                })
               }, (ctx: KeywordOccurrenceContext) => ctx.index.toString())
             }
             .width('100%')
@@ -1171,7 +1294,7 @@ struct Md2PngContent {
                 .layoutWeight(1)
                 .onClick(() => {
                   let word: string = this.editingWord;
-                  this.closePositionPanel();
+                  this.closePositionPanel(true);  // 跳过脏状态检查
                   this.removeKeyword(word);
                 })
             }
@@ -1189,8 +1312,6 @@ struct Md2PngContent {
                 this.confirmEditingWord();
               })
           }
-          .width('100%')
-          .padding({ left: 16, right: 16, top: 4, bottom: 16 })
           .width('100%')
           .padding({ left: 16, right: 16, top: 8, bottom: 16 })
         }

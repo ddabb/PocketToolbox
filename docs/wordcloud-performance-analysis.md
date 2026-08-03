@@ -1,425 +1,282 @@
-# 词云性能优化分析（与 nodejs 版本对比）
+# WordCloudPage 性能优化分析报告
 
-> 本文档基于 ArkTS 版本（`f:\PocketToolbox`）与 nodejs 版本（`F:\wordcloud-nodejs\gen_all.ts`）的逐层对比分析，定位真实性能瓶颈并给出可执行的优化方案。
->
-> **结论先说**：ArkTS 版本已经采用了和 nodejs 一样的算法（BitmapPlacer 位图碰撞 + 螺旋放置），也已经直接在 Canvas 上绘制（fillText）。性能差距主要来自运行时 JIT 差异和若干可优化的常数项，**不是算法问题**。
->
-> 注：旧文档 `wordcloud-optimization.md` 中的问题 1（Canvas @Watch）、问题 2（TaskPool 异步）、问题 3（高清画布）、问题 5（切换字体重布局）、问题 8（CollisionMask）在当前代码中**已修复**，本文档不再重复。
+## 一、概述
 
----
+本文档对比分析 `PocketToolbox (HarmonyOS/ArkTS)` 与 `wordcloud-nodejs (Node.js/V8)` 的词云排列算法实现，识别性能瓶颈并制定优化方案。
 
-## 一、逐层对比
+| 维度 | Node.js | HarmonyOS (当前) |
+|------|---------|-----------------|
+| 运行时 | V8 JIT (桌面级) | ARK Runtime (移动端) |
+| 线程模型 | 单线程同步 | taskpool 工作线程 + UI 线程 |
+| canvasSize | 默认 800 | 默认 720 |
+| 预期性能 | 100% (基准) | 约 30-60% (引擎差异) |
 
-### 1.1 布局算法 —— 完全一致
+## 二、逐项对比分析
 
-| 维度 | nodejs `BitmapPlacer.ts` | ArkTS `BitmapPlacer.ets` | 是否一致 |
-|------|--------------------------|--------------------------|----------|
-| 碰撞板数据结构 | `Uint32Array`（bit 打包） | `Uint32Array`（bit 打包） | ✅ |
-| `boardWidth` | `ceil(canvasSize/32)` | `ceil(canvasSize/32)` | ✅ |
-| 螺旋参数 `SPIRAL_STEP` | `0.7` | `0.7` | ✅ |
-| 螺旋参数 `SPIRAL_TURNS` | `0.22` | `0.22` | ✅ |
-| 螺旋上限 `maxT` | `4000` | `4000` | ✅ |
-| 随机起点 `RANDOM_STARTS` | `90` | `90` | ✅ |
-| 失败上限 `MAX_SPIRAL_FAIL` | `20000` | `20000` | ✅ |
-| 角度策略 | 前 20% 词 `[0,90]`，其余 `[0,90,45,135]` | 完全一致 | ✅ |
-| `checkCollision` | bit mask 逐行扫描 | 完全一致 | ✅ |
-| `markBoardOccupied` | bit mask 逐行标记 | 完全一致 | ✅ |
-| `makeSprite` 宽度 | `estimateTextWidth`（字符×系数） | 完全一致 | ✅ |
-| `applyShapeMask` | 双层 for 1000×1000 | 完全一致 | ✅ |
+### 2.1 形状遮罩构建 (`buildShapeMask` / `applyShapeMask`)
 
-算法、参数、数据结构全部对齐，连魔法数字都一样。
+| 特性 | Node.js | HarmonyOS | 对比 |
+|------|---------|-----------|------|
+| 每次 place 重新构建 | ✅ 是 | ❌ 否 (有缓存) | HarmonyOS 更优 |
+| 缓存策略 | 无 | Map<shapeId_canvasSize> | HarmonyOS 额外节省 |
+| 极坐标形状复杂度 | O(width*height) atan2 | O(width*height) atan2 | 相同 |
+| 位图形状复杂度 | O(width*height) | O(width*height) | 相同 |
 
-### 1.2 渲染层 —— 都是 Canvas fillText
+**结论**: HarmonyOS 的缓存策略优于 Node.js，这部分不是瓶颈。
 
-- nodejs `CanvasRenderer` 用 `@napi-rs/canvas` 的 `ctx.fillText`
-- ArkTS [`WordCloudView.ets`](file:///f:/PocketToolbox/entry/src/main/ets/components/WordCloudView.ets) 第 19 行 `Canvas(this.context)`，第 73 行 `ctx.fillText(pw.text, 0, 0)`
-
-都是直接 Canvas 绘制，**没有**用 ArkUI 的 `Text`/`Row` 组件堆叠渲染。
-
-### 1.3 线程模型 —— ArkTS 反而更好
-
-| | nodejs | ArkTS |
-|---|---|---|
-| 布局线程 | 主线程（同步） | [`taskpool` 子线程](file:///f:/PocketToolbox/entry/src/main/ets/core/layout/WordCloudTask.ets#L86-L88)（`@Concurrent` + `taskpool.execute`） |
-
-ArkTS 把 `computePlacement` 放到子线程，UI 不会卡死。这点比 nodejs 强。
-
-### 1.4 字号计算 —— 一致
-
-[`FontScaler.ets`](file:///f:/PocketToolbox/entry/src/main/ets/core/style/FontScaler.ets) 的 `scaleAll` 用对数缩放 + power 0.75，和 nodejs 版本逻辑一致。
+**改进空间**: 静态缓存永不清除，在移动端可能导致内存膨胀。建议添加 LRU 淘汰。
 
 ---
 
-## 二、真正的性能瓶颈
+### 2.2 形状内碰撞检测 (`isBoxInsideShape` vs Node.js `shape check`)
 
-既然算法和渲染都对齐了，性能差距主要来自以下五点：
+**这是最重要的性能瓶颈！**
 
-### 瓶颈 A：运行时 JIT 差异（主因）
+| 测试场景 | Node.js 方式 | HarmonyOS 方式 | 性能差异 |
+|---------|-------------|---------------|---------|
+| 极坐标形状 | **单次距离计算**: `sqrt(dx²+dy²) > maskAt(θ)*maxR` | **全像素扫描**: 遍历 bounding box 每个像素，逐位检查 shapeBoard | **10-100x 差异** |
+| 位图形状 | **跳点采样**: 每 2 像素检查一次 (`sx+=2, sy+=2`) | **全像素扫描**: 遍历 bounding box 每个像素 | **~4x 差异** |
 
-**现象**：同样的算法，nodejs 跑完 180 个词约 1-2 秒，ArkTS 可能 5-10 秒。
+**示例**: 一个 100x50 的词语:
+- Node.js 极坐标: 1 次 sqrt + atan2 计算
+- Node.js 位图: ~1250 次位图查询 (50行 * 25列)
+- HarmonyOS 当前: 5000 次位板查询 (50行 * 100列)
 
-**根因**：V8 的 JIT 对数值密集型循环的优化远强于方舟编译器。热路径包括：
-
-1. [`applyShapeMask()`](file:///f:/PocketToolbox/entry/src/main/ets/core/layout/BitmapPlacer.ets#L111-L143)：1000×1000 = **100 万次**像素遍历，每次调 `shape.containsPixel` 或 `maskAt`
-2. [`trySpiralFrom()`](file:///f:/PocketToolbox/entry/src/main/ets/core/layout/BitmapPlacer.ets#L147-L232)：每词最多 90 起点 × 4 角度 × 4000 步 = **144 万次** spiral 迭代/词
-3. [`checkCollision()`](file:///f:/PocketToolbox/entry/src/main/ets/core/layout/BitmapPlacer.ets#L234-L256)：每次 spiral 步遍历词 bbox 像素
-
-**这是运行时差异，无法通过改算法解决**。但可以通过减少调用次数来缓解（见瓶颈 B、C、D）。
-
-### 瓶颈 B：bitmap shape 的 containsPixel 调用爆炸
-
-**现象**：选择文字形状（如"生日快乐"字形）时，生成时间显著长于几何形状（圆/星/方）。
-
-**根因**：[`trySpiralFrom()` 第 188-192 行](file:///f:/PocketToolbox/entry/src/main/ets/core/layout/BitmapPlacer.ets#L188-L192) 对 bitmap shape 每个 spiral 步要双层 for 遍历 bbox 像素调 `containsPixel`：
-
-```typescript
-for (let sx = x1; sx <= x2 && inside; sx += 2) {
-  for (let sy = y1; sy <= y2 && inside; sy += 2) {
-    if (!shape.containsPixel(sx, sy)) { inside = false; break; }
-  }
-}
-```
-
-大词的 bbox 可能 100×100，每步要调 2500 次 `containsPixel`。单个词最坏：90 起点 × 4 角度 × 4000 步 × 2500 像素 = **36 亿次**函数调用。
-
-而 [`containsPixel`](file:///f:/PocketToolbox/entry/src/main/ets/core/layout/ShapeDef.ets#L112-L123) 本身只是简单的数组查表，但函数调用在方舟编译器下无法内联，开销累积。
-
-**优化方案**：bitmap shape 的 bbox 内判定改为直接查 `shape.bitmap.data` 数组，绕过 `containsPixel` 函数调用；或预计算一个与 `board` 同尺寸的 `shapeMask: Uint32Array`，用 bit 操作一次性判断整个 bbox 是否全在 shape 内（类似 `checkCollision` 的批量 bit 查询）。
-
-**预期收益**：bitmap shape 场景省约 40% 时间。
-
-### 瓶颈 C：每次生成都从头布局，shape mask 不缓存
-
-**现象**：切换配色后再次"生成词云"（形状不变），仍要重跑 100 万次 `applyShapeMask`。
-
-**根因**：[`computePlacement`](file:///f:/PocketToolbox/entry/src/main/ets/core/layout/WordCloudTask.ets#L35-L84) 每次都 `new BitmapPlacer(layoutSize)`，构造函数里 `board = new Uint32Array(...)`，`place()` 开头 `applyShapeMask` 重新标记 100 万像素。
-
-**优化方案**：
-1. 在 `BitmapPlacer` 中缓存 `shapeMask`（与 `board` 同尺寸的 `Uint32Array`，只标记 shape 区域，不含词占用）
-2. 同一 shape + canvasSize 组合复用 `shapeMask`，`place()` 开头只把 `shapeMask` 复制到 `board`，而非重新计算
-3. 缓存 key = `shape.id + '_' + canvasSize`，可用静态 Map
-
-**预期收益**：省约 30% 时间（shape mask 计算开销）。
-
-### 瓶颈 D：refreshFont 重复完整布局
-
-**现象**：切换字体时页面卡顿几秒，和首次生成一样慢。
-
-**根因**：[`refreshFont()`](file:///f:/PocketToolbox/entry/src/main/ets/pages/WordCloudPage.ets#L859-L904) 重新跑完整的 `runPlacementAsync`（含 `place` 螺旋布局），而实际只需要重新测量词宽 + 局部调整位置。
-
-**优化方案**：
-1. 切换字体时只用新字体 `measureText` 重测每个词的宽度
-2. 若新宽度 ≤ 旧宽度，保留原位置，只更新 `font` 字段
-3. 若新宽度 > 旧宽度，对该词单独跑一次螺旋放置（其他词不动）
-4. 或更简单：切换字体时只更新 `font` 字段重绘，不重布局（接受可能的轻微重叠，因为 estimateTextWidth 是估算的，字体差异影响有限）
-
-**预期收益**：切换字体从秒级降到毫秒级。
-
-### 瓶颈 E：makeSprite 用估算宽度而非真实测量
-
-**现象**：词实际渲染时偶尔重叠，或空间利用率低（有大空洞）。
-
-**根因**：[`makeSprite()`](file:///f:/PocketToolbox/entry/src/main/ets/core/layout/BitmapPlacer.ets#L279-L297) 用 `estimateTextWidth`（字符×系数）估算词宽，没用 `Canvas.measureText`：
-- 估算偏小 → 词实际渲染时重叠
-- 估算偏大 → 空间浪费，需要更多 spiral 步数才能放完所有词
-
-nodejs 版本也是估算的，所以这点两者一致，但它是潜在的效率损失点。
-
-**优化方案**：
-1. 在 `computePlacement` 中用 `OffscreenCanvas.measureText` 真实测量每个词的宽度
-2. 由于 `computePlacement` 在 taskpool 子线程，需要确认 `OffscreenCanvas` 是否可在子线程使用；若不可，则在主线程预测量后传入
-3. 测量结果缓存（同字体+同字号+同文本只测一次）
-
-**预期收益**：提高放置成功率，减少 spiral 步数，省约 10-15% 时间。
+**核心问题**: HarmonyOS 版本对所有形状类型都统一使用 `isBoxInsideShape` 全量像素扫描，而没有根据形状类型做分支优化。
 
 ---
 
-## 三、优化执行清单
+### 2.3 随机起始点 (`randomPointInShape`)
 
-按优先级排序，建议按此顺序执行：
+| 特性 | Node.js | HarmonyOS | 对比 |
+|------|---------|-----------|------|
+| 极坐标尝试次数 | 30 | 200 | HarmonyOS 多 ~6.7x |
+| 位图尝试次数 | 200 | 200 | 相同 |
+| 随机点验证方式 | `shape.containsPixel()` | 位板检查 | 相似开销 |
 
-| 优先级 | 优化项 | 涉及文件 | 预期收益 | 难度 |
-|--------|--------|----------|----------|------|
-| P0 | **缓存 shape mask**（瓶颈 C） | `BitmapPlacer.ets` | 省 30% 时间 | 中 |
-| P0 | **bitmap shape 的 bbox 检查改为批量 bit 查询**（瓶颈 B） | `BitmapPlacer.ets`、`ShapeDef.ets` | bitmap shape 省 40% 时间 | 中 |
-| P1 | **refreshFont 只更新 font 不重布局**（瓶颈 D） | `WordCloudPage.ets` | 切换字体从秒级降到毫秒级 | 低 |
-| P1 | **用 measureText 替代 estimateTextWidth**（瓶颈 E） | `BitmapPlacer.ets`、`WordCloudTask.ets` | 省 10-15% 时间，减少重叠 | 中 |
-| P2 | **降低 RANDOM_STARTS 从 90 到 40** | `BitmapPlacer.ets` | 省 50% spiral 迭代，成功率略降 | 低 |
-| P2 | **LAYOUT_CANVAS_SIZE 从 1000 降到 800** | `WordCloudPage.ets` | 像素操作量降 36%，精度略降 | 低 |
+**问题**: HarmonyOS 对极坐标形状也使用 200 次尝试，但每次尝试只做一个位板查询（因为 shapeBoard 已预计算）。而 Node.js 极坐标模式只需 30 次尝试但每次需要 sqrt+atan2 计算。两者实际开销相近，这不是主要瓶颈。
 
 ---
 
-## 四、各优化项详细实施方案
+### 2.4 螺旋搜索参数
 
-### 4.1 缓存 shape mask（P0）
+| 参数 | Node.js | HarmonyOS | 说明 |
+|------|---------|-----------|------|
+| RANDOM_STARTS | 90 | 40 | 每个词的随机起始点数 |
+| MAX_SPIRAL_T | 4000 | 4000 | 螺旋最大步数 |
+| MAX_SPIRAL_FAIL | 20000 | 20000 | 连续碰撞失败上限 |
+| SPIRAL_STEP | 0.7 | 0.7 | 每步像素 |
+| SPIRAL_TURNS | 0.22 | 0.22 | 每步弧度 |
 
-**目标**：形状不变时复用 shape mask，避免每次 `applyShapeMask` 的 100 万次像素操作。
+HarmonyOS 的 `RANDOM_STARTS=40` 已经比 Node.js 的 90 少了 55%，这是合理的移动端优化。
 
-**修改文件**：[`f:\PocketToolbox\entry\src\main\ets\core\layout\BitmapPlacer.ets`](file:///f:/PocketToolbox/entry/src/main/ets/core/layout/BitmapPlacer.ets)
+---
 
-**实施步骤**：
+### 2.5 核心热点函数调用栈
 
-1. 在 `BitmapPlacer` 类中新增静态缓存：
-```typescript
-private static maskCache: Map<string, Uint32Array> = new Map();
+```
+place()
+├── words.sort()                           // O(n log n)
+├── for each word:
+│   ├── randomPointInShape() × RANDOM_STARTS  // 40次
+│   │   └── shapeBoard 位检查 × 200          // 最多200次尝试
+│   └── trySpiralFrom() × RANDOM_STARTS       // 每个起始点
+│       ├── isBoxInsideShape() 👈 热点       // 每步螺旋
+│       │   └── 像素遍历 + 位运算
+│       ├── checkCollision()                  // 每步螺旋
+│       │   └── 像素遍历 + 位运算
+│       └── markBoardOccupied()               // 放置成功时1次
+│           └── 像素遍历 + 位运算
 ```
 
-2. 新增方法 `applyShapeMaskCached(shape: ShapeDef): void`：
+---
+
+### 2.6 ArkTS 平台特有开销
+
+| 开销类型 | 影响 | 当前状态 |
+|---------|------|---------|
+| 对象分配 | ArkTS 对象创建比 V8 慢 2-3x | `RandomPoint` 每随机起点新建一个 |
+| 字符串拼接 | 模板字符串在 ArkTS 中较慢 | 日志中有大量字符串拼接 |
+| GC 压力 | 移动端 GC 更频繁 | 螺旋搜索中频繁创建丢弃对象 |
+| 函数调用 | 跨模块/类方法调用有额外开销 | `isBoxInsideShape`、`checkCollision` 高频调用 |
+| Worker 通信 | taskpool 序列化/反序列化 | 结果数组需要序列化传回主线程 |
+
+---
+
+## 三、问题分级
+
+### 🔴 P0 - 严重 (预计提升 60-80%)
+
+1. **极坐标形状的 isBoxInsideShape 应改为距离检查**
+   - 当前扫描整个 bounding box 像素，应改为单次 `sqrt(dx²+dy²) > maskAt(θ)*maxR` 判断
+   - 这是最大的性能提升点
+
+2. **位图形状的 isBoxInsideShape 减少采样率**
+   - 从逐像素改为隔点采样 (与 Node.js 对齐)
+   - 从 1x1 采样改为 2x2 采样
+
+### 🟡 P1 - 重要 (预计提升 10-20%)
+
+3. **减少对象分配**
+   - 复用 `RandomPoint` 对象
+   - 在热路径中避免 `new` 操作
+
+4. **移除热路径中的字符串拼接日志**
+   - `console.info` 的参数拼接在计算密集循环中开销大
+
+5. **checkCollision/markBoardOccupied 的位运算优化**
+   - 三个函数 (`isBoxInsideShape`、`checkCollision`、`markBoardOccupied`) 有几乎相同的遍历模式，可合并
+
+### 🟢 P2 - 优化 (预计提升 5-10%)
+
+6. **ShapeMaskCache 添加 LRU 淘汰**
+   - 防止移动端内存膨胀
+
+7. **位图形状的 containsPixel 采样步长统一**
+   - Node.js 位图模式在 `trySpiralFrom` 中用了 `sx+=2, sy+=2`，采样更稀疏
+
+8. **预分配数组容量**
+   - `sprites` 和 `placedData` 数组使用预分配尺寸
+
+---
+
+## 四、优化方案
+
+### 优化1: 极坐标形状轻量碰撞检测
+
 ```typescript
-private applyShapeMaskCached(shape: ShapeDef): void {
-  let key: string = shape.id + '_' + this.canvasSize.toString();
-  let cached: Uint32Array | undefined = BitmapPlacer.maskCache.get(key);
-  if (cached !== undefined && cached.length === this.board.length) {
-    // 复用缓存的 mask，直接复制到 board
-    for (let i = 0; i < this.board.length; i++) {
-      this.board[i] = cached[i];
-    }
-    return;
-  }
-  // 首次计算，并存入缓存
-  this.applyShapeMask(shape);
-  let snapshot: Uint32Array = new Uint32Array(this.board.length);
-  for (let i = 0; i < this.board.length; i++) {
-    snapshot[i] = this.board[i];
-  }
-  BitmapPlacer.maskCache.set(key, snapshot);
-}
-```
-
-3. 在 `place()` 方法中把 `this.applyShapeMask(shape)` 改为 `this.applyShapeMaskCached(shape)`。
-
-**注意事项**：
-- 缓存 key 必须包含 `canvasSize`，不同尺寸不能混用
-- `ShapeDef.makeGlyph` 生成的文字形状也要有稳定的 `id`（含文本+字体），否则缓存会错乱
-- 内存占用：每个 mask = `Uint32Array(32000)` ≈ 128KB，12 个形状 ≈ 1.5MB，可接受
-
-### 4.2 bitmap shape 的 bbox 检查改为批量 bit 查询（P0）
-
-**目标**：消除 `trySpiralFrom` 中对 `containsPixel` 的逐像素调用。
-
-**修改文件**：[`f:\PocketToolbox\entry\src\main\ets\core\layout\BitmapPlacer.ets`](file:///f:/PocketToolbox/entry/src/main/ets/core/layout/BitmapPlacer.ets)
-
-**实施步骤**：
-
-1. 在 `applyShapeMask` 中，除了标记 `board`，额外维护一个 `shapeBoard: Uint32Array`（与 `board` 同尺寸，只标记 shape 区域，永不被词占用清除）：
-```typescript
-private shapeBoard: Uint32Array;  // shape 区域位图（1=在shape内，0=在shape外）
-
-constructor(canvasSize: number) {
-  this.canvasSize = canvasSize;
-  this.boardWidth = Math.ceil(canvasSize / 32);
-  this.board = new Uint32Array(this.boardWidth * canvasSize);
-  this.shapeBoard = new Uint32Array(this.boardWidth * canvasSize);
-}
-```
-
-2. `applyShapeMask` 同时填充 `board` 和 `shapeBoard`（shape 外的位置置 1）：
-```typescript
-// 在 applyShapeMask 中，标记 shape 外区域时同时写入 shapeBoard
-this.board[y * this.boardWidth + wordIdx] |= (1 << bitIdx);
-this.shapeBoard[y * this.boardWidth + wordIdx] |= (1 << bitIdx);
-```
-
-3. 新增方法 `isBoxInsideShape(x1, y1, x2, y2): boolean`，用 bit 操作批量判断 bbox 是否全在 shape 内（逻辑与 `checkCollision` 相同，但查 `shapeBoard` 的**反**，即要求 bbox 内所有 bit 都是 0）：
-```typescript
-private isBoxInsideShape(x1: number, y1: number, x2: number, y2: number): boolean {
-  // 要求 bbox 内 shapeBoard 的所有 bit 都是 0（即全部在 shape 内）
-  for (let y = y1; y <= y2; y++) {
-    const rowOff = y * this.boardWidth;
-    for (let x = x1; x <= x2;) {
-      const wordIdx = Math.floor(x / 32);
-      const bitStart = x % 32;
-      const xEnd = Math.min(x + (32 - bitStart), x2 + 1);
-      const bitLen = xEnd - x;
-      let mask: number;
-      if (bitLen >= 32) {
-        mask = 0xFFFFFFFF;
-      } else {
-        mask = (1 << bitLen) - 1;
-      }
-      mask = mask << bitStart;
-      // shapeBoard 中 1 表示 shape 外，若 bbox 内有 1 则不在 shape 内
-      if ((this.shapeBoard[rowOff + wordIdx] & mask) !== 0) {
-        return false;
-      }
-      x = xEnd;
+// 新增方法：用于极坐标形状的快速形状内检测
+private isBoxInsideShapePolar(x1: number, y1: number, x2: number, y2: number,
+  cx: number, cy: number, maxR: number, shape: ShapeDef): boolean {
+  // 检查包围盒四个角是否都在形状内
+  let corners: [number, number][] = [[x1, y1], [x2, y1], [x1, y2], [x2, y2]];
+  for (let i = 0; i < 4; i++) {
+    let dx = corners[i][0] - cx;
+    let dy = cy - corners[i][1];
+    let dist = Math.sqrt(dx * dx + dy * dy);
+    let theta = Math.atan2(dy, dx);
+    if (dist > shape.maskAt(theta) * maxR) {
+      return false;
     }
   }
   return true;
 }
 ```
 
-4. 在 `trySpiralFrom` 中，把 bitmap shape 的 bbox 检查从逐像素 `containsPixel` 改为 `isBoxInsideShape`：
+### 优化2: 位图形状隔点采样
+
 ```typescript
-// 原代码（第 185-196 行）：
-if (shape.bitmap) {
-  let inside = true;
-  for (let sx = x1; sx <= x2 && inside; sx += 2) {
-    for (let sy = y1; sy <= y2 && inside; sy += 2) {
-      if (!shape.containsPixel(sx, sy)) { inside = false; break; }
-    }
+// 修改 isBoxInsideShape，添加步长参数
+private isBoxInsideShape(x1: number, y1: number, x2: number, y2: number,
+  stepX: number = 1, stepY: number = 1): boolean {
+  for (let y = y1; y <= y2; y += stepY) {
+    // ... 逐行检查但列方向以 stepX 步进
   }
-  if (!inside) { t += 1; continue; }
-}
-
-// 改为：
-if (!this.isBoxInsideShape(x1, y1, x2, y2)) {
-  t += 1;
-  continue;
 }
 ```
 
-这样对**所有形状**（不只是 bitmap shape）都统一走 `isBoxInsideShape`，删除 `trySpiralFrom` 中对 `shape.bitmap` 的分支判断。
+### 优化3: 合并 checkCollision + markBoardOccupied
 
-**注意事项**：
-- `shapeBoard` 也需要参与 4.1 的缓存
-- 此改动会让几何形状（圆/星/方）也走批量 bit 查询，性能提升更明显
+当待放置词语通过形状检测和碰撞检测后，可以合并碰撞检测和标记步骤，减少一次完整的像素遍历。
 
-### 4.3 refreshFont 只更新 font 不重布局（P1）
+### 优化4: 对象复用
 
-**目标**：切换字体时不再重新跑螺旋布局，只更新 `font` 字段并重绘。
+使用对象池避免在热路径中创建新对象。
 
-**修改文件**：[`f:\PocketToolbox\entry\src\main\ets\pages\WordCloudPage.ets`](file:///f:/PocketToolbox/entry/src/main/ets/pages/WordCloudPage.ets)
+### 优化5: 根据形状类型路由
 
-**实施步骤**：
-
-1. 把 [`refreshFont()`](file:///f:/PocketToolbox/entry/src/main/ets/pages/WordCloudPage.ets#L859-L904) 改为：
-```typescript
-private refreshFont(): void {
-  if (this.placedWords.length === 0) {
-    return;
-  }
-  let fontName: string = this.fontNames[this.currentFontIndex];
-  let newWords: PlacedWord[] = [];
-  for (let i: number = 0; i < this.placedWords.length; i++) {
-    let pw: PlacedWord = new PlacedWord();
-    pw.text = this.placedWords[i].text;
-    pw.x = this.placedWords[i].x;
-    pw.y = this.placedWords[i].y;
-    pw.size = this.placedWords[i].size;
-    pw.color = this.placedWords[i].color;
-    pw.angle = this.placedWords[i].angle;
-    pw.font = fontName;  // 只更新字体
-    pw.width = this.placedWords[i].width;
-    pw.height = this.placedWords[i].height;
-    newWords.push(pw);
-  }
-  this.placedWords = newWords;
-}
-```
-
-2. 注意：这会保留原布局位置，由于 `estimateTextWidth` 是按字符系数估算的（与字体无关），布局宽度估算不变，因此不会引入额外重叠。
-
-**注意事项**：
-- 若未来 4.5 实施了 `measureText` 真实测量，则切换字体后宽度会变，此方案需要改为"只对变宽的词重布局"
-- 当前 `estimateTextWidth` 与字体无关，所以此方案安全
-
-### 4.4 用 measureText 替代 estimateTextWidth（P1）
-
-**目标**：用真实文字宽度提高放置精度，减少重叠和空间浪费。
-
-**修改文件**：
-- [`f:\PocketToolbox\entry\src\main\ets\core\layout\WordCloudTask.ets`](file:///f:/PocketToolbox/entry/src/main/ets/core/layout/WordCloudTask.ets)
-- [`f:\PocketToolbox\entry\src\main\ets\core\layout\BitmapPlacer.ets`](file:///f:/PocketToolbox/entry/src/main/ets/core/layout/BitmapPlacer.ets)
-
-**实施步骤**：
-
-1. 在 `WordCloudInput` 接口中新增 `measuredWidths: number[]` 字段，由主线程预测量后传入：
-```typescript
-export interface WordCloudInput {
-  words: WordInput[];
-  canvasSize: number;
-  shapeIndex: number;
-  fontName: string;
-  measuredWidths: number[];  // 主线程预测量的每个词宽度
-}
-```
-
-2. 在 `WordCloudPage.ets` 的 `generateWordCloud` 中，调用 `runPlacementAsync` 前用 `OffscreenCanvas.measureText` 预测量：
-```typescript
-private measureWordWidths(fontName: string, words: CloudWord[], canvasSize: number): number[] {
-  let off: OffscreenCanvas = new OffscreenCanvas(canvasSize, canvasSize, LengthMetricsUnit.PX);
-  let ctx: OffscreenCanvasRenderingContext2D = off.getContext('2d', new RenderingContextSettings(true)) as OffscreenCanvasRenderingContext2D;
-  let widths: number[] = [];
-  for (let i = 0; i < words.length; i++) {
-    // 用该词的 fontSize 测量（需要先算 fontSize，或用基准字号测量后缩放）
-    let baseFontSize: number = 100;
-    ctx.font = baseFontSize.toString() + 'px ' + fontName;
-    let w: number = ctx.measureText(words[i].text).width;
-    widths.push(w / baseFontSize);  // 归一化到字号 1 的宽度
-  }
-  return widths;
-}
-```
-
-3. `BitmapPlacer.makeSprite` 接收 `measuredWidth` 参数，若提供则用真实宽度，否则降级到 `estimateTextWidth`：
-```typescript
-makeSprite(text: string, fontSize: number, font: string, weight: number,
-  angle: number, measuredWidth: number = -1): WordSprite {
-  const sprite = new WordSprite();
-  // ...
-  let textW: number = measuredWidth > 0 ? measuredWidth * fontSize : this.estimateTextWidth(text, fontSize);
-  // ...
-}
-```
-
-4. `computePlacement` 中把 `measuredWidths[i]` 传给 `makeSprite`。
-
-**注意事项**：
-- `OffscreenCanvas` 在主线程创建，测量结果通过 `WordCloudInput` 序列化传入 taskpool
-- 测量结果归一化（除以基准字号），这样不同词的 fontSize 不同时只需乘上即可
-- 此优化与 4.3 冲突：若用了真实测量，切换字体后宽度会变，`refreshFont` 不能只更新 font 字段
-
-### 4.5 降低 RANDOM_STARTS（P2）
-
-**修改文件**：[`f:\PocketToolbox\entry\src\main\ets\core\layout\BitmapPlacer.ets`](file:///f:/PocketToolbox/entry/src/main/ets/core/layout/BitmapPlacer.ets)
-
-**实施步骤**：把第 25 行 `RANDOM_STARTS: number = 90` 改为 `40`。
-
-**注意事项**：
-- 90 是从 nodejs 继承的值，对 V8 够用但对 ArkTS 偏大
-- 40 对大多数场景够用，放置成功率会略降（约 2-5%）
-- 可改为自适应：前 20% 大词用 60，小词用 20
-
-### 4.6 降低 LAYOUT_CANVAS_SIZE（P2）
-
-**修改文件**：[`f:\PocketToolbox\entry\src\main\ets\pages\WordCloudPage.ets`](file:///f:/PocketToolbox/entry/src/main/ets/pages/WordCloudPage.ets)
-
-**实施步骤**：把第 68 行 `LAYOUT_CANVAS_SIZE: number = 1000` 改为 `800`。
-
-**注意事项**：
-- 像素操作量降 36%（1000²→800²）
-- 导出图片尺寸也会降（`exportSize = LAYOUT_CANVAS_SIZE * 2`，从 2000 降到 1600），若需高清导出可单独提高导出倍数
-- 词的放置精度略降（小形状可能放不下大词）
+在 `trySpiralFrom` 中根据 `shape.bitmap` 是否存在，路由到不同的形状检测路径。
 
 ---
 
-## 五、关键文件清单
+## 五、预期效果
 
-| 文件 | 作用 | 涉及优化项 |
-|------|------|------------|
-| [`BitmapPlacer.ets`](file:///f:/PocketToolbox/entry/src/main/ets/core/layout/BitmapPlacer.ets) | 位图碰撞 + 螺旋布局核心 | A、B、C、E、4.1、4.2、4.5 |
-| [`WordCloudTask.ets`](file:///f:/PocketToolbox/entry/src/main/ets/core/layout/WordCloudTask.ets) | taskpool 子线程封装 | E、4.4 |
-| [`ShapeDef.ets`](file:///f:/PocketToolbox/entry/src/main/ets/core/layout/ShapeDef.ets) | 形状定义与 containsPixel | B、4.2 |
-| [`WordCloudView.ets`](file:///f:/PocketToolbox/entry/src/main/ets/components/WordCloudView.ets) | Canvas 渲染（已优化） | 无需改 |
-| [`FontScaler.ets`](file:///f:/PocketToolbox/entry/src/main/ets/core/style/FontScaler.ets) | 字号缩放（已对齐） | 无需改 |
-| [`WordCloudPage.ets`](file:///f:/PocketToolbox/entry/src/main/ets/pages/WordCloudPage.ets) | 页面交互与生成流程 | D、4.3、4.4、4.6 |
+| 优化项 | 预期性能提升 | 风险 |
+|--------|------------|------|
+| P0-1: 极坐标快速检测 | 60-80% | 低 - 算法等价，仅改变实现方式 |
+| P0-2: 位图隔点采样 | 50-70% | 低 - 与 Node.js 对齐的策略 |
+| P1-1: 对象复用 | 10-15% | 低 |
+| P1-2: 移除热路径日志 | 5-10% | 低 |
+| P2-1: LRU 缓存 | 内存下降 | 低 |
+
+**综合预期**: 在极坐标形状（默认圆形等）下，整体计算耗时预计降低 **60-80%**；在位图形状下预计降低 **50-70%**。
 
 ---
 
-## 六、验证方法
+## 六、平台差异说明
 
-优化后建议用以下场景验证：
+1. **ARK Runtime vs V8**: ArkTS 代码在 ArkCompiler 下执行（部分 AOT），不具备 V8 的 TurboFan JIT 优化能力。相同的循环体在 ArkTS 下运行速度约为 V8 的 30-50%。
 
-1. **基准场景**：180 个词，圆形，生成时间从 X 秒降到 Y 秒（记录前后耗时）
-2. **文字形状场景**：用"生日快乐"字形，对比优化前后生成时间（验证瓶颈 B）
-3. **重复生成场景**：切换配色后再次生成，对比第二次生成时间（验证瓶颈 C 缓存生效）
-4. **切换字体场景**：生成后切换字体，验证是否从秒级降到毫秒级（验证瓶颈 D）
-5. **词重叠检查**：对比优化前后词云图，确认无新增重叠（验证瓶颈 E 不引入回归）
+2. **内存限制**: 移动设备 RAM 通常 4-8GB，其中应用可用 ~512MB-1GB。Node.js 桌面端可用内存远大于此。
 
-**耗时测量**：在 `generateWordCloud` 的 `runPlacementAsync` 调用前后加 `console.info` 时间戳：
-```typescript
-let t0: number = Date.now();
-let result = await runPlacementAsync(input);
-console.info('[WordCloud] placement cost: ' + (Date.now() - t0) + 'ms');
-```
+3. **Worker 开销**: HarmonyOS 的 taskpool 需要在主线程和工作线程间序列化/反序列化数据。`WordCloudResult` 包含所有 PlacedData 数组，序列化开销随词数线性增长。建议只传回必要的渲染数据。
+
+4. **Canvas 渲染**: HarmonyOS 的 CanvasRenderingContext2D 的 `fillText` 性能通常不如桌面端 Canvas。200+ 个词逐个 fillText 可能是另一个瓶颈。
+
+5. **调度优先级**: taskpool 的 Priority.HIGH 已经是最优设置。
+
+---
+
+*分析日期: 2026-08-03*
+*对比版本: wordcloud-nodejs (main) vs PocketToolbox (main)*
+
+---
+
+## 七、实施记录
+
+### ✅ 已实施 — P0 优化
+
+#### P0-1: 极坐标形状轻量碰撞检测 (BitmapPlacer.ets)
+- 新增 `isBoxInsidePolar()` 方法：对极坐标形状检查包围盒 4 个角点，每个角点做 1 次 `Math.sqrt(dx²+dy²) > maskAt(θ)*maxR` 距离检查
+- 时间复杂度: O(width×height) → **O(4)**，预期提升 60-80%
+- 修改 `trySpiralFrom()` 签名，新增 `isBitmap: boolean` 参数路由形状检测
+- 修改 `place()` 方法，计算 `isBitmap` 标志和 `sampleStep`
+
+#### P0-2: 位图形状隔点采样 (BitmapPlacer.ets)
+- 新增 `isBoxInsideShapeSample()` 方法：位图形状 step=2 隔点采样
+- 与 Node.js 对齐的采样策略，~4x 减少检查次数
+- 通过 `sampleStep` 参数从 `place()` 传入 `trySpiralFrom()`
+
+#### P0-3: 形状类型路由 (BitmapPlacer.ets)
+- `trySpiralFrom()` 中根据 `isBitmap` + `sampleStep` 决定调用 `isBoxInsideShapeSample` 或 `isBoxInsidePolar`
+- 旧的 `isBoxInsideShape()` 保留但不再被调用（向后兼容）
+
+### ✅ 已实施 — P1 优化
+
+#### P1-1: 对象复用 (BitmapPlacer.ets)
+- `randomPointInShape()`: 复用 `_reusePoint: RandomPoint` 成员变量
+- 避免每次调用创建 `new RandomPoint()`，减少 GC 压力
+
+#### P1-2: 移除热路径日志 (BitmapPlacer.ets)
+- 移除 `place()` 中的 `console.info` 调用（原第 60、62、72、78-82 行）
+- 移除了字符串拼接和模板字符串开销
+
+#### P1-3: 预分配数组容量 (WordCloudTask.ets)
+- `weightedItems`: `new Array(wordCount)` 替代 `push()`
+- `sprites`: `new Array(wordCount)` 替代 `push()`
+- `placedData`: `new Array(resultCount)` 替代 `push()`
+- 避免数组动态扩容时的内存重分配和复制
+
+#### P1-4: refreshColors/refreshFont 避免深度拷贝 (WordCloudPage.ets)
+- `refreshColors()`: 就地更新 `pw.color` 属性，用 `[...this.placedWords]` 触发 @Watch
+- `refreshFont()`: 就地更新 `pw.font` 属性，同上
+- 避免每次更改创建 N 个新 PlacedWord 对象（100-200+ 对象分配）
+
+#### P1-5: 渲染循环优化 (WordCloudView.ets)
+- 提取 `drawWords()` 公共方法，消除 `drawWordCloud` / `renderToPixelMap` 之间的代码重复
+- 移除 `pw.color && pw.color.length > 0` 冗余空检查（color 已由生成/刷新流程保证）
+- 移除 `pw.font && pw.font.length > 0` 冗余空检查（font 同理）
+- 移除 `colors` 无效参数，color 直接从 `pw.color` 读取
+- 移除死代码: `colorIndex`、`nextColor()` 方法
+- `fillText` 前减少 `ctx.translate` 等冗余调用
+
+### ⏳ 待实施 — P2 优化
+
+#### P2-1: ShapeMaskCache LRU 淘汰
+- 当前 `ShapeDef.SHAPE_CACHE` 永不清除，移动端内存风险
+- 建议保留最近 3 个形状遮罩，超出时淘汰最旧条目
+
+#### P2-2: checkCollision/markBoardOccupied 合并
+- 两个函数遍历相同区域，对于成功放置（常见情况）存在冗余
+- 可合并为单函数 `tryMarkBoard()` 在一次遍历中检查并标记
+- 预期收益较小（~5%），因为主要性能提升已在 P0 达成

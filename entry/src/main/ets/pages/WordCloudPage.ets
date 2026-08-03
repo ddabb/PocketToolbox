@@ -23,11 +23,6 @@ export function WordCloudPageBuilder() {
   .menus([])
 }
 
-/**
- * 词云生成页面。
- * 保存/分享功能使用独立的 ImageSaveShareBar 组件，
- * 与 ShareImageCard（成语/诗词/歇后语的分享卡片）完全解耦。
- */
 @Component
 struct WordCloudContent {
   @State inputText: string = '';
@@ -46,6 +41,7 @@ struct WordCloudContent {
   @State customCount: string = '1';
   @State directWordsText: string = '';
   @State showWordsDialog: boolean = false;
+  @State showSettingsDialog: boolean = false;
   private uiContext: UIContext = this.getUIContext();
   private palettes: PaletteColor[] = Palette.getAll();
   private templates: TemplateInfo[] = Md2PngTemplates.getAll();
@@ -69,7 +65,7 @@ struct WordCloudContent {
   ];
   private readonly COMPONENT_ID: string = 'wordcloud_canvas';
   private readonly MAX_WORDS: number = 180;
-  private readonly LAYOUT_CANVAS_SIZE: number = 1000;
+  private readonly LAYOUT_CANVAS_SIZE: number = 800;
 
   aboutToAppear(): void {
     FontUtil.registerAll(this.uiContext);
@@ -184,11 +180,19 @@ struct WordCloudContent {
             .onClick(() => {
               this.generateWordCloud();
             })
+
+          Button('设置')
+            .fontSize(14)
+            .fontColor($r('app.color.tertiary_text'))
+            .backgroundColor($r('app.color.card_background'))
+            .borderRadius(20)
+            .height(36)
+            .onClick(() => {
+              this.showSettingsDialog = true;
+            })
         }
         .width('100%')
         .padding({ left: 16, right: 16, top: 8 })
-
-        this.StyleSelector()
 
         Column() {
           Column() {
@@ -234,27 +238,21 @@ struct WordCloudContent {
         .alignItems(HorizontalAlign.Center)
 
         if (this.placedWords.length > 0) {
+          // 风格快捷缩略图工具栏
+          this.StyleThumbBar()
+
           ImageSaveShareBar({
             accentColor: this.getAccentColor(),
             onPmForSave: (): image.PixelMap => this.renderExportPixelMap(),
             onPmForShare: (): image.PixelMap => this.renderExportPixelMap(),
           })
             .width('100%')
-            .padding({ left: 16, right: 16, top: 12 })
+            .padding({ left: 16, right: 16, top: 8 })
         }
 
-        if (this.isGenerating) {
-          Column() {
-            Progress({ value: this.progressValue, total: 100, type: ProgressType.Linear })
-              .width('60%')
-              .color(this.getAccentColor())
-            Text(this.progressText)
-              .fontSize(12)
-              .fontColor($r('app.color.tertiary_text'))
-              .margin({ top: 4 })
-          }
-          .margin({ top: 8, bottom: 16 })
-        }
+        // 底部留白避免被导航栏遮挡
+        Blank()
+          .height(20)
       }
       .width('100%')
     }
@@ -269,6 +267,305 @@ struct WordCloudContent {
         this.showWordsDialog = false;
       }
     })
+    .bindContentCover(this.showSettingsDialog, this.SettingsCover(), {
+      modalTransition: ModalTransition.NONE,
+      onDisappear: () => {
+        this.showSettingsDialog = false;
+      }
+    })
+  }
+
+  @Builder
+  SettingsCover() {
+    Column() {
+      Row() {
+        Text('样式设置')
+          .fontSize(18)
+          .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.primary_text'))
+        Blank()
+        Button('完成')
+          .fontSize(14)
+          .fontColor(Color.White)
+          .backgroundColor(this.getAccentColor())
+          .borderRadius(18)
+          .height(32)
+          .padding({ left: 16, right: 16 })
+          .onClick(() => {
+            this.showSettingsDialog = false;
+          })
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, top: 20, bottom: 12 })
+
+      Scroll() {
+        Column() {
+          // 配色方案 — 可视化色块预览
+          Text('配色方案')
+            .fontSize(14)
+            .fontWeight(FontWeight.Bold)
+            .fontColor($r('app.color.primary_text'))
+            .width('100%')
+            .padding({ left: 16, bottom: 8 })
+
+          Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
+            ForEach(this.templates, (tpl: TemplateInfo, index: number) => {
+              Column() {
+                // 显示该配色方案的前 3 个颜色作为预览
+                Row({ space: 1 }) {
+                  ForEach(this.palettes[index].colors.slice(0, 3), (color: string) => {
+                    Column()
+                      .width(16)
+                      .height(20)
+                      .borderRadius(4)
+                      .backgroundColor(color)
+                  })
+                }
+                .padding({ top: 1, bottom: 1 })
+                Text(tpl.name)
+                  .fontSize(11)
+                  .fontColor(this.currentPaletteIndex === index ? this.getTemplateAccent(index) : $r('app.color.tertiary_text'))
+                  .margin({ top: 5 })
+              }
+              .padding({ left: 9, right: 9, top: 6, bottom: 6 })
+              .borderRadius(10)
+              .backgroundColor(this.currentPaletteIndex === index ? this.getTemplateAccent(index) + '15' : Color.Transparent)
+              .border({
+                width: this.currentPaletteIndex === index ? 1.5 : 0,
+                color: this.getTemplateAccent(index),
+                style: BorderStyle.Solid
+              })
+              .alignItems(HorizontalAlign.Center)
+              .onClick(() => {
+                this.currentPaletteIndex = index;
+                this.refreshColors();
+              })
+            }, (tpl: TemplateInfo) => tpl.id)
+          }
+          .width('100%')
+          .padding({ left: 8, right: 8 })
+
+          // 形状 — 大图标预览
+          Text('形状')
+            .fontSize(14)
+            .fontWeight(FontWeight.Bold)
+            .fontColor($r('app.color.primary_text'))
+            .width('100%')
+            .padding({ left: 16, top: 18, bottom: 8 })
+
+          Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
+            ForEach(this.shapes, (shape: ShapeDef, index: number) => {
+              Column() {
+                Image($r('app.media.' + this.shapeIcons[index]))
+                  .width(30)
+                  .height(30)
+                  .fillColor(this.currentShapeIndex === index ? this.getAccentColor() : $r('app.color.tertiary_text'))
+                  .objectFit(ImageFit.Contain)
+                Text(shape.label)
+                  .fontSize(11)
+                  .fontColor(this.currentShapeIndex === index ? this.getAccentColor() : $r('app.color.tertiary_text'))
+                  .margin({ top: 5 })
+              }
+              .padding({ left: 9, right: 9, top: 6, bottom: 6 })
+              .borderRadius(10)
+              .backgroundColor(this.currentShapeIndex === index ? this.getAccentColor() + '15' : Color.Transparent)
+              .border({
+                width: this.currentShapeIndex === index ? 1.5 : 0,
+                color: this.getAccentColor(),
+                style: BorderStyle.Solid
+              })
+              .alignItems(HorizontalAlign.Center)
+              .onClick(() => {
+                this.currentShapeIndex = index;
+              })
+            }, (shape: ShapeDef) => shape.id)
+          }
+          .width('100%')
+          .padding({ left: 8, right: 8 })
+
+          // 字体 — 大字预览
+          Text('字体')
+            .fontSize(14)
+            .fontWeight(FontWeight.Bold)
+            .fontColor($r('app.color.primary_text'))
+            .width('100%')
+            .padding({ left: 16, top: 18, bottom: 8 })
+
+          Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
+            ForEach(this.fontNames, (fontName: string, index: number) => {
+              Column() {
+                Text('词云')
+                  .fontSize(24)
+                  .fontFamily(fontName)
+                  .fontColor(this.currentFontIndex === index ? this.getAccentColor() : $r('app.color.primary_text'))
+                Text(this.fontLabels[index])
+                  .fontSize(11)
+                  .fontColor(this.currentFontIndex === index ? this.getAccentColor() : $r('app.color.tertiary_text'))
+                  .margin({ top: 5 })
+              }
+              .padding({ left: 10, right: 10, top: 7, bottom: 7 })
+              .borderRadius(10)
+              .backgroundColor(this.currentFontIndex === index ? this.getAccentColor() + '15' : Color.Transparent)
+              .border({
+                width: this.currentFontIndex === index ? 1.5 : 0,
+                color: this.getAccentColor(),
+                style: BorderStyle.Solid
+              })
+              .alignItems(HorizontalAlign.Center)
+              .onClick(() => {
+                this.currentFontIndex = index;
+                this.refreshFont();
+              })
+            }, (fontName: string) => fontName)
+          }
+          .width('100%')
+          .padding({ left: 8, right: 8 })
+        }
+        .width('100%')
+        .padding({ bottom: 32 })
+      }
+      .scrollable(ScrollDirection.Vertical)
+      .width('100%')
+      .layoutWeight(1)
+    }
+    .width('100%')
+    .height('82%')
+    .backgroundColor($r('app.color.page_background'))
+    .borderRadius({ topLeft: 20, topRight: 20 })
+  }
+
+  // 词云下方风格快捷缩略图栏
+  @Builder
+  StyleThumbBar() {
+    Column() {
+      Text('风格')
+        .fontSize(12)
+        .fontWeight(FontWeight.Medium)
+        .fontColor($r('app.color.tertiary_text'))
+        .width('100%')
+        .padding({ left: 16, bottom: 4 })
+
+      // 配色缩略图
+      Row() {
+        Text('配色')
+          .fontSize(12)
+          .fontColor($r('app.color.tertiary_text'))
+          .width(36)
+        Scroll() {
+          Row({ space: 5 }) {
+            ForEach(this.templates, (tpl: TemplateInfo, index: number) => {
+              Column() {
+                Row({ space: 1 }) {
+                  ForEach(this.palettes[index].colors.slice(0, 4), (color: string) => {
+                    Column()
+                      .width(12)
+                      .height(14)
+                      .borderRadius(2)
+                      .backgroundColor(color)
+                  })
+                }
+              }
+              .width(52)
+              .height(16)
+              .borderRadius(6)
+              .border({
+                width: this.currentPaletteIndex === index ? 2 : 0,
+                color: this.getTemplateAccent(index)
+              })
+              .onClick(() => {
+                this.currentPaletteIndex = index;
+                this.refreshColors();
+              })
+            })
+          }
+          .padding({ left: 2, right: 2 })
+        }
+        .scrollable(ScrollDirection.Horizontal)
+        .scrollBar(BarState.Off)
+        .height(22)
+        .layoutWeight(1)
+      }
+      .width('100%')
+      .height(26)
+      .padding({ left: 16, right: 16 })
+      .alignItems(VerticalAlign.Center)
+
+      // 形状缩略图
+      Row() {
+        Text('形状')
+          .fontSize(12)
+          .fontColor($r('app.color.tertiary_text'))
+          .width(36)
+        Scroll() {
+          Row({ space: 4 }) {
+            ForEach(this.shapes, (shape: ShapeDef, index: number) => {
+              Image($r('app.media.' + this.shapeIcons[index]))
+                .width(20)
+                .height(20)
+                .fillColor(this.currentShapeIndex === index ? this.getAccentColor() : $r('app.color.tertiary_text'))
+                .backgroundColor(this.currentShapeIndex === index ? this.getAccentColor() + '14' : Color.Transparent)
+                .borderRadius(5)
+                .padding(3)
+                .onClick(() => {
+                  this.currentShapeIndex = index;
+                })
+            })
+          }
+          .padding({ left: 2, right: 2 })
+        }
+        .scrollable(ScrollDirection.Horizontal)
+        .scrollBar(BarState.Off)
+        .height(26)
+        .layoutWeight(1)
+      }
+      .width('100%')
+      .height(30)
+      .padding({ left: 16, right: 16 })
+      .alignItems(VerticalAlign.Center)
+      .margin({ top: 4 })
+
+      // 字体缩略图
+      Row() {
+        Text('字体')
+          .fontSize(12)
+          .fontColor($r('app.color.tertiary_text'))
+          .width(36)
+        Scroll() {
+          Row({ space: 5 }) {
+            ForEach(this.fontNames, (fontName: string, index: number) => {
+              Text('云')
+                .fontSize(16)
+                .fontFamily(fontName)
+                .fontColor(this.currentFontIndex === index ? this.getAccentColor() : $r('app.color.tertiary_text'))
+                .backgroundColor(this.currentFontIndex === index ? this.getAccentColor() + '14' : Color.Transparent)
+                .borderRadius(6)
+                .width(28)
+                .height(22)
+                .textAlign(TextAlign.Center)
+                .onClick(() => {
+                  this.currentFontIndex = index;
+                  this.refreshFont();
+                })
+            })
+          }
+          .padding({ left: 2, right: 2 })
+        }
+        .scrollable(ScrollDirection.Horizontal)
+        .scrollBar(BarState.Off)
+        .height(26)
+        .layoutWeight(1)
+      }
+      .width('100%')
+      .height(30)
+      .padding({ left: 16, right: 16 })
+      .alignItems(VerticalAlign.Center)
+      .margin({ top: 4 })
+    }
+    .width('100%')
+    .padding({ top: 10, bottom: 6 })
+    .backgroundColor($r('app.color.card_background'))
+    .borderRadius(12)
+    .margin({ left: 16, right: 16, top: 8 })
   }
 
   @Builder
@@ -447,121 +744,6 @@ struct WordCloudContent {
     })
     .borderRadius(12)
     .opacity(0.5)
-  }
-
-  @Builder
-  StyleSelector() {
-    Column() {
-      Text('配色方案')
-        .fontSize(13)
-        .fontWeight(FontWeight.Bold)
-        .fontColor($r('app.color.primary_text'))
-        .width('100%')
-        .padding({ left: 16, bottom: 6 })
-
-      Scroll() {
-        Row() {
-          ForEach(this.templates, (tpl: TemplateInfo, index: number) => {
-            Column() {
-              Column()
-                .width(28)
-                .height(28)
-                .borderRadius(14)
-                .backgroundColor(tpl.accentColor)
-                .border({
-                  width: this.currentPaletteIndex === index ? 2 : 0,
-                  color: tpl.accentColor,
-                  style: BorderStyle.Solid
-                })
-              Text(tpl.name)
-                .fontSize(10)
-                .fontColor(this.currentPaletteIndex === index ? tpl.accentColor : $r('app.color.tertiary_text'))
-                .margin({ top: 3 })
-            }
-            .padding({ left: 6, right: 6 })
-            .alignItems(HorizontalAlign.Center)
-            .onClick(() => {
-              this.currentPaletteIndex = index;
-              this.refreshColors();
-            })
-          }, (tpl: TemplateInfo) => tpl.id)
-        }
-      }
-      .scrollable(ScrollDirection.Horizontal)
-      .width('100%')
-      .padding({ left: 10, right: 10 })
-
-      Text('形状')
-        .fontSize(13)
-        .fontWeight(FontWeight.Bold)
-        .fontColor($r('app.color.primary_text'))
-        .width('100%')
-        .padding({ left: 16, top: 8, bottom: 6 })
-
-      Scroll() {
-        Row() {
-          ForEach(this.shapes, (shape: ShapeDef, index: number) => {
-            Column() {
-              Image($r('app.media.' + this.shapeIcons[index]))
-                .width(24)
-                .height(24)
-                .fillColor(this.currentShapeIndex === index ? this.getAccentColor() : $r('app.color.tertiary_text'))
-              Text(shape.label)
-                .fontSize(10)
-                .fontColor(this.currentShapeIndex === index ? this.getAccentColor() : $r('app.color.tertiary_text'))
-                .margin({ top: 2 })
-            }
-            .padding({ left: 8, right: 8, top: 6, bottom: 6 })
-            .borderRadius(8)
-            .backgroundColor(this.currentShapeIndex === index ? this.getAccentColor() + '18' : Color.Transparent)
-            .alignItems(HorizontalAlign.Center)
-            .onClick(() => {
-              this.currentShapeIndex = index;
-            })
-          }, (shape: ShapeDef) => shape.id)
-        }
-      }
-      .scrollable(ScrollDirection.Horizontal)
-      .width('100%')
-      .padding({ left: 10, right: 10 })
-
-      Text('字体')
-        .fontSize(13)
-        .fontWeight(FontWeight.Bold)
-        .fontColor($r('app.color.primary_text'))
-        .width('100%')
-        .padding({ left: 16, top: 8, bottom: 6 })
-
-      Scroll() {
-        Row() {
-          ForEach(this.fontLabels, (label: string, index: number) => {
-            Column() {
-              Text('云')
-                .fontSize(20)
-                .fontFamily(this.fontNames[index])
-                .fontColor(this.currentFontIndex === index ? this.getAccentColor() : $r('app.color.primary_text'))
-              Text(label)
-                .fontSize(10)
-                .fontColor(this.currentFontIndex === index ? this.getAccentColor() : $r('app.color.tertiary_text'))
-                .margin({ top: 2 })
-            }
-            .padding({ left: 8, right: 8, top: 6, bottom: 6 })
-            .borderRadius(8)
-            .backgroundColor(this.currentFontIndex === index ? this.getAccentColor() + '18' : Color.Transparent)
-            .alignItems(HorizontalAlign.Center)
-            .onClick(() => {
-              this.currentFontIndex = index;
-              this.refreshFont();
-            })
-          }, (label: string) => label)
-        }
-      }
-      .scrollable(ScrollDirection.Horizontal)
-      .width('100%')
-      .padding({ left: 10, right: 10 })
-    }
-    .width('100%')
-    .padding({ top: 8 })
   }
 
   private parseDirectWords(): void {
@@ -806,84 +988,40 @@ struct WordCloudContent {
     this.isGenerating = false;
   }
 
+  // P1优化: 就地更新颜色, 避免逐词深度拷贝 (减少100-200+对象创建)
   private refreshColors(): void {
     if (this.placedWords.length === 0) {
       return;
     }
     let palette: PaletteColor = this.palettes[this.currentPaletteIndex];
-    let newWords: PlacedWord[] = [];
+    let colors: string[] = palette.colors;
     for (let i: number = 0; i < this.placedWords.length; i++) {
-      let pw: PlacedWord = new PlacedWord();
-      pw.text = this.placedWords[i].text;
-      pw.x = this.placedWords[i].x;
-      pw.y = this.placedWords[i].y;
-      pw.size = this.placedWords[i].size;
-      pw.color = palette.colors[i % palette.colors.length];
-      pw.angle = this.placedWords[i].angle;
-      pw.font = this.placedWords[i].font;
-      pw.width = this.placedWords[i].width;
-      pw.height = this.placedWords[i].height;
-      newWords.push(pw);
+      this.placedWords[i].color = colors[i % colors.length];
     }
-    this.placedWords = newWords;
+    // 触发 @Watch: 新建数组引用但共享对象
+    this.placedWords = [...this.placedWords];
   }
 
-  private async refreshFont(): Promise<void> {
-    if (this.lastWeightedItems.length === 0) {
+  // P1优化: 就地更新字体
+  private refreshFont(): void {
+    if (this.placedWords.length === 0) {
       return;
     }
     let fontName: string = this.fontNames[this.currentFontIndex];
-    let layoutSize: number = this.LAYOUT_CANVAS_SIZE;
-
-    let wordInputs: WordInput[] = [];
-    for (let i: number = 0; i < this.lastWeightedItems.length; i++) {
-      let wi: WordInput = {
-        text: this.lastWeightedItems[i].text,
-        weight: this.lastWeightedItems[i].weight,
-      };
-      wordInputs.push(wi);
+    for (let i: number = 0; i < this.placedWords.length; i++) {
+      this.placedWords[i].font = fontName;
     }
-
-    let input: WordCloudInput = {
-      words: wordInputs,
-      canvasSize: layoutSize,
-      shapeIndex: this.currentShapeIndex,
-      fontName: fontName,
-    };
-
-    try {
-      let result = await runPlacementAsync(input);
-      let palette: PaletteColor = this.palettes[this.currentPaletteIndex];
-      let placedResults: PlacedWord[] = [];
-      for (let i: number = 0; i < result.placed.length; i++) {
-        let pd = result.placed[i];
-        let pw: PlacedWord = new PlacedWord();
-        pw.text = pd.text;
-        pw.x = pd.x;
-        pw.y = pd.y;
-        pw.size = pd.size;
-        pw.color = palette.colors[i % palette.colors.length];
-        pw.angle = pd.angle;
-        pw.font = fontName;
-        pw.width = pd.width;
-        pw.height = pd.height;
-        placedResults.push(pw);
-      }
-      this.placedWords = placedResults;
-    } catch (e) {
-      console.error('[WordCloud] refreshFont failed');
-    }
+    this.placedWords = [...this.placedWords];
   }
 
   private getAccentColor(): string {
     return this.templates[this.currentPaletteIndex].accentColor;
   }
 
-  /**
-   * 使用离屏 Canvas 将已布局的词云渲染为高分辨率 PixelMap。
-   * 导出尺寸为布局尺寸的 2 倍，确保清晰度。
-   * 由 ImageSaveShareBar 的 onPmForSave / onPmForShare 回调调用。
-   */
+  private getTemplateAccent(index: number): string {
+    return this.templates[index].accentColor;
+  }
+
   private renderExportPixelMap(): image.PixelMap {
     let exportSize: number = this.LAYOUT_CANVAS_SIZE * 2;
     let off: OffscreenCanvas = new OffscreenCanvas(exportSize, exportSize, LengthMetricsUnit.PX);

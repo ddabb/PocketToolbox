@@ -11,7 +11,6 @@ export struct WordCloudView {
   @Prop canvasSize: number = 360;
   private settings: RenderingContextSettings = new RenderingContextSettings(true);
   private context: CanvasRenderingContext2D = new CanvasRenderingContext2D(this.settings);
-  private colorIndex: number = 0;
   private ready: boolean = false;
   private pendingDraw: boolean = false;
 
@@ -36,84 +35,54 @@ export struct WordCloudView {
     }
   }
 
+  // P1优化: 提取公共绘制逻辑, 消除 drawWordCloud 与 renderToPixelMap 之间的重复代码
+  // color/font 由 generateWordCloud/refreshColors/refreshFont 保证有效, 移除冗余空检查和参数
+  private drawWords(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+    scale: number, bgColor: string, width: number, height: number): void {
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = bgColor;
+    ctx.fillRect(0, 0, width, height);
+
+    let words: PlacedWord[] = this.placedWords;
+    let count: number = words.length;
+    for (let i: number = 0; i < count; i++) {
+      let pw: PlacedWord = words[i];
+      ctx.save();
+      ctx.translate(pw.x * scale, pw.y * scale);
+      if (pw.angle !== 0) {
+        ctx.rotate(pw.angle * Math.PI / 180);
+      }
+      ctx.font = (pw.size * scale).toString() + 'px ' + pw.font;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = pw.color;
+      ctx.fillText(pw.text, 0, 0);
+      ctx.restore();
+    }
+  }
+
   private drawWordCloud(): void {
     if (this.placedWords.length === 0) {
       return;
     }
-    let ctx: CanvasRenderingContext2D = this.context;
     let w: number = this.canvasPixelSize;
-    let h: number = this.canvasPixelSize;
-    if (w <= 0 || h <= 0) {
+    if (w <= 0) {
       return;
     }
-
-    ctx.clearRect(0, 0, w, h);
-    ctx.fillStyle = this.bgColor;
-    ctx.fillRect(0, 0, w, h);
-
-    let scale: number = this.canvasPixelSize / this.canvasSize;
-    let colors: string[] = this.paletteColors.length > 0 ? this.paletteColors : ['#333333'];
-    this.colorIndex = 0;
-
-    for (let i: number = 0; i < this.placedWords.length; i++) {
-      let pw: PlacedWord = this.placedWords[i];
-      let color: string = pw.color && pw.color.length > 0 ? pw.color : this.nextColor(colors);
-      let drawSize: number = pw.size * scale;
-      let drawX: number = pw.x * scale;
-      let drawY: number = pw.y * scale;
-      ctx.save();
-      ctx.translate(drawX, drawY);
-      if (pw.angle !== 0) {
-        ctx.rotate(pw.angle * Math.PI / 180);
-      }
-      ctx.font = drawSize.toString() + 'px ' + (pw.font && pw.font.length > 0 ? pw.font : 'sans-serif');
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = color;
-      ctx.fillText(pw.text, 0, 0);
-      ctx.restore();
-    }
+    this.drawWords(this.context,
+      this.canvasPixelSize / this.canvasSize,
+      this.bgColor, w, w);
   }
 
   renderToPixelMap(pixelSize: number): image.PixelMap {
     let off: OffscreenCanvas = new OffscreenCanvas(pixelSize, pixelSize, LengthMetricsUnit.PX);
     let ctx: OffscreenCanvasRenderingContext2D = off.getContext('2d', new RenderingContextSettings(true)) as OffscreenCanvasRenderingContext2D;
 
-    let scale: number = pixelSize / this.canvasSize;
-    let colors: string[] = this.paletteColors.length > 0 ? this.paletteColors : ['#333333'];
-
-    ctx.clearRect(0, 0, pixelSize, pixelSize);
-    ctx.fillStyle = this.bgColor;
-    ctx.fillRect(0, 0, pixelSize, pixelSize);
-
-    for (let i: number = 0; i < this.placedWords.length; i++) {
-      let pw: PlacedWord = this.placedWords[i];
-      let color: string = pw.color && pw.color.length > 0 ? pw.color : colors[i % colors.length];
-      let drawSize: number = pw.size * scale;
-      let drawX: number = pw.x * scale;
-      let drawY: number = pw.y * scale;
-      ctx.save();
-      ctx.translate(drawX, drawY);
-      if (pw.angle !== 0) {
-        ctx.rotate(pw.angle * Math.PI / 180);
-      }
-      ctx.font = drawSize.toString() + 'px ' + (pw.font && pw.font.length > 0 ? pw.font : 'sans-serif');
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = color;
-      ctx.fillText(pw.text, 0, 0);
-      ctx.restore();
-    }
+    this.drawWords(ctx,
+      pixelSize / this.canvasSize,
+      this.bgColor, pixelSize, pixelSize);
 
     return ctx.getPixelMap(0, 0, pixelSize, pixelSize);
   }
 
-  private nextColor(colors: string[]): string {
-    if (colors.length === 0) {
-      return '#333333';
-    }
-    let c: string = colors[this.colorIndex % colors.length];
-    this.colorIndex++;
-    return c;
-  }
 }
