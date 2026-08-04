@@ -4,6 +4,7 @@ import { common } from '@kit.AbilityKit';
 import { fileIo } from '@kit.CoreFileKit';
 import { recognizeSudokuFromImage, OCRResult } from '../../../main/ets/core/sudoku/SudokuOCR';
 import { parseOCRToGrid, gridToString, solveSudoku, validateFullGrid, SolveResult } from '../../../main/ets/core/sudoku/SudokuEngine';
+import { hilog } from '@kit.PerformanceAnalysisKit';
 
 interface TestImage {
   filename: string;
@@ -69,9 +70,16 @@ export default function sudokuOcrTest() {
       const img: TestImage = TEST_IMAGES[idx];
       it(`recognize_${img.label}`, 0, async () => {
         const delegator = abilityDelegatorRegistry.getAbilityDelegator();
-        const context = delegator.getAppContext() as common.Context;
-
-        const filePath: string = await copyRawfileToCache(context, img.filename);
+        const appContext = delegator.getAppContext() as common.Context;
+        hilog.info(0x0000, 'SudokuOCR', 'appContext cacheDir=%{public}s', appContext.cacheDir);
+        hilog.info(0x0000, 'SudokuOCR', 'try getRawFileContent from appContext for %{public}s', img.filename);
+        try {
+          const bytes: Uint8Array = await appContext.resourceManager.getRawFileContent(img.filename);
+          hilog.info(0x0000, 'SudokuOCR', 'appContext getRawFileContent OK, size=%{public}d', bytes.length);
+        } catch (e) {
+          hilog.error(0x0000, 'SudokuOCR', 'appContext getRawFileContent failed: %{public}s', JSON.stringify(e));
+        }
+        const filePath: string = await copyRawfileToCache(appContext, img.filename);
         const result: OCRResult = await recognizeSudokuFromImage(filePath);
 
         expect(result.success).assertTrue();
