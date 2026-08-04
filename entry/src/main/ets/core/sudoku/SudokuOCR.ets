@@ -2,7 +2,7 @@ import { image } from '@kit.ImageKit';
 import { textRecognition } from '@kit.CoreVisionKit';
 import { fileIo } from '@kit.CoreFileKit';
 import { parseOCRToGrid } from './SudokuEngine';
-import { BoardBBox, cellSig, countInk, findBoardBBox, recognizeDigit } from './SudokuPixel';
+import { BoardBBox, bgColor, cellSig, countInk, findBoardBBox, recognizeDigit } from './SudokuPixel';
 
 export interface OCRResult {
   success: boolean;
@@ -224,24 +224,8 @@ async function tryPixelGridRecognition(imagePath: string): Promise<OCRResult> {
 export function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, height: number): number[] {
   const grid: number[] = new Array<number>(81).fill(0);
 
-  const margin: number = Math.max(2, Math.floor(Math.min(width, height) * 0.05));
-  let bgSum: number = 0;
-  let bgCnt: number = 0;
-  for (let y: number = 0; y < margin; y += 2) {
-    for (let x: number = 0; x < margin; x += 2) {
-      bgSum += 0.299 * pixels[(y * width + x) * 4] +
-        0.587 * pixels[(y * width + x) * 4 + 1] +
-        0.114 * pixels[(y * width + x) * 4 + 2];
-      bgCnt++;
-    }
-    for (let x: number = width - margin; x < width; x += 2) {
-      bgSum += 0.299 * pixels[(y * width + x) * 4] +
-        0.587 * pixels[(y * width + x) * 4 + 1] +
-        0.114 * pixels[(y * width + x) * 4 + 2];
-      bgCnt++;
-    }
-  }
-  const bg: number = bgCnt > 0 ? bgSum / bgCnt : 200;
+  // 背景色：直方图众数（稳健应对白纸放深色桌面等真实照片场景）
+  const bg: number = bgColor(pixels, width, height);
 
   const bbox: BoardBBox = findBoardBBox(pixels, width, height, bg);
   const cellW: number = (bbox.right - bbox.left) / 9;
