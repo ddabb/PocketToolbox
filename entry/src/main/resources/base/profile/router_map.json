@@ -89,6 +89,11 @@
       "name": "PrimeFactorPage",
       "pageSourceFile": "src/main/ets/pages/PrimeFactorPage.ets",
       "buildFunction": "PrimeFactorPageBuilder"
+    },
+    {
+      "name": "SudokuSolverPage",
+      "pageSourceFile": "src/main/ets/pages/SudokuSolverPage.ets",
+      "buildFunction": "SudokuSolverPageBuilder"
     }
   ]
 }

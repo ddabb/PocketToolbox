@@ -1,6 +1,28 @@
 {
   "dependencies": {
+    "canvas": "^3.2.3",
     "image-size": "^2.0.2",
     "sharp": "^0.35.3"
-  }
+  },
+  "name": "pockettoolbox",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ddabb/PocketToolbox.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ddabb/PocketToolbox/issues"
+  },
+  "homepage": "https://github.com/ddabb/PocketToolbox#readme"
 }

@@ -15,6 +15,7 @@ import { ReadingPlayerPageBuilder } from './ReadingPlayerPage';
 import { DailyChallengePageBuilder } from './DailyChallengePage';
 import { AchievementPageBuilder } from './AchievementPage';
 import { WordCloudPageBuilder } from './WordCloudPage';
+import { SudokuSolverPageBuilder } from './SudokuSolverPage';
 import { GcdLcmPageBuilder } from './GcdLcmPage';
 import { PrimeFactorPageBuilder } from './PrimeFactorPage';
 import { PoetryViewModel } from '../viewmodel/PoetryViewModel';
@@ -145,7 +146,8 @@ struct Index {
 
     this.creativeTools = [
       new ToolItem('word_cloud', '词云生成', '粘贴文本，30秒出图', '', '#8b5cf6', 'WordCloudPage'),
-      new ToolItem('md2png', '文字转图片', 'Markdown文本生成图片', '', '#9b59b6', 'Md2PngPage')
+      new ToolItem('md2png', '文字转图片', 'Markdown文本生成图片', '', '#9b59b6', 'Md2PngPage'),
+      new ToolItem('sudoku_solver', '数独求解', '拍照识别，DLX算法秒解', '', '#6366f1', 'SudokuSolverPage')
     ];
   }
 
@@ -370,6 +372,8 @@ struct Index {
       GcdLcmPageBuilder()
     } else if (name === 'PrimeFactorPage') {
       PrimeFactorPageBuilder()
+    } else if (name === 'SudokuSolverPage') {
+      SudokuSolverPageBuilder()
     }
   }
 
@@ -641,9 +645,18 @@ struct Index {
       ForEach(tools, (tool: ToolItem) => {
         Column() {
           Column() {
-            Text(tool.id === 'word_cloud' ? '\u2601' : '\uD83D\uDDBC\uFE0F')
-              .fontSize(24)
-              .fontColor('#ffffff')
+            if (tool.id === 'word_cloud') {
+              Text('\u2601')
+                .fontSize(24)
+                .fontColor('#ffffff')
+            } else if (tool.id === 'md2png') {
+              Text('\uD83D\uDDBC\uFE0F')
+                .fontSize(24)
+            } else {
+              Image($r('app.media.unit_sudoku'))
+                .width(48)
+                .height(48)
+            }
           }
           .width(56)
           .height(56)
