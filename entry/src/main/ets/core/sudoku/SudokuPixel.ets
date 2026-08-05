@@ -28,12 +28,10 @@ const tpl8: DigitTemplate = { digit: 8, key: [0,0,0,1,1,0,0,0,1,1,1,1,1,0,0,1,1,
 const tpl9: DigitTemplate = { digit: 9, key: [0,0,1,1,1,0,0,0,1,1,1,1,1,0,1,1,1,0,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,0,0,0,0,0,1,1,0,0,0,0,1,1,1,0,1,1,1,1,1,0,0,1,1,1,1,0,0] };
 export const TEMPLATES: DigitTemplate[] = [tpl1, tpl2, tpl3, tpl4, tpl5, tpl6, tpl7, tpl8, tpl9];
 
+// 6/9 拓扑特征：封闭空洞（圈）的纵向位置，6 在下、9 在上。
+// 仅当轮廓竞争发生在 6 与 9 之间时，用"查询圈所在半区"打破旋转对称（见 recognizeDigit）。
 const SIG_ROWS: number = 10;
 const SIG_COLS: number = 7;
-
-// 6/9 拓扑特征权重：封闭空洞（圈）的纵向位置，6 在下、9 在上。
-const HOLE_WEIGHT: number = 18;
-const HOLE_PENALTY: number = 18;
 
 /**
  * 计算签名中唯一的"封闭空洞"(背景被墨迹闭合包围)的纵向中心行。
@@ -286,10 +284,14 @@ export function cellSig(
 export function recognizeDigit(sig: number[], inkCount: number): number {
   // 墨迹太少不可能是有内容的格子（与 cellSig 中的过滤策略一致）
   if (inkCount < 6) { return 0; }
-  // 从特征码派生拓扑特征：封闭空洞的纵向位置（6 在下方、9 在上方）
+  // 从特征码派生拓扑特征：封闭空洞（圈）的纵向位置（6 在下方、9 在上方）
   const qHole: number = holeCenterRow(sig);
-  let best: number = 0;
+
+  // 先纯按轮廓（F1 + 位置重合）打分，找出前两名
+  let bestIdx: number = 0;
   let bestScore: number = -100000;
+  let secondIdx: number = 0;
+  let secondScore: number = -100000;
   for (let ti: number = 0; ti < TEMPLATES.length; ti++) {
     const t: DigitTemplate = TEMPLATES[ti];
     let match: number = 0;
@@ -305,18 +307,27 @@ export function recognizeDigit(sig: number[], inkCount: number): number {
     const recall: number = tplInk > 0 ? tp / tplInk : 0;
     const prec: number = inkCount > 0 ? tp / inkCount : 0;
     const f1: number = (recall + prec) > 0 ? (2 * recall * prec) / (recall + prec) : 0;
-    let score: number = match - (70 - match) * 0.5 + f1 * 40;
-    // 6/9 特征裁决：两者轮廓几乎对称，仅靠轮廓易互换；
-    // 用"圈的位置"这一稳健拓扑特征打破对称，对边界抖动不敏感。
-    const tHole: number = TPL_HOLE_ROW[ti];
-    if (qHole >= 0 && tHole >= 0) {
-      const sameHalf: boolean = (qHole < 4.5) === (tHole < 4.5);
-      if (sameHalf) { score += HOLE_WEIGHT; } else { score -= HOLE_PENALTY; }
-    }
+    const score: number = match - (70 - match) * 0.5 + f1 * 40;
     if (score > bestScore) {
-      bestScore = score;
-      best = t.digit;
+      secondIdx = bestIdx; secondScore = bestScore;
+      bestIdx = ti; bestScore = score;
+    } else if (score > secondScore) {
+      secondIdx = ti; secondScore = score;
     }
   }
-  return bestScore >= 12 ? best : 0;
+
+  // 6/9 特征裁决：仅当轮廓竞争本就发生在 6 与 9 之间时（二者均含单一主圈、
+  // 且位于相反半区），用"查询圈所在半区"打破旋转对称。对其他数字（含 4/5，
+  // 其圈位置不参与）完全不介入，避免误触发。无硬编码特定宫/数字的交换规则。
+  if (qHole >= 0 && bestScore >= 12) {
+    const halfOf: (h: number) => number = (h: number) => (h < 0 ? 0 : (h < 4.5 ? 1 : (h > 4.5 ? 2 : 0)));
+    const bh: number = halfOf(TPL_HOLE_ROW[bestIdx]);
+    const sh: number = halfOf(TPL_HOLE_ROW[secondIdx]);
+    if (bh !== 0 && sh !== 0 && bh !== sh) {
+      const qh: number = qHole < 4.5 ? 1 : 2;
+      if (qh === sh) { bestIdx = secondIdx; }
+    }
+  }
+
+  return bestScore >= 12 ? TEMPLATES[bestIdx].digit : 0;
 }

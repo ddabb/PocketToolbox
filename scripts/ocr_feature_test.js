@@ -76,7 +76,7 @@ function holeCenterRow(sig) {
   return s / comps[0].length;
 }
 const TPL_HOLE = TEMPLATES.map(t => holeCenterRow(t.key));
-const HOLE_W = 18, HOLE_P = 18;
+const HOLE_COEF = 22, HOLE_SPAN = 4;
 
 function scoresOf(sig) {
   const inkCount = sig.reduce((a, v) => a + v, 0);
@@ -103,21 +103,24 @@ function recognizeOld(sig) {
   return bs >= 12 ? best : 0;
 }
 
-// 新识别（轮廓 + 空洞拓扑裁决）
+// 新识别（轮廓 top2 仅在 6/9 竞争时用圈半区裁决）
 function recognizeNew(sig) {
   const s = scoresOf(sig);
   const qHole = holeCenterRow(sig);
-  let best = 0, bs = -1e9;
+  let bestIdx = 0, bs = -1e9, secondIdx = 0, ss = -1e9;
   for (let ti = 0; ti < s.length; ti++) {
-    let score = s[ti].score;
-    const tHole = TPL_HOLE[ti];
-    if (qHole >= 0 && tHole >= 0) {
-      const sameHalf = (qHole < 4.5) === (tHole < 4.5);
-      score += sameHalf ? HOLE_W : -HOLE_P;
-    }
-    if (score > bs) { bs = score; best = s[ti].d; }
+    if (s[ti].score > bs) { secondIdx = bestIdx; ss = bs; bestIdx = ti; bs = s[ti].score; }
+    else if (s[ti].score > ss) { secondIdx = ti; ss = s[ti].score; }
   }
-  return bs >= 12 ? best : 0;
+  if (qHole >= 0 && bs >= 12) {
+    const halfOf = (h) => (h < 0 ? 0 : (h < 4.5 ? 1 : (h > 4.5 ? 2 : 0)));
+    const bh = halfOf(TPL_HOLE[bestIdx]), sh = halfOf(TPL_HOLE[secondIdx]);
+    if (bh !== 0 && sh !== 0 && bh !== sh) {
+      const qh = qHole < 4.5 ? 1 : 2;
+      if (qh === sh) bestIdx = secondIdx;
+    }
+  }
+  return bs >= 12 ? s[bestIdx].d : 0;
 }
 
 // ---- 图像管线（与 ArkTS 一致，仅用于实测）----
@@ -168,41 +171,53 @@ function cellSig(px, W, left, top, cw, ch, isDark, bg) {
   return sig;
 }
 
-// ---- 合成抖动/噪声压力测试：模拟边界框抖动 + 拍照噪声 ----
-function perturb(sig, rowShift, noiseP, rng) {
+// ---- 合成压力测试：亚像素位置偏移（真实边界框抖动）+ 拍照椒盐噪声 ----
+// 平滑亚像素偏移不会产生空洞、也不会伪造闭环（线性插值，不整行平移）。
+function smoothShift(sig, delta) {
   const out = new Array(ROWS * COLS).fill(0);
   for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
-    if (sig[r * COLS + c] === 1) {
-      let r2 = r + rowShift;
-      if (r2 < 0) r2 = 0; if (r2 > ROWS - 1) r2 = ROWS - 1;
-      out[r2 * COLS + c] = 1;
-    }
+    const y = r - delta;
+    const r0 = Math.floor(y), r1 = Math.min(ROWS - 1, r0 + 1);
+    const f = y - r0;
+    let v = 0;
+    if (r0 >= 0 && r0 < ROWS) v += (1 - f) * sig[r0 * COLS + c];
+    if (r1 >= 0 && r1 < ROWS) v += f * sig[r1 * COLS + c];
+    out[r * COLS + c] = v >= 0.5 ? 1 : 0;
   }
-  for (let i = 0; i < ROWS * COLS; i++) {
-    if (rng() < noiseP) out[i] = out[i] ? 0 : 1;
-  }
+  return out;
+}
+function addNoise(sig, noiseP, rng) {
+  const out = sig.slice();
+  for (let i = 0; i < out.length; i++) if (rng() < noiseP) out[i] = out[i] ? 0 : 1;
   return out;
 }
 function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 
 function jitterStressTest() {
-  console.log('=== 合成抖动/噪声压力测试（6/9 互换率）===');
-  console.log('（模拟真实拍照：边界框上下抖动 ±1 行 + 极小椒盐噪声，保留"圈"结构）');
+  console.log('=== 合成压力测试：亚像素偏移 + 噪声下的逐数字误识（旧 vs 新）===');
   const rng = mulberry32(20260804);
-  const shifts = [-1, 0, 1];
-  const noises = [0.0, 0.01, 0.02];
-  for (const truth of [6, 9]) {
+  const deltas = [-0.5, 0, 0.5];
+  const noises = [0.0, 0.02, 0.04, 0.06];
+  for (const truth of [1, 2, 3, 4, 5, 6, 7, 8, 9]) {
+    const oldErr = {}, newErr = {};
     let oldWrong = 0, newWrong = 0, total = 0;
-    for (const sh of shifts) for (const np of noises) {
-      for (let t = 0; t < 500; t++) {
-        const sig = perturb(TEMPLATES[truth - 1].key, sh, np, rng);
+    for (const dl of deltas) for (const np of noises) {
+      for (let t = 0; t < 400; t++) {
+        let sig = smoothShift(TEMPLATES[truth - 1].key, dl);
+        sig = addNoise(sig, np, rng);
         if (sig.reduce((a, v) => a + v, 0) < 6) continue;
         total++;
-        if (recognizeOld(sig) !== truth) oldWrong++;
-        if (recognizeNew(sig) !== truth) newWrong++;
+        const o = recognizeOld(sig), n = recognizeNew(sig);
+        if (o !== truth) { oldWrong++; oldErr[o] = (oldErr[o] || 0) + 1; }
+        if (n !== truth) { newWrong++; newErr[n] = (newErr[n] || 0) + 1; }
       }
     }
-    console.log(`真值=${truth}: 样本=${total} | 旧算法误识=${oldWrong} (${(oldWrong / total * 100).toFixed(1)}%) | 新算法误识=${newWrong} (${(newWrong / total * 100).toFixed(1)}%)`);
+    const mark = (truth === 6 || truth === 9) ? '  <== 6/9' : '';
+    console.log(`真值=${truth}: 样本=${total} | 旧误识=${oldWrong}(${(oldWrong / total * 100).toFixed(1)}%) | 新误识=${newWrong}(${(newWrong / total * 100).toFixed(1)}%)${mark}`);
+    if (truth === 6 || truth === 9) {
+      console.log(`   旧误识分布=${JSON.stringify(oldErr)}`);
+      console.log(`   新误识分布=${JSON.stringify(newErr)}`);
+    }
   }
 }
 

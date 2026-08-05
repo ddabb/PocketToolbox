@@ -21,6 +21,59 @@ const ROWS = 10, COLS = 7;
 
 function grayAt(px, i) { return 0.299*px[i]+0.587*px[i+1]+0.114*px[i+2]; }
 
+// 直方图众数背景（与 ArkTS bgColor 一致）：稳健应对白纸放深色桌面等真实照片
+function bgColor(px, W, H) {
+  const hist = new Array(256).fill(0);
+  const total = W * H;
+  const step = Math.max(1, Math.floor(total / 20000));
+  for (let i = 0; i < total; i += step) {
+    let g = grayAt(px, i * 4); let gi = g < 0 ? 0 : (g > 255 ? 255 : Math.floor(g));
+    hist[gi]++;
+  }
+  let mode = 0, max = -1;
+  for (let i = 0; i < 256; i++) if (hist[i] > max) { max = hist[i]; mode = i; }
+  return mode;
+}
+
+// 封闭空洞纵向中心（与 ArkTS holeCenterRow 一致）：6 圈在下、9 圈在上
+function holeCenterRow(sig) {
+  const outside = new Array(ROWS * COLS).fill(false);
+  const stack = [];
+  const pushIfBg = (i) => { if (!outside[i] && sig[i] === 0) { outside[i] = true; stack.push(i); } };
+  for (let c = 0; c < COLS; c++) { pushIfBg(c); pushIfBg((ROWS - 1) * COLS + c); }
+  for (let r = 0; r < ROWS; r++) { pushIfBg(r * COLS); pushIfBg(r * COLS + (COLS - 1)); }
+  while (stack.length) {
+    const i = stack.pop(); const r = Math.floor(i / COLS), c = i % COLS;
+    if (r > 0) pushIfBg(i - COLS);
+    if (r < ROWS - 1) pushIfBg(i + COLS);
+    if (c > 0) pushIfBg(i - 1);
+    if (c < COLS - 1) pushIfBg(i + 1);
+  }
+  const visited = new Array(ROWS * COLS).fill(false);
+  const comps = [];
+  for (let i = 0; i < ROWS * COLS; i++) {
+    if (sig[i] === 0 && !outside[i] && !visited[i]) {
+      const comp = []; const cs = [i]; visited[i] = true;
+      while (cs.length) {
+        const j = cs.pop(); comp.push(j);
+        const r = Math.floor(j / COLS), c = j % COLS;
+        const p2 = (n) => { if (!visited[n] && sig[n] === 0 && !outside[n]) { visited[n] = true; cs.push(n); } };
+        if (r > 0) p2(j - COLS);
+        if (r < ROWS - 1) p2(j + COLS);
+        if (c > 0) p2(j - 1);
+        if (c < COLS - 1) p2(j + 1);
+      }
+      comps.push(comp);
+    }
+  }
+  if (comps.length === 0) return -1;
+  comps.sort((a, b) => b.length - a.length);
+  if (comps.length >= 2 && comps[1].length > comps[0].length * 0.4) return -1;
+  let s = 0; for (const j of comps[0]) s += Math.floor(j / COLS);
+  return s / comps[0].length;
+}
+const HOLE_W = 22, HOLE_SPAN = 4;
+
 async function loadPixels(imgPath) {
   const img = await loadImage(imgPath);
   const W = img.width, H = img.height;
@@ -37,14 +90,6 @@ async function loadPixelsAtSize(imgPath, tw, th) {
   const ctx = cnv.getContext('2d');
   ctx.drawImage(img, 0, 0, tw, th);
   return { px: ctx.getImageData(0, 0, tw, th).data, W: tw, H: th };
-}
-
-function bgColor(px, W, H) {
-  const margin = Math.max(2, Math.floor(Math.min(W, H) * 0.05));
-  let sum=0,cnt=0;
-  for (let y=0;y<margin;y+=2) for (let x=0;x<margin;x+=2){ sum+=grayAt(px,(y*W+x)*4); cnt++; }
-  for (let y=0;y<margin;y+=2) for (let x=W-margin;x<W;x+=2){ sum+=grayAt(px,(y*W+x)*4); cnt++; }
-  return cnt>0?sum/cnt:200;
 }
 
 function findBoardBBox(px, W, H, bg) {
@@ -105,18 +150,20 @@ function buildTemplates(refPx, refW, refH, refBg, refExpected) {
   const tpls = [];
   for (let d=1; d<=9; d++) {
     const arr = buckets[d] || [];
-    if (arr.length === 0) { tpls.push({ d, k: new Array(ROWS*COLS).fill(0), n:0 }); continue; }
+    if (arr.length === 0) { tpls.push({ d, k: new Array(ROWS*COLS).fill(0), n:0, hole:-1 }); continue; }
     const k = new Array(ROWS*COLS).fill(0);
     for (let p=0;p<ROWS*COLS;p++){ let on=0; for (const s of arr) if (s[p]===1) on++; k[p]=on>=arr.length*0.5?1:0; }
-    tpls.push({ d, k, n: arr.length });
+    tpls.push({ d, k, n: arr.length, hole: holeCenterRow(k) });
   }
   return tpls;
 }
 
 function recognize(sig, templates) {
   const inkCount = sig.reduce((a,v)=>a+v,0);
-  let best=0, bestScore=-1e9; const scores=[];
-  for (const t of templates) {
+  const qHole = holeCenterRow(sig);
+  let bestIdx=0, bestScore=-1e9, secondIdx=0, secondScore=-1e9; const scores=[];
+  for (let ti=0; ti<templates.length; ti++) {
+    const t = templates[ti];
     if (t.n===0) continue;
     let match=0, tplInk=0, tp=0;
     for (let i=0;i<ROWS*COLS;i++){ if(t.k[i]===1){ tplInk++; if(sig[i]===1) tp++; } if(sig[i]===t.k[i]) match++; }
@@ -124,8 +171,19 @@ function recognize(sig, templates) {
     const f1=(recall+prec>0)?2*recall*prec/(recall+prec):0;
     const score=match-(ROWS*COLS-match)*0.5+f1*40;
     scores.push({ d:t.d, score:Math.round(score) });
-    if (score>bestScore){ bestScore=score; best=t.d; }
+    if (score>bestScore){ secondIdx=bestIdx; secondScore=bestScore; bestIdx=ti; bestScore=score; }
+    else if (score>secondScore){ secondIdx=ti; secondScore=score; }
   }
+  // 6/9 特征裁决：仅当轮廓竞争在 6 与 9 之间时用圈半区打破对称
+  if (qHole>=0 && bestScore>=12) {
+    const halfOf=(h)=>(h<0?0:(h<4.5?1:(h>4.5?2:0)));
+    const bh=halfOf(templates[bestIdx].hole), sh=halfOf(templates[secondIdx].hole);
+    if (bh!==0 && sh!==0 && bh!==sh) {
+      const qh=qHole<4.5?1:2;
+      if (qh===sh) bestIdx=secondIdx;
+    }
+  }
+  const best = templates[bestIdx] ? templates[bestIdx].d : 0;
   scores.sort((a,b)=>b.score-a.score);
   return { digit: bestScore>=12?best:0, scores };
 }
