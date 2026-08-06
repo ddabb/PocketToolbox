@@ -2,7 +2,7 @@ import { image } from '@kit.ImageKit';
 import { textRecognition } from '@kit.CoreVisionKit';
 import { fileIo } from '@kit.CoreFileKit';
 import { parseOCRToGrid } from './SudokuEngine';
-import { BoardBBox, bgColor, cellSigFromGray, countInk, findBoardBBox, holeCenterRow, inkCentroidRow, topBottomInkRatio, recognizeDigit, SIG_ROWS, toGrayArray } from './SudokuPixel';
+import { BoardBBox, bgColor, cellSigFromGray, countInk, findBoardBBox, holeCenterRow, inkCentroidRow, topBottomInkRatio, recognizeDigit, SIG_COLS, SIG_ROWS, toGrayArray } from './SudokuPixel';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 
 const DOMAIN: number = 0xA03D00;
@@ -46,7 +46,8 @@ export async function recognizeSudokuFromImage(imagePath: string): Promise<OCRRe
     hilog.info(DOMAIN, TAG, 'VisionKit: success=%{public}d error=%{public}s', visionResult.success ? 1 : 0, visionResult.error);
     if (visionResult.success && visionResult.grid) {
       const corrected: OCRResult = await validateAndFixConflicts(visionResult, imagePath);
-      return corrected;
+    const filled: OCRResult = await fillMissingCells(corrected, imagePath);
+    return filled;
     }
     hilog.info(DOMAIN, TAG, 'VisionKit 失败，转像素分析');
     return await tryPixelGridRecognition(imagePath);
@@ -191,6 +192,82 @@ async function validateAndFixConflicts(visionResult: OCRResult, imagePath: strin
   }
   hilog.info(DOMAIN, TAG, '验证: 无法修正，采用VisionKit结果');
   return visionResult;
+}
+
+async function fillMissingCells(ocrResult: OCRResult, imagePath: string): Promise<OCRResult> {
+  if (!ocrResult.success || !ocrResult.grid) { return ocrResult; }
+  const grid: number[] = [...ocrResult.grid];
+  const emptyIndices: number[] = [];
+  for (let i: number = 0; i < 81; i++) {
+    if (grid[i] === 0) { emptyIndices.push(i); }
+  }
+  if (emptyIndices.length === 0) { return ocrResult; }
+
+  hilog.info(DOMAIN, TAG, '补缺: 发现 %{public}d 个空格子', emptyIndices.length);
+
+  const imageSource: image.ImageSource = openImageSource(imagePath);
+  const srcInfo: image.ImageInfo = await imageSource.getImageInfo();
+  const origW: number = srcInfo.size.width;
+  const origH: number = srcInfo.size.height;
+
+  const maxDim: number = 1280;
+  let targetW: number = origW;
+  let targetH: number = origH;
+  if (origW > maxDim || origH > maxDim) {
+    const scale: number = maxDim / Math.max(origW, origH);
+    targetW = Math.round(origW * scale);
+    targetH = Math.round(origH * scale);
+  }
+
+  const pixelMap: image.PixelMap = await imageSource.createPixelMap({
+    desiredSize: { width: targetW, height: targetH },
+    desiredPixelFormat: image.PixelMapFormat.RGBA_8888
+  });
+  imageSource.release();
+
+  const info: image.ImageInfo = await pixelMap.getImageInfo();
+  const imgW: number = info.size.width;
+  const imgH: number = info.size.height;
+
+  const buffer: ArrayBuffer = new ArrayBuffer(imgW * imgH * 4);
+  pixelMap.readPixelsToBuffer(buffer);
+  const pixels: Uint8Array = new Uint8Array(buffer);
+
+  const bg: number = bgColor(pixels, imgW, imgH);
+  const gray: Float32Array = toGrayArray(pixels, imgW, imgH);
+  const bbox: BoardBBox = findBoardBBox(pixels, imgW, imgH, bg);
+
+  let fillCount: number = 0;
+
+  for (const idx of emptyIndices) {
+    const row: number = Math.floor(idx / 9);
+    const col: number = idx % 9;
+    const cellW: number = (bbox.right - bbox.left) / 9;
+    const cellH: number = (bbox.bottom - bbox.top) / 9;
+    const cellLeft: number = bbox.left + col * cellW;
+    const cellTop: number = bbox.top + row * cellH;
+
+    const sig: number[] | null = cellSigFromGray(gray, imgW, cellLeft, cellTop, cellW, cellH, bbox.isDark, bg);
+    if (sig === null) { continue; }
+
+    const inkCount: number = countInk(sig);
+    if (inkCount < SIG_ROWS * SIG_COLS * 0.05) { continue; }
+
+    const digit: number = recognizeDigit(sig, inkCount);
+    if (digit > 0) {
+      hilog.info(DOMAIN, TAG, '补缺 [%{public}d,%{public}d] 像素分析=%{public}d ink=%{public}d', row, col, digit, inkCount);
+      grid[idx] = digit;
+      fillCount++;
+    }
+  }
+
+  pixelMap.release();
+
+  if (fillCount > 0) {
+    hilog.info(DOMAIN, TAG, '补缺: 填充了 %{public}d 个空格子', fillCount);
+    return { success: true, grid: grid, rawText: ocrResult.rawText + '+fillMissing', error: '' };
+  }
+  return ocrResult;
 }
 
 async function reRecognizeCell(
