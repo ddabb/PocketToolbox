@@ -2,13 +2,27 @@ import { image } from '@kit.ImageKit';
 import { textRecognition } from '@kit.CoreVisionKit';
 import { fileIo } from '@kit.CoreFileKit';
 import { parseOCRToGrid } from './SudokuEngine';
-import { BoardBBox, bgColor, cellSig, cellSigFromGray, countInk, findBoardBBox, recognizeDigit, toGrayArray } from './SudokuPixel';
+import { BoardBBox, bgColor, cellSigFromGray, countInk, findBoardBBox, holeCenterRow, inkCentroidRow, topBottomInkRatio, recognizeDigit, SIG_ROWS, toGrayArray } from './SudokuPixel';
+import { hilog } from '@kit.PerformanceAnalysisKit';
+
+const DOMAIN: number = 0xA03D00;
+const TAG: string = 'SudokuOCR';
 
 export interface OCRResult {
   success: boolean;
   grid: number[] | null;
   rawText: string;
   error: string;
+}
+
+interface VisionKitGridResult {
+  grid: number[];
+  boardL: number;
+  boardT: number;
+  boardW: number;
+  boardH: number;
+  imgW: number;
+  imgH: number;
 }
 
 interface RawDigit {
@@ -27,19 +41,322 @@ function openImageSource(uri: string): image.ImageSource {
 
 export async function recognizeSudokuFromImage(imagePath: string): Promise<OCRResult> {
   try {
-    console.info(`[SudokuOCR] === 开始识别 === path=${imagePath}`);
+    hilog.info(DOMAIN, TAG, '=== 开始识别 === path=%{public}s', imagePath);
     const visionResult: OCRResult = await tryVisionKitRecognition(imagePath);
-    console.info(`[SudokuOCR] VisionKit: success=${visionResult.success} error=${visionResult.error}`);
+    hilog.info(DOMAIN, TAG, 'VisionKit: success=%{public}d error=%{public}s', visionResult.success ? 1 : 0, visionResult.error);
     if (visionResult.success && visionResult.grid) {
-      console.info(`[SudokuOCR] 采用 VisionKit 结果`);
-      return visionResult;
+      const corrected: OCRResult = await validateAndFixConflicts(visionResult, imagePath);
+      return corrected;
     }
-    console.info(`[SudokuOCR] VisionKit 失败，转像素分析`);
+    hilog.info(DOMAIN, TAG, 'VisionKit 失败，转像素分析');
     return await tryPixelGridRecognition(imagePath);
   } catch (_err) {
-    console.error(`[SudokuOCR] 异常: ${_err}`);
+    hilog.error(DOMAIN, TAG, '异常: %{public}s', `${_err}`);
     return { success: false, grid: null, rawText: '', error: '图片处理异常，请尝试手动输入' };
   }
+}
+
+function findConflictCells(grid: number[]): number[] {
+  const conflicts: Set<number> = new Set<number>();
+
+  for (let r: number = 0; r < 9; r++) {
+    for (let c: number = 0; c < 9; c++) {
+      const val: number = grid[r * 9 + c];
+      if (val === 0) { continue; }
+      for (let j: number = 0; j < 9; j++) {
+        if (j !== c && grid[r * 9 + j] === val) {
+          conflicts.add(r * 9 + c);
+          conflicts.add(r * 9 + j);
+        }
+        if (j !== r && grid[j * 9 + c] === val) {
+          conflicts.add(r * 9 + c);
+          conflicts.add(j * 9 + c);
+        }
+      }
+      const boxR: number = Math.floor(r / 3) * 3;
+      const boxC: number = Math.floor(c / 3) * 3;
+      for (let br: number = boxR; br < boxR + 3; br++) {
+        for (let bc: number = boxC; bc < boxC + 3; bc++) {
+          if (!(br === r && bc === c) && grid[br * 9 + bc] === val) {
+            conflicts.add(r * 9 + c);
+            conflicts.add(br * 9 + bc);
+          }
+        }
+      }
+    }
+  }
+
+  const result: number[] = [];
+  conflicts.forEach((idx: number) => { result.push(idx); });
+  return result.sort((a: number, b: number) => a - b);
+}
+
+async function validateAndFixConflicts(visionResult: OCRResult, imagePath: string): Promise<OCRResult> {
+  if (!visionResult.grid) { return visionResult; }
+  const grid: number[] = [...visionResult.grid];
+
+  const conflictIndices: number[] = findConflictCells(grid);
+  if (conflictIndices.length === 0) {
+    hilog.info(DOMAIN, TAG, '验证: 无冲突，直接采用VisionKit结果');
+    return visionResult;
+  }
+
+  const conflictStr: string = conflictIndices.map((idx: number) =>
+    `[${Math.floor(idx / 9)},${idx % 9}]=${grid[idx]}`
+  ).join(' ');
+  hilog.info(DOMAIN, TAG, '验证: 发现 %{public}d 个冲突格子: %{public}s', conflictIndices.length, conflictStr);
+
+  let fullPixelMap: image.PixelMap | null = null;
+  let fullGray: Float32Array | null = null;
+  let fullBbox: BoardBBox | null = null;
+  let fullBg: number = 0;
+  let fullImgW: number = 0;
+  let fullImgH: number = 0;
+
+  const imageSource: image.ImageSource = openImageSource(imagePath);
+  const srcInfo: image.ImageInfo = await imageSource.getImageInfo();
+  const origW: number = srcInfo.size.width;
+  const origH: number = srcInfo.size.height;
+
+  const maxDim: number = 1280;
+  let targetW: number = origW;
+  let targetH: number = origH;
+  if (origW > maxDim || origH > maxDim) {
+    const scale: number = maxDim / Math.max(origW, origH);
+    targetW = Math.round(origW * scale);
+    targetH = Math.round(origH * scale);
+  }
+
+  fullPixelMap = await imageSource.createPixelMap({
+    desiredSize: { width: targetW, height: targetH },
+    desiredPixelFormat: image.PixelMapFormat.RGBA_8888
+  });
+  imageSource.release();
+
+  const info: image.ImageInfo = await fullPixelMap.getImageInfo();
+  fullImgW = info.size.width;
+  fullImgH = info.size.height;
+
+  const buffer: ArrayBuffer = new ArrayBuffer(fullImgW * fullImgH * 4);
+  fullPixelMap.readPixelsToBuffer(buffer);
+  const pixels: Uint8Array = new Uint8Array(buffer);
+
+  fullBg = bgColor(pixels, fullImgW, fullImgH);
+  fullGray = toGrayArray(pixels, fullImgW, fullImgH);
+  fullBbox = findBoardBBox(pixels, fullImgW, fullImgH, fullBg);
+
+  let fixCount: number = 0;
+
+  for (const idx of conflictIndices) {
+    const row: number = Math.floor(idx / 9);
+    const col: number = idx % 9;
+    const origDigit: number = grid[idx];
+    hilog.info(DOMAIN, TAG, '修正 [%{public}d,%{public}d] VisionKit=%{public}d', row, col, origDigit);
+
+    const cellDigit: number | null = await reRecognizeCell(
+      fullPixelMap, fullImgW, fullImgH, row, col,
+      fullBbox, fullGray, fullBg
+    );
+
+    if (cellDigit !== null && cellDigit !== origDigit) {
+      hilog.info(DOMAIN, TAG, '修正 [%{public}d,%{public}d] %{public}d -> %{public}d', row, col, origDigit, cellDigit);
+      grid[idx] = cellDigit;
+      fixCount++;
+
+      const newConflicts: number[] = findConflictCells(grid);
+      const stillConflict: boolean = newConflicts.some((ci: number) => ci === idx);
+      if (stillConflict && (cellDigit === 6 || cellDigit === 9)) {
+        const swapped: number = cellDigit === 6 ? 9 : 6;
+        grid[idx] = swapped;
+        const afterSwap: number[] = findConflictCells(grid);
+        const swapConflict: boolean = afterSwap.some((ci: number) => ci === idx);
+        if (swapConflict) {
+          grid[idx] = cellDigit;
+          hilog.info(DOMAIN, TAG, '6/9翻转后仍冲突，保留 %{public}d', cellDigit);
+        } else {
+          hilog.info(DOMAIN, TAG, '6/9翻转 %{public}d -> %{public}d 冲突消除', cellDigit, swapped);
+          fixCount++;
+        }
+      }
+    } else {
+      hilog.info(DOMAIN, TAG, '修正 [%{public}d,%{public}d] 结果不变=%{public}d', row, col, origDigit);
+    }
+  }
+
+  fullPixelMap.release();
+
+  if (fixCount > 0) {
+    hilog.info(DOMAIN, TAG, '验证: 修正了 %{public}d 个冲突格子', fixCount);
+    return { success: true, grid: grid, rawText: visionResult.rawText + '+conflictFix', error: '' };
+  }
+  hilog.info(DOMAIN, TAG, '验证: 无法修正，采用VisionKit结果');
+  return visionResult;
+}
+
+async function reRecognizeCell(
+  fullPixelMap: image.PixelMap,
+  imgW: number, imgH: number,
+  row: number, col: number,
+  bbox: BoardBBox,
+  gray: Float32Array | null,
+  bg: number
+): Promise<number | null> {
+  const cellW: number = (bbox.right - bbox.left) / 9;
+  const cellH: number = (bbox.bottom - bbox.top) / 9;
+  const cellLeft: number = bbox.left + col * cellW;
+  const cellTop: number = bbox.top + row * cellH;
+
+  const padFactor: number = 0.15;
+  const cropX: number = Math.max(Math.floor(cellLeft - cellW * padFactor), 0);
+  const cropY: number = Math.max(Math.floor(cellTop - cellH * padFactor), 0);
+  const cropR: number = Math.min(Math.floor(cellLeft + cellW + cellW * padFactor), imgW);
+  const cropB: number = Math.min(Math.floor(cellTop + cellH + cellH * padFactor), imgH);
+  const cropW: number = cropR - cropX;
+  const cropH: number = cropB - cropY;
+
+  if (cropW < 10 || cropH < 10) {
+    hilog.info(DOMAIN, TAG, '重识[%{public}d,%{public}d] 裁剪区域太小', row, col);
+    return null;
+  }
+
+  const vkDigit: number | null = await reRecognizeCellVisionKit(
+    fullPixelMap, imgW, imgH, cropX, cropY, cropW, cropH
+  );
+  hilog.info(DOMAIN, TAG, '重识[%{public}d,%{public}d] VisionKit重识=%{public}d', row, col, vkDigit !== null ? vkDigit : -1);
+
+  if (vkDigit !== null) {
+    hilog.info(DOMAIN, TAG, '重识[%{public}d,%{public}d] VisionKit重识=%{public}d，启动像素分析', row, col, vkDigit);
+  }
+
+  if (gray !== null) {
+    const pixelDigit: number | null = reRecognizeCellPixel(
+      gray, imgW, cellLeft, cellTop, cellW, cellH, bbox.isDark, bg, row, col
+    );
+    hilog.info(DOMAIN, TAG, '重识[%{public}d,%{public}d] 像素分析=%{public}d', row, col, pixelDigit !== null ? pixelDigit : -1);
+
+    if (pixelDigit !== null) {
+      if (vkDigit === null) {
+        return pixelDigit;
+      }
+      if (vkDigit === pixelDigit) {
+        return vkDigit;
+      }
+      hilog.info(DOMAIN, TAG, '重识[%{public}d,%{public}d] VisionKit=%{public}d vs Pixel=%{public}d 不一致，采用像素分析', row, col, vkDigit, pixelDigit);
+      return pixelDigit;
+    }
+  }
+
+  return vkDigit;
+}
+
+async function reRecognizeCellVisionKit(
+  fullPixelMap: image.PixelMap,
+  imgW: number, imgH: number,
+  cropX: number, cropY: number, cropW: number, cropH: number
+): Promise<number | null> {
+  try {
+    const upscale: number = 3;
+    const targetW: number = cropW * upscale;
+    const targetH: number = cropH * upscale;
+
+    const cellPm: image.PixelMap = fullPixelMap.cloneSync();
+    cellPm.cropSync({
+      size: { width: cropW, height: cropH },
+      x: cropX, y: cropY
+    });
+    cellPm.scaleSync(upscale, upscale);
+
+    const initOk: boolean = await textRecognition.init();
+    if (!initOk) {
+      cellPm.release();
+      return null;
+    }
+
+    const visionInfo: textRecognition.VisionInfo = { pixelMap: cellPm };
+    const recogResult: textRecognition.TextRecognitionResult =
+      await textRecognition.recognizeText(visionInfo, {
+        isDirectionDetectionSupported: false
+      });
+    await textRecognition.release();
+    cellPm.release();
+
+    const rawText: string = recogResult.value || '';
+    const digits: string[] = rawText.replace(/[^0-9]/g, '').split('');
+    if (digits.length === 0) { return null; }
+
+    const digitCounts: Map<number, number> = new Map<number, number>();
+    for (const ch of digits) {
+      const d: number = parseInt(ch, 10);
+      const prev: number | undefined = digitCounts.get(d);
+      digitCounts.set(d, prev !== undefined ? prev + 1 : 1);
+    }
+
+    let bestDigit: number = parseInt(digits[0], 10);
+    let bestCount: number = 0;
+    digitCounts.forEach((count: number, digit: number) => {
+      if (count > bestCount) {
+        bestCount = count;
+        bestDigit = digit;
+      }
+    });
+
+    hilog.info(DOMAIN, TAG, 'VisionKit重识: rawText="%{public}s" bestDigit=%{public}d', rawText, bestDigit);
+    return bestDigit;
+  } catch (_e) {
+    hilog.error(DOMAIN, TAG, 'VisionKit重识异常: %{public}s', `${_e}`);
+    return null;
+  }
+}
+
+function reRecognizeCellPixel(
+  gray: Float32Array,
+  imgW: number,
+  cellLeft: number, cellTop: number,
+  cellW: number, cellH: number,
+  isDark: boolean, bg: number,
+  row: number, col: number
+): number | null {
+  const sig: number[] | null = cellSigFromGray(
+    gray, imgW,
+    cellLeft, cellTop, cellW, cellH, isDark, bg
+  );
+  if (sig === null) {
+    return null;
+  }
+
+  const inkCount: number = countInk(sig);
+  const templateDigit: number = recognizeDigit(sig, inkCount);
+
+  if (templateDigit === 6 || templateDigit === 9) {
+    const pixelDigit: number = disambiguate69(sig, templateDigit, row, col);
+    return pixelDigit;
+  }
+
+  return templateDigit;
+}
+
+function disambiguate69(sig: number[], visionDigit: number, row: number, col: number): number {
+  const qHole: number = holeCenterRow(sig);
+  const iCentroid: number = inkCentroidRow(sig);
+  const ratio: number = topBottomInkRatio(sig);
+
+  let vote6: number = 0;
+  let vote9: number = 0;
+
+  if (qHole >= 0) {
+    if (qHole > SIG_ROWS / 2) { vote6 += 2; } else { vote9 += 2; }
+  }
+  if (iCentroid >= 0) {
+    if (iCentroid > SIG_ROWS / 2) { vote6++; } else { vote9++; }
+  }
+  if (ratio > 0.5) { vote9++; } else { vote6++; }
+
+  const pixelAnswer: number = vote6 >= vote9 ? 6 : 9;
+
+  hilog.info(DOMAIN, TAG, '6/9消歧 [%{public}d,%{public}d] digit=%{public}d qHole=%{public}.2f centroid=%{public}.2f ratio=%{public}.2f vote6=%{public}d vote9=%{public}d => %{public}d',
+    row, col, visionDigit, qHole, iCentroid, ratio, vote6, vote9, pixelAnswer);
+
+  return pixelAnswer;
 }
 
 async function tryVisionKitRecognition(imagePath: string): Promise<OCRResult> {
@@ -51,7 +368,29 @@ async function tryVisionKitRecognition(imagePath: string): Promise<OCRResult> {
     }
 
     const imageSource: image.ImageSource = openImageSource(imagePath);
+    const srcInfo: image.ImageInfo = await imageSource.getImageInfo();
+    const origW: number = srcInfo.size.width;
+    const origH: number = srcInfo.size.height;
+
+    const minDim: number = 720;
+    const maxDim: number = 1920;
+    let targetW: number = origW;
+    let targetH: number = origH;
+    if (Math.min(origW, origH) < minDim || Math.max(origW, origH) > maxDim) {
+      let scale: number = 1.0;
+      if (Math.min(origW, origH) < minDim) {
+        scale = minDim / Math.min(origW, origH);
+      }
+      if (Math.max(origW, origH) * scale > maxDim) {
+        scale = maxDim / Math.max(origW, origH);
+      }
+      targetW = Math.round(origW * scale);
+      targetH = Math.round(origH * scale);
+    }
+    hilog.info(DOMAIN, TAG, 'VisionKit: 原图 %{public}dx%{public}d -> %{public}dx%{public}d', origW, origH, targetW, targetH);
+
     pixelMap = await imageSource.createPixelMap({
+      desiredSize: { width: targetW, height: targetH },
       desiredPixelFormat: image.PixelMapFormat.RGBA_8888
     });
     imageSource.release();
@@ -63,32 +402,32 @@ async function tryVisionKitRecognition(imagePath: string): Promise<OCRResult> {
     const visionInfo: textRecognition.VisionInfo = { pixelMap: pixelMap };
     const recogResult: textRecognition.TextRecognitionResult =
       await textRecognition.recognizeText(visionInfo, {
-        isDirectionDetectionSupported: false
+        isDirectionDetectionSupported: true
       });
 
     await textRecognition.release();
 
     const rawText: string = recogResult.value || '';
-    console.info(`[SudokuOCR] VisionKit rawText: "${rawText}"`);
+    hilog.info(DOMAIN, TAG, 'VisionKit rawText: "%{public}s"', rawText);
 
-    const gridByPos: number[] | null = buildGridByPosition(recogResult, imgW, imgH);
-    if (gridByPos && gridByPos.some((d: number) => d > 0)) {
-      const givenCount: number = gridByPos.filter((d: number) => d > 0).length;
+    const posResult: VisionKitGridResult | null = buildGridByPosition(recogResult, imgW, imgH);
+    if (posResult && posResult.grid.some((d: number) => d > 0)) {
+      const givenCount: number = posResult.grid.filter((d: number) => d > 0).length;
       let gridStr: string = '';
       for (let r: number = 0; r < 9; r++) {
         let line: string = '';
         for (let c: number = 0; c < 9; c++) {
-          line += (gridByPos[r * 9 + c] === 0 ? '.' : gridByPos[r * 9 + c].toString()) + ' ';
+          line += (posResult.grid[r * 9 + c] === 0 ? '.' : posResult.grid[r * 9 + c].toString()) + ' ';
         }
         gridStr += line + '\n';
       }
-      console.info(`[SudokuOCR] VisionKit positional OK, ${givenCount} digits:\n${gridStr}`);
-      return { success: true, grid: gridByPos, rawText: 'positional', error: '' };
+      hilog.info(DOMAIN, TAG, 'VisionKit positional OK, %{public}d digits:\n%{public}s', givenCount, gridStr);
+      return { success: true, grid: posResult.grid, rawText: 'positional', error: '' };
     }
 
     const gridByText: number[] | null = parseOCRToGrid(rawText);
     if (gridByText && gridByText.some((d: number) => d > 0)) {
-      console.info(`[SudokuOCR] text fallback OK, raw="${rawText}"`);
+      hilog.info(DOMAIN, TAG, 'text fallback OK, raw="%{public}s"', rawText);
       return { success: true, grid: gridByText, rawText, error: '' };
     }
 
@@ -96,7 +435,7 @@ async function tryVisionKitRecognition(imagePath: string): Promise<OCRResult> {
     if (structuredText.length > rawText.length) {
       const grid2: number[] | null = parseOCRToGrid(structuredText);
       if (grid2 && grid2.some((d: number) => d > 0)) {
-        console.info(`[SudokuOCR] structured text fallback OK:\n${structuredText}`);
+        hilog.info(DOMAIN, TAG, 'structured text fallback OK:\n%{public}s', structuredText);
         return { success: true, grid: grid2, rawText: structuredText, error: '' };
       }
     }
@@ -125,11 +464,15 @@ function extractStructuredText(result: textRecognition.TextRecognitionResult): s
   return parts.join('\n');
 }
 
+interface CellCandidate {
+  digit: number;
+  dist: number;
+}
+
 function buildGridByPosition(
   result: textRecognition.TextRecognitionResult,
   imgW: number, imgH: number
-): number[] | null {
-  const grid: number[] = new Array<number>(81).fill(0);
+): VisionKitGridResult | null {
   const blocks: Array<textRecognition.TextBlock> = result.blocks || [];
   if (blocks.length === 0) { return null; }
 
@@ -192,15 +535,36 @@ function buildGridByPosition(
 
   if (boardW <= 0 || boardH <= 0) { return null; }
 
+  const cellW: number = boardW / 9;
+  const cellH: number = boardH / 9;
+
+  const candidates: CellCandidate[] = new Array<CellCandidate>(81);
+  for (let i = 0; i < 81; i++) {
+    candidates[i] = { digit: 0, dist: Number.MAX_VALUE };
+  }
+
   for (let i = 0; i < rawDigits.length; i++) {
     const d: RawDigit = rawDigits[i];
     const normX: number = (d.cx - boardL) / boardW;
     const normY: number = (d.cy - boardT) / boardH;
     const gridCol: number = Math.min(Math.max(Math.floor(normX * 9), 0), 8);
     const gridRow: number = Math.min(Math.max(Math.floor(normY * 9), 0), 8);
-    grid[gridRow * 9 + gridCol] = d.digit;
+    const idx: number = gridRow * 9 + gridCol;
+
+    const cellCx: number = boardL + (gridCol + 0.5) * cellW;
+    const cellCy: number = boardT + (gridRow + 0.5) * cellH;
+    const dist: number = Math.sqrt((d.cx - cellCx) * (d.cx - cellCx) + (d.cy - cellCy) * (d.cy - cellCy));
+
+    if (dist < candidates[idx].dist) {
+      candidates[idx] = { digit: d.digit, dist: dist };
+    }
   }
-  return grid;
+
+  const grid: number[] = new Array<number>(81).fill(0);
+  for (let i = 0; i < 81; i++) {
+    grid[i] = candidates[i].digit;
+  }
+  return { grid, boardL, boardT, boardW, boardH, imgW, imgH };
 }
 
 async function tryPixelGridRecognition(imagePath: string): Promise<OCRResult> {
@@ -220,7 +584,7 @@ async function tryPixelGridRecognition(imagePath: string): Promise<OCRResult> {
       targetW = Math.round(origW * scale);
       targetH = Math.round(origH * scale);
     }
-    console.info(`[SudokuOCR] 像素分析: 原图 ${origW}x${origH} -> ${targetW}x${targetH}`);
+    hilog.info(DOMAIN, TAG, '像素分析: 原图 %{public}dx%{public}d -> %{public}dx%{public}d', origW, origH, targetW, targetH);
 
     pixelMap = await imageSource.createPixelMap({
       desiredSize: { width: targetW, height: targetH },
@@ -237,7 +601,7 @@ async function tryPixelGridRecognition(imagePath: string): Promise<OCRResult> {
     pixelMap = null;
 
     const givenCount: number = grid.filter((d: number) => d > 0).length;
-    console.info(`[SudokuOCR] 像素分析完成: 识别到 ${givenCount} 个数字`);
+    hilog.info(DOMAIN, TAG, '像素分析完成: 识别到 %{public}d 个数字', givenCount);
     if (givenCount > 0) {
       return { success: true, grid, rawText: 'pixel analysis', error: '' };
     }
@@ -246,7 +610,7 @@ async function tryPixelGridRecognition(imagePath: string): Promise<OCRResult> {
       error: '未能识别数独，请确保图片清晰或手动输入'
     };
   } catch (_err) {
-    console.error(`[SudokuOCR] 像素分析异常: ${_err}`);
+    hilog.error(DOMAIN, TAG, '像素分析异常: %{public}s', `${_err}`);
     if (pixelMap !== null) { pixelMap.release(); }
     return { success: false, grid: null, rawText: '', error: '图片分析失败' };
   }
@@ -261,7 +625,9 @@ export function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, he
   const bbox: BoardBBox = findBoardBBox(pixels, width, height, bg);
   const cellW: number = (bbox.right - bbox.left) / 9;
   const cellH: number = (bbox.bottom - bbox.top) / 9;
-  console.info(`[SudokuOCR] 图像 ${width}x${height} bg=${bg.toFixed(1)} isDark=${bbox.isDark} 棋盘=[${bbox.left},${bbox.top},${bbox.right},${bbox.bottom}] 尺寸=${(bbox.right-bbox.left)}x${(bbox.bottom-bbox.top)} 每格=${cellW.toFixed(1)}x${cellH.toFixed(1)}`);
+  hilog.info(DOMAIN, TAG, '图像 %{public}dx%{public}d bg=%{public}.1f isDark=%{public}d 棋盘=[%{public}d,%{public}d,%{public}d,%{public}d] 尺寸=%{public}dx%{public}d 每格=%{public}.1fx%{public}.1f',
+    width, height, bg, bbox.isDark ? 1 : 0, bbox.left, bbox.top, bbox.right, bbox.bottom,
+    bbox.right - bbox.left, bbox.bottom - bbox.top, cellW, cellH);
 
   for (let r: number = 0; r < 9; r++) {
     for (let c: number = 0; c < 9; c++) {
@@ -284,7 +650,7 @@ export function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, he
     }
     gridStr += line + '\n';
   }
-  console.info(gridStr);
+  hilog.info(DOMAIN, TAG, '像素分析结果:\n%{public}s', gridStr);
 
   return grid;
 }
@@ -299,5 +665,3 @@ function analyzePixelGrid(pixelMap: image.PixelMap, width: number, height: numbe
     return new Array<number>(81).fill(0);
   }
 }
-
-

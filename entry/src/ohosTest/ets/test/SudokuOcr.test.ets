@@ -1,9 +1,14 @@
 import { describe, it, expect, beforeAll } from '@ohos/hypium';
-import { analyzePixelGridFromBuffer } from '../../../main/ets/core/sudoku/SudokuOCR';
+import { analyzePixelGridFromBuffer, recognizeSudokuFromImage, OCRResult } from '../../../main/ets/core/sudoku/SudokuOCR';
 import { parseOCRToGrid, gridToString, solveSudoku, validateFullGrid, SolveResult } from '../../../main/ets/core/sudoku/SudokuEngine';
 import { initDigitTemplates } from '../../../main/ets/core/sudoku/SudokuPixel';
 import { image } from '@kit.ImageKit';
 import { resourceManager } from '@kit.LocalizationKit';
+import { hilog } from '@kit.PerformanceAnalysisKit';
+import { fileIo } from '@kit.CoreFileKit';
+
+const DOMAIN: number = 0xA03D00;
+const TAG: string = 'OCR_TEST';
 
 const EXPECTED: number[] = [
   5, 3, 0, 0, 7, 0, 0, 0, 0,
@@ -103,7 +108,7 @@ function loadPixelsSync(rawfile: string, maxDim: number): PixelData | null {
     const rm: resourceManager.ResourceManager = ctx.resourceManager;
     const rawData: Uint8Array = rm.getRawFileContentSync(rawfile);
     if (rawData.byteLength === 0) {
-      console.error(`[OCR_TEST] ${rawfile}: empty rawfile`);
+      hilog.error(DOMAIN, TAG, `${rawfile}: empty rawfile`);
       return null;
     }
     const imgSrc: image.ImageSource = image.createImageSource(rawData.buffer as ArrayBuffer);
@@ -130,11 +135,11 @@ function loadPixelsSync(rawfile: string, maxDim: number): PixelData | null {
     const buf: ArrayBuffer = new ArrayBuffer(w * h * 4);
     pm.readPixelsToBufferSync(buf);
     pm.release();
-    console.info(`[OCR_TEST] ${rawfile}: orig ${origW}x${origH} -> ${w}x${h} (maxDim=${maxDim})`);
+    hilog.info(DOMAIN, TAG, `${rawfile}: orig ${origW}x${origH} -> ${w}x${h} (maxDim=${maxDim})`);
     return { pixels: new Uint8Array(buf), width: w, height: h };
   } catch (e) {
     const err: Error = e as Error;
-    console.error(`[OCR_TEST] ${rawfile}: load error ${err.message}`);
+    hilog.error(DOMAIN, TAG, `${rawfile}: load error ${err.message}`);
     return null;
   }
 }
@@ -159,7 +164,7 @@ export default function sudokuOcrTest() {
     beforeAll(() => {
       const ctx: Context = getContext();
       const ok: boolean = initDigitTemplates(ctx);
-      console.info(`[OCR_TEST] initDigitTemplates: ${ok}`);
+      hilog.info(DOMAIN, TAG, `initDigitTemplates: ${ok}`);
     });
 
     for (let idx: number = 0; idx < CASES.length; idx++) {
@@ -172,16 +177,63 @@ export default function sudokuOcrTest() {
         const grid: number[] = analyzePixelGridFromBuffer(pd.pixels, pd.width, pd.height);
         const mr: MatchResult = countMatches(grid, EXPECTED);
 
-        console.log(`[OCR_TEST] ${c.file} (${pd.width}x${pd.height})`);
-        console.log(`[OCR_TEST] 识别结果:\n${gridToAscii(grid)}`);
-        console.log(`[OCR_TEST] 期望结果:\n${gridToAscii(EXPECTED)}`);
+        hilog.info(DOMAIN, TAG, `${c.file} (${pd.width}x${pd.height})`);
+        hilog.info(DOMAIN, TAG, `识别结果:\n${gridToAscii(grid)}`);
+        hilog.info(DOMAIN, TAG, `期望结果:\n${gridToAscii(EXPECTED)}`);
         if (mr.givenAcc < 1.0 || mr.falsePos > 0) {
-          console.log(`[OCR_TEST] DIFF: ${diffDetail(grid, EXPECTED)}`);
+          hilog.info(DOMAIN, TAG, `DIFF: ${diffDetail(grid, EXPECTED)}`);
         }
-        console.log(`[OCR_TEST] given:${(mr.givenAcc * 100).toFixed(0)}% full:${(mr.fullAcc * 100).toFixed(0)}% fp:${mr.falsePos} fn:${mr.falseNeg} (minAcc ${(c.minAcc * 100).toFixed(0)}% maxFP ${c.maxFalsePos})`);
+        hilog.info(DOMAIN, TAG, `given:${(mr.givenAcc * 100).toFixed(0)}% full:${(mr.fullAcc * 100).toFixed(0)}% fp:${mr.falsePos} fn:${mr.falseNeg} (minAcc ${(c.minAcc * 100).toFixed(0)}% maxFP ${c.maxFalsePos})`);
 
         expect(mr.givenAcc >= c.minAcc).assertTrue();
         expect(mr.falsePos <= c.maxFalsePos).assertTrue();
+      });
+    }
+  });
+
+  describe('SudokuOCR_recognizeSudokuFromImage', () => {
+    beforeAll(() => {
+      const ctx: Context = getContext();
+      const ok: boolean = initDigitTemplates(ctx);
+      hilog.info(DOMAIN, TAG, `initDigitTemplates: ${ok}`);
+    });
+
+    for (let idx: number = 0; idx < CASES.length; idx++) {
+      const c: ImageThreshold = CASES[idx];
+      it(`pipeline_${c.file.replace('.png', '')}`, 0, async () => {
+        const ctx: Context = getContext();
+        const rm: resourceManager.ResourceManager = ctx.resourceManager;
+        const rawData: Uint8Array = rm.getRawFileContentSync(c.file);
+        expect(rawData.byteLength > 0).assertTrue();
+        if (rawData.byteLength === 0) { return; }
+
+        const cachePath: string = ctx.cacheDir + '/' + c.file;
+        try {
+          const f: fileIo.File = fileIo.openSync(cachePath, fileIo.OpenMode.READ_WRITE | fileIo.OpenMode.CREATE | fileIo.OpenMode.TRUNC);
+          fileIo.writeSync(f.fd, rawData.buffer as ArrayBuffer);
+          fileIo.closeSync(f);
+        } catch (_e) {
+          hilog.error(DOMAIN, TAG, `write cache failed: ${_e}`);
+          return;
+        }
+
+        hilog.info(DOMAIN, TAG, `pipeline test: ${c.file}, cachePath=${cachePath}`);
+        const ocrResult: OCRResult = await recognizeSudokuFromImage(cachePath);
+        hilog.info(DOMAIN, TAG, `pipeline result: success=${ocrResult.success} error=${ocrResult.error} rawText=${ocrResult.rawText}`);
+
+        if (ocrResult.success && ocrResult.grid) {
+          const mr: MatchResult = countMatches(ocrResult.grid, EXPECTED);
+          hilog.info(DOMAIN, TAG, `pipeline ${c.file} 识别结果:\n${gridToAscii(ocrResult.grid)}`);
+          hilog.info(DOMAIN, TAG, `pipeline ${c.file} given:${(mr.givenAcc * 100).toFixed(0)}% full:${(mr.fullAcc * 100).toFixed(0)}% fp:${mr.falsePos} fn:${mr.falseNeg}`);
+          if (mr.givenAcc < 1.0 || mr.falsePos > 0) {
+            hilog.info(DOMAIN, TAG, `pipeline DIFF: ${diffDetail(ocrResult.grid, EXPECTED)}`);
+          }
+          expect(mr.givenAcc >= c.minAcc).assertTrue();
+          expect(mr.falsePos <= c.maxFalsePos).assertTrue();
+        } else {
+          hilog.error(DOMAIN, TAG, `pipeline ${c.file} FAILED: ${ocrResult.error}`);
+          expect(ocrResult.success).assertTrue();
+        }
       });
     }
   });

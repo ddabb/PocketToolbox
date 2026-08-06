@@ -285,16 +285,16 @@ struct SudokuSolverPage {
         const readBuf: ArrayBuffer = new ArrayBuffer(fileSize);
         fileIo.readSync(file.fd, readBuf);
         fileIo.closeSync(file);
+        const ctx2: Context = this.getUIContext().getHostContext() as Context;
+        const base64Path: string = ctx2.cacheDir + '/sudoku_debug_base64.txt';
         const base64Helper: util.Base64Helper = new util.Base64Helper();
         const base64Str: string = base64Helper.encodeToStringSync(new Uint8Array(readBuf));
-        hilog.info(0xA03D00, 'SudokuSolver', `image file size=${fileSize}, base64 length=${base64Str.length}`);
-        const chunkSize: number = 3000;
-        for (let offset: number = 0; offset < base64Str.length; offset += chunkSize) {
-          const end: number = Math.min(offset + chunkSize, base64Str.length);
-          hilog.info(0xA03D00, 'SudokuSolver', `base64[${offset}-${end}]: ${base64Str.substring(offset, end)}`);
-        }
+        const outFs: fileIo.File = fileIo.openSync(base64Path, fileIo.OpenMode.READ_WRITE | fileIo.OpenMode.CREATE | fileIo.OpenMode.TRUNC);
+        fileIo.writeSync(outFs.fd, base64Str);
+        fileIo.closeSync(outFs);
+        hilog.info(0xA03D00, 'SudokuSolver', `image file size=${fileSize}, base64 saved to ${base64Path}`);
       } catch (readErr) {
-        hilog.error(0xA03D00, 'SudokuSolver', `read image for base64 log failed: ${readErr}`);
+        hilog.error(0xA03D00, 'SudokuSolver', `save base64 failed: ${readErr}`);
       }
       const ctx: Context = this.getUIContext().getHostContext() as Context;
       const initOk: boolean = initDigitTemplates(ctx);

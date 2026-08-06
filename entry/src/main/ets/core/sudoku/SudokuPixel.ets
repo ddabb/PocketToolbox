@@ -13,9 +13,9 @@ export interface BoardBBox {
   bottom: number;
   isDark: boolean;
 }
+export const SIG_ROWS: number = 12;
 
-const SIG_ROWS: number = 12;
-const SIG_COLS: number = 8;
+export const SIG_COLS: number = 8;
 const SIG_LEN: number = SIG_ROWS * SIG_COLS;
 
 interface DigitTemplateEntry {
@@ -92,7 +92,7 @@ export function holeCenterRow(sig: number[]): number {
   return sumRow / components[0].length;
 }
 
-function inkCentroidRow(sig: number[]): number {
+export function inkCentroidRow(sig: number[]): number {
   let sumR: number = 0;
   let cnt: number = 0;
   for (let r: number = 0; r < SIG_ROWS; r++) {
@@ -103,7 +103,7 @@ function inkCentroidRow(sig: number[]): number {
   return cnt > 0 ? sumR / cnt : -1;
 }
 
-function topBottomInkRatio(sig: number[]): number {
+export function topBottomInkRatio(sig: number[]): number {
   const halfRow: number = Math.floor(SIG_ROWS / 2);
   let topInk: number = 0;
   let bottomInk: number = 0;
