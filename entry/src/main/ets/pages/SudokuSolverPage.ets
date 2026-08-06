@@ -1,11 +1,16 @@
 import { BusinessError } from '@kit.BasicServicesKit';
 import { photoAccessHelper } from '@kit.MediaLibraryKit';
 import { display, promptAction } from '@kit.ArkUI';
+import { Context } from '@kit.AbilityKit';
+import { fileIo } from '@kit.CoreFileKit';
+import { util } from '@kit.ArkTS';
+import { hilog } from '@kit.PerformanceAnalysisKit';
 import {
   solveSudoku, getHint,
   validateFullGrid, isGridFull, SolveResult
 } from '../core/sudoku/SudokuEngine';
 import { recognizeSudokuFromImage, OCRResult } from '../core/sudoku/SudokuOCR';
+import { initDigitTemplates } from '../core/sudoku/SudokuPixel';
 
 const SIZE: number = 9;
 const EMPTY: number = 0;
@@ -77,6 +82,7 @@ struct SudokuSolverPage {
   @State conflictCells: boolean[] = new Array<boolean>(81).fill(false);
   @State boardCellSize: number = 0;
   @State highlightDigit: number = 0;
+  @State editMode: boolean = false;
 
   private scroller: Scroller = new Scroller();
 
@@ -121,6 +127,7 @@ struct SudokuSolverPage {
     this.clearMessage();
     this.conflictCells = new Array<boolean>(81).fill(false);
     this.highlightDigit = 0;
+    this.editMode = false;
   }
 
   solve(): void {
@@ -213,20 +220,25 @@ struct SudokuSolverPage {
 
   async pickFromGallery(): Promise<void> {
     try {
+      hilog.info(0xA03D00, 'SudokuSolver', 'pickFromGallery start');
       const photoSelectOptions = new photoAccessHelper.PhotoSelectOptions();
       photoSelectOptions.MIMEType = photoAccessHelper.PhotoViewMIMETypes.IMAGE_TYPE;
       photoSelectOptions.maxSelectNumber = 1;
 
       const photoPicker = new photoAccessHelper.PhotoViewPicker();
       const result: photoAccessHelper.PhotoSelectResult = await photoPicker.select(photoSelectOptions);
+      hilog.info(0xA03D00, 'SudokuSolver', `pickFromGallery result: count=${result.photoUris.length}`);
 
       if (result.photoUris.length === 0) {
+        hilog.info(0xA03D00, 'SudokuSolver', 'pickFromGallery: no uri selected');
         return;
       }
 
       const uri: string = result.photoUris[0];
+      hilog.info(0xA03D00, 'SudokuSolver', `pickFromGallery: uri=${uri}, calling processImageOCR`);
       await this.processImageOCR(uri);
     } catch (err) {
+      hilog.error(0xA03D00, 'SudokuSolver', `pickFromGallery error: ${err}`);
       const error: BusinessError = err as BusinessError;
       if (error.code !== 0) {
         this.showMessage(`选择图片失败: ${error.message}`, 2);
@@ -236,18 +248,22 @@ struct SudokuSolverPage {
 
   async takePhoto(): Promise<void> {
     try {
+      hilog.info(0xA03D00, 'SudokuSolver', 'takePhoto start');
       const photoSelectOptions = new photoAccessHelper.PhotoSelectOptions();
       photoSelectOptions.MIMEType = photoAccessHelper.PhotoViewMIMETypes.IMAGE_TYPE;
       photoSelectOptions.maxSelectNumber = 1;
 
       const photoPicker = new photoAccessHelper.PhotoViewPicker();
       const result: photoAccessHelper.PhotoSelectResult = await photoPicker.select(photoSelectOptions);
+      hilog.info(0xA03D00, 'SudokuSolver', `takePhoto result: count=${result.photoUris.length}`);
 
       if (result.photoUris.length > 0) {
         const uri: string = result.photoUris[0];
+        hilog.info(0xA03D00, 'SudokuSolver', `takePhoto: uri=${uri}, calling processImageOCR`);
         await this.processImageOCR(uri);
       }
     } catch (err) {
+      hilog.error(0xA03D00, 'SudokuSolver', `takePhoto error: ${err}`);
       const error: BusinessError = err as BusinessError;
       if (error.code !== 0) {
         this.showMessage('拍照/选图取消', 0);
@@ -257,12 +273,45 @@ struct SudokuSolverPage {
 
   async processImageOCR(uri: string): Promise<void> {
     this.recognizing = true;
+    this.clearGrid();
     this.showMessage('正在识别图片中的数独...', 0);
 
     try {
+      hilog.info(0xA03D00, 'SudokuSolver', `processImageOCR start, uri=${uri}`);
+      try {
+        const file: fileIo.File = fileIo.openSync(uri, fileIo.OpenMode.READ_ONLY);
+        const stat: fileIo.Stat = fileIo.statSync(file.fd);
+        const fileSize: number = stat.size;
+        const readBuf: ArrayBuffer = new ArrayBuffer(fileSize);
+        fileIo.readSync(file.fd, readBuf);
+        fileIo.closeSync(file);
+        const base64Helper: util.Base64Helper = new util.Base64Helper();
+        const base64Str: string = base64Helper.encodeToStringSync(new Uint8Array(readBuf));
+        hilog.info(0xA03D00, 'SudokuSolver', `image file size=${fileSize}, base64 length=${base64Str.length}`);
+        const chunkSize: number = 3000;
+        for (let offset: number = 0; offset < base64Str.length; offset += chunkSize) {
+          const end: number = Math.min(offset + chunkSize, base64Str.length);
+          hilog.info(0xA03D00, 'SudokuSolver', `base64[${offset}-${end}]: ${base64Str.substring(offset, end)}`);
+        }
+      } catch (readErr) {
+        hilog.error(0xA03D00, 'SudokuSolver', `read image for base64 log failed: ${readErr}`);
+      }
+      const ctx: Context = this.getUIContext().getHostContext() as Context;
+      const initOk: boolean = initDigitTemplates(ctx);
+      hilog.info(0xA03D00, 'SudokuSolver', `initDigitTemplates=${initOk}`);
       const ocrResult: OCRResult = await recognizeSudokuFromImage(uri);
+      hilog.info(0xA03D00, 'SudokuSolver', `OCR done: success=${ocrResult.success} error=${ocrResult.error} rawText=${ocrResult.rawText}`);
 
       if (ocrResult.success && ocrResult.grid) {
+        let gridStr: string = '';
+        for (let r: number = 0; r < 9; r++) {
+          let line: string = '';
+          for (let c: number = 0; c < 9; c++) {
+            line += (ocrResult.grid[r * 9 + c] === 0 ? '.' : ocrResult.grid[r * 9 + c].toString()) + ' ';
+          }
+          gridStr += line + '\n';
+        }
+        hilog.info(0xA03D00, 'SudokuSolver', `OCR grid:\n${gridStr}`);
         this.loadGridFromArray(ocrResult.grid);
 
         const digitCount: number = ocrResult.grid.filter((d: number) => d > 0).length;
@@ -271,6 +320,7 @@ struct SudokuSolverPage {
         this.showMessage(ocrResult.error || '未能识别出数独', 2);
       }
     } catch (_err) {
+      hilog.error(0xA03D00, 'SudokuSolver', `processImageOCR error: ${_err}`);
       this.showMessage('图片处理异常，请重试', 2);
     } finally {
       this.recognizing = false;
@@ -324,14 +374,14 @@ struct SudokuSolverPage {
   }
 
   handleCellClick(row: number, col: number): void {
-    if (this.fixedCells[row * SIZE + col]) {
+    if (this.fixedCells[row * SIZE + col] && !this.editMode) {
       this.selectedRow = row;
       this.selectedCol = col;
       this.highlightDigit = this.currentGrid[row * SIZE + col];
       this.showNumberPad = false;
       return;
     }
-    if (this.selectedRow === row && this.selectedCol === col) {
+    if (this.selectedRow === row && this.selectedCol === col && !this.editMode) {
       const idx: number = row * SIZE + col;
       this.currentGrid[idx] = EMPTY;
       this.hasUserInput = true;
@@ -352,11 +402,11 @@ struct SudokuSolverPage {
     }
 
     const idx: number = this.selectedRow * SIZE + this.selectedCol;
-    if (this.fixedCells[idx]) {
+    if (this.fixedCells[idx] && !this.editMode) {
       return;
     }
 
-    if (this.candidateMode) {
+    if (this.candidateMode && !this.fixedCells[idx]) {
       const set: Set<number> = this.candidates[idx];
       if (set.has(num)) {
         set.delete(num);
@@ -366,6 +416,10 @@ struct SudokuSolverPage {
       this.candidates[idx] = new Set(set);
     } else {
       this.currentGrid[idx] = num;
+      if (this.editMode) {
+        this.fixedCells[idx] = num !== EMPTY;
+        this.puzzle[idx] = num;
+      }
       this.showNumberPad = false;
       this.hasUserInput = true;
       this.highlightDigit = num;
@@ -378,14 +432,19 @@ struct SudokuSolverPage {
       return;
     }
     const idx: number = this.selectedRow * SIZE + this.selectedCol;
-    if (!this.fixedCells[idx]) {
-      this.currentGrid[idx] = EMPTY;
-      this.candidates[idx] = new Set<number>();
-      this.showNumberPad = false;
-      this.hasUserInput = true;
-      this.highlightDigit = 0;
-      this.updateConflicts();
+    if (this.fixedCells[idx] && !this.editMode) {
+      return;
     }
+    this.currentGrid[idx] = EMPTY;
+    if (this.editMode) {
+      this.fixedCells[idx] = false;
+      this.puzzle[idx] = EMPTY;
+    }
+    this.candidates[idx] = new Set<number>();
+    this.showNumberPad = false;
+    this.hasUserInput = true;
+    this.highlightDigit = 0;
+    this.updateConflicts();
   }
 
   clearSelection(): void {
@@ -420,9 +479,14 @@ struct SudokuSolverPage {
 
   getCellBg(row: number, col: number): ResourceColor {
     const boxParity: number = (Math.floor(row / 3) + Math.floor(col / 3)) % 2;
+    const idx: number = row * SIZE + col;
 
     if (row === this.selectedRow && col === this.selectedCol) {
       return '#c7d2fe';
+    }
+
+    if (this.editMode && this.fixedCells[idx]) {
+      return boxParity === 0 ? '#fef9c3' : '#fefce8';
     }
 
     const val: number = this.currentGrid[row * SIZE + col];
@@ -449,6 +513,9 @@ struct SudokuSolverPage {
       return '#dc2626';
     }
     if (this.fixedCells[idx]) {
+      if (this.editMode) {
+        return '#f59e0b';
+      }
       return $r('app.color.primary_text');
     }
     return '#6366f1';
@@ -522,7 +589,7 @@ struct SudokuSolverPage {
   TopBar() {
     Row() {
       Row({ space: 4 }) {
-        Text('🧩')
+        Text('\u{1F9E9}')
           .fontSize(16)
         Text('数独求解器')
           .fontSize(15)
@@ -532,14 +599,42 @@ struct SudokuSolverPage {
 
       Blank()
 
-      if (this.hasUserInput) {
-        Text('清空')
+      if (this.editMode) {
+        Text('\u2714 完成')
           .fontSize(13)
-          .fontColor('#ef4444')
+          .fontColor('#16a34a')
           .padding({ left: 10, right: 10, top: 4, bottom: 4 })
           .borderRadius(12)
-          .backgroundColor('#fef2f2')
-          .onClick(() => { this.clearGrid(); })
+          .backgroundColor('#f0fdf4')
+          .onClick(() => {
+            this.editMode = false;
+            this.clearSelection();
+          })
+      } else {
+        Row({ space: 6 }) {
+          if (this.hasUserInput || this.currentGrid.some((d: number) => d > 0)) {
+            Text('\u270F 修改')
+              .fontSize(13)
+              .fontColor('#6366f1')
+              .padding({ left: 10, right: 10, top: 4, bottom: 4 })
+              .borderRadius(12)
+              .backgroundColor('#eef2ff')
+              .onClick(() => {
+                this.editMode = true;
+                this.clearSelection();
+              })
+          }
+
+          if (this.hasUserInput) {
+            Text('\u232B 清空')
+              .fontSize(13)
+              .fontColor('#ef4444')
+              .padding({ left: 10, right: 10, top: 4, bottom: 4 })
+              .borderRadius(12)
+              .backgroundColor('#fef2f2')
+              .onClick(() => { this.clearGrid(); })
+          }
+        }
       }
     }
     .width('100%')
@@ -793,7 +888,9 @@ struct SudokuSolverPage {
       .width('100%')
       .justifyContent(FlexAlign.Center)
 
-      Text('点击空格输入数字 | 相同数字高亮显示 | 长按清空')
+      Text(this.editMode
+        ? '修改模式：点击数字可修改或擦除，识别错误可在此纠正'
+        : '点击空格输入数字 | 相同数字高亮显示 | 长按清空')
         .fontSize(11)
         .fontColor($r('app.color.tertiary_text'))
         .textAlign(TextAlign.Center)

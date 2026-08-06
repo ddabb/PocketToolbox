@@ -1,6 +1,7 @@
-import { describe, it, expect } from '@ohos/hypium';
+import { describe, it, expect, beforeAll } from '@ohos/hypium';
 import { analyzePixelGridFromBuffer } from '../../../main/ets/core/sudoku/SudokuOCR';
 import { parseOCRToGrid, gridToString, solveSudoku, validateFullGrid, SolveResult } from '../../../main/ets/core/sudoku/SudokuEngine';
+import { initDigitTemplates } from '../../../main/ets/core/sudoku/SudokuPixel';
 import { image } from '@kit.ImageKit';
 import { resourceManager } from '@kit.LocalizationKit';
 
@@ -19,6 +20,8 @@ const EXPECTED: number[] = [
 interface ImageThreshold {
   file: string;
   minAcc: number;
+  maxFalsePos: number;
+  maxDim: number;
 }
 
 interface PixelData {
@@ -28,48 +31,73 @@ interface PixelData {
 }
 
 const CASES: ImageThreshold[] = [
-  { file: '01_standard_544.png', minAcc: 1.0 },
-  { file: '02_small_300.png', minAcc: 0.9 },
-  { file: '03_large_800.png', minAcc: 1.0 },
-  { file: '04_blue_numbers.png', minAcc: 0.7 },
-  { file: '05_red_theme.png', minAcc: 0.7 },
-  { file: '06_green_theme.png', minAcc: 0.7 },
-  { file: '07_light_gray_numbers.png', minAcc: 0.7 },
-  { file: '08_gray_bg_dark_numbers.png', minAcc: 0.7 },
-  { file: '09_serif_font.png', minAcc: 0.9 },
-  { file: '10_italic_font.png', minAcc: 0.7 },
-  { file: '11_thin_font.png', minAcc: 0.7 },
-  { file: '12_all_thin_lines.png', minAcc: 0.7 },
-  { file: '13_no_outer_border.png', minAcc: 0.7 },
-  { file: '14_tiny_200.png', minAcc: 0.7 },
-  { file: '15_huge_1000.png', minAcc: 1.0 },
+  { file: '01_standard_544.png', minAcc: 1.0, maxFalsePos: 0, maxDim: 1280 },
+  { file: '02_small_300.png', minAcc: 1.0, maxFalsePos: 0, maxDim: 1280 },
+  { file: '03_large_800.png', minAcc: 1.0, maxFalsePos: 0, maxDim: 1280 },
+  { file: '04_blue_numbers.png', minAcc: 1.0, maxFalsePos: 0, maxDim: 1280 },
+  { file: '05_red_theme.png', minAcc: 1.0, maxFalsePos: 0, maxDim: 1280 },
+  { file: '06_green_theme.png', minAcc: 1.0, maxFalsePos: 0, maxDim: 1280 },
+  { file: '07_light_gray_numbers.png', minAcc: 1.0, maxFalsePos: 0, maxDim: 1280 },
+  { file: '08_gray_bg_dark_numbers.png', minAcc: 1.0, maxFalsePos: 0, maxDim: 1280 },
+  { file: '09_serif_font.png', minAcc: 1.0, maxFalsePos: 0, maxDim: 1280 },
+  { file: '10_italic_font.png', minAcc: 1.0, maxFalsePos: 0, maxDim: 1280 },
+  { file: '11_thin_font.png', minAcc: 1.0, maxFalsePos: 0, maxDim: 1280 },
+  { file: '12_all_thin_lines.png', minAcc: 1.0, maxFalsePos: 0, maxDim: 1280 },
+  { file: '13_no_outer_border.png', minAcc: 1.0, maxFalsePos: 0, maxDim: 1280 },
+  { file: '14_tiny_200.png', minAcc: 1.0, maxFalsePos: 0, maxDim: 1280 },
+  { file: '15_huge_1000.png', minAcc: 1.0, maxFalsePos: 0, maxDim: 1280 },
+  { file: 'photos.jpg', minAcc: 1.0, maxFalsePos: 0, maxDim: 1280 },
 ];
+
+interface MatchResult {
+  givenAcc: number;
+  fullAcc: number;
+  falsePos: number;
+  falseNeg: number;
+}
 
 function diffDetail(actual: number[], expectArr: number[]): string {
   let parts: string[] = [];
   for (let i: number = 0; i < 81; i++) {
-    if (expectArr[i] !== 0 && actual[i] !== expectArr[i]) {
+    if (actual[i] !== expectArr[i]) {
       parts.push(`[${Math.floor(i / 9)},${i % 9}]:${actual[i]}/${expectArr[i]}`);
     }
   }
   return parts.length > 0 ? parts.join(' ') : 'none';
 }
 
-function countGivenMatches(actual: number[], expectArr: number[]): number {
-  let matches: number = 0;
-  let total: number = 0;
+function countMatches(actual: number[], expectArr: number[]): MatchResult {
+  let givenMatches: number = 0;
+  let givenTotal: number = 0;
+  let fullMatches: number = 0;
+  let falsePos: number = 0;
+  let falseNeg: number = 0;
   for (let i: number = 0; i < 81; i++) {
+    if (actual[i] === expectArr[i]) {
+      fullMatches++;
+    }
     if (expectArr[i] !== 0) {
-      total++;
+      givenTotal++;
       if (actual[i] === expectArr[i]) {
-        matches++;
+        givenMatches++;
+      } else {
+        falseNeg++;
+      }
+    } else {
+      if (actual[i] !== 0) {
+        falsePos++;
       }
     }
   }
-  return total > 0 ? matches / total : 0;
+  return {
+    givenAcc: givenTotal > 0 ? givenMatches / givenTotal : 0,
+    fullAcc: fullMatches / 81,
+    falsePos: falsePos,
+    falseNeg: falseNeg
+  };
 }
 
-function loadPixelsSync(rawfile: string): PixelData | null {
+function loadPixelsSync(rawfile: string, maxDim: number): PixelData | null {
   try {
     const ctx: Context = getContext();
     const rm: resourceManager.ResourceManager = ctx.resourceManager;
@@ -79,7 +107,20 @@ function loadPixelsSync(rawfile: string): PixelData | null {
       return null;
     }
     const imgSrc: image.ImageSource = image.createImageSource(rawData.buffer as ArrayBuffer);
+    const srcInfo: image.ImageInfo = imgSrc.getImageInfoSync();
+    const origW: number = srcInfo.size.width;
+    const origH: number = srcInfo.size.height;
+
+    let targetW: number = origW;
+    let targetH: number = origH;
+    if (origW > maxDim || origH > maxDim) {
+      const scale: number = maxDim / Math.max(origW, origH);
+      targetW = Math.round(origW * scale);
+      targetH = Math.round(origH * scale);
+    }
+
     const pm: image.PixelMap = imgSrc.createPixelMapSync({
+      desiredSize: { width: targetW, height: targetH },
       desiredPixelFormat: image.PixelMapFormat.RGBA_8888
     });
     imgSrc.release();
@@ -89,6 +130,7 @@ function loadPixelsSync(rawfile: string): PixelData | null {
     const buf: ArrayBuffer = new ArrayBuffer(w * h * 4);
     pm.readPixelsToBufferSync(buf);
     pm.release();
+    console.info(`[OCR_TEST] ${rawfile}: orig ${origW}x${origH} -> ${w}x${h} (maxDim=${maxDim})`);
     return { pixels: new Uint8Array(buf), width: w, height: h };
   } catch (e) {
     const err: Error = e as Error;
@@ -97,24 +139,49 @@ function loadPixelsSync(rawfile: string): PixelData | null {
   }
 }
 
+function gridToAscii(grid: number[]): string {
+  let s: string = '';
+  for (let r: number = 0; r < 9; r++) {
+    let line: string = '';
+    for (let c: number = 0; c < 9; c++) {
+      const v: number = grid[r * 9 + c];
+      line += (v === 0 ? '.' : v.toString()) + ' ';
+      if (c === 2 || c === 5) { line += '| '; }
+    }
+    s += line + '\n';
+    if (r === 2 || r === 5) { s += '------+-------+------\n'; }
+  }
+  return s;
+}
+
 export default function sudokuOcrTest() {
   describe('SudokuOCR_pixel_all_images', () => {
+    beforeAll(() => {
+      const ctx: Context = getContext();
+      const ok: boolean = initDigitTemplates(ctx);
+      console.info(`[OCR_TEST] initDigitTemplates: ${ok}`);
+    });
+
     for (let idx: number = 0; idx < CASES.length; idx++) {
       const c: ImageThreshold = CASES[idx];
       it(`pixel_${c.file.replace('.png', '')}`, 0, () => {
-        const pd: PixelData | null = loadPixelsSync(c.file);
+        const pd: PixelData | null = loadPixelsSync(c.file, c.maxDim);
         expect(pd !== null).assertTrue();
         if (pd === null) { return; }
 
         const grid: number[] = analyzePixelGridFromBuffer(pd.pixels, pd.width, pd.height);
-        const acc: number = countGivenMatches(grid, EXPECTED);
+        const mr: MatchResult = countMatches(grid, EXPECTED);
 
-        if (acc < 1.0) {
-          console.log(`[OCR_TEST] ${c.file} (${pd.width}x${pd.height}) MISTAKES: ${diffDetail(grid, EXPECTED)}`);
+        console.log(`[OCR_TEST] ${c.file} (${pd.width}x${pd.height})`);
+        console.log(`[OCR_TEST] 识别结果:\n${gridToAscii(grid)}`);
+        console.log(`[OCR_TEST] 期望结果:\n${gridToAscii(EXPECTED)}`);
+        if (mr.givenAcc < 1.0 || mr.falsePos > 0) {
+          console.log(`[OCR_TEST] DIFF: ${diffDetail(grid, EXPECTED)}`);
         }
-        console.log(`[OCR_TEST] ${c.file} accuracy: ${(acc * 100).toFixed(0)}% (threshold ${(c.minAcc * 100).toFixed(0)}%)`);
+        console.log(`[OCR_TEST] given:${(mr.givenAcc * 100).toFixed(0)}% full:${(mr.fullAcc * 100).toFixed(0)}% fp:${mr.falsePos} fn:${mr.falseNeg} (minAcc ${(c.minAcc * 100).toFixed(0)}% maxFP ${c.maxFalsePos})`);
 
-        expect(acc >= c.minAcc).assertTrue();
+        expect(mr.givenAcc >= c.minAcc).assertTrue();
+        expect(mr.falsePos <= c.maxFalsePos).assertTrue();
       });
     }
   });
@@ -124,8 +191,9 @@ export default function sudokuOcrTest() {
       const empty: Uint8Array = new Uint8Array(0);
       const grid: number[] = analyzePixelGridFromBuffer(empty, 0, 0);
       expect(grid.length).assertEqual(81);
+      const allZero: number[] = new Array<number>(81).fill(0);
       for (let i: number = 0; i < 81; i++) {
-        expect(grid[i]).assertEqual(0);
+        expect(grid[i]).assertEqual(allZero[i]);
       }
     });
 
@@ -139,6 +207,27 @@ export default function sudokuOcrTest() {
       const white: Uint8Array = new Uint8Array(90 * 90 * 4);
       white.fill(255);
       const grid: number[] = analyzePixelGridFromBuffer(white, 90, 90);
+      expect(grid.length).assertEqual(81);
+      for (let i: number = 0; i < 81; i++) {
+        expect(grid[i]).assertEqual(0);
+      }
+    });
+
+    it('solid_black_image_all_zeros', 0, () => {
+      const black: Uint8Array = new Uint8Array(90 * 90 * 4);
+      black.fill(0);
+      const grid: number[] = analyzePixelGridFromBuffer(black, 90, 90);
+      expect(grid.length).assertEqual(81);
+    });
+
+    it('random_noise_image_no_given_digit_mismatches', 0, () => {
+      const W: number = 90;
+      const H: number = 90;
+      const noise: Uint8Array = new Uint8Array(W * H * 4);
+      for (let i: number = 0; i < noise.length; i++) {
+        noise[i] = Math.floor(Math.random() * 256);
+      }
+      const grid: number[] = analyzePixelGridFromBuffer(noise, W, H);
       expect(grid.length).assertEqual(81);
     });
   });

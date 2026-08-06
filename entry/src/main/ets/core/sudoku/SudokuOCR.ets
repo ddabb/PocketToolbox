@@ -2,7 +2,7 @@ import { image } from '@kit.ImageKit';
 import { textRecognition } from '@kit.CoreVisionKit';
 import { fileIo } from '@kit.CoreFileKit';
 import { parseOCRToGrid } from './SudokuEngine';
-import { BoardBBox, bgColor, cellSig, countInk, findBoardBBox, recognizeDigit } from './SudokuPixel';
+import { BoardBBox, bgColor, cellSig, cellSigFromGray, countInk, findBoardBBox, recognizeDigit, toGrayArray } from './SudokuPixel';
 
 export interface OCRResult {
   success: boolean;
@@ -27,12 +27,17 @@ function openImageSource(uri: string): image.ImageSource {
 
 export async function recognizeSudokuFromImage(imagePath: string): Promise<OCRResult> {
   try {
+    console.info(`[SudokuOCR] === 开始识别 === path=${imagePath}`);
     const visionResult: OCRResult = await tryVisionKitRecognition(imagePath);
+    console.info(`[SudokuOCR] VisionKit: success=${visionResult.success} error=${visionResult.error}`);
     if (visionResult.success && visionResult.grid) {
+      console.info(`[SudokuOCR] 采用 VisionKit 结果`);
       return visionResult;
     }
+    console.info(`[SudokuOCR] VisionKit 失败，转像素分析`);
     return await tryPixelGridRecognition(imagePath);
   } catch (_err) {
+    console.error(`[SudokuOCR] 异常: ${_err}`);
     return { success: false, grid: null, rawText: '', error: '图片处理异常，请尝试手动输入' };
   }
 }
@@ -69,13 +74,21 @@ async function tryVisionKitRecognition(imagePath: string): Promise<OCRResult> {
     const gridByPos: number[] | null = buildGridByPosition(recogResult, imgW, imgH);
     if (gridByPos && gridByPos.some((d: number) => d > 0)) {
       const givenCount: number = gridByPos.filter((d: number) => d > 0).length;
-      console.info(`[SudokuOCR] positional OK, ${givenCount} digits`);
+      let gridStr: string = '';
+      for (let r: number = 0; r < 9; r++) {
+        let line: string = '';
+        for (let c: number = 0; c < 9; c++) {
+          line += (gridByPos[r * 9 + c] === 0 ? '.' : gridByPos[r * 9 + c].toString()) + ' ';
+        }
+        gridStr += line + '\n';
+      }
+      console.info(`[SudokuOCR] VisionKit positional OK, ${givenCount} digits:\n${gridStr}`);
       return { success: true, grid: gridByPos, rawText: 'positional', error: '' };
     }
 
     const gridByText: number[] | null = parseOCRToGrid(rawText);
     if (gridByText && gridByText.some((d: number) => d > 0)) {
-      console.info('[SudokuOCR] text fallback OK');
+      console.info(`[SudokuOCR] text fallback OK, raw="${rawText}"`);
       return { success: true, grid: gridByText, rawText, error: '' };
     }
 
@@ -83,7 +96,7 @@ async function tryVisionKitRecognition(imagePath: string): Promise<OCRResult> {
     if (structuredText.length > rawText.length) {
       const grid2: number[] | null = parseOCRToGrid(structuredText);
       if (grid2 && grid2.some((d: number) => d > 0)) {
-        console.info('[SudokuOCR] structured text fallback OK');
+        console.info(`[SudokuOCR] structured text fallback OK:\n${structuredText}`);
         return { success: true, grid: grid2, rawText: structuredText, error: '' };
       }
     }
@@ -194,8 +207,23 @@ async function tryPixelGridRecognition(imagePath: string): Promise<OCRResult> {
   let pixelMap: image.PixelMap | null = null;
   try {
     const imageSource: image.ImageSource = openImageSource(imagePath);
+
+    const srcInfo: image.ImageInfo = await imageSource.getImageInfo();
+    const origW: number = srcInfo.size.width;
+    const origH: number = srcInfo.size.height;
+
+    const maxDim: number = 1280;
+    let targetW: number = origW;
+    let targetH: number = origH;
+    if (origW > maxDim || origH > maxDim) {
+      const scale: number = maxDim / Math.max(origW, origH);
+      targetW = Math.round(origW * scale);
+      targetH = Math.round(origH * scale);
+    }
+    console.info(`[SudokuOCR] 像素分析: 原图 ${origW}x${origH} -> ${targetW}x${targetH}`);
+
     pixelMap = await imageSource.createPixelMap({
-      desiredSize: { width: 450, height: 450 },
+      desiredSize: { width: targetW, height: targetH },
       desiredPixelFormat: image.PixelMapFormat.RGBA_8888
     });
     imageSource.release();
@@ -208,7 +236,9 @@ async function tryPixelGridRecognition(imagePath: string): Promise<OCRResult> {
     pixelMap.release();
     pixelMap = null;
 
-    if (grid.some((d: number) => d > 0)) {
+    const givenCount: number = grid.filter((d: number) => d > 0).length;
+    console.info(`[SudokuOCR] 像素分析完成: 识别到 ${givenCount} 个数字`);
+    if (givenCount > 0) {
       return { success: true, grid, rawText: 'pixel analysis', error: '' };
     }
     return {
@@ -216,6 +246,7 @@ async function tryPixelGridRecognition(imagePath: string): Promise<OCRResult> {
       error: '未能识别数独，请确保图片清晰或手动输入'
     };
   } catch (_err) {
+    console.error(`[SudokuOCR] 像素分析异常: ${_err}`);
     if (pixelMap !== null) { pixelMap.release(); }
     return { success: false, grid: null, rawText: '', error: '图片分析失败' };
   }
@@ -224,17 +255,18 @@ async function tryPixelGridRecognition(imagePath: string): Promise<OCRResult> {
 export function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, height: number): number[] {
   const grid: number[] = new Array<number>(81).fill(0);
 
-  // 背景色：直方图众数（稳健应对白纸放深色桌面等真实照片场景）
   const bg: number = bgColor(pixels, width, height);
+  const gray: Float32Array = toGrayArray(pixels, width, height);
 
   const bbox: BoardBBox = findBoardBBox(pixels, width, height, bg);
   const cellW: number = (bbox.right - bbox.left) / 9;
   const cellH: number = (bbox.bottom - bbox.top) / 9;
+  console.info(`[SudokuOCR] 图像 ${width}x${height} bg=${bg.toFixed(1)} isDark=${bbox.isDark} 棋盘=[${bbox.left},${bbox.top},${bbox.right},${bbox.bottom}] 尺寸=${(bbox.right-bbox.left)}x${(bbox.bottom-bbox.top)} 每格=${cellW.toFixed(1)}x${cellH.toFixed(1)}`);
 
   for (let r: number = 0; r < 9; r++) {
     for (let c: number = 0; c < 9; c++) {
-      const sig: number[] | null = cellSig(
-        pixels, width,
+      const sig: number[] | null = cellSigFromGray(
+        gray, width,
         bbox.left + c * cellW, bbox.top + r * cellH,
         cellW, cellH, bbox.isDark, bg
       );
@@ -243,6 +275,16 @@ export function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, he
       }
     }
   }
+
+  let gridStr: string = '[SudokuOCR] 像素分析结果:\n';
+  for (let r: number = 0; r < 9; r++) {
+    let line: string = '  ';
+    for (let c: number = 0; c < 9; c++) {
+      line += (grid[r * 9 + c] === 0 ? '.' : grid[r * 9 + c].toString()) + ' ';
+    }
+    gridStr += line + '\n';
+  }
+  console.info(gridStr);
 
   return grid;
 }

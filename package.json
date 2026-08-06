@@ -24,5 +24,8 @@
   "bugs": {
     "url": "https://github.com/ddabb/PocketToolbox/issues"
   },
-  "homepage": "https://github.com/ddabb/PocketToolbox#readme"
+  "homepage": "https://github.com/ddabb/PocketToolbox#readme",
+  "devDependencies": {
+    "fontkit": "^2.0.4"
+  }
 }

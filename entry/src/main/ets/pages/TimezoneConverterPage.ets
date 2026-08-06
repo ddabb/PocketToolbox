@@ -75,11 +75,14 @@ struct TimezoneConverterContent {
   private readonly PREF_NAME: string = 'timezone_prefs';
 
   aboutToAppear(): void {
-    this.initTime();
+    this.loadTimezoneData();
+    if (this.allCities.length === 0) {
+      this.initTime();
+    }
     this.loadPrefs();
-    setTimeout(() => {
-      this.loadTimezoneData();
-    }, 0);
+    if (this.allCities.length > 0) {
+      this.recalcCityTimeInfos();
+    }
   }
 
   private loadTimezoneData(): void {

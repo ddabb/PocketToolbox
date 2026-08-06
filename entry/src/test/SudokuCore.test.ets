@@ -123,6 +123,48 @@ export default function sudokuCoreTest() {
       const got: number = recognizeDigit(sig, countInk(sig));
       expect(got).assertEqual(5);
     });
+
+    it('9_with_top_loop_broken_still_9', 0, () => {
+      const sig: number[] = TEMPLATES[8].key.slice();
+      for (let i: number = 0; i < 7; i++) { sig[i] = 0; }
+      sig[7] = 0; sig[8] = 0;
+      const got: number = recognizeDigit(sig, countInk(sig));
+      expect(got).assertEqual(9);
+    });
+
+    it('9_with_heavy_noise_still_9', 0, () => {
+      const sig: number[] = TEMPLATES[8].key.slice();
+      for (let i: number = 0; i < 14; i++) { sig[i] = 0; }
+      sig[63] = 1; sig[64] = 1; sig[65] = 1;
+      const got: number = recognizeDigit(sig, countInk(sig));
+      expect(got).assertEqual(9);
+    });
+
+    it('6_with_top_noise_still_6', 0, () => {
+      const sig: number[] = TEMPLATES[5].key.slice();
+      sig[3] = 1; sig[4] = 1; sig[5] = 1;
+      const got: number = recognizeDigit(sig, countInk(sig));
+      expect(got).assertEqual(6);
+    });
+
+    it('6_with_bottom_erased_still_6', 0, () => {
+      const sig: number[] = TEMPLATES[5].key.slice();
+      for (let i: number = 63; i < 70; i++) { sig[i] = 0; }
+      const got: number = recognizeDigit(sig, countInk(sig));
+      expect(got).assertEqual(6);
+    });
+
+    it('6_vs_9_with_3bit_noise_correct', 0, () => {
+      const sig6: number[] = TEMPLATES[5].key.slice();
+      sig6[5] = 1; sig6[47] = 0; sig6[62] = 0;
+      const got6: number = recognizeDigit(sig6, countInk(sig6));
+      expect(got6).assertEqual(6);
+
+      const sig9: number[] = TEMPLATES[8].key.slice();
+      sig9[3] = 0; sig9[41] = 0; sig9[48] = 1;
+      const got9: number = recognizeDigit(sig9, countInk(sig9));
+      expect(got9).assertEqual(9);
+    });
   });
 
   describe('SudokuPixel_findBoardBBox', () => {
