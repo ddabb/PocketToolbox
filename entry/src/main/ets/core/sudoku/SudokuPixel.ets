@@ -1022,12 +1022,127 @@ export function warpPerspectiveGray(
         if (cx >= 0 && cx < W && cy >= 0 && cy < H) {
           out[oy * outSize + ox] = gray[cy * W + cx];
         } else {
-          out[oy * outSize + ox] = bg;
+          out[oy * outSize + ox] = bgVal;
         }
       }
     }
   }
   return out;
+}
+
+function findBoardByHoughLines(gray: Float32Array, W: number, H: number, isDark: boolean, bg: number): BoardBBox | null {
+  const lines: HoughLine[] = houghLines(gray, W, H, isDark, bg);
+  if (lines.length < 4) { return null; }
+
+  const horizLines: HoughLine[] = clusterLinesByAngle(lines, Math.PI / 2, Math.PI / 18);
+  const vertLines: HoughLine[] = clusterLinesByAngle(lines, 0, Math.PI / 18);
+  if (horizLines.length < 4 || vertLines.length < 4) { return null; }
+
+  horizLines.sort((a: HoughLine, b: HoughLine) => a.rho - b.rho);
+  vertLines.sort((a: HoughLine, b: HoughLine) => a.rho - b.rho);
+
+  const clusterEquidistant = (sorted: HoughLine[], targetCount: number): HoughLine[] | null => {
+    if (sorted.length < targetCount) { return null; }
+    let bestSet: HoughLine[] = [];
+    let bestScore: number = 0;
+    const minGap: number = Math.max(3, Math.floor(Math.min(W, H) / 25));
+    for (let startIdx: number = 0; startIdx < sorted.length; startIdx++) {
+      const selected: HoughLine[] = [sorted[startIdx]];
+      let lastRho: number = sorted[startIdx].rho;
+      for (let i: number = startIdx + 1; i < sorted.length; i++) {
+        const gap: number = sorted[i].rho - lastRho;
+        if (selected.length === 1) {
+          if (gap < minGap) { continue; }
+          selected.push(sorted[i]);
+          lastRho = sorted[i].rho;
+        } else {
+          const avgGap: number = (selected[selected.length - 1].rho - selected[0].rho) / (selected.length - 1);
+          if (gap >= avgGap * 0.6 && gap <= avgGap * 1.5) {
+            selected.push(sorted[i]);
+            lastRho = sorted[i].rho;
+          }
+        }
+        if (selected.length >= targetCount) { break; }
+      }
+      if (selected.length >= targetCount) {
+        const span: number = selected[selected.length - 1].rho - selected[0].rho;
+        const avgGap2: number = span / (selected.length - 1);
+        let devSum: number = 0;
+        for (let j: number = 1; j < selected.length; j++) {
+          devSum += Math.abs((selected[j].rho - selected[j - 1].rho) - avgGap2);
+        }
+        const score: number = selected.length * 100 - devSum / avgGap2;
+        if (score > bestScore) {
+          bestScore = score;
+          bestSet = selected;
+        }
+      }
+    }
+    return bestSet.length >= targetCount ? bestSet : null;
+  };
+
+  const hSet: HoughLine[] | null = clusterEquidistant(horizLines, 10);
+  const vSet: HoughLine[] | null = clusterEquidistant(vertLines, 10);
+
+  let topRho: number = 0;
+  let bottomRho: number = 0;
+  let leftRho: number = 0;
+  let rightRho: number = 0;
+
+  if (hSet !== null && hSet.length >= 10) {
+    topRho = hSet[0].rho;
+    bottomRho = hSet[hSet.length - 1].rho;
+  } else if (horizLines.length >= 2) {
+    topRho = horizLines[0].rho;
+    bottomRho = horizLines[horizLines.length - 1].rho;
+  } else {
+    return null;
+  }
+
+  if (vSet !== null && vSet.length >= 10) {
+    leftRho = vSet[0].rho;
+    rightRho = vSet[vSet.length - 1].rho;
+  } else if (vertLines.length >= 2) {
+    leftRho = vertLines[0].rho;
+    rightRho = vertLines[vertLines.length - 1].rho;
+  } else {
+    return null;
+  }
+
+  let minX: number = W;
+  let maxX: number = 0;
+  let minY: number = H;
+  let maxY: number = 0;
+
+  const corners: Array<[number, number]> = [];
+  const hBounds: HoughLine[] = [hSet !== null && hSet.length >= 2 ? hSet[0] : horizLines[0],
+    hSet !== null && hSet.length >= 2 ? hSet[hSet.length - 1] : horizLines[horizLines.length - 1]];
+  const vBounds: HoughLine[] = [vSet !== null && vSet.length >= 2 ? vSet[0] : vertLines[0],
+    vSet !== null && vSet.length >= 2 ? vSet[vSet.length - 1] : vertLines[vertLines.length - 1]];
+
+  for (const h of hBounds) {
+    for (const v of vBounds) {
+      const pt: [number, number] | null = lineIntersection(h.rho, h.theta, v.rho, v.theta);
+      if (pt !== null && pt[0] >= 0 && pt[0] < W && pt[1] >= 0 && pt[1] < H) {
+        corners.push(pt);
+        if (pt[0] < minX) { minX = pt[0]; }
+        if (pt[0] > maxX) { maxX = pt[0]; }
+        if (pt[1] < minY) { minY = pt[1]; }
+        if (pt[1] > maxY) { maxY = pt[1]; }
+      }
+    }
+  }
+
+  if (corners.length < 3) { return null; }
+  const bw: number = maxX - minX;
+  const bh: number = maxY - minY;
+  if (bw < 20 || bh < 20) { return null; }
+  const aspect: number = bw / bh;
+  if (aspect < 0.3 || aspect > 3.0) { return null; }
+  const areaRatio: number = (bw * bh) / (W * H);
+  if (areaRatio > 0.88 || areaRatio < 0.02) { return null; }
+
+  return { left: Math.floor(minX), top: Math.floor(minY), right: Math.floor(maxX), bottom: Math.floor(maxY), isDark };
 }
 
 export function findBoardBBox(pixels: Uint8Array, width: number, height: number, bg: number): BoardBBox {

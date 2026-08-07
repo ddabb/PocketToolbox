@@ -31,6 +31,44 @@ interface RawDigit {
   digit: number;
 }
 
+interface AdaptiveResizeParams {
+  targetW: number;
+  targetH: number;
+  targetCellPx: number;
+}
+
+function computeAdaptiveResize(origW: number, origH: number): AdaptiveResizeParams {
+  const maxDim: number = Math.max(origW, origH);
+  let targetW: number = origW;
+  let targetH: number = origH;
+  let targetCellPx: number = 56;
+
+  if (maxDim > 2000) {
+    targetCellPx = 80;
+  } else {
+    targetCellPx = 56;
+  }
+
+  if (maxDim > 2000) {
+    const scale: number = 1600 / maxDim;
+    targetW = Math.round(origW * scale);
+    targetH = Math.round(origH * scale);
+  } else if (maxDim >= 800) {
+    if (maxDim > 1280) {
+      const scale: number = 1280 / maxDim;
+      targetW = Math.round(origW * scale);
+      targetH = Math.round(origH * scale);
+    }
+  } else {
+    const scale: number = 800 / maxDim;
+    targetW = Math.round(origW * scale);
+    targetH = Math.round(origH * scale);
+  }
+
+  const params: AdaptiveResizeParams = { targetW: targetW, targetH: targetH, targetCellPx: targetCellPx };
+  return params;
+}
+
 function openImageSource(uri: string): image.ImageSource {
   if (uri.startsWith('file://media/') || uri.startsWith('content://')) {
     const file: fileIo.File = fileIo.openSync(uri, fileIo.OpenMode.READ_ONLY);
@@ -119,17 +157,10 @@ async function validateAndFixConflicts(visionResult: OCRResult, imagePath: strin
   const origW: number = srcInfo.size.width;
   const origH: number = srcInfo.size.height;
 
-  const maxDim: number = 1280;
-  let targetW: number = origW;
-  let targetH: number = origH;
-  if (origW > maxDim || origH > maxDim) {
-    const scale: number = maxDim / Math.max(origW, origH);
-    targetW = Math.round(origW * scale);
-    targetH = Math.round(origH * scale);
-  }
+  const resize: AdaptiveResizeParams = computeAdaptiveResize(origW, origH);
 
   fullPixelMap = await imageSource.createPixelMap({
-    desiredSize: { width: targetW, height: targetH },
+    desiredSize: { width: resize.targetW, height: resize.targetH },
     desiredPixelFormat: image.PixelMapFormat.RGBA_8888
   });
   imageSource.release();
@@ -210,17 +241,10 @@ async function fillMissingCells(ocrResult: OCRResult, imagePath: string): Promis
   const origW: number = srcInfo.size.width;
   const origH: number = srcInfo.size.height;
 
-  const maxDim: number = 1280;
-  let targetW: number = origW;
-  let targetH: number = origH;
-  if (origW > maxDim || origH > maxDim) {
-    const scale: number = maxDim / Math.max(origW, origH);
-    targetW = Math.round(origW * scale);
-    targetH = Math.round(origH * scale);
-  }
+  const resize: AdaptiveResizeParams = computeAdaptiveResize(origW, origH);
 
   const pixelMap: image.PixelMap = await imageSource.createPixelMap({
-    desiredSize: { width: targetW, height: targetH },
+    desiredSize: { width: resize.targetW, height: resize.targetH },
     desiredPixelFormat: image.PixelMapFormat.RGBA_8888
   });
   imageSource.release();
@@ -458,14 +482,9 @@ async function tryVisionKitRecognition(imagePath: string): Promise<OCRResult> {
     const origW: number = srcInfo.size.width;
     const origH: number = srcInfo.size.height;
 
-    const probeMaxDim: number = 1280;
-    let probeW: number = origW;
-    let probeH: number = origH;
-    if (origW > probeMaxDim || origH > probeMaxDim) {
-      const s: number = probeMaxDim / Math.max(origW, origH);
-      probeW = Math.round(origW * s);
-      probeH = Math.round(origH * s);
-    }
+    const resize: AdaptiveResizeParams = computeAdaptiveResize(origW, origH);
+    const probeW: number = resize.targetW;
+    const probeH: number = resize.targetH;
 
     const probePm: image.PixelMap = await imageSource.createPixelMap({
       desiredSize: { width: probeW, height: probeH },
@@ -487,7 +506,7 @@ async function tryVisionKitRecognition(imagePath: string): Promise<OCRResult> {
     const cellW: number = boardW / 9;
     const cellH: number = boardH / 9;
 
-    const TARGET_CELL_PX: number = 56;
+    const TARGET_CELL_PX: number = resize.targetCellPx;
     const boardScale: number = TARGET_CELL_PX / Math.min(cellW, cellH);
     const cropL: number = Math.max(Math.floor(bbox.left - boardW * 0.05), 0);
     const cropT: number = Math.max(Math.floor(bbox.top - boardH * 0.05), 0);
@@ -707,14 +726,9 @@ async function tryPixelGridRecognition(imagePath: string): Promise<OCRResult> {
     const origW: number = srcInfo.size.width;
     const origH: number = srcInfo.size.height;
 
-    const maxDim: number = 1280;
-    let targetW: number = origW;
-    let targetH: number = origH;
-    if (origW > maxDim || origH > maxDim) {
-      const scale: number = maxDim / Math.max(origW, origH);
-      targetW = Math.round(origW * scale);
-      targetH = Math.round(origH * scale);
-    }
+    const resize: AdaptiveResizeParams = computeAdaptiveResize(origW, origH);
+    const targetW: number = resize.targetW;
+    const targetH: number = resize.targetH;
     hilog.info(DOMAIN, TAG, '像素分析: 原图 %{public}dx%{public}d -> %{public}dx%{public}d', origW, origH, targetW, targetH);
 
     pixelMap = await imageSource.createPixelMap({
@@ -768,7 +782,14 @@ export function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, he
     const warpedGray: Float32Array = warpPerspectiveGray(gray, width, height, corners, outSize, bg);
     const warpCellW: number = outSize / 9;
     const warpCellH: number = outSize / 9;
-    const warpBg: number = bgColor(pixels, outSize, outSize);
+    let warpBgSum: number = 0;
+    const warpSampleStep: number = Math.max(1, Math.floor(outSize * outSize / 20000));
+    let warpBgCnt: number = 0;
+    for (let i: number = 0; i < outSize * outSize; i += warpSampleStep) {
+      warpBgSum += warpedGray[i];
+      warpBgCnt++;
+    }
+    const warpBg: number = warpBgCnt > 0 ? warpBgSum / warpBgCnt : 128;
     const warpIsDark: boolean = warpBg < 128;
     hilog.info(DOMAIN, TAG, '透视校正: outSize=%{public}d confidence=%{public}.2f', outSize, corners.confidence);
 
