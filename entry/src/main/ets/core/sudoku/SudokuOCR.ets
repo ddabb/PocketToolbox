@@ -2,7 +2,7 @@ import { image } from '@kit.ImageKit';
 import { textRecognition } from '@kit.CoreVisionKit';
 import { fileIo } from '@kit.CoreFileKit';
 import { parseOCRToGrid } from './SudokuEngine';
-import { BoardBBox, bgColor, cellSigFromGray, countInk, findBoardBBox, holeCenterRow, inkCentroidRow, topBottomInkRatio, recognizeDigit, SIG_COLS, SIG_ROWS, toGrayArray } from './SudokuPixel';
+import { BoardBBox, BoardCorners, bgColor, cellSigFromGray, countInk, detectBoardCorners, findBoardBBox, holeCenterRow, inkCentroidRow, topBottomInkRatio, recognizeDigit, SIG_COLS, SIG_ROWS, toGrayArray, warpPerspectiveGray } from './SudokuPixel';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 
 const DOMAIN: number = 0xA03D00;
@@ -253,11 +253,20 @@ async function fillMissingCells(ocrResult: OCRResult, imagePath: string): Promis
     const inkCount: number = countInk(sig);
     if (inkCount < SIG_ROWS * SIG_COLS * 0.05) { continue; }
 
-    const digit: number = recognizeDigit(sig, inkCount);
-    if (digit > 0) {
-      hilog.info(DOMAIN, TAG, '补缺 [%{public}d,%{public}d] 像素分析=%{public}d ink=%{public}d', row, col, digit, inkCount);
-      grid[idx] = digit;
+    const cellDigit: number | null = await reRecognizeCell(
+      pixelMap, imgW, imgH, row, col, bbox, gray, bg
+    );
+    if (cellDigit !== null && cellDigit > 0) {
+      hilog.info(DOMAIN, TAG, '补缺 [%{public}d,%{public}d] =%{public}d (VisionKit+像素)', row, col, cellDigit);
+      grid[idx] = cellDigit;
       fillCount++;
+    } else {
+      const digit: number = recognizeDigit(sig, inkCount);
+      if (digit > 0) {
+        hilog.info(DOMAIN, TAG, '补缺 [%{public}d,%{public}d] 像素=%{public}d ink=%{public}d', row, col, digit, inkCount);
+        grid[idx] = digit;
+        fillCount++;
+      }
     }
   }
 
@@ -449,32 +458,77 @@ async function tryVisionKitRecognition(imagePath: string): Promise<OCRResult> {
     const origW: number = srcInfo.size.width;
     const origH: number = srcInfo.size.height;
 
-    const minDim: number = 720;
-    const maxDim: number = 1920;
-    let targetW: number = origW;
-    let targetH: number = origH;
-    if (Math.min(origW, origH) < minDim || Math.max(origW, origH) > maxDim) {
-      let scale: number = 1.0;
-      if (Math.min(origW, origH) < minDim) {
-        scale = minDim / Math.min(origW, origH);
-      }
-      if (Math.max(origW, origH) * scale > maxDim) {
-        scale = maxDim / Math.max(origW, origH);
-      }
-      targetW = Math.round(origW * scale);
-      targetH = Math.round(origH * scale);
+    const probeMaxDim: number = 1280;
+    let probeW: number = origW;
+    let probeH: number = origH;
+    if (origW > probeMaxDim || origH > probeMaxDim) {
+      const s: number = probeMaxDim / Math.max(origW, origH);
+      probeW = Math.round(origW * s);
+      probeH = Math.round(origH * s);
     }
-    hilog.info(DOMAIN, TAG, 'VisionKit: 原图 %{public}dx%{public}d -> %{public}dx%{public}d', origW, origH, targetW, targetH);
+
+    const probePm: image.PixelMap = await imageSource.createPixelMap({
+      desiredSize: { width: probeW, height: probeH },
+      desiredPixelFormat: image.PixelMapFormat.RGBA_8888
+    });
+    const probeInfo: image.ImageInfo = await probePm.getImageInfo();
+    const probeImgW: number = probeInfo.size.width;
+    const probeImgH: number = probeInfo.size.height;
+
+    const probeBuf: ArrayBuffer = new ArrayBuffer(probeImgW * probeImgH * 4);
+    probePm.readPixelsToBuffer(probeBuf);
+    const probePixels: Uint8Array = new Uint8Array(probeBuf);
+    probePm.release();
+
+    const bg: number = bgColor(probePixels, probeImgW, probeImgH);
+    const bbox: BoardBBox = findBoardBBox(probePixels, probeImgW, probeImgH, bg);
+    const boardW: number = bbox.right - bbox.left;
+    const boardH: number = bbox.bottom - bbox.top;
+    const cellW: number = boardW / 9;
+    const cellH: number = boardH / 9;
+
+    const TARGET_CELL_PX: number = 56;
+    const boardScale: number = TARGET_CELL_PX / Math.min(cellW, cellH);
+    const cropL: number = Math.max(Math.floor(bbox.left - boardW * 0.05), 0);
+    const cropT: number = Math.max(Math.floor(bbox.top - boardH * 0.05), 0);
+    const cropR: number = Math.min(Math.floor(bbox.right + boardW * 0.05), probeImgW);
+    const cropB: number = Math.min(Math.floor(bbox.bottom + boardH * 0.05), probeImgH);
+    const cropW: number = cropR - cropL;
+    const cropH: number = cropB - cropT;
+
+    const targetW: number = Math.round(cropW * boardScale);
+    const targetH: number = Math.round(cropH * boardScale);
+    const maxDim: number = 4096;
+    let finalW: number = targetW;
+    let finalH: number = targetH;
+    if (finalW > maxDim || finalH > maxDim) {
+      const ms: number = maxDim / Math.max(finalW, finalH);
+      finalW = Math.round(finalW * ms);
+      finalH = Math.round(finalH * ms);
+    }
+    const minDim: number = 360;
+    if (Math.min(finalW, finalH) < minDim) {
+      const ms2: number = minDim / Math.min(finalW, finalH);
+      finalW = Math.round(finalW * ms2);
+      finalH = Math.round(finalH * ms2);
+    }
+
+    hilog.info(DOMAIN, TAG, 'VisionKit: 探测图%{public}dx%{public}d 棋盘[%{public}d,%{public}d,%{public}d,%{public}d] 每格=%{public}.1fx%{public}.1f 放大=%{public}.2f 裁剪=%{public}d,%{public}d,%{public}d,%{public}d 目标=%{public}dx%{public}d',
+      probeImgW, probeImgH, bbox.left, bbox.top, bbox.right, bbox.bottom,
+      cellW, cellH, boardScale, cropL, cropT, cropW, cropH, finalW, finalH);
 
     pixelMap = await imageSource.createPixelMap({
-      desiredSize: { width: targetW, height: targetH },
-      desiredPixelFormat: image.PixelMapFormat.RGBA_8888
+      desiredRegion: { size: { width: cropW, height: cropH }, x: cropL, y: cropT },
+      desiredSize: { width: finalW, height: finalH },
+      desiredPixelFormat: image.PixelMapFormat.RGBA_8888,
+      cropAndScaleStrategy: image.CropAndScaleStrategy.CROP_FIRST
     });
     imageSource.release();
 
     const imageInfo: image.ImageInfo = await pixelMap.getImageInfo();
     const imgW: number = imageInfo.size.width;
     const imgH: number = imageInfo.size.height;
+    hilog.info(DOMAIN, TAG, 'VisionKit: 实际PixelMap=%{public}dx%{public}d', imgW, imgH);
 
     const visionInfo: textRecognition.VisionInfo = { pixelMap: pixelMap };
     const recogResult: textRecognition.TextRecognitionResult =
@@ -698,23 +752,51 @@ export function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, he
 
   const bg: number = bgColor(pixels, width, height);
   const gray: Float32Array = toGrayArray(pixels, width, height);
+  const isDark: boolean = bg < 128;
 
   const bbox: BoardBBox = findBoardBBox(pixels, width, height, bg);
   const cellW: number = (bbox.right - bbox.left) / 9;
   const cellH: number = (bbox.bottom - bbox.top) / 9;
   hilog.info(DOMAIN, TAG, '图像 %{public}dx%{public}d bg=%{public}.1f isDark=%{public}d 棋盘=[%{public}d,%{public}d,%{public}d,%{public}d] 尺寸=%{public}dx%{public}d 每格=%{public}.1fx%{public}.1f',
-    width, height, bg, bbox.isDark ? 1 : 0, bbox.left, bbox.top, bbox.right, bbox.bottom,
+    width, height, bg, isDark ? 1 : 0, bbox.left, bbox.top, bbox.right, bbox.bottom,
     bbox.right - bbox.left, bbox.bottom - bbox.top, cellW, cellH);
 
-  for (let r: number = 0; r < 9; r++) {
-    for (let c: number = 0; c < 9; c++) {
-      const sig: number[] | null = cellSigFromGray(
-        gray, width,
-        bbox.left + c * cellW, bbox.top + r * cellH,
-        cellW, cellH, bbox.isDark, bg
-      );
-      if (sig !== null) {
-        grid[r * 9 + c] = recognizeDigit(sig, countInk(sig));
+  const corners: BoardCorners | null = detectBoardCorners(gray, width, height, isDark, bg);
+  if (corners !== null) {
+    const boardSize: number = Math.max(bbox.right - bbox.left, bbox.bottom - bbox.top);
+    const outSize: number = Math.round(boardSize * 1.1);
+    const warpedGray: Float32Array = warpPerspectiveGray(gray, width, height, corners, outSize, bg);
+    const warpCellW: number = outSize / 9;
+    const warpCellH: number = outSize / 9;
+    const warpBg: number = bgColor(pixels, outSize, outSize);
+    const warpIsDark: boolean = warpBg < 128;
+    hilog.info(DOMAIN, TAG, '透视校正: outSize=%{public}d confidence=%{public}.2f', outSize, corners.confidence);
+
+    for (let r: number = 0; r < 9; r++) {
+      for (let c: number = 0; c < 9; c++) {
+        const sig: number[] | null = cellSigFromGray(
+          warpedGray, outSize,
+          c * warpCellW, r * warpCellH,
+          warpCellW, warpCellH, warpIsDark, warpBg
+        );
+        if (sig !== null) {
+          grid[r * 9 + c] = recognizeDigit(sig, countInk(sig));
+        }
+      }
+    }
+  } else {
+    hilog.info(DOMAIN, TAG, '透视校正: 未能检测棋盘角点，使用原始AABB');
+
+    for (let r: number = 0; r < 9; r++) {
+      for (let c: number = 0; c < 9; c++) {
+        const sig: number[] | null = cellSigFromGray(
+          gray, width,
+          bbox.left + c * cellW, bbox.top + r * cellH,
+          cellW, cellH, bbox.isDark, bg
+        );
+        if (sig !== null) {
+          grid[r * 9 + c] = recognizeDigit(sig, countInk(sig));
+        }
       }
     }
   }

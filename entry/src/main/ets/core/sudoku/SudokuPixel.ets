@@ -13,6 +13,25 @@ export interface BoardBBox {
   bottom: number;
   isDark: boolean;
 }
+
+export interface BoardCorners {
+  topLeftX: number;
+  topLeftY: number;
+  topRightX: number;
+  topRightY: number;
+  bottomRightX: number;
+  bottomRightY: number;
+  bottomLeftX: number;
+  bottomLeftY: number;
+  isDark: boolean;
+  confidence: number;
+}
+
+export interface HoughLine {
+  rho: number;
+  theta: number;
+  votes: number;
+}
 export const SIG_ROWS: number = 12;
 
 export const SIG_COLS: number = 8;
@@ -165,6 +184,67 @@ const INK_THRESH: number = 50;
 export function isInkPixel(g: number, bg: number, isDark: boolean): boolean {
   if (isDark) { return g > bg + INK_THRESH; }
   return g < bg - INK_THRESH;
+}
+
+export function sauvolaThreshold(
+  gray: Float32Array, width: number, height: number,
+  cx0: number, cy0: number, cw: number, ch: number,
+  isDark: boolean
+): Float32Array | null {
+  const k: number = 0.2;
+  const R: number = 128;
+  const halfWin: number = Math.max(2, Math.floor(Math.min(cw, ch) / 4));
+  const x0: number = Math.floor(cx0);
+  const y0: number = Math.floor(cy0);
+  const x1: number = Math.floor(cx0 + cw);
+  const y1: number = Math.floor(cy0 + ch);
+  const w: number = x1 - x0;
+  const h: number = y1 - y0;
+  if (w < 4 || h < 4) { return null; }
+
+  const sumBuf: Float32Array = new Float32Array(w * h);
+  const sqBuf: Float32Array = new Float32Array(w * h);
+  for (let ly: number = 0; ly < h; ly++) {
+    const sy: number = y0 + ly;
+    if (sy < 0 || sy >= height) { continue; }
+    let rowSum: number = 0;
+    let rowSq: number = 0;
+    for (let lx: number = 0; lx < w; lx++) {
+      const sx: number = x0 + lx;
+      if (sx < 0 || sx >= width) { continue; }
+      const v: number = gray[sy * width + sx];
+      rowSum += v;
+      rowSq += v * v;
+      sumBuf[ly * w + lx] = rowSum;
+      sqBuf[ly * w + lx] = rowSq;
+    }
+  }
+
+  const out: Float32Array = new Float32Array(w * h);
+  for (let ly: number = 0; ly < h; ly++) {
+    for (let lx: number = 0; lx < w; lx++) {
+      const top: number = Math.max(0, ly - halfWin);
+      const bot: number = Math.min(h - 1, ly + halfWin);
+      const left: number = Math.max(0, lx - halfWin);
+      const right: number = Math.min(w - 1, lx + halfWin);
+      const cnt: number = (bot - top + 1) * (right - left + 1);
+      let s: number = 0;
+      let sq: number = 0;
+      for (let ry: number = top; ry <= bot; ry++) {
+        const prevLeft: number = left > 0 ? sumBuf[ry * w + left - 1] : 0;
+        const prevSqLeft: number = left > 0 ? sqBuf[ry * w + left - 1] : 0;
+        s += sumBuf[ry * w + right] - prevLeft;
+        sq += sqBuf[ry * w + right] - prevSqLeft;
+      }
+      const mean: number = s / cnt;
+      const variance: number = sq / cnt - mean * mean;
+      const std: number = Math.sqrt(Math.max(0, variance));
+      const t: number = mean * (1 + k * (std / R - 1));
+      const pixelVal: number = gray[(y0 + ly) * width + (x0 + lx)];
+      out[ly * w + lx] = isDark ? (pixelVal > t ? 1 : 0) : (pixelVal < t ? 1 : 0);
+    }
+  }
+  return out;
 }
 
 export function otsuThreshold(hist: number[], total: number): number {
@@ -695,6 +775,261 @@ function findBoxLongRun(
   return { left: minX, top: minY, right: maxX, bottom: maxY, isDark };
 }
 
+function houghLines(gray: Float32Array, W: number, H: number, isDark: boolean, bg: number): HoughLine[] {
+  const edgeThresh: number = 30;
+  const dx: Float32Array = new Float32Array(W * H);
+  const dy: Float32Array = new Float32Array(W * H);
+  const mag: Float32Array = new Float32Array(W * H);
+  for (let y: number = 1; y < H - 1; y++) {
+    for (let x: number = 1; x < W - 1; x++) {
+      const idx: number = y * W + x;
+      const l: number = gray[idx - 1];
+      const r: number = gray[idx + 1];
+      const t: number = gray[idx - W];
+      const b: number = gray[idx + W];
+      dx[idx] = r - l;
+      dy[idx] = b - t;
+      mag[idx] = Math.abs(dx[idx]) + Math.abs(dy[idx]);
+    }
+  }
+  const diagonal: number = Math.floor(Math.sqrt(W * W + H * H));
+  const thetaSteps: number = 180;
+  const accSize: number = (diagonal * 2 + 1) * thetaSteps;
+  const acc: number[] = new Array<number>(accSize).fill(0);
+  const cosLut: number[] = new Array<number>(thetaSteps);
+  const sinLut: number[] = new Array<number>(thetaSteps);
+  for (let t: number = 0; t < thetaSteps; t++) {
+    const rad: number = t * Math.PI / thetaSteps;
+    cosLut[t] = Math.cos(rad);
+    sinLut[t] = Math.sin(rad);
+  }
+  const step: number = Math.max(1, Math.floor(W * H / 50000));
+  for (let y: number = 2; y < H - 2; y += step) {
+    for (let x: number = 2; x < W - 2; x += step) {
+      const idx: number = y * W + x;
+      if (mag[idx] < edgeThresh) { continue; }
+      for (let t: number = 0; t < thetaSteps; t++) {
+        const rho: number = Math.round(x * cosLut[t] + y * sinLut[t]) + diagonal;
+        if (rho >= 0 && rho <= diagonal * 2) {
+          acc[rho * thetaSteps + t]++;
+        }
+      }
+    }
+  }
+  const threshold: number = Math.max(8, Math.floor(Math.min(W, H) / 50));
+  const lines: HoughLine[] = [];
+  const nmsRho: number = Math.max(5, Math.floor(diagonal / 40));
+  for (let rho: number = 1; rho < diagonal * 2; rho++) {
+    for (let t: number = 0; t < thetaSteps; t++) {
+      const val: number = acc[rho * thetaSteps + t];
+      if (val < threshold) { continue; }
+      let isMax: boolean = true;
+      for (let dr: number = -nmsRho; dr <= nmsRho && isMax; dr++) {
+        for (let dt: number = -3; dt <= 3 && isMax; dt++) {
+          if (dr === 0 && dt === 0) { continue; }
+          const nr: number = rho + dr;
+          const nt: number = (t + dt + thetaSteps) % thetaSteps;
+          if (nr >= 0 && nr <= diagonal * 2) {
+            if (acc[nr * thetaSteps + nt] > val) { isMax = false; }
+          }
+        }
+      }
+      if (isMax) {
+        lines.push({ rho: rho - diagonal, theta: t * Math.PI / thetaSteps, votes: val });
+      }
+    }
+  }
+  lines.sort((a: HoughLine, b: HoughLine) => b.votes - a.votes);
+  return lines.slice(0, Math.min(lines.length, 60));
+}
+
+function lineIntersection(r1: number, t1: number, r2: number, t2: number): [number, number] | null {
+  const c1: number = Math.cos(t1);
+  const s1: number = Math.sin(t1);
+  const c2: number = Math.cos(t2);
+  const s2: number = Math.sin(t2);
+  const det: number = c1 * s2 - c2 * s1;
+  if (Math.abs(det) < 1e-8) { return null; }
+  const x: number = (r1 * s2 - r2 * s1) / det;
+  const y: number = (r2 * c1 - r1 * c2) / det;
+  return [x, y];
+}
+
+function clusterLinesByAngle(lines: HoughLine[], targetAngle: number, tolerance: number): HoughLine[] {
+  const result: HoughLine[] = [];
+  for (const line of lines) {
+    let angle: number = line.theta;
+    let diff: number = Math.abs(angle - targetAngle);
+    if (diff > Math.PI / 2) { diff = Math.PI - diff; }
+    if (diff < tolerance) { result.push(line); }
+  }
+  return result;
+}
+
+export function detectBoardCorners(gray: Float32Array, W: number, H: number, isDark: boolean, bg: number): BoardCorners | null {
+  const lines: HoughLine[] = houghLines(gray, W, H, isDark, bg);
+  if (lines.length < 8) { return null; }
+  const horizLines: HoughLine[] = clusterLinesByAngle(lines, Math.PI / 2, Math.PI / 18);
+  const vertLines: HoughLine[] = clusterLinesByAngle(lines, 0, Math.PI / 18);
+  if (horizLines.length < 2 || vertLines.length < 2) { return null; }
+  const topLines: HoughLine[] = horizLines.slice(0, Math.min(horizLines.length, 5));
+  const bottomLines: HoughLine[] = horizLines.slice(Math.max(0, horizLines.length - 5));
+  const leftLines: HoughLine[] = vertLines.slice(0, Math.min(vertLines.length, 5));
+  const rightLines: HoughLine[] = vertLines.slice(Math.max(0, vertLines.length - 5));
+  const candidates: Array<[number, number]> = [];
+  for (const h of topLines) {
+    for (const v of leftLines) {
+      const pt: [number, number] | null = lineIntersection(h.rho, h.theta, v.rho, v.theta);
+      if (pt !== null && pt[0] >= -W * 0.1 && pt[0] < W * 1.1 && pt[1] >= -H * 0.1 && pt[1] < H * 1.1) {
+        candidates.push(pt);
+      }
+    }
+  }
+  if (candidates.length === 0) { return null; }
+  let tlX: number = W; let tlY: number = H;
+  for (const pt of candidates) {
+    const d: number = pt[0] * pt[0] + pt[1] * pt[1];
+    const cd: number = tlX * tlX + tlY * tlY;
+    if (d < cd) { tlX = pt[0]; tlY = pt[1]; }
+  }
+  const trCandidates: Array<[number, number]> = [];
+  for (const h of topLines) {
+    for (const v of rightLines) {
+      const pt: [number, number] | null = lineIntersection(h.rho, h.theta, v.rho, v.theta);
+      if (pt !== null && pt[0] >= -W * 0.1 && pt[0] < W * 1.1 && pt[1] >= -H * 0.1 && pt[1] < H * 1.1) {
+        trCandidates.push(pt);
+      }
+    }
+  }
+  if (trCandidates.length === 0) { return null; }
+  let trX: number = 0; let trY: number = H;
+  for (const pt of trCandidates) {
+    const d: number = (W - pt[0]) * (W - pt[0]) + pt[1] * pt[1];
+    const cd: number = (W - trX) * (W - trX) + trY * trY;
+    if (d < cd) { trX = pt[0]; trY = pt[1]; }
+  }
+  const brCandidates: Array<[number, number]> = [];
+  for (const h of bottomLines) {
+    for (const v of rightLines) {
+      const pt: [number, number] | null = lineIntersection(h.rho, h.theta, v.rho, v.theta);
+      if (pt !== null && pt[0] >= -W * 0.1 && pt[0] < W * 1.1 && pt[1] >= -H * 0.1 && pt[1] < H * 1.1) {
+        brCandidates.push(pt);
+      }
+    }
+  }
+  if (brCandidates.length === 0) { return null; }
+  let brX: number = 0; let brY: number = 0;
+  for (const pt of brCandidates) {
+    const d: number = (W - pt[0]) * (W - pt[0]) + (H - pt[1]) * (H - pt[1]);
+    const cd: number = (W - brX) * (W - brX) + (H - brY) * (H - brY);
+    if (d < cd) { brX = pt[0]; brY = pt[1]; }
+  }
+  const blCandidates: Array<[number, number]> = [];
+  for (const h of bottomLines) {
+    for (const v of leftLines) {
+      const pt: [number, number] | null = lineIntersection(h.rho, h.theta, v.rho, v.theta);
+      if (pt !== null && pt[0] >= -W * 0.1 && pt[0] < W * 1.1 && pt[1] >= -H * 0.1 && pt[1] < H * 1.1) {
+        blCandidates.push(pt);
+      }
+    }
+  }
+  if (blCandidates.length === 0) { return null; }
+  let blX: number = W; let blY: number = 0;
+  for (const pt of blCandidates) {
+    const d: number = pt[0] * pt[0] + (H - pt[1]) * (H - pt[1]);
+    const cd: number = blX * blX + (H - blY) * (H - blY);
+    if (d < cd) { blX = pt[0]; blY = pt[1]; }
+  }
+  const boardW: number = (trX - tlX + brX - blX) / 2;
+  const boardH: number = (blY - tlY + brY - trY) / 2;
+  if (boardW < W * 0.08 || boardH < H * 0.08) { return null; }
+  const aspect: number = boardW / boardH;
+  if (aspect < 0.3 || aspect > 3.0) { return null; }
+  const area: number = boardW * boardH;
+  if (area > W * H * 0.88 || area < W * H * 0.02) { return null; }
+  const diag1Sq: number = (trX - blX) * (trX - blX) + (trY - blY) * (trY - blY);
+  const diag2Sq: number = (tlX - brX) * (tlX - brX) + (tlY - brY) * (tlY - brY);
+  const diagRatio: number = Math.sqrt(diag1Sq) / (Math.sqrt(diag2Sq) + 0.01);
+  if (diagRatio < 0.5 || diagRatio > 2.0) { return null; }
+  const confidence: number = Math.min(horizLines.length, vertLines.length) / 10;
+  return {
+    topLeftX: tlX, topLeftY: tlY,
+    topRightX: trX, topRightY: trY,
+    bottomRightX: brX, bottomRightY: brY,
+    bottomLeftX: blX, bottomLeftY: blY,
+    isDark: isDark,
+    confidence: confidence
+  };
+}
+
+export function warpPerspectiveGray(
+  gray: Float32Array, W: number, H: number,
+  corners: BoardCorners, outSize: number, bgVal: number
+): Float32Array {
+  const out: Float32Array = new Float32Array(outSize * outSize);
+  const srcX: number[] = [corners.topLeftX, corners.topRightX, corners.bottomRightX, corners.bottomLeftX];
+  const srcY: number[] = [corners.topLeftY, corners.topRightY, corners.bottomRightY, corners.bottomLeftY];
+  const dstX: number[] = [0, outSize - 1, outSize - 1, 0];
+  const dstY: number[] = [0, 0, outSize - 1, outSize - 1];
+  const A: number[][] = [];
+  const bVec: number[] = [];
+  for (let i: number = 0; i < 4; i++) {
+    A.push([dstX[i], dstY[i], 1, 0, 0, 0, -srcX[i] * dstX[i], -srcX[i] * dstY[i]]);
+    bVec.push(srcX[i]);
+    A.push([0, 0, 0, dstX[i], dstY[i], 1, -srcY[i] * dstX[i], -srcY[i] * dstY[i]]);
+    bVec.push(srcY[i]);
+  }
+  const n: number = 8;
+  for (let col: number = 0; col < n; col++) {
+    let maxRow: number = col;
+    let maxVal: number = Math.abs(A[col][col]);
+    for (let row: number = col + 1; row < n; row++) {
+      if (Math.abs(A[row][col]) > maxVal) { maxVal = Math.abs(A[row][col]); maxRow = row; }
+    }
+    const tmpA: number[] = A[col]; A[col] = A[maxRow]; A[maxRow] = tmpA;
+    const tmpB: number = bVec[col]; bVec[col] = bVec[maxRow]; bVec[maxRow] = tmpB;
+    const pivot: number = A[col][col];
+    if (Math.abs(pivot) < 1e-12) { break; }
+    for (let j: number = col; j < n; j++) { A[col][j] /= pivot; }
+    bVec[col] /= pivot;
+    for (let row: number = 0; row < n; row++) {
+      if (row === col) { continue; }
+      const factor: number = A[row][col];
+      for (let j: number = col; j < n; j++) { A[row][j] -= factor * A[col][j]; }
+      bVec[row] -= factor * bVec[col];
+    }
+  }
+  const h: number[] = bVec;
+  for (let oy: number = 0; oy < outSize; oy++) {
+    for (let ox: number = 0; ox < outSize; ox++) {
+      const denom: number = h[6] * ox + h[7] * oy + 1;
+      if (Math.abs(denom) < 1e-8) { out[oy * outSize + ox] = 128; continue; }
+      const sx: number = (h[0] * ox + h[1] * oy + h[2]) / denom;
+      const sy: number = (h[3] * ox + h[4] * oy + h[5]) / denom;
+      const ix: number = Math.floor(sx);
+      const iy: number = Math.floor(sy);
+      const fx: number = sx - ix;
+      const fy: number = sy - iy;
+      if (ix >= 0 && ix + 1 < W && iy >= 0 && iy + 1 < H) {
+        const v00: number = gray[iy * W + ix];
+        const v10: number = gray[iy * W + ix + 1];
+        const v01: number = gray[(iy + 1) * W + ix];
+        const v11: number = gray[(iy + 1) * W + ix + 1];
+        out[oy * outSize + ox] = v00 * (1 - fx) * (1 - fy) + v10 * fx * (1 - fy) + v01 * (1 - fx) * fy + v11 * fx * fy;
+      } else {
+        const cx: number = Math.round(sx);
+        const cy: number = Math.round(sy);
+        if (cx >= 0 && cx < W && cy >= 0 && cy < H) {
+          out[oy * outSize + ox] = gray[cy * W + cx];
+        } else {
+          out[oy * outSize + ox] = bg;
+        }
+      }
+    }
+  }
+  return out;
+}
+
 export function findBoardBBox(pixels: Uint8Array, width: number, height: number, bg: number): BoardBBox {
   const isDark: boolean = bg < 128;
   const gray: Float32Array = toGrayArray(pixels, width, height);
@@ -825,6 +1160,32 @@ export function cellSigFromGray(
 
   const bw: number = bmaxX - bminX + 1;
   const bh: number = bmaxY - bminY + 1;
+
+  const sauvBinary: Float32Array | null = sauvolaThreshold(gray, width, H, bminX, bminY, bw, bh, isDark);
+  if (sauvBinary !== null) {
+    const sauvSig: number[] = new Array<number>(SIG_LEN).fill(0);
+    for (let r: number = 0; r < SIG_ROWS; r++) {
+      for (let c: number = 0; c < SIG_COLS; c++) {
+        const sx0: number = Math.floor(bw * c / SIG_COLS);
+        const sx1: number = Math.floor(bw * (c + 1) / SIG_COLS);
+        const sy0: number = Math.floor(bh * r / SIG_ROWS);
+        const sy1: number = Math.floor(bh * (r + 1) / SIG_ROWS);
+        let s: number = 0;
+        let n: number = 0;
+        for (let ly: number = sy0; ly < sy1; ly++) {
+          for (let lx: number = sx0; lx < sx1; lx++) {
+            s += sauvBinary[ly * bw + lx];
+            n++;
+          }
+        }
+        sauvSig[r * SIG_COLS + c] = (n > 0 && s / n > 0.5) ? 1 : 0;
+      }
+    }
+    const sauvInk: number = countInk(sauvSig);
+    if (sauvInk >= 6 && sauvInk <= 90) {
+      return sauvSig;
+    }
+  }
 
   const sig: number[] = new Array<number>(SIG_LEN).fill(0);
   for (let r: number = 0; r < SIG_ROWS; r++) {
