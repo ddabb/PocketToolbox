@@ -147,7 +147,7 @@ struct Index {
     this.creativeTools = [
       new ToolItem('word_cloud', '词云生成', '粘贴文本，30秒出图', '', '#8b5cf6', 'WordCloudPage'),
       new ToolItem('md2png', '文字转图片', 'Markdown文本生成图片', '', '#9b59b6', 'Md2PngPage'),
-      new ToolItem('sudoku_solver', '数独求解', '拍照识别，DLX算法秒解', '', '#6366f1', 'SudokuSolverPage')
+      new ToolItem('sudoku_solver', '数独求解', '拍照识别，DLX算法秒解', 'creative_sudoku', '#6366f1', 'SudokuSolverPage')
     ];
   }
 
@@ -652,10 +652,14 @@ struct Index {
             } else if (tool.id === 'md2png') {
               Text('\uD83D\uDDBC\uFE0F')
                 .fontSize(24)
-            } else {
-              Image($r('app.media.unit_sudoku'))
+            } else if (tool.icon) {
+              Image($r('app.media.' + tool.icon))
                 .width(48)
                 .height(48)
+                .borderRadius(12)
+            } else {
+              Text('\u2753')
+                .fontSize(24)
             }
           }
           .width(56)

@@ -32,10 +32,259 @@ export interface HoughLine {
   theta: number;
   votes: number;
 }
-export const SIG_ROWS: number = 12;
 
-export const SIG_COLS: number = 8;
+export interface GridLines {
+  hLines: number[];
+  vLines: number[];
+}
+export const SIG_ROWS: number = 28;
+
+export const SIG_COLS: number = 20;
 const SIG_LEN: number = SIG_ROWS * SIG_COLS;
+
+// --- Tunable constants for pixel-level digit recognition ---
+
+// Ink ratio bounds: a valid digit signature must have ink ratio between
+// MIN_INK_RATIO and MAX_INK_RATIO. Too little ink = noise; too much = smudge.
+const MIN_INK_RATIO: number = 0.25;
+const MAX_INK_RATIO: number = 0.75;
+const MIN_INK_COUNT: number = Math.floor(SIG_LEN * MIN_INK_RATIO);
+const MAX_INK_COUNT: number = Math.floor(SIG_LEN * MAX_INK_RATIO);
+
+// Minimum template-match score (out of SIG_LEN) for a digit to be accepted.
+// SIG_LEN * 0.65 ≈ 364 of 560 pixels must match template.
+const MIN_DIGIT_SCORE: number = Math.floor(SIG_LEN * 0.65);
+
+// Ink detection threshold: a pixel is "ink" if its gray value differs from
+// the background by at least INK_THRESH. Lower = more sensitive to faint ink;
+// higher = more selective, avoids noise.
+const INK_THRESH: number = 50;
+
+// Sauvola adaptive thresholding parameters:
+//   k controls sensitivity to local variance (0.2 = moderate).
+//   R is the dynamic range of standard deviation (128 for 8-bit images).
+const SAUVOLA_K: number = 0.2;
+const SAUVOLA_R: number = 128;
+
+// Cell margin: when extracting a cell signature, skip the outer 8% of cell
+// width/height on each side to avoid grid-line pixels bleeding in.
+const CELL_MARGIN_RATIO: number = 0.08;
+
+// Minimum ink ratio (relative to cell area) for a cell to be considered
+// occupied. Cells with ink ratio below this are treated as empty.
+const MIN_CELL_INK_RATIO: number = 0.04;
+
+// Otsu fallback: reject the Otsu threshold if it is too close to the
+// background value (within OTSU_BG_MIN_DIFF gray levels).
+const OTSU_BG_MIN_DIFF: number = 12;
+
+// Otsu fallback: minimum number of pixels in the bounding box to compute
+// a meaningful Otsu threshold.
+const OTSU_MIN_PIXELS: number = 30;
+
+// Background color sampling: use at most BG_SAMPLE_COUNT pixels (sampled
+// uniformly) to build the histogram. Prevents slow histogram on large images.
+const BG_SAMPLE_COUNT: number = 20000;
+
+// Board detection: minimum dimension (px) for a detected bounding box
+// to be considered valid. Smaller regions are ignored.
+const MIN_BOARD_DIM: number = 10;
+
+// Board detection: reject bounding boxes whose aspect ratio is outside
+// [MIN_BOARD_ASPECT, MAX_BOARD_ASPECT]. A valid Sudoku board is roughly square.
+const MIN_BOARD_ASPECT: number = 0.3;
+const MAX_BOARD_ASPECT: number = 3.0;
+
+// Board detection: reject bounding boxes whose area exceeds this fraction
+// of the total image area (likely a degenerate full-image detection).
+const MAX_BOARD_AREA_RATIO: number = 0.88;
+
+// Board detection: reject bounding boxes whose area is below this fraction
+// of the total image area (likely noise or a tiny artifact).
+const MIN_BOARD_AREA_RATIO: number = 0.02;
+
+// Board detection: minimum board dimension as fraction of image dimension
+// for the board to be considered valid.
+const MIN_BOARD_SIZE_FRAC: number = 0.1;
+
+// findBBoxAdaptive: contrast offsets tried when binarizing the image.
+// Larger values = stricter threshold = cleaner but possibly incomplete binary.
+const ADAPTIVE_CONTRASTS: number[] = [8, 12, 5];
+
+// findBBoxAdaptive: projection fraction thresholds tried to find ink regions.
+const ADAPTIVE_THRESHOLDS: number[] = [0.3, 0.25, 0.20, 0.15];
+
+// findBBoxAdaptive: peak detection threshold for periodic grid-line analysis.
+const ADAPTIVE_PEAK_THRESH: number = 0.10;
+
+// findBBoxConservative: delta offsets tried for global-threshold binarization.
+// Starts strict (delta=90) and relaxes progressively.
+const CONSERVATIVE_DELTAS: number[] = [90, 80, 70, 60, 50, 40];
+
+// findBBoxConservative: peak detection threshold for periodic grid-line analysis.
+const CONSERVATIVE_PEAK_THRESH: number = 0.05;
+
+// findBBoxConservative: minimum peak count to consider a valid grid.
+const CONSERVATIVE_MIN_PEAKS: number = 7;
+
+// findBBoxConservative: aspect ratio bounds for a valid board.
+const CONSERVATIVE_MIN_ASPECT: number = 0.45;
+const CONSERVATIVE_MAX_ASPECT: number = 2.2;
+
+// findBBoxConservative: minimum board dimension in pixels.
+const CONSERVATIVE_MIN_DIM: number = 20;
+
+// findBoxLongRun: minimum run length (px) for a horizontal/vertical stroke
+// to be considered a grid line. Shorter runs are likely noise (wood grain, etc).
+// Computed as max(20, imageMinDim * 0.10).
+const MINRUN_ABS_MIN: number = 20;
+const MINRUN_FRAC: number = 0.10;
+
+// findBoxLongRun: minimum number of kept pixels for a valid board detection.
+const LONGRUN_MIN_PIXELS: number = 50;
+
+// findBoxLongRun: aspect ratio bounds for a valid board.
+const LONGRUN_MIN_ASPECT: number = 0.5;
+const LONGRUN_MAX_ASPECT: number = 2.0;
+
+// Hough transform: edge magnitude threshold. Pixels with gradient below
+// this are skipped during voting.
+const HOUGH_EDGE_THRESH: number = 30;
+
+// Hough transform: number of theta (angle) bins in the accumulator.
+const HOUGH_THETA_STEPS: number = 180;
+
+// Hough transform: maximum pixels to sample for voting (performance control).
+const HOUGH_MAX_SAMPLES: number = 50000;
+
+// Hough transform: minimum votes for a line to be considered.
+const HOUGH_MIN_VOTES_DIVISOR: number = 50;
+
+// Hough transform: non-maximum suppression rho radius.
+const HOUGH_NMS_RHO_DIVISOR: number = 40;
+
+// Hough transform: non-maximum suppression theta radius (bins).
+const HOUGH_NMS_THETA_RADIUS: number = 3;
+
+// Hough transform: maximum number of lines returned after NMS.
+const HOUGH_MAX_LINES: number = 60;
+
+// Hough line angle tolerance (radians) for clustering lines as horizontal/vertical.
+const HOUGH_ANGLE_TOLERANCE: number = Math.PI / 18;
+
+// Board corner detection: minimum number of Hough lines required.
+const CORNER_MIN_LINES: number = 8;
+
+// Board corner detection: maximum number of candidate lines per side used
+// for intersection computation.
+const CORNER_MAX_SIDE_LINES: number = 5;
+
+// Board corner detection: minimum board size as fraction of image dimension.
+const CORNER_MIN_SIZE_FRAC: number = 0.08;
+
+// Board corner detection: diagonal ratio bounds (prevents degenerate quadrilaterals).
+const CORNER_MIN_DIAG_RATIO: number = 0.5;
+const CORNER_MAX_DIAG_RATIO: number = 2.0;
+
+// Board corner detection: confidence = min(horizCount, vertCount) / CORNER_CONFIDENCE_DIV.
+const CORNER_CONFIDENCE_DIV: number = 10;
+
+// Board corner detection: how far outside the image a corner can be (as fraction of dimension).
+const CORNER_OUT_OF_BOUNDS_FRAC: number = 0.1;
+
+// validateCellCentering: margin to exclude from centroid computation (as fraction of cell size).
+const CENTERING_MARGIN: number = 0.15;
+
+// validateCellCentering: minimum ink pixels needed to judge centering.
+const CENTERING_MIN_INK: number = 5;
+
+// validateCellCentering: maximum centroid offset (as fraction of cell size) for valid centering.
+const CENTERING_MAX_OFFSET: number = 0.25;
+
+// Hough line detection (findBoardByHoughLines): minimum number of horizontal
+// and vertical lines required for board detection.
+const HOUGH_BOARD_MIN_HORIZ: number = 4;
+const HOUGH_BOARD_MIN_VERT: number = 4;
+
+// findPeriodicPeaks: minimum number of peaks for a valid periodic pattern.
+const PERIODIC_MIN_PEAKS: number = 5;
+
+// findPreciseGridLines: smoothing window radius as fraction of profile length.
+const GRID_LINE_SMOOTH_DIV: number = 60;
+
+// findPreciseGridLines: minimum max-ink-fraction for profile to be usable.
+const GRID_LINE_MIN_MAX_FRAC: number = 0.05;
+
+// findPreciseGridLines: peak threshold as fraction of smoothed max.
+const GRID_LINE_PEAK_THRESH_FRAC: number = 0.3;
+
+// findPreciseGridLines: spacing tolerance as fraction of ideal spacing.
+const GRID_LINE_SPACING_TOLERANCE: number = 0.3;
+
+// Recognize digit 6/9 disambiguation voting weights.
+const DISAMBIG_HOLE_WEIGHT: number = 3;
+const DISAMBIG_CENTROID_WEIGHT: number = 2;
+const DISAMBIG_TOP_RATIO_WEIGHT: number = 2;
+const DISAMBIG_HOG_WEIGHT: number = 1;
+const DISAMBIG_SW_WEIGHT: number = 1;
+const DISAMBIG_SCORE_WEIGHT: number = 1;
+
+// Recognize digit: template scoring formula penalty multiplier for mismatches.
+const TEMPLATE_MISMATCH_PENALTY: number = 0.5;
+
+// Recognize digit: F1 score weight in template scoring formula.
+const TEMPLATE_F1_WEIGHT: number = 200;
+
+// findBoardBBox: projection ink-fraction thresholds for primary detection.
+const BBOX_PRIMARY_THRESH: number = 0.3;
+const BBOX_PRIMARY_MIN_FRAC: number = 0.3;
+
+// findBoardBBox: relaxed thresholds tried when primary fails.
+const BBOX_RELAXED_THRESHOLDS: number[] = [0.20, 0.15];
+const BBOX_RELAXED_MIN_FRAC: number = 0.15;
+
+// findBoardBBox: sub-region search thresholds.
+const BBOX_REGION_THRESHOLDS: number[] = [0.30, 0.20, 0.15];
+const BBOX_REGION_MIN_FRAC: number = 0.10;
+
+// findBoardBBox: sub-region definitions (as fractions of image dimensions).
+const BBOX_REGIONS: number[][] = [
+  [0, 0, 0.6, 0.6],
+  [0.4, 0, 1.0, 0.6],
+  [0, 0.4, 0.6, 1.0],
+  [0.4, 0.4, 1.0, 1.0],
+  [0.15, 0.15, 0.85, 0.85],
+];
+
+// findBoardBBox: extra regions for portrait images (height > width * 1.3).
+const BBOX_PORTRAIT_REGIONS: number[][] = [
+  [0, 0, 1.0, 0.5],
+  [0, 0.1, 1.0, 0.6],
+  [0.1, 0, 0.9, 0.45],
+];
+
+// findBoardBBox: extra regions for landscape images (width > height * 1.3).
+const BBOX_LANDSCAPE_REGIONS: number[][] = [
+  [0, 0, 0.5, 1.0],
+  [0.1, 0, 0.6, 1.0],
+  [0, 0.1, 0.45, 0.9],
+];
+
+// findBoardBBox: aspect ratio for triggering portrait/landscape extra regions.
+const PORTRAIT_ASPECT_THRESHOLD: number = 1.3;
+
+// Sauvola threshold: minimum cell dimension for computing adaptive threshold.
+const SAUVOLA_MIN_DIM: number = 4;
+
+// Background sampling step divisor for warped image background estimation.
+const WARP_BG_SAMPLE_DIV: number = 20000;
+
+// Hole detection: reject if second-largest hole component > this fraction of largest.
+const HOLE_SECOND_RATIO: number = 0.6;
+
+// Background brightness threshold: if bgColor < 128, treat image as dark-mode
+// (light ink on dark background), otherwise dark ink on light background.
+const BG_DARK_THRESHOLD: number = 128;
 
 interface DigitTemplateEntry {
   digit: number;
@@ -52,6 +301,7 @@ interface DigitTemplateFile {
 let g_templates: DigitTemplate[] = [];
 let g_holeRows: number[] = [];
 let g_loaded: boolean = false;
+let g_lastConfidence: number = 0;
 
 export function holeCenterRow(sig: number[]): number {
   const ROWS: number = SIG_ROWS;
@@ -103,7 +353,7 @@ export function holeCenterRow(sig: number[]): number {
   }
   if (components.length === 0) { return -1; }
   components.sort((a: number[], b: number[]) => b.length - a.length);
-  if (components.length >= 2 && components[1].length > components[0].length * 0.6) {
+  if (components.length >= 2 && components[1].length > components[0].length * HOLE_SECOND_RATIO) {
     return -1;
   }
   let sumRow: number = 0;
@@ -179,8 +429,6 @@ export function countInk(sig: number[]): number {
   return cnt;
 }
 
-const INK_THRESH: number = 50;
-
 export function isInkPixel(g: number, bg: number, isDark: boolean): boolean {
   if (isDark) { return g > bg + INK_THRESH; }
   return g < bg - INK_THRESH;
@@ -191,8 +439,8 @@ export function sauvolaThreshold(
   cx0: number, cy0: number, cw: number, ch: number,
   isDark: boolean
 ): Float32Array | null {
-  const k: number = 0.2;
-  const R: number = 128;
+  const k: number = SAUVOLA_K;
+  const R: number = SAUVOLA_R;
   const halfWin: number = Math.max(2, Math.floor(Math.min(cw, ch) / 4));
   const x0: number = Math.floor(cx0);
   const y0: number = Math.floor(cy0);
@@ -200,7 +448,7 @@ export function sauvolaThreshold(
   const y1: number = Math.floor(cy0 + ch);
   const w: number = x1 - x0;
   const h: number = y1 - y0;
-  if (w < 4 || h < 4) { return null; }
+  if (w < SAUVOLA_MIN_DIM || h < SAUVOLA_MIN_DIM) { return null; }
 
   const sumBuf: Float32Array = new Float32Array(w * h);
   const sqBuf: Float32Array = new Float32Array(w * h);
@@ -272,7 +520,7 @@ export function otsuThreshold(hist: number[], total: number): number {
 export function bgColor(pixels: Uint8Array, width: number, height: number): number {
   const hist: number[] = new Array<number>(256).fill(0);
   const total: number = width * height;
-  const step: number = Math.max(1, Math.floor(total / 20000));
+  const step: number = Math.max(1, Math.floor(total / BG_SAMPLE_COUNT));
   for (let i: number = 0; i < total; i += step) {
     const g: number = 0.299 * pixels[i * 4] +
       0.587 * pixels[i * 4 + 1] +
@@ -445,7 +693,7 @@ function findBBoxFromProjections(
   }
   const bw: number = maxX - minX + 1;
   const bh: number = maxY - minY + 1;
-  if (bw < 10 || bh < 10) { return null; }
+  if (bw < MIN_BOARD_DIM || bh < MIN_BOARD_DIM) { return null; }
   return { left: minX + rx0, top: minY + ry0, right: maxX + rx0, bottom: maxY + ry0, isDark };
 }
 
@@ -457,7 +705,7 @@ function findBBoxInRectGray(
 ): BoardBBox | null {
   const rw: number = rx1 - rx0;
   const rh: number = ry1 - ry0;
-  if (rw < 10 || rh < 10) { return null; }
+  if (rw < MIN_BOARD_DIM || rh < MIN_BOARD_DIM) { return null; }
   const proj = computeProjectionsGray(gray, W, H, bg, isDark, INK_THRESH, rx0, ry0, rx1, ry1, 2);
   return findBBoxFromProjections(proj.colInk, proj.rowInk, proj.rw, proj.rh, rx0, ry0, threshold, minFrac, 2, isDark);
 }
@@ -470,7 +718,7 @@ function findBBoxInRect(
 ): BoardBBox | null {
   const rw: number = rx1 - rx0;
   const rh: number = ry1 - ry0;
-  if (rw < 10 || rh < 10) { return null; }
+  if (rw < MIN_BOARD_DIM || rh < MIN_BOARD_DIM) { return null; }
   const colInk: number[] = new Array<number>(rw).fill(0);
   const rowInk: number[] = new Array<number>(rh).fill(0);
   for (let x: number = 0; x < rw; x++) {
@@ -499,10 +747,10 @@ function findBBoxInRect(
 function isValidBoardAspect(bbox: BoardBBox, W: number, H: number): boolean {
   const bw: number = bbox.right - bbox.left;
   const bh: number = bbox.bottom - bbox.top;
-  if (bw < 10 || bh < 10) { return false; }
+  if (bw < MIN_BOARD_DIM || bh < MIN_BOARD_DIM) { return false; }
   const aspect: number = bw / bh;
-  if (aspect < 0.3 || aspect > 3.0) { return false; }
-  if (bw < W * 0.1 || bh < H * 0.1) { return false; }
+  if (aspect < MIN_BOARD_ASPECT || aspect > MAX_BOARD_ASPECT) { return false; }
+  if (bw < W * MIN_BOARD_SIZE_FRAC || bh < H * MIN_BOARD_SIZE_FRAC) { return false; }
   return true;
 }
 
@@ -516,7 +764,7 @@ function findPeriodicPeaks(frac: number[], threshold: number): number[] {
       i = end;
     }
   }
-  if (peaks.length < 5) { return peaks; }
+  if (peaks.length < PERIODIC_MIN_PEAKS) { return peaks; }
   let bestSpacing: number = 0;
   let bestConf: number = 0;
   const minSpacing: number = Math.max(3, Math.floor(frac.length / 15));
@@ -535,7 +783,7 @@ function findPeriodicPeaks(frac: number[], threshold: number): number[] {
         lastPeak = p;
       }
     }
-    if (count >= 5) {
+    if (count >= PERIODIC_MIN_PEAKS) {
       const avgDev: number = count > 0 ? sumDiff / count / sp : 1;
       const conf: number = count - avgDev * 2;
       if (conf > bestConf) { bestConf = conf; bestSpacing = sp; }
@@ -555,7 +803,7 @@ function findPeriodicPeaks(frac: number[], threshold: number): number[] {
         lastPeak = p;
       }
     }
-    if (selected.length >= 5) { return selected; }
+    if (selected.length >= PERIODIC_MIN_PEAKS) { return selected; }
   }
   let bestStart: number = 0;
   let bestCount: number = 0;
@@ -572,7 +820,7 @@ function findPeriodicPeaks(frac: number[], threshold: number): number[] {
     }
     if (count > bestCount) { bestCount = count; bestStart = i; }
   }
-  if (bestCount >= 5) { return peaks.slice(bestStart, bestStart + bestCount); }
+  if (bestCount >= PERIODIC_MIN_PEAKS) { return peaks.slice(bestStart, bestStart + bestCount); }
   return peaks;
 }
 
@@ -580,7 +828,7 @@ function findBBoxAdaptive(gray: Float32Array, W: number, H: number, isDark: bool
   const winR: number = Math.max(5, Math.floor(Math.min(W, H) / 25));
   const blurred: Float32Array = boxBlur(gray, W, H, winR);
 
-  for (const C of [8, 12, 5]) {
+  for (const C of ADAPTIVE_CONTRASTS) {
     let binary: Uint8Array = new Uint8Array(W * H);
     for (let i: number = 0; i < W * H; i++) {
       if (isDark) {
@@ -611,7 +859,7 @@ function findBBoxAdaptive(gray: Float32Array, W: number, H: number, isDark: bool
     const colFrac: number[] = colInk.map((c: number) => c / (H / 2));
     const rowFrac: number[] = rowInk.map((c: number) => c / (W / 2));
 
-    for (const thresh of [0.3, 0.25, 0.20, 0.15]) {
+    for (const thresh of ADAPTIVE_THRESHOLDS) {
       let minX: number = W;
       let maxX: number = 0;
       let minY: number = H;
@@ -625,15 +873,15 @@ function findBBoxAdaptive(gray: Float32Array, W: number, H: number, isDark: bool
       }
       if (found) {
         const bbox: BoardBBox = { left: minX, top: minY, right: maxX, bottom: maxY, isDark };
-        if (isValidBoardAspect(bbox, W, H) && maxX - minX >= W * 0.1 && maxY - minY >= H * 0.1) {
+        if (isValidBoardAspect(bbox, W, H) && maxX - minX >= W * MIN_BOARD_SIZE_FRAC && maxY - minY >= H * MIN_BOARD_SIZE_FRAC) {
           return bbox;
         }
       }
     }
 
-    const colPeaks: number[] = findPeriodicPeaks(colFrac, 0.10);
-    const rowPeaks: number[] = findPeriodicPeaks(rowFrac, 0.10);
-    if (colPeaks.length >= 5 && rowPeaks.length >= 5) {
+    const colPeaks: number[] = findPeriodicPeaks(colFrac, ADAPTIVE_PEAK_THRESH);
+    const rowPeaks: number[] = findPeriodicPeaks(rowFrac, ADAPTIVE_PEAK_THRESH);
+    if (colPeaks.length >= PERIODIC_MIN_PEAKS && rowPeaks.length >= PERIODIC_MIN_PEAKS) {
       const bbox: BoardBBox = {
         left: colPeaks[0], top: rowPeaks[0],
         right: colPeaks[colPeaks.length - 1], bottom: rowPeaks[rowPeaks.length - 1], isDark
@@ -652,7 +900,7 @@ function findBBoxConservative(
   // 全局阈值策略：直接用 bg 值做全局二值化，保留细网格线（不使用形态学开运算，
   // 因为开运算会擦除 1-2px 宽的网格线）。然后通过周期性峰检测定位棋盘。
   // 从大 delta 开始（严格阈值→干净二值图），逐步放宽。
-  for (const delta of [90, 80, 70, 60, 50, 40]) {
+  for (const delta of CONSERVATIVE_DELTAS) {
     const thr: number = isDark ? bg + delta : bg - delta;
     const binary: Uint8Array = new Uint8Array(W * H);
     for (let i: number = 0; i < W * H; i++) {
@@ -681,11 +929,10 @@ function findBBoxConservative(
     const rowFrac: number[] = rowInk.map((c: number) => c / (W / 2));
 
     // 周期性峰检测：数独棋盘有 9 个等间距格子 → 10 条网格线 → 投影上出现周期性峰
-    const colPeaks: number[] = findPeriodicPeaks(colFrac, 0.05);
-    const rowPeaks: number[] = findPeriodicPeaks(rowFrac, 0.05);
+    const colPeaks: number[] = findPeriodicPeaks(colFrac, CONSERVATIVE_PEAK_THRESH);
+    const rowPeaks: number[] = findPeriodicPeaks(rowFrac, CONSERVATIVE_PEAK_THRESH);
 
-    // 数独棋盘应有接近 10 条网格线（9 格子）→ 峰数应在 7~14 范围
-    if (colPeaks.length >= 7 && rowPeaks.length >= 7) {
+    if (colPeaks.length >= CONSERVATIVE_MIN_PEAKS && rowPeaks.length >= CONSERVATIVE_MIN_PEAKS) {
       const bbox: BoardBBox = {
         left: colPeaks[0], top: rowPeaks[0],
         right: colPeaks[colPeaks.length - 1], bottom: rowPeaks[rowPeaks.length - 1],
@@ -693,11 +940,11 @@ function findBBoxConservative(
       };
       const bw: number = bbox.right - bbox.left + 1;
       const bh: number = bbox.bottom - bbox.top + 1;
-      if (bw < 20 || bh < 20) { continue; }
+      if (bw < CONSERVATIVE_MIN_DIM || bh < CONSERVATIVE_MIN_DIM) { continue; }
       const aspect: number = bw / bh;
-      if (aspect < 0.45 || aspect > 2.2) { continue; }
+      if (aspect < CONSERVATIVE_MIN_ASPECT || aspect > CONSERVATIVE_MAX_ASPECT) { continue; }
       const areaRatio: number = (bw * bh) / (W * H);
-      if (areaRatio > 0.88) { continue; }  // 拒绝退化到全图
+      if (areaRatio > MAX_BOARD_AREA_RATIO) { continue; }
       return bbox;
     }
   }
@@ -710,7 +957,7 @@ function findBBoxConservative(
 // 对"严格阈值二值图"做长行程(run-length)过滤并排除贴图像边缘的行程，
 // 仅保留属于长水平/垂直笔画的像素，其包围盒即为棋盘。
 // 该方法对 photos.jpg（浅木纹桌面 + 顶部阴影）这类复杂背景鲁棒。
-function findBoxLongRun(
+export function findBoxLongRun(
   gray: Float32Array, W: number, H: number, isDark: boolean, bg: number
 ): BoardBBox | null {
   const abs: number = isDark ? Math.max(150, bg + 60) : Math.min(80, bg - 60);
@@ -719,7 +966,7 @@ function findBoxLongRun(
     ink[i] = isDark ? (gray[i] > abs ? 1 : 0) : (gray[i] < abs ? 1 : 0);
   }
   const keep: Uint8Array = new Uint8Array(W * H);
-  const MINRUN: number = Math.max(20, Math.floor(Math.min(W, H) * 0.10));
+  const MINRUN: number = Math.max(MINRUN_ABS_MIN, Math.floor(Math.min(W, H) * MINRUN_FRAC));
   // 水平长行程（跳过贴图像边缘的行程 → 排除边缘木纹/暗角）
   for (let y: number = 0; y < H; y++) {
     let run: number = 0;
@@ -764,19 +1011,19 @@ function findBoxLongRun(
       }
     }
   }
-  if (n < 50) { return null; }
+  if (n < LONGRUN_MIN_PIXELS) { return null; }
   const bw: number = maxX - minX + 1;
   const bh: number = maxY - minY + 1;
-  if (bw < 20 || bh < 20) { return null; }
+  if (bw < CONSERVATIVE_MIN_DIM || bh < CONSERVATIVE_MIN_DIM) { return null; }
   const aspect: number = bw / bh;
-  if (aspect < 0.5 || aspect > 2.0) { return null; }
+  if (aspect < LONGRUN_MIN_ASPECT || aspect > LONGRUN_MAX_ASPECT) { return null; }
   const areaRatio: number = (bw * bh) / (W * H);
-  if (areaRatio < 0.02 || areaRatio > 0.85) { return null; }
+  if (areaRatio < MIN_BOARD_AREA_RATIO || areaRatio > MAX_BOARD_AREA_RATIO - 0.03) { return null; }
   return { left: minX, top: minY, right: maxX, bottom: maxY, isDark };
 }
 
 function houghLines(gray: Float32Array, W: number, H: number, isDark: boolean, bg: number): HoughLine[] {
-  const edgeThresh: number = 30;
+  const edgeThresh: number = HOUGH_EDGE_THRESH;
   const dx: Float32Array = new Float32Array(W * H);
   const dy: Float32Array = new Float32Array(W * H);
   const mag: Float32Array = new Float32Array(W * H);
@@ -793,7 +1040,7 @@ function houghLines(gray: Float32Array, W: number, H: number, isDark: boolean, b
     }
   }
   const diagonal: number = Math.floor(Math.sqrt(W * W + H * H));
-  const thetaSteps: number = 180;
+  const thetaSteps: number = HOUGH_THETA_STEPS;
   const accSize: number = (diagonal * 2 + 1) * thetaSteps;
   const acc: number[] = new Array<number>(accSize).fill(0);
   const cosLut: number[] = new Array<number>(thetaSteps);
@@ -803,7 +1050,7 @@ function houghLines(gray: Float32Array, W: number, H: number, isDark: boolean, b
     cosLut[t] = Math.cos(rad);
     sinLut[t] = Math.sin(rad);
   }
-  const step: number = Math.max(1, Math.floor(W * H / 50000));
+  const step: number = Math.max(1, Math.floor(W * H / HOUGH_MAX_SAMPLES));
   for (let y: number = 2; y < H - 2; y += step) {
     for (let x: number = 2; x < W - 2; x += step) {
       const idx: number = y * W + x;
@@ -816,16 +1063,16 @@ function houghLines(gray: Float32Array, W: number, H: number, isDark: boolean, b
       }
     }
   }
-  const threshold: number = Math.max(8, Math.floor(Math.min(W, H) / 50));
+  const threshold: number = Math.max(8, Math.floor(Math.min(W, H) / HOUGH_MIN_VOTES_DIVISOR));
   const lines: HoughLine[] = [];
-  const nmsRho: number = Math.max(5, Math.floor(diagonal / 40));
+  const nmsRho: number = Math.max(5, Math.floor(diagonal / HOUGH_NMS_RHO_DIVISOR));
   for (let rho: number = 1; rho < diagonal * 2; rho++) {
     for (let t: number = 0; t < thetaSteps; t++) {
       const val: number = acc[rho * thetaSteps + t];
       if (val < threshold) { continue; }
       let isMax: boolean = true;
       for (let dr: number = -nmsRho; dr <= nmsRho && isMax; dr++) {
-        for (let dt: number = -3; dt <= 3 && isMax; dt++) {
+        for (let dt: number = -HOUGH_NMS_THETA_RADIUS; dt <= HOUGH_NMS_THETA_RADIUS && isMax; dt++) {
           if (dr === 0 && dt === 0) { continue; }
           const nr: number = rho + dr;
           const nt: number = (t + dt + thetaSteps) % thetaSteps;
@@ -840,7 +1087,7 @@ function houghLines(gray: Float32Array, W: number, H: number, isDark: boolean, b
     }
   }
   lines.sort((a: HoughLine, b: HoughLine) => b.votes - a.votes);
-  return lines.slice(0, Math.min(lines.length, 60));
+  return lines.slice(0, Math.min(lines.length, HOUGH_MAX_LINES));
 }
 
 function lineIntersection(r1: number, t1: number, r2: number, t2: number): [number, number] | null {
@@ -868,19 +1115,19 @@ function clusterLinesByAngle(lines: HoughLine[], targetAngle: number, tolerance:
 
 export function detectBoardCorners(gray: Float32Array, W: number, H: number, isDark: boolean, bg: number): BoardCorners | null {
   const lines: HoughLine[] = houghLines(gray, W, H, isDark, bg);
-  if (lines.length < 8) { return null; }
-  const horizLines: HoughLine[] = clusterLinesByAngle(lines, Math.PI / 2, Math.PI / 18);
-  const vertLines: HoughLine[] = clusterLinesByAngle(lines, 0, Math.PI / 18);
+  if (lines.length < CORNER_MIN_LINES) { return null; }
+  const horizLines: HoughLine[] = clusterLinesByAngle(lines, Math.PI / 2, HOUGH_ANGLE_TOLERANCE);
+  const vertLines: HoughLine[] = clusterLinesByAngle(lines, 0, HOUGH_ANGLE_TOLERANCE);
   if (horizLines.length < 2 || vertLines.length < 2) { return null; }
-  const topLines: HoughLine[] = horizLines.slice(0, Math.min(horizLines.length, 5));
-  const bottomLines: HoughLine[] = horizLines.slice(Math.max(0, horizLines.length - 5));
-  const leftLines: HoughLine[] = vertLines.slice(0, Math.min(vertLines.length, 5));
-  const rightLines: HoughLine[] = vertLines.slice(Math.max(0, vertLines.length - 5));
+  const topLines: HoughLine[] = horizLines.slice(0, Math.min(horizLines.length, CORNER_MAX_SIDE_LINES));
+  const bottomLines: HoughLine[] = horizLines.slice(Math.max(0, horizLines.length - CORNER_MAX_SIDE_LINES));
+  const leftLines: HoughLine[] = vertLines.slice(0, Math.min(vertLines.length, CORNER_MAX_SIDE_LINES));
+  const rightLines: HoughLine[] = vertLines.slice(Math.max(0, vertLines.length - CORNER_MAX_SIDE_LINES));
   const candidates: Array<[number, number]> = [];
   for (const h of topLines) {
     for (const v of leftLines) {
       const pt: [number, number] | null = lineIntersection(h.rho, h.theta, v.rho, v.theta);
-      if (pt !== null && pt[0] >= -W * 0.1 && pt[0] < W * 1.1 && pt[1] >= -H * 0.1 && pt[1] < H * 1.1) {
+      if (pt !== null && pt[0] >= -W * CORNER_OUT_OF_BOUNDS_FRAC && pt[0] < W * (1 + CORNER_OUT_OF_BOUNDS_FRAC) && pt[1] >= -H * CORNER_OUT_OF_BOUNDS_FRAC && pt[1] < H * (1 + CORNER_OUT_OF_BOUNDS_FRAC)) {
         candidates.push(pt);
       }
     }
@@ -896,7 +1143,7 @@ export function detectBoardCorners(gray: Float32Array, W: number, H: number, isD
   for (const h of topLines) {
     for (const v of rightLines) {
       const pt: [number, number] | null = lineIntersection(h.rho, h.theta, v.rho, v.theta);
-      if (pt !== null && pt[0] >= -W * 0.1 && pt[0] < W * 1.1 && pt[1] >= -H * 0.1 && pt[1] < H * 1.1) {
+      if (pt !== null && pt[0] >= -W * CORNER_OUT_OF_BOUNDS_FRAC && pt[0] < W * (1 + CORNER_OUT_OF_BOUNDS_FRAC) && pt[1] >= -H * CORNER_OUT_OF_BOUNDS_FRAC && pt[1] < H * (1 + CORNER_OUT_OF_BOUNDS_FRAC)) {
         trCandidates.push(pt);
       }
     }
@@ -912,7 +1159,7 @@ export function detectBoardCorners(gray: Float32Array, W: number, H: number, isD
   for (const h of bottomLines) {
     for (const v of rightLines) {
       const pt: [number, number] | null = lineIntersection(h.rho, h.theta, v.rho, v.theta);
-      if (pt !== null && pt[0] >= -W * 0.1 && pt[0] < W * 1.1 && pt[1] >= -H * 0.1 && pt[1] < H * 1.1) {
+      if (pt !== null && pt[0] >= -W * CORNER_OUT_OF_BOUNDS_FRAC && pt[0] < W * (1 + CORNER_OUT_OF_BOUNDS_FRAC) && pt[1] >= -H * CORNER_OUT_OF_BOUNDS_FRAC && pt[1] < H * (1 + CORNER_OUT_OF_BOUNDS_FRAC)) {
         brCandidates.push(pt);
       }
     }
@@ -928,7 +1175,7 @@ export function detectBoardCorners(gray: Float32Array, W: number, H: number, isD
   for (const h of bottomLines) {
     for (const v of leftLines) {
       const pt: [number, number] | null = lineIntersection(h.rho, h.theta, v.rho, v.theta);
-      if (pt !== null && pt[0] >= -W * 0.1 && pt[0] < W * 1.1 && pt[1] >= -H * 0.1 && pt[1] < H * 1.1) {
+      if (pt !== null && pt[0] >= -W * CORNER_OUT_OF_BOUNDS_FRAC && pt[0] < W * (1 + CORNER_OUT_OF_BOUNDS_FRAC) && pt[1] >= -H * CORNER_OUT_OF_BOUNDS_FRAC && pt[1] < H * (1 + CORNER_OUT_OF_BOUNDS_FRAC)) {
         blCandidates.push(pt);
       }
     }
@@ -942,16 +1189,16 @@ export function detectBoardCorners(gray: Float32Array, W: number, H: number, isD
   }
   const boardW: number = (trX - tlX + brX - blX) / 2;
   const boardH: number = (blY - tlY + brY - trY) / 2;
-  if (boardW < W * 0.08 || boardH < H * 0.08) { return null; }
+  if (boardW < W * CORNER_MIN_SIZE_FRAC || boardH < H * CORNER_MIN_SIZE_FRAC) { return null; }
   const aspect: number = boardW / boardH;
-  if (aspect < 0.3 || aspect > 3.0) { return null; }
+  if (aspect < MIN_BOARD_ASPECT || aspect > MAX_BOARD_ASPECT) { return null; }
   const area: number = boardW * boardH;
-  if (area > W * H * 0.88 || area < W * H * 0.02) { return null; }
+  if (area > W * H * MAX_BOARD_AREA_RATIO || area < W * H * MIN_BOARD_AREA_RATIO) { return null; }
   const diag1Sq: number = (trX - blX) * (trX - blX) + (trY - blY) * (trY - blY);
   const diag2Sq: number = (tlX - brX) * (tlX - brX) + (tlY - brY) * (tlY - brY);
   const diagRatio: number = Math.sqrt(diag1Sq) / (Math.sqrt(diag2Sq) + 0.01);
-  if (diagRatio < 0.5 || diagRatio > 2.0) { return null; }
-  const confidence: number = Math.min(horizLines.length, vertLines.length) / 10;
+  if (diagRatio < CORNER_MIN_DIAG_RATIO || diagRatio > CORNER_MAX_DIAG_RATIO) { return null; }
+  const confidence: number = Math.min(horizLines.length, vertLines.length) / CORNER_CONFIDENCE_DIV;
   return {
     topLeftX: tlX, topLeftY: tlY,
     topRightX: trX, topRightY: trY,
@@ -1032,11 +1279,11 @@ export function warpPerspectiveGray(
 
 function findBoardByHoughLines(gray: Float32Array, W: number, H: number, isDark: boolean, bg: number): BoardBBox | null {
   const lines: HoughLine[] = houghLines(gray, W, H, isDark, bg);
-  if (lines.length < 4) { return null; }
+  if (lines.length < HOUGH_BOARD_MIN_HORIZ) { return null; }
 
-  const horizLines: HoughLine[] = clusterLinesByAngle(lines, Math.PI / 2, Math.PI / 18);
-  const vertLines: HoughLine[] = clusterLinesByAngle(lines, 0, Math.PI / 18);
-  if (horizLines.length < 4 || vertLines.length < 4) { return null; }
+  const horizLines: HoughLine[] = clusterLinesByAngle(lines, Math.PI / 2, HOUGH_ANGLE_TOLERANCE);
+  const vertLines: HoughLine[] = clusterLinesByAngle(lines, 0, HOUGH_ANGLE_TOLERANCE);
+  if (horizLines.length < HOUGH_BOARD_MIN_HORIZ || vertLines.length < HOUGH_BOARD_MIN_VERT) { return null; }
 
   horizLines.sort((a: HoughLine, b: HoughLine) => a.rho - b.rho);
   vertLines.sort((a: HoughLine, b: HoughLine) => a.rho - b.rho);
@@ -1146,65 +1393,67 @@ function findBoardByHoughLines(gray: Float32Array, W: number, H: number, isDark:
 }
 
 export function findBoardBBox(pixels: Uint8Array, width: number, height: number, bg: number): BoardBBox {
-  const isDark: boolean = bg < 128;
+  const isDark: boolean = bg < BG_DARK_THRESHOLD;
   const gray: Float32Array = toGrayArray(pixels, width, height);
   const imgArea: number = width * height;
 
-  // 长行程检测优先：对木纹/阴影等复杂背景鲁棒，能稳定定位棋盘（如 photos.jpg）。
-  // 若找到合法的方形棋盘包围盒则直接返回，避免后续区域搜索返回退化包围盒。
   const longRun: BoardBBox | null = findBoxLongRun(gray, width, height, isDark, bg);
   if (longRun !== null) { return longRun; }
 
   const isDegenerate = (b: BoardBBox): boolean => {
-    return ((b.right - b.left) * (b.bottom - b.top)) > imgArea * 0.88;
+    return ((b.right - b.left) * (b.bottom - b.top)) > imgArea * MAX_BOARD_AREA_RATIO;
   };
 
   const primary: BoardBBox | null = findBBoxInRectGray(
-    gray, width, height, bg, isDark, 0, 0, width, height, 0.3, 0.3
+    gray, width, height, bg, isDark, 0, 0, width, height, BBOX_PRIMARY_THRESH, BBOX_PRIMARY_MIN_FRAC
   );
   if (primary !== null && isValidBoardAspect(primary, width, height) && !isDegenerate(primary)) { return primary; }
 
-  for (const thresh of [0.20, 0.15]) {
+  for (const thresh of BBOX_RELAXED_THRESHOLDS) {
     const res: BoardBBox | null = findBBoxInRectGray(
-      gray, width, height, bg, isDark, 0, 0, width, height, thresh, 0.15
+      gray, width, height, bg, isDark, 0, 0, width, height, thresh, BBOX_RELAXED_MIN_FRAC
     );
     if (res !== null && isValidBoardAspect(res, width, height) && !isDegenerate(res)) { return res; }
   }
 
-  const regions: number[][] = [
-    [0, 0, Math.floor(width * 0.6), Math.floor(height * 0.6)],
-    [Math.floor(width * 0.4), 0, width, Math.floor(height * 0.6)],
-    [0, Math.floor(height * 0.4), Math.floor(width * 0.6), height],
-    [Math.floor(width * 0.4), Math.floor(height * 0.4), width, height],
-    [Math.floor(width * 0.15), Math.floor(height * 0.15), Math.floor(width * 0.85), Math.floor(height * 0.85)],
-  ];
-  if (height > width * 1.3) {
-    regions.push(
-      [0, 0, width, Math.floor(height * 0.5)],
-      [0, Math.floor(height * 0.1), width, Math.floor(height * 0.6)],
-      [Math.floor(width * 0.1), 0, Math.floor(width * 0.9), Math.floor(height * 0.45)]
-    );
+  const regions: number[][] = [];
+  for (let i: number = 0; i < BBOX_REGIONS.length; i++) {
+    const br: number[] = BBOX_REGIONS[i];
+    regions.push([
+      Math.floor(width * br[0]), Math.floor(height * br[1]),
+      Math.floor(width * br[2]), Math.floor(height * br[3])
+    ]);
   }
-  if (width > height * 1.3) {
-    regions.push(
-      [0, 0, Math.floor(width * 0.5), height],
-      [Math.floor(width * 0.1), 0, Math.floor(width * 0.6), height],
-      [0, Math.floor(height * 0.1), Math.floor(width * 0.45), Math.floor(height * 0.9)]
-    );
+  if (height > width * PORTRAIT_ASPECT_THRESHOLD) {
+    for (let i: number = 0; i < BBOX_PORTRAIT_REGIONS.length; i++) {
+      const br: number[] = BBOX_PORTRAIT_REGIONS[i];
+      regions.push([
+        Math.floor(width * br[0]), Math.floor(height * br[1]),
+        Math.floor(width * br[2]), Math.floor(height * br[3])
+      ]);
+    }
+  }
+  if (width > height * PORTRAIT_ASPECT_THRESHOLD) {
+    for (let i: number = 0; i < BBOX_LANDSCAPE_REGIONS.length; i++) {
+      const br: number[] = BBOX_LANDSCAPE_REGIONS[i];
+      regions.push([
+        Math.floor(width * br[0]), Math.floor(height * br[1]),
+        Math.floor(width * br[2]), Math.floor(height * br[3])
+      ]);
+    }
   }
   let bestArea: number = 0;
   let bestBox: BoardBBox | null = null;
   for (let ri: number = 0; ri < regions.length; ri++) {
     const r: number[] = regions[ri];
-    for (const thresh of [0.30, 0.20, 0.15]) {
+    for (const thresh of BBOX_REGION_THRESHOLDS) {
       const res: BoardBBox | null = findBBoxInRectGray(
         gray, width, height, bg, isDark,
-        r[0], r[1], r[2], r[3], thresh, 0.10
+        r[0], r[1], r[2], r[3], thresh, BBOX_REGION_MIN_FRAC
       );
       if (res !== null && isValidBoardAspect(res, width, height)) {
         const area: number = (res.right - res.left) * (res.bottom - res.top);
-        // 拒绝接近全图的退化 bbox（面积 > 88% 说明背景噪声污染）
-        if (area < width * height * 0.88) {
+        if (area < width * height * MAX_BOARD_AREA_RATIO) {
           if (area > bestArea) { bestArea = area; bestBox = res; }
         }
         break;
@@ -1212,8 +1461,6 @@ export function findBoardBBox(pixels: Uint8Array, width: number, height: number,
     }
   }
 
-  // 保守检测：全局阈值 + 周期性峰检测（保留细网格线，不使用形态学开运算）
-  // 针对照片等复杂背景（木纹/纹理/阴影），在区域搜索结果返回之前尝试
   const conservative: BoardBBox | null = findBBoxConservative(gray, width, height, isDark, bg);
   if (conservative !== null) { return conservative; }
 
@@ -1222,9 +1469,7 @@ export function findBoardBBox(pixels: Uint8Array, width: number, height: number,
   const adaptive: BoardBBox | null = findBBoxAdaptive(gray, width, height, isDark);
   if (adaptive !== null) {
     const aArea: number = (adaptive.right - adaptive.left) * (adaptive.bottom - adaptive.top);
-    // 拦截退化 bbox（接近全图 → 说明投影法被背景噪声污染）
-    if (aArea < width * height * 0.88) { return adaptive; }
-    // adaptive 返回了疑似退化结果，继续尝试保守检测
+    if (aArea < width * height * MAX_BOARD_AREA_RATIO) { return adaptive; }
   }
 
   return { left: 0, top: 0, right: width, bottom: height, isDark };
@@ -1240,8 +1485,8 @@ export function cellSigFromGray(
   isDark: boolean,
   bg: number
 ): number[] | null {
-  const mx: number = cellW * 0.08;
-  const my: number = cellH * 0.08;
+  const mx: number = cellW * CELL_MARGIN_RATIO;
+  const my: number = cellH * CELL_MARGIN_RATIO;
   const x0: number = Math.floor(cellLeft + mx);
   const y0: number = Math.floor(cellTop + my);
   const x1: number = Math.floor(cellLeft + cellW - mx);
@@ -1269,7 +1514,7 @@ export function cellSigFromGray(
     }
   }
 
-  if (ink < area * 0.02 || bmaxX < 0) {
+  if (ink < area * MIN_CELL_INK_RATIO || bmaxX < 0) {
     return null;
   }
 
@@ -1297,7 +1542,7 @@ export function cellSigFromGray(
       }
     }
     const sauvInk: number = countInk(sauvSig);
-    if (sauvInk >= 6 && sauvInk <= 90) {
+    if (sauvInk >= MIN_INK_COUNT && sauvInk <= MAX_INK_COUNT) {
       return sauvSig;
     }
   }
@@ -1325,13 +1570,13 @@ export function cellSigFromGray(
   }
 
   const inkCount: number = countInk(sig);
-  if (inkCount < 6 || inkCount > 90) {
+  if (inkCount < MIN_INK_COUNT || inkCount > MAX_INK_COUNT) {
     const fallbackSig: number[] | null = cellSigOtsuFallbackGray(
       gray, width, bminX, bminY, bw, bh, isDark, bg
     );
     if (fallbackSig !== null) {
       const fbInk: number = countInk(fallbackSig);
-      if (fbInk >= 6 && fbInk <= 90) {
+      if (fbInk >= MIN_INK_COUNT && fbInk <= MAX_INK_COUNT) {
         return fallbackSig;
       }
     }
@@ -1360,10 +1605,10 @@ function cellSigOtsuFallbackGray(
       }
     }
   }
-  if (bboxTotal < 30) { return null; }
+  if (bboxTotal < OTSU_MIN_PIXELS) { return null; }
 
   const otsuT: number = otsuThreshold(bboxHist, bboxTotal);
-  if (Math.abs(otsuT - bg) < 12) { return null; }
+  if (Math.abs(otsuT - bg) < OTSU_BG_MIN_DIFF) { return null; }
 
   const sig: number[] = new Array<number>(SIG_LEN).fill(0);
   for (let r: number = 0; r < SIG_ROWS; r++) {
@@ -1388,7 +1633,7 @@ function cellSigOtsuFallbackGray(
   }
 
   const inkCount: number = countInk(sig);
-  if (inkCount < 6 || inkCount > 90) { return null; }
+  if (inkCount < MIN_INK_COUNT || inkCount > MAX_INK_COUNT) { return null; }
   return sig;
 }
 
@@ -1402,8 +1647,8 @@ export function cellSig(
   isDark: boolean,
   bg: number
 ): number[] | null {
-  const mx: number = cellW * 0.08;
-  const my: number = cellH * 0.08;
+  const mx: number = cellW * CELL_MARGIN_RATIO;
+  const my: number = cellH * CELL_MARGIN_RATIO;
   const x0: number = Math.floor(cellLeft + mx);
   const y0: number = Math.floor(cellTop + my);
   const x1: number = Math.floor(cellLeft + cellW - mx);
@@ -1432,7 +1677,7 @@ export function cellSig(
     }
   }
 
-  if (ink < area * 0.02 || bmaxX < 0) {
+  if (ink < area * MIN_CELL_INK_RATIO || bmaxX < 0) {
     return null;
   }
 
@@ -1462,13 +1707,13 @@ export function cellSig(
   }
 
   const inkCount: number = countInk(sig);
-  if (inkCount < 6 || inkCount > 90) {
+  if (inkCount < MIN_INK_COUNT || inkCount > MAX_INK_COUNT) {
     const fallbackSig: number[] | null = cellSigOtsuFallback(
       pixels, width, bminX, bminY, bw, bh, isDark, bg
     );
     if (fallbackSig !== null) {
       const fbInk: number = countInk(fallbackSig);
-      if (fbInk >= 6 && fbInk <= 90) {
+      if (fbInk >= MIN_INK_COUNT && fbInk <= MAX_INK_COUNT) {
         return fallbackSig;
       }
     }
@@ -1494,10 +1739,10 @@ function cellSigOtsuFallback(
       bboxTotal++;
     }
   }
-  if (bboxTotal < 30) { return null; }
+  if (bboxTotal < OTSU_MIN_PIXELS) { return null; }
 
   const otsuT: number = otsuThreshold(bboxHist, bboxTotal);
-  if (Math.abs(otsuT - bg) < 12) { return null; }
+  if (Math.abs(otsuT - bg) < OTSU_BG_MIN_DIFF) { return null; }
 
   const sig: number[] = new Array<number>(SIG_LEN).fill(0);
   for (let r: number = 0; r < SIG_ROWS; r++) {
@@ -1522,8 +1767,65 @@ function cellSigOtsuFallback(
   }
 
   const inkCount: number = countInk(sig);
-  if (inkCount < 6 || inkCount > 90) { return null; }
+  if (inkCount < MIN_INK_COUNT || inkCount > MAX_INK_COUNT) { return null; }
   return sig;
+}
+
+export function hogVerticalGradient(sig: number[]): number {
+  let topDown: number = 0;
+  let bottomUp: number = 0;
+  const quarterRow: number = Math.floor(SIG_ROWS / 4);
+  const midRow: number = Math.floor(SIG_ROWS / 2);
+  const threeQRow: number = Math.floor(SIG_ROWS * 3 / 4);
+  for (let r: number = quarterRow; r < midRow; r++) {
+    for (let c: number = 0; c < SIG_COLS; c++) {
+      if (sig[r * SIG_COLS + c] === 1) {
+        if (c > 0 && sig[r * SIG_COLS + c - 1] === 0) { bottomUp++; }
+        if (c < SIG_COLS - 1 && sig[r * SIG_COLS + c + 1] === 0) { bottomUp++; }
+      }
+    }
+  }
+  for (let r: number = midRow; r < threeQRow; r++) {
+    for (let c: number = 0; c < SIG_COLS; c++) {
+      if (sig[r * SIG_COLS + c] === 1) {
+        if (c > 0 && sig[r * SIG_COLS + c - 1] === 0) { topDown++; }
+        if (c < SIG_COLS - 1 && sig[r * SIG_COLS + c + 1] === 0) { topDown++; }
+      }
+    }
+  }
+  const total: number = topDown + bottomUp;
+  if (total === 0) { return 0.5; }
+  return topDown / total;
+}
+
+export function strokeWidthRatio(sig: number[]): number {
+  const halfRow: number = Math.floor(SIG_ROWS / 2);
+  let topWidth: number = 0;
+  let bottomWidth: number = 0;
+  for (let r: number = 0; r < halfRow; r++) {
+    let runLen: number = 0;
+    for (let c: number = 0; c < SIG_COLS; c++) {
+      if (sig[r * SIG_COLS + c] === 1) { runLen++; }
+      else {
+        if (runLen > topWidth) { topWidth = runLen; }
+        runLen = 0;
+      }
+    }
+    if (runLen > topWidth) { topWidth = runLen; }
+  }
+  for (let r: number = halfRow; r < SIG_ROWS; r++) {
+    let runLen: number = 0;
+    for (let c: number = 0; c < SIG_COLS; c++) {
+      if (sig[r * SIG_COLS + c] === 1) { runLen++; }
+      else {
+        if (runLen > bottomWidth) { bottomWidth = runLen; }
+        runLen = 0;
+      }
+    }
+    if (runLen > bottomWidth) { bottomWidth = runLen; }
+  }
+  if (bottomWidth === 0) { return topWidth > 0 ? 999 : 1; }
+  return topWidth / bottomWidth;
 }
 
 function loopVerticalCenter(sig: number[]): number {
@@ -1540,7 +1842,7 @@ function loopVerticalCenter(sig: number[]): number {
 }
 
 export function recognizeDigit(sig: number[], inkCount: number): number {
-  if (inkCount < 6) { return 0; }
+  if (inkCount < MIN_INK_COUNT) { return 0; }
   if (g_templates.length === 0) { return 0; }
   const qHole: number = holeCenterRow(sig);
 
@@ -1561,7 +1863,7 @@ export function recognizeDigit(sig: number[], inkCount: number): number {
     const recall: number = tplInk > 0 ? tp / tplInk : 0;
     const prec: number = inkCount > 0 ? tp / inkCount : 0;
     const f1: number = (recall + prec) > 0 ? (2 * recall * prec) / (recall + prec) : 0;
-    const score: number = match - (SIG_LEN - match) * 0.5 + f1 * 40;
+    const score: number = match - (SIG_LEN - match) * TEMPLATE_MISMATCH_PENALTY + f1 * TEMPLATE_F1_WEIGHT;
     if (score > digitBestScore[t.digit]) {
       digitBestScore[t.digit] = score;
       digitBestIdx[t.digit] = ti;
@@ -1581,33 +1883,40 @@ export function recognizeDigit(sig: number[], inkCount: number): number {
     }
   }
 
+  const rawConf: number = bestScore / (SIG_LEN + 200);
+  g_lastConfidence = rawConf > 1 ? 1 : (rawConf < 0 ? 0 : rawConf);
+
   if (bestDigit === 6 || bestDigit === 9) {
     const qHole: number = holeCenterRow(sig);
     const iCentroid: number = inkCentroidRow(sig);
     const ratio: number = topBottomInkRatio(sig);
+    const hogGrad: number = hogVerticalGradient(sig);
+    const swRatio: number = strokeWidthRatio(sig);
     const score6: number = digitBestScore[6];
     const score9: number = digitBestScore[9];
 
-    console.info(`[SudokuPixel] 6/9消歧: score6=${score6.toFixed(1)} score9=${score9.toFixed(1)} qHole=${qHole.toFixed(2)} centroid=${iCentroid.toFixed(2)} topRatio=${ratio.toFixed(2)}`);
+    console.info(`[SudokuPixel] 6/9消歧: score6=${score6.toFixed(1)} score9=${score9.toFixed(1)} qHole=${qHole.toFixed(2)} centroid=${iCentroid.toFixed(2)} topRatio=${ratio.toFixed(2)} hogGrad=${hogGrad.toFixed(2)} swRatio=${swRatio.toFixed(2)}`);
     console.info(`[SudokuPixel] sig:\n${sigToAscii(sig)}`);
 
     let vote6: number = 0;
     let vote9: number = 0;
 
     if (qHole >= 0) {
-      if (qHole > SIG_ROWS / 2) { vote6 += 2; } else { vote9 += 2; }
+      if (qHole > SIG_ROWS / 2) { vote6 += DISAMBIG_HOLE_WEIGHT; } else { vote9 += DISAMBIG_HOLE_WEIGHT; }
     }
     if (iCentroid >= 0) {
-      if (iCentroid > SIG_ROWS / 2) { vote6++; } else { vote9++; }
+      if (iCentroid > SIG_ROWS / 2) { vote6 += DISAMBIG_CENTROID_WEIGHT; } else { vote9 += DISAMBIG_CENTROID_WEIGHT; }
     }
-    if (ratio > 0.5) { vote9++; } else { vote6++; }
-    if (score6 > score9) { vote6++; } else { vote9++; }
+    if (ratio > 0.5) { vote9 += DISAMBIG_TOP_RATIO_WEIGHT; } else { vote6 += DISAMBIG_TOP_RATIO_WEIGHT; }
+    if (hogGrad > 0.5) { vote9 += DISAMBIG_HOG_WEIGHT; } else { vote6 += DISAMBIG_HOG_WEIGHT; }
+    if (swRatio > 1.1) { vote9 += DISAMBIG_SW_WEIGHT; } else if (swRatio < 0.9) { vote6 += DISAMBIG_SW_WEIGHT; }
+    if (score6 > score9) { vote6 += DISAMBIG_SCORE_WEIGHT; } else { vote9 += DISAMBIG_SCORE_WEIGHT; }
 
     console.info(`[SudokuPixel] vote6=${vote6} vote9=${vote9} => ${vote6 >= vote9 ? 6 : 9}`);
     return vote6 >= vote9 ? 6 : 9;
   }
 
-  if (qHole >= 0 && bestScore >= 12 && secondDigit > 0) {
+  if (qHole >= 0 && bestScore >= MIN_DIGIT_SCORE && secondDigit > 0) {
     const halfRow: number = SIG_ROWS / 2;
     const halfOf: (h: number) => number = (h: number) => (h < 0 ? 0 : (h <= halfRow ? 1 : 2));
     const bh: number = halfOf(g_holeRows[digitBestIdx[bestDigit]]);
@@ -1618,5 +1927,191 @@ export function recognizeDigit(sig: number[], inkCount: number): number {
     }
   }
 
-  return bestScore >= 12 ? bestDigit : 0;
+  return bestScore >= MIN_DIGIT_SCORE ? bestDigit : 0;
+}
+
+export function getLastConfidence(): number {
+  return g_lastConfidence;
+}
+
+export interface DigitResult {
+  digit: number;
+  confidence: number;
+}
+
+export function recognizeDigitWithConfidence(sig: number[], inkCount: number): DigitResult {
+  const digit: number = recognizeDigit(sig, inkCount);
+  const result: DigitResult = { digit, confidence: g_lastConfidence };
+  return result;
+}
+
+export function findPreciseGridLines(
+  gray: Float32Array, width: number, height: number, bbox: BoardBBox, bg: number
+): GridLines | null {
+  const isDark: boolean = bbox.isDark;
+  const boardLeft: number = bbox.left;
+  const boardTop: number = bbox.top;
+  const boardRight: number = bbox.right;
+  const boardBottom: number = bbox.bottom;
+  const boardW: number = boardRight - boardLeft;
+  const boardH: number = boardBottom - boardTop;
+  if (boardW < CONSERVATIVE_MIN_DIM || boardH < CONSERVATIVE_MIN_DIM) { return null; }
+
+  const hInkProfile: number[] = new Array<number>(boardH).fill(0);
+  for (let dy: number = 0; dy < boardH; dy++) {
+    const y: number = boardTop + dy;
+    if (y < 0 || y >= height) { continue; }
+    let inkCount: number = 0;
+    const step: number = Math.max(1, Math.floor(boardW / 100));
+    for (let dx: number = 0; dx < boardW; dx += step) {
+      const x: number = boardLeft + dx;
+      if (x < 0 || x >= width) { continue; }
+      const g: number = gray[y * width + x];
+      if (grayInkPixel(g, bg, isDark, INK_THRESH)) { inkCount++; }
+    }
+    hInkProfile[dy] = inkCount / Math.floor(boardW / step);
+  }
+
+  // Vertical line detection: scan each column for ink spikes
+  const vInkProfile: number[] = new Array<number>(boardW).fill(0);
+  for (let dx: number = 0; dx < boardW; dx++) {
+    const x: number = boardLeft + dx;
+    if (x < 0 || x >= width) { continue; }
+    let inkCount: number = 0;
+    const step: number = Math.max(1, Math.floor(boardH / 100));
+    for (let dy: number = 0; dy < boardH; dy += step) {
+      const y: number = boardTop + dy;
+      if (y < 0 || y >= height) { continue; }
+      const g: number = gray[y * width + x];
+      if (grayInkPixel(g, bg, isDark, INK_THRESH)) { inkCount++; }
+    }
+    vInkProfile[dx] = inkCount / Math.floor(boardH / step);
+  }
+
+  // Find 10 peaks (9 cells → 10 grid lines) in each profile
+  const findPeaks = (profile: number[], expectedCount: number, totalLen: number): number[] | null => {
+    const smoothed: number[] = new Array<number>(profile.length).fill(0);
+    const winR: number = Math.max(1, Math.floor(totalLen / GRID_LINE_SMOOTH_DIV));
+    for (let i: number = 0; i < profile.length; i++) {
+      let s: number = 0;
+      let n: number = 0;
+      for (let j: number = Math.max(0, i - winR); j <= Math.min(profile.length - 1, i + winR); j++) {
+        s += profile[j];
+        n++;
+      }
+      smoothed[i] = s / n;
+    }
+    let maxVal: number = 0;
+    for (let i: number = 0; i < smoothed.length; i++) {
+      if (smoothed[i] > maxVal) { maxVal = smoothed[i]; }
+    }
+    if (maxVal < GRID_LINE_MIN_MAX_FRAC) { return null; }
+    const thresh: number = maxVal * GRID_LINE_PEAK_THRESH_FRAC;
+    const rawPeaks: number[] = [];
+    for (let i: number = 0; i < smoothed.length; i++) {
+      if (smoothed[i] > thresh) {
+        let end: number = i;
+        let bestI: number = i;
+        let bestV: number = smoothed[i];
+        while (end + 1 < smoothed.length && smoothed[end + 1] > thresh) {
+          end++;
+          if (smoothed[end] > bestV) { bestV = smoothed[end]; bestI = end; }
+        }
+        rawPeaks.push(bestI);
+        i = end;
+      }
+    }
+    if (rawPeaks.length < 3) { return null; }
+
+    // Try to find evenly-spaced subset matching expected grid lines
+    const idealSpacing: number = totalLen / (expectedCount - 1);
+    const tolerance: number = idealSpacing * GRID_LINE_SPACING_TOLERANCE;
+    let bestSet: number[] = [];
+    let bestScore2: number = 0;
+    for (let startIdx: number = 0; startIdx < rawPeaks.length; startIdx++) {
+      const selected: number[] = [rawPeaks[startIdx]];
+      let lastPos: number = rawPeaks[startIdx];
+      for (let j: number = startIdx + 1; j < rawPeaks.length; j++) {
+        const gap: number = rawPeaks[j] - lastPos;
+        if (gap >= idealSpacing - tolerance && gap <= idealSpacing + tolerance) {
+          selected.push(rawPeaks[j]);
+          lastPos = rawPeaks[j];
+        }
+      }
+      if (selected.length >= expectedCount) {
+        const span: number = selected[selected.length - 1] - selected[0];
+        const avgGap: number = span / (selected.length - 1);
+        let devSum: number = 0;
+        for (let k: number = 1; k < selected.length; k++) {
+          devSum += Math.abs((selected[k] - selected[k - 1]) - avgGap);
+        }
+        const score: number = selected.length * 100 - devSum / (avgGap + 1);
+        if (score > bestScore2) { bestScore2 = score; bestSet = selected.slice(0, expectedCount); }
+      }
+    }
+    if (bestSet.length >= expectedCount) { return bestSet; }
+    if (rawPeaks.length >= expectedCount) {
+      return rawPeaks.slice(0, Math.min(rawPeaks.length, expectedCount + 2));
+    }
+    // Fallback: uniform spacing
+    const uniformLines: number[] = [];
+    for (let i: number = 0; i < expectedCount; i++) {
+      uniformLines.push(Math.round(i * totalLen / (expectedCount - 1)));
+    }
+    return uniformLines;
+  };
+
+  const hLines: number[] | null = findPeaks(hInkProfile, 10, boardH);
+  const vLines: number[] | null = findPeaks(vInkProfile, 10, boardW);
+  if (hLines === null || vLines === null) { return null; }
+  if (hLines.length < 2 || vLines.length < 2) { return null; }
+
+  // Convert from board-local to image-global coordinates
+  const globalHLines: number[] = hLines.map((l: number) => boardTop + l);
+  const globalVLines: number[] = vLines.map((l: number) => boardLeft + l);
+  const result: GridLines = { hLines: globalHLines, vLines: globalVLines };
+  return result;
+}
+
+export function validateCellCentering(
+  gray: Float32Array, width: number, height: number,
+  cellLeft: number, cellTop: number, cellW: number, cellH: number,
+  isDark: boolean, bg: number
+): boolean {
+  // Check if ink mass is reasonably centered within the cell.
+  // Off-center ink usually means the grid line was mispositioned and we're
+  // capturing part of an adjacent cell's digit.
+  const margin: number = CENTERING_MARGIN;
+  const x0: number = Math.floor(cellLeft + cellW * margin);
+  const y0: number = Math.floor(cellTop + cellH * margin);
+  const x1: number = Math.floor(cellLeft + cellW * (1 - margin));
+  const y1: number = Math.floor(cellTop + cellH * (1 - margin));
+
+  let inkSumX: number = 0;
+  let inkSumY: number = 0;
+  let inkTotal: number = 0;
+
+  for (let y: number = y0; y < y1; y++) {
+    for (let x: number = x0; x < x1; x++) {
+      if (y < 0 || y >= height || x < 0 || x >= width) { continue; }
+      const g: number = gray[y * width + x];
+      if (grayInkPixel(g, bg, isDark, INK_THRESH)) {
+        inkSumX += x;
+        inkSumY += y;
+        inkTotal++;
+      }
+    }
+  }
+
+  if (inkTotal < CENTERING_MIN_INK) { return true; }
+
+  const centroidX: number = inkSumX / inkTotal;
+  const centroidY: number = inkSumY / inkTotal;
+  const centerX: number = (x0 + x1) / 2;
+  const centerY: number = (y0 + y1) / 2;
+  const offX: number = Math.abs(centroidX - centerX) / cellW;
+  const offY: number = Math.abs(centroidY - centerY) / cellH;
+
+  // If centroid is too far off-center, the cell positioning is likely wrong
+  return offX < CENTERING_MAX_OFFSET && offY < CENTERING_MAX_OFFSET;
 }

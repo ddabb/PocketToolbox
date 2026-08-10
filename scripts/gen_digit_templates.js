@@ -12,8 +12,8 @@ const { createCanvas } = require('canvas');
 
 const FONT_DIR = 'entry/src/main/resources/rawfile/font';
 const OUTPUT_JSON = 'entry/src/main/resources/rawfile/digit_templates.json';
-const SIG_ROWS = 12;
-const SIG_COLS = 8;
+const SIG_ROWS = 28;
+const SIG_COLS = 20;
 const INK_THRESH = 50;
 const BG = 255;
 const RENDER = 320;
@@ -706,7 +706,7 @@ function main() {
         if (!sig) { console.log(`  ${f} digit ${d}: 无墨迹`); continue; }
 
         const ink = sig.reduce((a, b) => a + b, 0);
-        if (ink < 6 || ink > 96) { console.log(`  ${f} digit ${d}: ink=${ink} 越界,跳过`); continue; }
+        if (ink < 25 || ink > 420) { console.log(`  ${f} digit ${d}: ink=${ink} 越界,跳过`); continue; }
 
         allTemplates.push({ digit: d, font: f, key: sig });
         okCount++;

@@ -598,6 +598,14 @@ struct TimezoneConverterContent {
       .margin({ bottom: 8 })
 
       Row() {
+        Text('\uD83D\uDD52 设置当地时间')
+          .fontSize(12)
+          .fontColor($r('app.color.tertiary_text'))
+      }
+      .width('100%')
+      .margin({ bottom: 8 })
+
+      Row() {
         Column() {
           DatePicker({
             start: new Date('2020-01-01'),

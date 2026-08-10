@@ -133,7 +133,7 @@
 
 ### P1-2: Hough线检测替代投影峰值检测
 
-- **状态**: `[ ]`
+- **状态**: `[x]`
 - **影响场景**: 细线/无边框变体、截屏多种App风格
 - **当前问题**:
   - `findPeriodicPeaks()` 依赖投影峰值，对细线/无边框/彩色边框不鲁棒
@@ -151,7 +151,7 @@
 
 ### P1-3: 签名分辨率提升至28×20
 
-- **状态**: `[ ]`
+- **状态**: `[x]`
 - **影响场景**: 全场景数字识别
 - **当前问题**:
   - 12×8=96位签名过于粗糙，3/5、8/0、6/9易混淆
@@ -170,7 +170,7 @@
 
 ### P1-4: 精确网格线定位 + 数字居中验证
 
-- **状态**: `[ ]`
+- **状态**: `[x]`
 - **影响场景**: 格子偏移、字号不一致
 - **当前问题**:
   - `cellSigFromGray` 用8% margin裁剪网格线，经验值不同字体下偏移不同
@@ -187,7 +187,7 @@
 
 ### P2-1: 6/9混淆专项优化
 
-- **状态**: `[ ]`
+- **状态**: `[x]`
 - **影响场景**: 全场景6/9识别
 - **当前问题**:
   - 12×8签名下孔洞检测极不可靠(孔洞仅1-2格)
@@ -198,42 +198,43 @@
   2. 重新调整投票权重: 孔洞3票 + 质心2票 + 墨量比2票 + 模板分1票
   3. 新增HOG特征: 计算梯度方向直方图(6的弧线从上往下收紧，9从下往上收紧)
   4. 新增笔画宽度比: 6的上半部分笔画较窄，9的下半部分笔画较窄
-- **实施文件**: `SudokuPixel.ets` 修改 `disambiguate69()`, `recognizeDigit()`
+- **实施文件**: `SudokuPixel.ets` 新增 `hogVerticalGradient()`, `strokeWidthRatio()`, 修改 `recognizeDigit()` 投票权重; `SudokuOCR.ets` 移除冗余 `disambiguate69()` (6/9消歧已内置于 `recognizeDigit`)
 - **依赖**: P1-3 (签名分辨率提升)
 - **预期收益**: 6/9混淆率降低50%+
 - **验证**: 6/9密集测试图片
 
 ### P2-2: 置信度输出 + 低置信标记
 
-- **状态**: `[ ]`
+- **状态**: `[x]`
 - **影响场景**: 全场景用户体验
 - **当前问题**:
   - 当前识别结果无置信度，低质量识别静默通过
   - 用户无法知道哪些格可能识别错误
   - 最低得分阈值12缺乏直观含义
 - **优化方案**:
-  1. `OCRResult` 新增 `confidence: number[]` (81个浮点值, 0~1)
-  2. 模板匹配: `confidence = bestScore / (SIG_LEN + 40)` 归一化
-  3. VisionKit: 使用文字识别置信度(如API提供)
+  1. `OCRResult` 新增 `confidence: number[] | null` (81个浮点值, 0~1)
+  2. 模板匹配: `confidence = bestScore / (SIG_LEN + 200)` 归一化, 通过 `g_lastConfidence` 传递
+  3. VisionKit: 使用默认置信度(positional=0.7, text=0.5)
   4. 低置信阈值: confidence < 0.4 标记为"待确认"
-  5. UI层: 低置信格子显示橙色边框，提示用户手动校验
-- **实施文件**: `SudokuOCR.ets` 修改 `OCRResult`, `SudokuSolverPage.ets` UI展示
+  5. UI层: 低置信格子显示橙色边框(`#f97316`)，提示用户手动校验
+- **实施文件**: `SudokuOCR.ets` 修改 `OCRResult` 添加 confidence 字段, 所有返回点补充 confidence; `SudokuPixel.ets` 新增 `g_lastConfidence`, `getLastConfidence()`, `recognizeDigitWithConfidence()`; `SudokuSolverPage.ets` 新增 `lowConfidenceCells` 状态, `loadGridFromArray` 接受 confidence 参数
 - **预期收益**: 减少静默错误，用户可针对性校验
 - **验证**: 识别结果中置信度分布合理
 
 ### P3-1: VisionKit引擎复用 + 内存优化
 
-- **状态**: `[ ]`
+- **状态**: `[x]`
 - **影响场景**: 性能
 - **当前问题**:
   - `reRecognizeCellVisionKit()` 每次init/release TextRecognition，开销大
   - 为裁剪单格克隆整个PixelMap (`fullPixelMap.cloneSync()`)
-  - 81格串行处理，无并行
+  - `validateAndFixConflicts` 和 `fillMissingCells` 各自独立加载图片、初始化VisionKit
 - **优化方案**:
-  1. VisionKit引擎复用: `validateAndFixConflicts` 和 `fillMissingCells` 共享一个TextRecognition实例，只在最后release
-  2. 子PixelMap创建: 使用 `image.createPixelMap` 从指定区域创建，替代clone+crop
-  3. 批量重识: 收集所有冲突格/缺格，统一初始化一次VisionKit，逐格识别后统一释放
-- **实施文件**: `SudokuOCR.ets` 重构 `reRecognizeCellVisionKit()`, `validateAndFixConflicts()`, `fillMissingCells()`
+  1. 合并 `validateAndFixConflicts` + `fillMissingCells` → `fixAndFillGrid()`: 共享一次图片加载和VisionKit引擎
+  2. VisionKit引擎复用: `fixAndFillGrid` 中只初始化一次 `textRecognition.init()`，所有格子处理完后统一 `release()`
+  3. 子PixelMap创建: 使用 `readPixelsSync` + `createPixelMapSync` + `writePixelsSync` 替代 `cloneSync` + `cropSync`，避免复制整图
+  4. 批量重识: 收集所有冲突格/缺格，统一初始化一次VisionKit，逐格识别后统一释放
+- **实施文件**: `SudokuOCR.ets` 新增 `cropSubPixelMap()`, `recognizeDigitVisionKit()`, `recognizeDigitPixel()`, `fixAndFillGrid()`; 移除 `validateAndFixConflicts()`, `fillMissingCells()`, `reRecognizeCell()`, `reRecognizeCellVisionKit()`, `reRecognizeCellPixel()`
 - **预期收益**: 速度提升3~5×, 内存降低50%+
 - **验证**: 性能计时对比
 
@@ -259,18 +260,18 @@
 
 ```
 P0-1 透视校正 ─────────────────────────┐
-P0-2 自适应阈值 ───────────────────────┤  第一批(核心痛点)
+P0-2 自适应阈值 ───────────────────────┤  第一批(核心痛点) ✓
                                         │
 P1-1 分辨率自适应 ──────────────────────┤
-P1-2 Hough线检测 ───────────────────────┤  第二批(截屏/变体)
+P1-2 Hough线检测 ───────────────────────┤  第二批(截屏/变体) ✓
 P1-3 签名分辨率提升 ─────────────────────┤
 P1-4 精确网格线定位 ─────────────────────┘
                                         │
-P2-1 6/9混淆优化 (依赖P1-3) ────────────┤  第三批(精度)
+P2-1 6/9混淆优化 (依赖P1-3) ────────────┤  第三批(精度) ✓
 P2-2 置信度输出 ────────────────────────┘
-                                        │
-P3-1 VisionKit复用+内存 ────────────────┤  第四批(性能)
-P3-2 并行化+多帧 ───────────────────────┘
+                                         │
+P3-1 VisionKit复用+内存 ────────────────┤  第四批(性能) ✓
+P3-2 并行化+多帧 ───────────────────────┘  (远期)
 ```
 
 ---
@@ -297,3 +298,11 @@ P3-2 并行化+多帧 ───────────────────�
 | 2026-08-07 | P0-1 透视校正 | 已实现: `detectBoardCorners()` + `warpPerspectiveGray()` + `houghLines()` |
 | 2026-08-07 | P0-2 自适应阈值 | 已实现: `sauvolaThreshold()` 集成到 `cellSigFromGray()` |
 | 2026-08-07 | P1-1 分辨率自适应 | 已实现: `computeAdaptiveResize()` 替代硬编码 maxDim=1280, TARGET_CELL_PX 动态化 |
+| 2026-08-07 | P1-2 Hough线检测 | 函数 `houghLines()` + `findBoardByHoughLines()` 已存在但未集成到 `findBoardBBox()`，待接入 |
+| 2026-08-07 | P1-2 Hough线检测 | 已完成: 将 `findBoardByHoughLines()` 作为优先策略集成到 `findBoardBBox()` |
+| 2026-08-07 | P1-3 签名分辨率提升 | 已实现: SIG_ROWS=28, SIG_COLS=20, 560位签名, 重新生成81模板, 调整得分公式(F1权重200)和阈值(60), 6/9消歧投票权重调整(孔3+质心2+墨量2+模板1) |
+| 2026-08-07 | P1-4 精确网格线定位 | 已实现: `findPreciseGridLines()` 投影谷值+抛物线亚像素拟合, `validateCellCentering()` 数字居中验证 |
+| 2026-08-07 | P2-1 6/9混淆优化 | 已实现: `hogVerticalGradient()` HOG特征 + `strokeWidthRatio()` 笔画宽度比 + 新投票权重(孔3+质心2+墨量2+HOG1+笔画1+模板1); 移除OCR层冗余 `disambiguate69()` |
+| 2026-08-07 | P2-2 置信度输出 | 已实现: `OCRResult.confidence`, `g_lastConfidence` / `getLastConfidence()`, UI橙色边框标记低置信格(conf<0.4) |
+| 2026-08-07 | P3-1 VisionKit复用+内存 | 已实现: 合并冲突修正+缺格填充为 `fixAndFillGrid()` 共享VisionKit引擎; `cropSubPixelMap()` 替代 `cloneSync`; 移除5个旧函数 |
+| 2026-08-07 | P2-1 6/9混淆优化 | 已实现: 新增 `hogVerticalGradient()` + `strokeWidthRatio()` 特征, 投票权重: 孔3+质心2+墨量2+HOG1+笔画1+模板1 |
