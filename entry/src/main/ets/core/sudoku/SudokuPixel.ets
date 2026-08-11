@@ -140,6 +140,14 @@ const CONSERVATIVE_MIN_DIM: number = 20;
 const MINRUN_ABS_MIN: number = 20;
 const MINRUN_FRAC: number = 0.10;
 
+// findBoxLongRun: when the default threshold (bg ± 60) produces too many ink pixels
+// (areaRatio > MAX_BOARD_AREA_RATIO), retry with progressively tighter offsets.
+// Each offset is subtracted from bg (light-mode) or added to bg (dark-mode) to
+// produce the binary ink threshold. Grid lines are significantly darker/lighter
+// than background textures, so a tighter offset filters out faint wood grain,
+// shadows, and other background noise while preserving the actual grid strokes.
+const LONGRUN_TIGHTER_OFFSETS: number[] = [40, 25, 12];
+
 // findBoxLongRun: minimum number of kept pixels for a valid board detection.
 const LONGRUN_MIN_PIXELS: number = 50;
 
@@ -310,6 +318,11 @@ let g_templates: DigitTemplate[] = [];
 let g_holeRows: number[] = [];
 let g_loaded: boolean = false;
 let g_lastConfidence: number = 0;
+let g_lastBboxDiag: string = '';
+
+export function getLastBboxDiag(): string {
+  return g_lastBboxDiag;
+}
 
 export function holeCenterRow(sig: number[]): number {
   const ROWS: number = SIG_ROWS;
@@ -1007,18 +1020,17 @@ function findBBoxConservative(
 // 对"严格阈值二值图"做长行程(run-length)过滤并排除贴图像边缘的行程，
 // 仅保留属于长水平/垂直笔画的像素，其包围盒即为棋盘。
 // 该方法对 photos.jpg（浅木纹桌面 + 顶部阴影）这类复杂背景鲁棒。
-export function findBoxLongRun(
-  gray: Float32Array, W: number, H: number, isDark: boolean, bg: number
+function findBoxLongRunWithThresh(
+  gray: Float32Array, W: number, H: number, isDark: boolean, absThresh: number
 ): BoardBBox | null {
-  // 颜色对比度灰度下 bg≈255，长行程检测需使用相对阈值而非硬编码的 min/max 上限。
-  const abs: number = isDark ? bg + 60 : bg - 60;
   const ink: Uint8Array = new Uint8Array(W * H);
   for (let i: number = 0; i < W * H; i++) {
-    ink[i] = isDark ? (gray[i] > abs ? 1 : 0) : (gray[i] < abs ? 1 : 0);
+    ink[i] = isDark ? (gray[i] > absThresh ? 1 : 0) : (gray[i] < absThresh ? 1 : 0);
   }
   const keep: Uint8Array = new Uint8Array(W * H);
   const MINRUN: number = Math.max(MINRUN_ABS_MIN, Math.floor(Math.min(W, H) * MINRUN_FRAC));
-  // 水平长行程（跳过贴图像边缘的行程 → 排除边缘木纹/暗角）
+  let hRunCount: number = 0;
+  let hKeepCount: number = 0;
   for (let y: number = 0; y < H; y++) {
     let run: number = 0;
     let start: number = 0;
@@ -1029,12 +1041,15 @@ export function findBoxLongRun(
       } else {
         if (run >= MINRUN && start > 0 && x < W) {
           for (let xx: number = start; xx < x; xx++) { keep[y * W + xx] = 1; }
+          hRunCount++;
+          hKeepCount += run;
         }
         run = 0;
       }
     }
   }
-  // 垂直长行程
+  let vRunCount: number = 0;
+  let vKeepCount: number = 0;
   for (let x: number = 0; x < W; x++) {
     let run: number = 0;
     let start: number = 0;
@@ -1045,6 +1060,8 @@ export function findBoxLongRun(
       } else {
         if (run >= MINRUN && start > 0 && y < H) {
           for (let yy: number = start; yy < y; yy++) { keep[yy * W + x] = 1; }
+          vRunCount++;
+          vKeepCount += run;
         }
         run = 0;
       }
@@ -1062,15 +1079,46 @@ export function findBoxLongRun(
       }
     }
   }
-  if (n < LONGRUN_MIN_PIXELS) { return null; }
   const bw: number = maxX - minX + 1;
   const bh: number = maxY - minY + 1;
-  if (bw < CONSERVATIVE_MIN_DIM || bh < CONSERVATIVE_MIN_DIM) { return null; }
-  const aspect: number = bw / bh;
-  if (aspect < LONGRUN_MIN_ASPECT || aspect > LONGRUN_MAX_ASPECT) { return null; }
+  const aspect: number = bh > 0 ? bw / bh : 0;
   const areaRatio: number = (bw * bh) / (W * H);
-  if (areaRatio < MIN_BOARD_AREA_RATIO || areaRatio > MAX_BOARD_AREA_RATIO - 0.03) { return null; }
+  const diag: string = `longRun(abs=${absThresh}): MINRUN=${MINRUN} hRuns=${hRunCount} hPx=${hKeepCount} vRuns=${vRunCount} vPx=${vKeepCount} n=${n} bbox=[${minX},${minY},${maxX},${maxY}] ${bw}x${bh} aspect=${aspect.toFixed(2)} areaRatio=${areaRatio.toFixed(3)}`;
+  g_lastBboxDiag += (g_lastBboxDiag.length > 0 ? '\n' : '') + diag;
+  if (n < LONGRUN_MIN_PIXELS) {
+    g_lastBboxDiag += `\n  → n<MIN(${LONGRUN_MIN_PIXELS}) null`;
+    return null;
+  }
+  if (bw < CONSERVATIVE_MIN_DIM || bh < CONSERVATIVE_MIN_DIM) {
+    g_lastBboxDiag += `\n  → dim<MIN(${CONSERVATIVE_MIN_DIM}) null`;
+    return null;
+  }
+  if (aspect < LONGRUN_MIN_ASPECT || aspect > LONGRUN_MAX_ASPECT) {
+    g_lastBboxDiag += `\n  → aspect∉[${LONGRUN_MIN_ASPECT},${LONGRUN_MAX_ASPECT}] null`;
+    return null;
+  }
+  if (areaRatio < MIN_BOARD_AREA_RATIO || areaRatio > MAX_BOARD_AREA_RATIO - 0.03) {
+    g_lastBboxDiag += `\n  → areaRatio∉[${MIN_BOARD_AREA_RATIO},${(MAX_BOARD_AREA_RATIO - 0.03).toFixed(2)}] null`;
+    return null;
+  }
+  g_lastBboxDiag += `\n  → ✓`;
   return { left: minX, top: minY, right: maxX, bottom: maxY, isDark };
+}
+
+export function findBoxLongRun(
+  gray: Float32Array, W: number, H: number, isDark: boolean, bg: number
+): BoardBBox | null {
+  const baseOffset: number = 60;
+  const baseAbs: number = isDark ? bg + baseOffset : bg - baseOffset;
+  const result: BoardBBox | null = findBoxLongRunWithThresh(gray, W, H, isDark, baseAbs);
+  if (result !== null) { return result; }
+  for (const offset of LONGRUN_TIGHTER_OFFSETS) {
+    if (offset >= baseOffset) { continue; }
+    const tighterAbs: number = isDark ? bg + offset : bg - offset;
+    const r2: BoardBBox | null = findBoxLongRunWithThresh(gray, W, H, isDark, tighterAbs);
+    if (r2 !== null) { return r2; }
+  }
+  return null;
 }
 
 function houghLines(gray: Float32Array, W: number, H: number, isDark: boolean, bg: number): HoughLine[] {
@@ -1444,12 +1492,18 @@ function findBoardByHoughLines(gray: Float32Array, W: number, H: number, isDark:
 }
 
 export function findBoardBBox(pixels: Uint8Array, width: number, height: number, bg: number): BoardBBox {
+  g_lastBboxDiag = '';
   const isDark: boolean = bg < BG_DARK_THRESHOLD;
   const gray: Float32Array = toGrayArray(pixels, width, height);
   const imgArea: number = width * height;
+  const addDiag = (s: string): void => { g_lastBboxDiag += (g_lastBboxDiag.length > 0 ? '\n' : '') + s; };
 
   const longRun: BoardBBox | null = findBoxLongRun(gray, width, height, isDark, bg);
-  if (longRun !== null) { return longRun; }
+  if (longRun !== null) {
+    addDiag(`路径=longRun ✓ [${longRun.left},${longRun.top},${longRun.right},${longRun.bottom}]`);
+    return longRun;
+  }
+  addDiag('longRun → null, trying primary');
 
   const isDegenerate = (b: BoardBBox): boolean => {
     return ((b.right - b.left) * (b.bottom - b.top)) > imgArea * MAX_BOARD_AREA_RATIO;
@@ -1458,14 +1512,26 @@ export function findBoardBBox(pixels: Uint8Array, width: number, height: number,
   const primary: BoardBBox | null = findBBoxInRectGray(
     gray, width, height, bg, isDark, 0, 0, width, height, BBOX_PRIMARY_THRESH, BBOX_PRIMARY_MIN_FRAC
   );
-  if (primary !== null && isValidBoardAspect(primary, width, height) && !isDegenerate(primary)) { return primary; }
+  if (primary !== null && isValidBoardAspect(primary, width, height) && !isDegenerate(primary)) {
+    addDiag(`路径=primary ✓ [${primary.left},${primary.top},${primary.right},${primary.bottom}]`);
+    return primary;
+  }
+  if (primary !== null) {
+    addDiag(`primary found but invalid aspect=${((primary.right - primary.left) / (primary.bottom - primary.top)).toFixed(2)} or degenerate`);
+  } else {
+    addDiag('primary → null');
+  }
 
   for (const thresh of BBOX_RELAXED_THRESHOLDS) {
     const res: BoardBBox | null = findBBoxInRectGray(
       gray, width, height, bg, isDark, 0, 0, width, height, thresh, BBOX_RELAXED_MIN_FRAC
     );
-    if (res !== null && isValidBoardAspect(res, width, height) && !isDegenerate(res)) { return res; }
+    if (res !== null && isValidBoardAspect(res, width, height) && !isDegenerate(res)) {
+      addDiag(`路径=relaxed(thresh=${thresh}) ✓ [${res.left},${res.top},${res.right},${res.bottom}]`);
+      return res;
+    }
   }
+  addDiag('relaxed → no valid result, trying regions');
 
   const regions: number[][] = [];
   for (let i: number = 0; i < BBOX_REGIONS.length; i++) {
@@ -1495,6 +1561,7 @@ export function findBoardBBox(pixels: Uint8Array, width: number, height: number,
   }
   let bestArea: number = 0;
   let bestBox: BoardBBox | null = null;
+  let bestRegionIdx: number = -1;
   for (let ri: number = 0; ri < regions.length; ri++) {
     const r: number[] = regions[ri];
     for (const thresh of BBOX_REGION_THRESHOLDS) {
@@ -1505,24 +1572,38 @@ export function findBoardBBox(pixels: Uint8Array, width: number, height: number,
       if (res !== null && isValidBoardAspect(res, width, height)) {
         const area: number = (res.right - res.left) * (res.bottom - res.top);
         if (area < width * height * MAX_BOARD_AREA_RATIO) {
-          if (area > bestArea) { bestArea = area; bestBox = res; }
+          if (area > bestArea) { bestArea = area; bestBox = res; bestRegionIdx = ri; }
         }
         break;
       }
     }
   }
+  if (bestBox !== null) {
+    addDiag(`region[${bestRegionIdx}] bestBox [${bestBox.left},${bestBox.top},${bestBox.right},${bestBox.bottom}] area=${bestArea}`);
+  }
 
   const conservative: BoardBBox | null = findBBoxConservative(gray, width, height, isDark, bg);
-  if (conservative !== null) { return conservative; }
+  if (conservative !== null) {
+    addDiag(`路径=conservative ✓ [${conservative.left},${conservative.top},${conservative.right},${conservative.bottom}]`);
+    return conservative;
+  }
+  addDiag('conservative → null');
 
-  if (bestBox !== null) { return bestBox; }
+  if (bestBox !== null) {
+    addDiag(`路径=region(bestBox) [${bestBox.left},${bestBox.top},${bestBox.right},${bestBox.bottom}]`);
+    return bestBox;
+  }
 
   const adaptive: BoardBBox | null = findBBoxAdaptive(gray, width, height, isDark);
   if (adaptive !== null) {
     const aArea: number = (adaptive.right - adaptive.left) * (adaptive.bottom - adaptive.top);
-    if (aArea < width * height * MAX_BOARD_AREA_RATIO) { return adaptive; }
+    if (aArea < width * height * MAX_BOARD_AREA_RATIO) {
+      addDiag(`路径=adaptive ✓ [${adaptive.left},${adaptive.top},${adaptive.right},${adaptive.bottom}]`);
+      return adaptive;
+    }
   }
 
+  addDiag('全部失败 → 全图退化bbox');
   return { left: 0, top: 0, right: width, bottom: height, isDark };
 }
 

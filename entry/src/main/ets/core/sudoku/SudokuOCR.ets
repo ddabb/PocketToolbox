@@ -2,7 +2,7 @@ import { image } from '@kit.ImageKit';
 import { textRecognition } from '@kit.CoreVisionKit';
 import { fileIo } from '@kit.CoreFileKit';
 import { parseOCRToGrid } from './SudokuEngine';
-import { BoardBBox, BoardCorners, GridLines, bgColor, cellSigFromGray, countInk, detectBoardCorners, findBoardBBox, findBoxLongRun, findPreciseGridLines, getLastConfidence, recognizeDigit, SIG_COLS, SIG_ROWS, toGrayArray, validateCellCentering, warpPerspectiveGray } from './SudokuPixel';
+import { BoardBBox, BoardCorners, GridLines, bgColor, cellSigFromGray, countInk, detectBoardCorners, findBoardBBox, findBoxLongRun, getLastBboxDiag, findPreciseGridLines, getLastConfidence, recognizeDigit, SIG_COLS, SIG_ROWS, toGrayArray, validateCellCentering, warpPerspectiveGray } from './SudokuPixel';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 
 const DOMAIN: number = 0xA03D00;
@@ -184,7 +184,8 @@ function buildDebugInfo(
     pixelBboxLocator: g_lastDebugPixelBboxLocator,
     pixelWarpInfo: g_lastDebugPixelWarpInfo,
     pixelCellStats: g_lastDebugPixelCellStats,
-    fixDetails: g_lastDebugFixDetails
+    fixDetails: g_lastDebugFixDetails,
+    bboxDiag: getLastBboxDiag()
   };
   return info;
 }
@@ -223,6 +224,7 @@ export interface OCRDebugInfo {
   pixelWarpInfo: string;
   pixelCellStats: string;
   fixDetails: string;
+  bboxDiag: string;
 }
 
 export interface OCRResult {
@@ -775,21 +777,20 @@ async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string): Promise<
     const vStr: string = vkDigit !== null && vkDigit > 0 ? `${vkDigit}` : '-';
 
     if (origDigit === 0) {
-      // 空格子：先信任 VisionKit 宽区域识别，回退像素分析
-      // 颜色对比度灰度下像素分析对彩色主题鲁棒性更好，false positive 率可控
       if (vkDigit !== null && vkDigit > 0) {
-        hilog.info(DOMAIN, TAG, '【逐格修正详情】填充 %{public}s 空→%{public}d V=%{public}d P=%{public}s',
-          cellLabel, vkDigit, vkDigit, pStr);
         grid[idx] = vkDigit;
-        fixCount++;
-        fixDetailLines.push(`填充${cellLabel} 空→${vkDigit} V=${vStr} P=${pStr} crop=${vkCropInfo}`);
-      } else if (pixelDigit !== null && pixelDigit > 0) {
-        // 像素分析回退：空格子只有在 VK 无结果时才信任像素分析
-        hilog.info(DOMAIN, TAG, '【逐格修正详情】像素回填 %{public}s 空→%{public}d V=%{public}s P=%{public}d',
-          cellLabel, pixelDigit, vStr, pixelDigit);
-        grid[idx] = pixelDigit;
-        fixCount++;
-        fixDetailLines.push(`像素回填${cellLabel} 空→${pixelDigit} V=${vStr} P=${pStr} crop=${vkCropInfo}`);
+        const newConflicts: number[] = findConflictCells(grid);
+        const selfConflict: boolean = newConflicts.some((ci: number) => ci === idx);
+        if (selfConflict) {
+          grid[idx] = 0;
+          hilog.info(DOMAIN, TAG, '【逐格修正详情】填充冲突回退 %{public}s V=%{public}d', cellLabel, vkDigit);
+          fixDetailLines.push(`冲突回填${cellLabel} V=${vkDigit}冲突→留空 P=${pStr} crop=${vkCropInfo}`);
+        } else {
+          hilog.info(DOMAIN, TAG, '【逐格修正详情】填充 %{public}s 空→%{public}d V=%{public}d P=%{public}s',
+            cellLabel, vkDigit, vkDigit, pStr);
+          fixCount++;
+          fixDetailLines.push(`填充${cellLabel} 空→${vkDigit} V=${vStr} P=${pStr} crop=${vkCropInfo}`);
+        }
       } else {
         fixDetailLines.push(`留空${cellLabel} V=${vStr} P=${pStr} crop=${vkCropInfo}`);
       }
@@ -1278,6 +1279,83 @@ function buildGridByPosition(
     boardB = Math.min(boardB, imgH);
     hilog.info(DOMAIN, TAG, '【VisionKit Block详情】buildGrid pixelBoard ocr=[%{public}.1f,%{public}.1f,%{public}.1f,%{public}.1f]',
       boardL, boardT, boardR, boardB);
+    // pixelBbox includes the outer border lines, which can shift the 9x9 grid
+    // relative to actual digit centers. When enough digits are detected, refine
+    // board boundaries by fitting to digit center positions.
+    if (rawDigits.length >= 8) {
+      // --- Row fitting ---
+      const sortedY: number[] = [];
+      for (let di: number = 0; di < rawDigits.length; di++) {
+        sortedY.push(rawDigits[di].cy);
+      }
+      sortedY.sort((a: number, b: number) => a - b);
+      const rowCenters: number[] = [];
+      let rowStart: number = 0;
+      for (let si: number = 1; si <= sortedY.length; si++) {
+        const isGap: boolean = si < sortedY.length && (sortedY[si] - sortedY[si - 1]) > (sortedY[sortedY.length - 1] - sortedY[0]) / 12;
+        if (isGap || si === sortedY.length) {
+          let sum: number = 0;
+          let cnt: number = 0;
+          for (let j: number = rowStart; j < si; j++) { sum += sortedY[j]; cnt++; }
+          rowCenters.push(sum / cnt);
+          rowStart = si;
+        }
+      }
+      if (rowCenters.length >= 2) {
+        const yGaps: number[] = [];
+        for (let ri: number = 1; ri < rowCenters.length; ri++) {
+          yGaps.push(rowCenters[ri] - rowCenters[ri - 1]);
+        }
+        yGaps.sort((a: number, b: number) => a - b);
+        const medianCellH: number = yGaps[Math.floor(yGaps.length / 2)];
+        const firstGridRow: number = Math.round((rowCenters[0] - boardT) / medianCellH - 0.5);
+        const clampedFirstRow: number = Math.max(0, Math.min(firstGridRow, 8 - rowCenters.length + 1));
+        const refinedBoardT: number = rowCenters[0] - (clampedFirstRow + 0.5) * medianCellH;
+        const refinedBoardB: number = refinedBoardT + 9 * medianCellH;
+        if (refinedBoardT >= 0 && refinedBoardB <= imgH) {
+          hilog.info(DOMAIN, TAG, '【VisionKit Block详情】buildGrid rowFit medianCellH=%{public}.1f firstGridRow=%{public}d refinedT=%.1f refinedB=%.1f',
+            medianCellH, clampedFirstRow, refinedBoardT, refinedBoardB);
+          boardT = refinedBoardT;
+          boardB = refinedBoardB;
+        }
+      }
+      // --- Column fitting ---
+      const sortedX: number[] = [];
+      for (let di: number = 0; di < rawDigits.length; di++) {
+        sortedX.push(rawDigits[di].cx);
+      }
+      sortedX.sort((a: number, b: number) => a - b);
+      const colCenters: number[] = [];
+      let colStart: number = 0;
+      for (let si: number = 1; si <= sortedX.length; si++) {
+        const isGap: boolean = si < sortedX.length && (sortedX[si] - sortedX[si - 1]) > (sortedX[sortedX.length - 1] - sortedX[0]) / 12;
+        if (isGap || si === sortedX.length) {
+          let sum: number = 0;
+          let cnt: number = 0;
+          for (let j: number = colStart; j < si; j++) { sum += sortedX[j]; cnt++; }
+          colCenters.push(sum / cnt);
+          colStart = si;
+        }
+      }
+      if (colCenters.length >= 2) {
+        const xGaps: number[] = [];
+        for (let ci: number = 1; ci < colCenters.length; ci++) {
+          xGaps.push(colCenters[ci] - colCenters[ci - 1]);
+        }
+        xGaps.sort((a: number, b: number) => a - b);
+        const medianCellW: number = xGaps[Math.floor(xGaps.length / 2)];
+        const firstGridCol: number = Math.round((colCenters[0] - boardL) / medianCellW - 0.5);
+        const clampedFirstCol: number = Math.max(0, Math.min(firstGridCol, 8 - colCenters.length + 1));
+        const refinedBoardL: number = colCenters[0] - (clampedFirstCol + 0.5) * medianCellW;
+        const refinedBoardR: number = refinedBoardL + 9 * medianCellW;
+        if (refinedBoardL >= 0 && refinedBoardR <= imgW) {
+          hilog.info(DOMAIN, TAG, '【VisionKit Block详情】buildGrid colFit medianCellW=%{public}.1f firstGridCol=%{public}d refinedL=%.1f refinedR=%.1f',
+            medianCellW, clampedFirstCol, refinedBoardL, refinedBoardR);
+          boardL = refinedBoardL;
+          boardR = refinedBoardR;
+        }
+      }
+    }
   } else {
     const estimated: BoardBoundsOCR | null =
       estimateBoardBoundsFromDigits(rawDigits, imgW, imgH);

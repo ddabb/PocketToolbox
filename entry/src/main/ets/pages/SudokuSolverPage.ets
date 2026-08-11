@@ -516,6 +516,10 @@ struct SudokuSolverPage {
     if (info.probeInfo.length > 0) {
       lines.push(`【探测图详情】${info.probeInfo}`);
     }
+    if (info.bboxDiag.length > 0) {
+      lines.push(`【棋盘定位诊断】`);
+      lines.push(info.bboxDiag);
+    }
     if (info.pixelBgInfo.length > 0) {
       lines.push(`【像素背景分析】${info.pixelBgInfo}`);
     }
