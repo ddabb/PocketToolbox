@@ -286,6 +286,14 @@ const HOLE_SECOND_RATIO: number = 0.6;
 // (light ink on dark background), otherwise dark ink on light background.
 const BG_DARK_THRESHOLD: number = 128;
 
+// Cache for per-channel background colors, computed by bgColor() and consumed by toGrayArray().
+interface ChannelBg {
+  bgR: number;
+  bgG: number;
+  bgB: number;
+}
+let g_cachedChannelBg: ChannelBg | null = null;
+
 interface DigitTemplateEntry {
   digit: number;
   font: string;
@@ -517,31 +525,75 @@ export function otsuThreshold(hist: number[], total: number): number {
   return threshold;
 }
 
+function clamp255(v: number): number { if (v < 0) { return 0; } if (v > 255) { return 255; } return v; }
+
+// 使用缓存的通道背景色计算单像素的颜色对比度灰度值
+function computeContrastPixel(pixels: Uint8Array, off: number): number {
+  let bgR: number = 128; let bgG: number = 128; let bgB: number = 128;
+  if (g_cachedChannelBg !== null) {
+    bgR = g_cachedChannelBg.bgR;
+    bgG = g_cachedChannelBg.bgG;
+    bgB = g_cachedChannelBg.bgB;
+  }
+  const dr: number = pixels[off] - bgR;
+  const dg: number = pixels[off + 1] - bgG;
+  const db: number = pixels[off + 2] - bgB;
+  const contrast: number = Math.max(Math.abs(dr), Math.abs(dg), Math.abs(db));
+  return clamp255(255 - contrast);
+}
+
 export function bgColor(pixels: Uint8Array, width: number, height: number): number {
-  const hist: number[] = new Array<number>(256).fill(0);
+  // 使用分通道颜色对比度：对每个通道分别统计直方图，取众数作为该通道的背景色。
+  // 相比单一亮度值（0.299R+0.587G+0.114B），分通道背景色能正确处理彩色主题
+  // （如红色数字浅色背景、蓝色数字深色背景等），避免亮度公式丢失颜色对比度信息。
+  const histR: number[] = new Array<number>(256).fill(0);
+  const histG: number[] = new Array<number>(256).fill(0);
+  const histB: number[] = new Array<number>(256).fill(0);
   const total: number = width * height;
   const step: number = Math.max(1, Math.floor(total / BG_SAMPLE_COUNT));
   for (let i: number = 0; i < total; i += step) {
-    const g: number = 0.299 * pixels[i * 4] +
-      0.587 * pixels[i * 4 + 1] +
-      0.114 * pixels[i * 4 + 2];
-    let gi: number = Math.floor(g);
-    if (gi < 0) { gi = 0; }
-    if (gi > 255) { gi = 255; }
-    hist[gi]++;
+    const off: number = i * 4;
+    let ri: number = pixels[off];
+    let gi: number = pixels[off + 1];
+    let bi: number = pixels[off + 2];
+    if (ri < 0) { ri = 0; } if (ri > 255) { ri = 255; }
+    if (gi < 0) { gi = 0; } if (gi > 255) { gi = 255; }
+    if (bi < 0) { bi = 0; } if (bi > 255) { bi = 255; }
+    histR[ri]++; histG[gi]++; histB[bi]++;
   }
-  let mode: number = 0;
-  let max: number = -1;
-  for (let i: number = 0; i < 256; i++) {
-    if (hist[i] > max) { max = hist[i]; mode = i; }
+  // 跳过 bin 0 找众数（透明区域/黑边累积在 bin 0）
+  let modeR: number = 0; let maxR: number = 0;
+  let modeG: number = 0; let maxG: number = 0;
+  let modeB: number = 0; let maxB: number = 0;
+  for (let i: number = 1; i < 256; i++) {
+    if (histR[i] > maxR) { maxR = histR[i]; modeR = i; }
+    if (histG[i] > maxG) { maxG = histG[i]; modeG = i; }
+    if (histB[i] > maxB) { maxB = histB[i]; modeB = i; }
   }
-  return mode;
+  // 缓存供 toGrayArray 复用
+  g_cachedChannelBg = { bgR: modeR, bgG: modeG, bgB: modeB };
+  // 返回反转对比度的 bg：在颜色对比度方案中，所有背景像素映射到接近255的位置
+  return 255;
 }
 
 export function toGrayArray(pixels: Uint8Array, width: number, height: number): Float32Array {
+  // 如果已有缓存的通道背景色，使用颜色对比度方案；
+  // 否则回退到标准亮度转换。
+  let bgR: number = 128; let bgG: number = 128; let bgB: number = 128;
+  if (g_cachedChannelBg !== null) {
+    bgR = g_cachedChannelBg.bgR;
+    bgG = g_cachedChannelBg.bgG;
+    bgB = g_cachedChannelBg.bgB;
+  }
   const gray: Float32Array = new Float32Array(width * height);
   for (let i: number = 0; i < width * height; i++) {
-    gray[i] = 0.299 * pixels[i * 4] + 0.587 * pixels[i * 4 + 1] + 0.114 * pixels[i * 4 + 2];
+    const off: number = i * 4;
+    const dr: number = pixels[off] - bgR;
+    const dg: number = pixels[off + 1] - bgG;
+    const db: number = pixels[off + 2] - bgB;
+    // 取最大通道偏差作为颜色对比度，反转后得到：背景≈255，墨水≈0~200
+    const contrast: number = Math.max(Math.abs(dr), Math.abs(dg), Math.abs(db));
+    gray[i] = clamp255(255 - contrast);
   }
   return gray;
 }
@@ -724,9 +776,8 @@ function findBBoxInRect(
   for (let x: number = 0; x < rw; x++) {
     let c: number = 0;
     for (let y: number = 0; y < rh; y += 2) {
-      const g: number = 0.299 * pixels[((y + ry0) * width + (x + rx0)) * 4] +
-        0.587 * pixels[((y + ry0) * width + (x + rx0)) * 4 + 1] +
-        0.114 * pixels[((y + ry0) * width + (x + rx0)) * 4 + 2];
+      const off: number = ((y + ry0) * width + (x + rx0)) * 4;
+      const g: number = computeContrastPixel(pixels, off);
       if (isInkPixel(g, bg, isDark)) { c++; }
     }
     colInk[x] = c;
@@ -734,9 +785,8 @@ function findBBoxInRect(
   for (let y: number = 0; y < rh; y++) {
     let c: number = 0;
     for (let x: number = 0; x < rw; x += 2) {
-      const g: number = 0.299 * pixels[((y + ry0) * width + (x + rx0)) * 4] +
-        0.587 * pixels[((y + ry0) * width + (x + rx0)) * 4 + 1] +
-        0.114 * pixels[((y + ry0) * width + (x + rx0)) * 4 + 2];
+      const off: number = ((y + ry0) * width + (x + rx0)) * 4;
+      const g: number = computeContrastPixel(pixels, off);
       if (isInkPixel(g, bg, isDark)) { c++; }
     }
     rowInk[y] = c;
@@ -960,7 +1010,8 @@ function findBBoxConservative(
 export function findBoxLongRun(
   gray: Float32Array, W: number, H: number, isDark: boolean, bg: number
 ): BoardBBox | null {
-  const abs: number = isDark ? Math.max(150, bg + 60) : Math.min(80, bg - 60);
+  // 颜色对比度灰度下 bg≈255，长行程检测需使用相对阈值而非硬编码的 min/max 上限。
+  const abs: number = isDark ? bg + 60 : bg - 60;
   const ink: Uint8Array = new Uint8Array(W * H);
   for (let i: number = 0; i < W * H; i++) {
     ink[i] = isDark ? (gray[i] > abs ? 1 : 0) : (gray[i] < abs ? 1 : 0);

@@ -535,6 +535,9 @@ struct SudokuSolverPage {
     if (info.visionKitBlockCount > 0 || info.visionKitRawText.length > 0) {
       lines.push(`【VisionKit Block数】${info.visionKitBlockCount}`);
     }
+    if (info.visionKitBlockDetail && info.visionKitBlockDetail.length > 0) {
+      lines.push(`【VisionKit Block详情】\n${info.visionKitBlockDetail}`);
+    }
     if (info.visionKitRawText.length > 0) {
       lines.push(`【VisionKit原始文本】${info.visionKitRawText}`);
     }
@@ -561,9 +564,14 @@ struct SudokuSolverPage {
       lines.push(`【低置信格子】${info.lowConfIndices.map((i: number) => `R${Math.floor(i / 9) + 1}C${i % 9 + 1}`).join(', ')}`);
     }
     if (info.emptyIndices.length > 0) {
-      lines.push(`【空格子修正】${info.emptyIndices.length}个`);
+      lines.push(`【空格子待修正】${info.emptyIndices.length}个待填充`);
     }
-    lines.push(`【修正数量】${info.fixCount}`);
+    lines.push(`【实际修正】${info.fixCount}个成功`);
+    if (info.fixDetails && info.fixDetails.length > 0) {
+      lines.push(``);
+      lines.push(`【逐格修正详情】`);
+      lines.push(info.fixDetails);
+    }
     lines.push(``);
     lines.push(`【步骤详情】`);
     for (let i: number = 0; i < info.steps.length; i++) {
@@ -579,6 +587,15 @@ struct SudokuSolverPage {
       this.debugText = '尚无识别调试信息，请先进行图片识别';
     } else {
       this.debugText = this.formatDebugInfo(info);
+      // 复制到剪贴板
+      const pasteData: pasteboard.PasteData = pasteboard.createData(pasteboard.MIMETYPE_TEXT_PLAIN, this.debugText);
+      const systemPasteboard: pasteboard.SystemPasteboard = pasteboard.getSystemPasteboard();
+      systemPasteboard.setData(pasteData, (err: BusinessError) => {
+        if (err) {
+          hilog.error(0xA03D00, 'SudokuSolver', '复制失败: %{public}s', err.message);
+        }
+      });
+      this.showMessage('识别日志已复制到剪贴板', 1);
     }
     this.debugExpanded = !this.debugExpanded;
   }
@@ -1070,17 +1087,27 @@ struct SudokuSolverPage {
     Column() {
       Button() {
         Row({ space: 4 }) {
-          Text('\u{1F527}').fontSize(13)
-          Text(this.debugExpanded ? '隐藏识别调试' : '识别调试').fontSize(12)
+          Text('\u{1F4CB}').fontSize(13)
+          Text('复制识别日志').fontSize(12)
         }
       }
-      .fontColor(this.debugExpanded ? Color.White : '#6366f1')
-      .backgroundColor(this.debugExpanded ? '#6366f1' : '#eef2ff')
+      .fontColor('#6366f1')
+      .backgroundColor('#eef2ff')
       .borderRadius(14)
       .height(34)
       .onClick(() => { this.toggleDebug(); })
 
       if (this.debugExpanded && this.debugText.length > 0) {
+        Row() {
+          Blank()
+          Button() { Text('收起').fontSize(11) }
+            .height(24)
+            .fontColor('#6366f1')
+            .backgroundColor(Color.Transparent)
+            .onClick(() => { this.debugExpanded = false; })
+        }
+        .width('100%')
+        .margin({ top: 4, bottom: 2 })
         Scroll() {
           Text(this.debugText)
             .fontSize(11)
@@ -1092,7 +1119,6 @@ struct SudokuSolverPage {
         }
         .width('100%')
         .height(300)
-        .margin({ top: 8 })
         .backgroundColor($r('app.color.card_background'))
         .borderRadius(10)
         .border({ width: 1, color: '#e2e8f0' })

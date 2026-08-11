@@ -30,10 +30,10 @@ const BOARD_CROP_PAD_RATIO: number = 0.10;
 
 // Fraction of cell width/height to add as padding when cropping individual
 // cells for per-cell VisionKit re-recognition in fixAndFillGrid.
-const CELL_CROP_PAD_FACTOR: number = 0.15;
+const CELL_CROP_PAD_FACTOR: number = 0.30;
 
 // Upscale factor applied to cropped cell images before VisionKit re-recognition.
-// A 3x upscale helps VisionKit read small/faint digits.
+// A 5x upscale helps VisionKit read small/faint digits.
 const CELL_UPSCALE_FACTOR: number = 3;
 
 // Minimum crop width/height (px) for a cell to be sent to VisionKit.
@@ -80,18 +80,37 @@ let g_lastDebugBbox: string = '';
 let g_lastDebugResize: string = '';
 let g_lastDebugRawDigits: number = 0;
 let g_lastDebugConflicts: number[] = [];
+let g_probeBbox: BoardBBox | null = null;
+let g_probeResizeW: number = 0;
+let g_probeResizeH: number = 0;
 let g_lastDebugLowConf: number[] = [];
 let g_lastDebugEmpty: number[] = [];
 let g_lastDebugFixCount: number = 0;
+let g_vkInited: boolean = false;
+
 let g_lastDebugVkRawText: string = '';
 let g_lastDebugVkBlockCount: number = 0;
 let g_lastDebugVkOcrSize: string = '';
 let g_lastDebugVkOcrError: string = '';
+let g_lastDebugVkBlockDetail: string = '';
 let g_lastDebugProbeInfo: string = '';
 let g_lastDebugPixelBgInfo: string = '';
 let g_lastDebugPixelBboxLocator: string = '';
 let g_lastDebugPixelWarpInfo: string = '';
 let g_lastDebugPixelCellStats: string = '';
+let g_lastDebugFixDetails: string = '';
+
+// 逐格VK诊断统计（供调试面板展示）
+interface PerCellVkDiag {
+  cropFail: number;
+  noBlock: number;
+  noCenter: number;
+  found: number;
+  samples: string[];
+}
+let g_perCellVkDiag: PerCellVkDiag = {
+  cropFail: 0, noBlock: 0, noCenter: 0, found: 0, samples: []
+};
 
 export function getOCRDebugInfo(): OCRDebugInfo | null {
   return g_debugInfo;
@@ -157,13 +176,15 @@ function buildDebugInfo(
     pipeline: pipeline,
     visionKitRawText: g_lastDebugVkRawText,
     visionKitBlockCount: g_lastDebugVkBlockCount,
+    visionKitBlockDetail: g_lastDebugVkBlockDetail,
     visionKitOcrSize: g_lastDebugVkOcrSize,
     visionKitOcrError: g_lastDebugVkOcrError,
     probeInfo: g_lastDebugProbeInfo,
     pixelBgInfo: g_lastDebugPixelBgInfo,
     pixelBboxLocator: g_lastDebugPixelBboxLocator,
     pixelWarpInfo: g_lastDebugPixelWarpInfo,
-    pixelCellStats: g_lastDebugPixelCellStats
+    pixelCellStats: g_lastDebugPixelCellStats,
+    fixDetails: g_lastDebugFixDetails
   };
   return info;
 }
@@ -193,6 +214,7 @@ export interface OCRDebugInfo {
   pipeline: string;
   visionKitRawText: string;
   visionKitBlockCount: number;
+  visionKitBlockDetail: string;
   visionKitOcrSize: string;
   visionKitOcrError: string;
   probeInfo: string;
@@ -200,6 +222,7 @@ export interface OCRDebugInfo {
   pixelBboxLocator: string;
   pixelWarpInfo: string;
   pixelCellStats: string;
+  fixDetails: string;
 }
 
 export interface OCRResult {
@@ -271,10 +294,11 @@ export async function recognizeSudokuFromImage(imagePath: string): Promise<OCRRe
   g_debugInfo = null;
   const steps: OCRDebugStep[] = [];
   try {
-    hilog.info(DOMAIN, TAG, '=== 开始识别 === path=%{public}s', imagePath);
+    hilog.info(DOMAIN, TAG, '=== 识别调试信息 ===');
+    hilog.info(DOMAIN, TAG, '【流水线】VisionKit+修正 (首次尝试)');
     steps.push({ step: '1. VisionKit识别', detail: '开始' });
     const visionResult: OCRResult = await tryVisionKitRecognition(imagePath);
-    hilog.info(DOMAIN, TAG, 'VisionKit: success=%{public}d error=%{public}s', visionResult.success ? 1 : 0, visionResult.error);
+    hilog.info(DOMAIN, TAG, '【步骤详情】VisionKit识别 success=%{public}d error=%{public}s', visionResult.success ? 1 : 0, visionResult.error);
     if (visionResult.success && visionResult.grid) {
       const vkGrid: number[] = [...visionResult.grid];
       steps.push({ step: '2. VisionKit结果', detail: `成功, ${visionResult.grid.filter((d: number) => d > 0).length}个数字` });
@@ -297,7 +321,7 @@ export async function recognizeSudokuFromImage(imagePath: string): Promise<OCRRe
     return corrected;
     }
     steps.push({ step: '2. VisionKit失败', detail: visionResult.error });
-    hilog.info(DOMAIN, TAG, 'VisionKit 失败，转像素分析');
+    hilog.info(DOMAIN, TAG, '【步骤详情】VisionKit失败，转像素分析');
     const pixelResult: OCRResult = await tryPixelGridRecognition(imagePath);
     g_debugInfo = buildDebugInfo(
       '像素分析',
@@ -356,16 +380,27 @@ function findConflictCells(grid: number[]): number[] {
   return result.sort((a: number, b: number) => a - b);
 }
 
-function cropSubPixelMap(fullPm: image.PixelMap, cropX: number, cropY: number, cropW: number, cropH: number, upscale: number): image.PixelMap | null {
+// 从已加载的像素缓冲区中裁剪单格区域，上采样后返回 PixelMap
+function cropCellFromBuffer(
+  pixels: Uint8Array, imgW: number, imgH: number,
+  cropX: number, cropY: number, cropW: number, cropH: number,
+  upscale: number
+): image.PixelMap | null {
   try {
-    const region: image.Region = { x: cropX, y: cropY, size: { height: cropH, width: cropW } };
-    const area: image.PositionArea = {
-      pixels: new ArrayBuffer(cropW * cropH * 4),
-      offset: 0,
-      stride: fullPm.getBytesNumberPerRow(),
-      region: region
-    };
-    fullPm.readPixelsSync(area);
+    const srcStride: number = imgW * 4;
+    const dstStride: number = cropW * 4;
+    const bufSize: number = dstStride * cropH;
+    const buf: ArrayBuffer = new ArrayBuffer(bufSize);
+    const dst: Uint8Array = new Uint8Array(buf);
+
+    // 逐行拷贝裁剪区域
+    for (let y: number = 0; y < cropH; y++) {
+      const srcRowOff: number = ((cropY + y) * imgW + cropX) * 4;
+      const dstRowOff: number = y * dstStride;
+      for (let x: number = 0; x < dstStride; x++) {
+        dst[dstRowOff + x] = pixels[srcRowOff + x];
+      }
+    }
 
     const opts: image.InitializationOptions = {
       editable: true,
@@ -374,9 +409,9 @@ function cropSubPixelMap(fullPm: image.PixelMap, cropX: number, cropY: number, c
     };
     const snapshot: image.PixelMap = image.createPixelMapSync(opts);
     const destArea: image.PositionArea = {
-      pixels: area.pixels,
+      pixels: buf,
       offset: 0,
-      stride: cropW * 4,
+      stride: dstStride,
       region: { size: { width: cropW, height: cropH }, x: 0, y: 0 }
     };
     snapshot.writePixelsSync(destArea);
@@ -415,10 +450,107 @@ async function recognizeDigitVisionKit(cellPm: image.PixelMap): Promise<number |
       }
     });
 
-    hilog.info(DOMAIN, TAG, 'VisionKit重识: rawText="%{public}s" bestDigit=%{public}d', rawText, bestDigit);
+    hilog.info(DOMAIN, TAG, '【逐格修正详情】单格识别 rawText="%{public}s" bestDigit=%{public}d', rawText, bestDigit);
     return bestDigit;
   } catch (_e) {
     hilog.error(DOMAIN, TAG, 'VisionKit重识异常: %{public}s', `${_e}`);
+    return null;
+  }
+}
+
+// 宽区域识别：裁剪目标格+左右邻格（提供网格线上下文），用 VisionKit word 位置定位中心格数字
+async function recognizeDigitInWideRegion(
+  cellPm: image.PixelMap,
+  upscale: number,
+  centerCellX: number, centerCellY: number,
+  centerCellW: number, centerCellH: number
+): Promise<number | null> {
+  try {
+    const visionInfo: textRecognition.VisionInfo = { pixelMap: cellPm };
+    const recogResult: textRecognition.TextRecognitionResult =
+      await textRecognition.recognizeText(visionInfo, {
+        isDirectionDetectionSupported: false
+      });
+
+    const rawText: string = recogResult.value || '';
+    if (g_perCellVkDiag.samples.length < 3) {
+      g_perCellVkDiag.samples.push(`raw="${rawText.slice(0,30)}" blocks=${(recogResult.blocks || []).length}`);
+    }
+    hilog.info(DOMAIN, TAG, '【逐格修正详情】宽域识 raw="%{public}s" blocks=%{public}d',
+      rawText, (recogResult.blocks || []).length);
+
+    const blocks: Array<textRecognition.TextBlock> = recogResult.blocks || [];
+    if (blocks.length === 0) {
+      g_perCellVkDiag.noBlock++;
+      if (rawText.length === 0) { return null; }
+      // 无 block 无位置信息 → 留空，不回退多数投票
+      hilog.info(DOMAIN, TAG, '【逐格修正详情】宽域识无block 留空 raw="%{public}s"', rawText);
+      return null;
+    }
+
+    // 中心格在 upscaled 坐标系中的范围
+    const cxMin: number = centerCellX * upscale;
+    const cxMax: number = (centerCellX + centerCellW) * upscale;
+    const cyMin: number = centerCellY * upscale;
+    const cyMax: number = (centerCellY + centerCellH) * upscale;
+
+    const centerCandidates: number[] = [];
+    let wordCount: number = 0;
+    let cpCount: number = 0;
+
+    for (const block of blocks) {
+      const lines: Array<textRecognition.TextLine> = block.lines || [];
+      for (const line of lines) {
+        const words: Array<textRecognition.TextWord> = line.words || [];
+        for (const word of words) {
+          wordCount++;
+          const text: string = word.value.trim();
+          const cp: Array<textRecognition.PixelPoint> = word.cornerPoints;
+          if (cp.length < 4) { continue; }
+          cpCount++;
+
+          // word 中心点（对角线中点）
+          const wcx: number = (cp[0].x + cp[2].x) / 2;
+          const wcy: number = (cp[0].y + cp[2].y) / 2;
+
+          const inCenter: boolean = (wcx >= cxMin && wcx < cxMax && wcy >= cyMin && wcy < cyMax);
+
+          // 提取 word 中的数字
+          const ds: string[] = text.replace(/[^0-9]/g, '').split('');
+          for (const ch of ds) {
+            const d: number = parseInt(ch, 10);
+            if (d >= 1 && d <= 9) {
+              if (inCenter) {
+                centerCandidates.push(d);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // 优先用位置精确定位的中心格候选
+    if (centerCandidates.length > 0) {
+      const cntMap: Map<number, number> = new Map();
+      for (const d of centerCandidates) {
+        cntMap.set(d, (cntMap.get(d) || 0) + 1);
+      }
+      let best: number = 0; let bestCnt: number = 0;
+      cntMap.forEach((c: number, d: number) => { if (c > bestCnt) { bestCnt = c; best = d; } });
+      hilog.info(DOMAIN, TAG, '【逐格修正详情】宽域识定位成功 centerCandidates=%{public}s best=%{public}d',
+        centerCandidates.join(','), best);
+      g_perCellVkDiag.found++;
+      return best;
+    }
+
+    // 中心格无定位 word → 留空（避免把邻格数字误填进来）
+    g_perCellVkDiag.noCenter++;
+    hilog.info(DOMAIN, TAG, '【逐格修正详情】宽域识定位失败 留空 words=%{public}d cpWords=%{public}d center=[%.0f-%.0f, %.0f-%.0f] upscale=%{public}d',
+      wordCount, cpCount, cxMin, cxMax, cyMin, cyMax, upscale);
+    return null;
+  } catch (_e) {
+    hilog.error(DOMAIN, TAG, 'VisionKit宽域识异常: %{public}s', `${_e}`);
+    g_perCellVkDiag.noBlock++;
     return null;
   }
 }
@@ -472,11 +604,25 @@ async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string): Promise<
   const allFixIndices: number[] = [];
   fixSet.forEach((idx: number) => { allFixIndices.push(idx); });
 
-  hilog.info(DOMAIN, TAG, '修正: %{public}d 冲突 + %{public}d 低置信 + %{public}d 空 = %{public}d 格需修正',
-    conflictIndices.length, lowConfIndices.length, emptyIndices.length, allFixIndices.length);
+  if (conflictIndices.length > 0) {
+    hilog.info(DOMAIN, TAG, '【冲突格子】%{public}d个', conflictIndices.length);
+  }
+  if (lowConfIndices.length > 0) {
+    hilog.info(DOMAIN, TAG, '【低置信格子】%{public}d个', lowConfIndices.length);
+  }
+  if (emptyIndices.length > 0) {
+    hilog.info(DOMAIN, TAG, '【空格子待修正】%{public}d个待填充', emptyIndices.length);
+  }
+  hilog.info(DOMAIN, TAG, '【步骤详情】共需修正%{public}d格 (%{public}d冲突+%{public}d低置信+%{public}d空)',
+    allFixIndices.length, conflictIndices.length, lowConfIndices.length, emptyIndices.length);
 
   if (allFixIndices.length === 0) {
-    hilog.info(DOMAIN, TAG, '验证: 无冲突且无空格，直接采用结果');
+    hilog.info(DOMAIN, TAG, '【实际修正】无冲突且无空格，直接采用结果');
+    g_lastDebugFixDetails = '';
+    g_lastDebugConflicts = conflictIndices;
+    g_lastDebugLowConf = lowConfIndices;
+    g_lastDebugEmpty = emptyIndices;
+    g_lastDebugFixCount = 0;
     return ocrResult;
   }
 
@@ -503,15 +649,33 @@ async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string): Promise<
 
   const bg: number = bgColor(pixels, imgW, imgH);
   const gray: Float32Array = toGrayArray(pixels, imgW, imgH);
-  const bbox: BoardBBox = findBoardBBox(pixels, imgW, imgH, bg);
+
+  // 优先复用 VisionKit 探测阶段的 bbox，确保逐格修正时 cell 定位与 VK 主识别对齐
+  let bbox: BoardBBox;
+  if (g_probeBbox !== null && g_probeResizeW === imgW && g_probeResizeH === imgH) {
+    bbox = g_probeBbox;
+    hilog.info(DOMAIN, TAG, '【图片与棋盘】校正复用探测bbox [%{public}d,%{public}d,%{public}d,%{public}d] isDark=%{public}d',
+      bbox.left, bbox.top, bbox.right, bbox.bottom, bbox.isDark ? 1 : 0);
+  } else {
+    bbox = findBoardBBox(pixels, imgW, imgH, bg);
+    hilog.info(DOMAIN, TAG, '【图片与棋盘】校正重新探测bbox [%{public}d,%{public}d,%{public}d,%{public}d] isDark=%{public}d',
+      bbox.left, bbox.top, bbox.right, bbox.bottom, bbox.isDark ? 1 : 0);
+  }
 
   const cellW: number = (bbox.right - bbox.left) / 9;
   const cellH: number = (bbox.bottom - bbox.top) / 9;
   const padFactor: number = CELL_CROP_PAD_FACTOR;
   const upscale: number = CELL_UPSCALE_FACTOR;
 
+  hilog.info(DOMAIN, TAG, '【步骤详情】校正图=%{public}dx%{public}d cell=%.1fx%.1f upscale=%{public}d',
+    imgW, imgH, cellW, cellH, upscale);
+
   let vkInited: boolean = false;
+  let vkInitFailed: boolean = false;
   let fixCount: number = 0;
+
+  g_perCellVkDiag = { cropFail: 0, noBlock: 0, noCenter: 0, found: 0, samples: [] };
+  const fixDetailLines: string[] = [];
 
   for (const idx of allFixIndices) {
     const origDigit: number = grid[idx];
@@ -519,68 +683,142 @@ async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string): Promise<
     const col: number = idx % 9;
     const cellLeft: number = bbox.left + col * cellW;
     const cellTop: number = bbox.top + row * cellH;
+    const cellLabel: string = `(${row},${col})`;
 
     let pixelDigit: number | null = null;
     if (gray.length > 0) {
       pixelDigit = recognizeDigitPixel(gray, imgW, cellLeft, cellTop, cellW, cellH, bbox.isDark, bg);
     }
 
+    // VisionKit 逐格识别：
+    // 空格子 → 宽区域裁剪（目标格±邻格），用位置定位中心格数字，提高上下文识别率
+    // 非空格子（冲突/低置信）→ 单格裁剪，仅作重验证
+    let vkDigit: number | null = null;
+    let vkCropInfo: string = `${cellW.toFixed(0)}x${cellH.toFixed(0)}`;
+    if (!vkInitFailed) {
+      let cropX: number = 0; let cropY: number = 0;
+      let cropW: number = 0; let cropH: number = 0;
+      let centerCellX: number = 0; let centerCellY: number = 0;
+      let useWideCrop: boolean = false;
+
+      if (origDigit === 0) {
+        // 空格子：宽区域裁剪（3格宽），提供网格线/邻格上下文
+        const startCol: number = Math.max(0, col - 1);
+        const endCol: number = Math.min(8, col + 1);
+        cropX = Math.max(Math.floor(bbox.left + startCol * cellW - cellW * padFactor), 0);
+        cropY = Math.max(Math.floor(bbox.top + row * cellH - cellH * padFactor), 0);
+        const cropR: number = Math.min(Math.floor(bbox.left + (endCol + 1) * cellW + cellW * padFactor), imgW);
+        const cropB: number = Math.min(Math.floor(bbox.top + (row + 1) * cellH + cellH * padFactor), imgH);
+        cropW = cropR - cropX;
+        cropH = cropB - cropY;
+        // 中心格在裁剪区域（未上采样）中的坐标
+        centerCellX = (col - startCol) * cellW + cellW * padFactor;
+        centerCellY = cellH * padFactor;
+        useWideCrop = true;
+      } else {
+        // 非空格子：单格裁剪
+        cropX = Math.max(Math.floor(cellLeft - cellW * padFactor), 0);
+        cropY = Math.max(Math.floor(cellTop - cellH * padFactor), 0);
+        const cropR: number = Math.min(Math.floor(cellLeft + cellW + cellW * padFactor), imgW);
+        const cropB: number = Math.min(Math.floor(cellTop + cellH + cellH * padFactor), imgH);
+        cropW = cropR - cropX;
+        cropH = cropB - cropY;
+      }
+
+      vkCropInfo = useWideCrop
+        ? `宽${cropW}x${cropH}→${Math.round(cropW * upscale)}x${Math.round(cropH * upscale)}`
+        : `${cropW}x${cropH}→${Math.round(cropW * upscale)}x${Math.round(cropH * upscale)}`;
+
+      if (cropW >= MIN_CELL_CROP_DIM && cropH >= MIN_CELL_CROP_DIM) {
+        const cellPm: image.PixelMap | null = cropCellFromBuffer(pixels, imgW, imgH, cropX, cropY, cropW, cropH, upscale);
+        if (cellPm !== null) {
+          const doRecognize = async (pm: image.PixelMap): Promise<number | null> => {
+            if (useWideCrop) {
+              return await recognizeDigitInWideRegion(pm, upscale, centerCellX, centerCellY, cellW, cellH);
+            } else {
+              return await recognizeDigitVisionKit(pm);
+            }
+          };
+          if (!vkInited) {
+            if (g_vkInited) {
+              vkInited = true;
+              vkDigit = await doRecognize(cellPm);
+              cellPm.release();
+            } else {
+              vkInited = true;
+              const initOk: boolean = await textRecognition.init();
+              g_vkInited = initOk;
+              if (!initOk) {
+                vkInitFailed = true;
+                cellPm.release();
+                hilog.info(DOMAIN, TAG, '【步骤详情】VisionKit init失败');
+              } else {
+                vkDigit = await doRecognize(cellPm);
+                cellPm.release();
+              }
+            }
+          } else {
+            vkDigit = await doRecognize(cellPm);
+            cellPm.release();
+          }
+        } else {
+          if (useWideCrop) {
+            g_perCellVkDiag.cropFail++;
+            hilog.info(DOMAIN, TAG, '【逐格修正详情】cropCellFromBuffer失败 crop=%{public}dx%{public}d→%{public}dx%{public}d',
+              cropW, cropH, Math.round(cropW * upscale), Math.round(cropH * upscale));
+          }
+        }
+      }
+    }
+
+    const pStr: string = pixelDigit !== null && pixelDigit > 0 ? `${pixelDigit}` : '-';
+    const vStr: string = vkDigit !== null && vkDigit > 0 ? `${vkDigit}` : '-';
+
     if (origDigit === 0) {
-      if (pixelDigit !== null && pixelDigit > 0) {
-        hilog.info(DOMAIN, TAG, '填充 [%{public}d,%{public}d] 0 -> %{public}d', row, col, pixelDigit);
+      // 空格子：先信任 VisionKit 宽区域识别，回退像素分析
+      // 颜色对比度灰度下像素分析对彩色主题鲁棒性更好，false positive 率可控
+      if (vkDigit !== null && vkDigit > 0) {
+        hilog.info(DOMAIN, TAG, '【逐格修正详情】填充 %{public}s 空→%{public}d V=%{public}d P=%{public}s',
+          cellLabel, vkDigit, vkDigit, pStr);
+        grid[idx] = vkDigit;
+        fixCount++;
+        fixDetailLines.push(`填充${cellLabel} 空→${vkDigit} V=${vStr} P=${pStr} crop=${vkCropInfo}`);
+      } else if (pixelDigit !== null && pixelDigit > 0) {
+        // 像素分析回退：空格子只有在 VK 无结果时才信任像素分析
+        hilog.info(DOMAIN, TAG, '【逐格修正详情】像素回填 %{public}s 空→%{public}d V=%{public}s P=%{public}d',
+          cellLabel, pixelDigit, vStr, pixelDigit);
         grid[idx] = pixelDigit;
         fixCount++;
+        fixDetailLines.push(`像素回填${cellLabel} 空→${pixelDigit} V=${vStr} P=${pStr} crop=${vkCropInfo}`);
+      } else {
+        fixDetailLines.push(`留空${cellLabel} V=${vStr} P=${pStr} crop=${vkCropInfo}`);
       }
       continue;
     }
 
-    const cropX: number = Math.max(Math.floor(cellLeft - cellW * padFactor), 0);
-    const cropY: number = Math.max(Math.floor(cellTop - cellH * padFactor), 0);
-    const cropR: number = Math.min(Math.floor(cellLeft + cellW + cellW * padFactor), imgW);
-    const cropB: number = Math.min(Math.floor(cellTop + cellH + cellH * padFactor), imgH);
-    const cropW: number = cropR - cropX;
-    const cropH: number = cropB - cropY;
-
-    let vkDigit: number | null = null;
-    if (cropW >= MIN_CELL_CROP_DIM && cropH >= MIN_CELL_CROP_DIM) {
-      const cellPm: image.PixelMap | null = cropSubPixelMap(pixelMap, cropX, cropY, cropW, cropH, upscale);
-      if (cellPm !== null) {
-        if (!vkInited) {
-          const initOk: boolean = await textRecognition.init();
-          if (!initOk) {
-            cellPm.release();
-            hilog.info(DOMAIN, TAG, 'VisionKit init失败');
-            if (pixelDigit !== null && pixelDigit > 0 && pixelDigit !== origDigit) {
-              grid[idx] = pixelDigit;
-              fixCount++;
-            }
-            continue;
-          }
-          vkInited = true;
-        }
-        vkDigit = await recognizeDigitVisionKit(cellPm);
-        cellPm.release();
-      }
-    }
-
     let finalDigit: number | null = null;
+    let decision: string = '';
     if (pixelDigit !== null && pixelDigit > 0) {
       if (vkDigit === null || vkDigit === pixelDigit) {
         finalDigit = pixelDigit;
+        decision = 'P=V';
       } else {
         finalDigit = pixelDigit;
+        decision = 'P≠V→P';
       }
     } else if (vkDigit !== null && vkDigit > 0) {
       finalDigit = vkDigit;
+      decision = 'V_only';
     }
 
     if (finalDigit !== null && finalDigit > 0 && finalDigit !== origDigit) {
-      hilog.info(DOMAIN, TAG, '修正 [%{public}d,%{public}d] %{public}d -> %{public}d', row, col, origDigit, finalDigit);
+      hilog.info(DOMAIN, TAG, '【逐格修正详情】修正 %{public}s %{public}d -> %{public}d', cellLabel, origDigit, finalDigit);
       grid[idx] = finalDigit;
       fixCount++;
 
       const newConflicts: number[] = findConflictCells(grid);
       const stillConflict: boolean = newConflicts.some((ci: number) => ci === idx);
+      let swapNote: string = '';
       if (stillConflict && (finalDigit === 6 || finalDigit === 9)) {
         const swapped: number = finalDigit === 6 ? 9 : 6;
         grid[idx] = swapped;
@@ -588,18 +826,37 @@ async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string): Promise<
         const swapConflict: boolean = afterSwap.some((ci: number) => ci === idx);
         if (swapConflict) {
           grid[idx] = finalDigit;
-          hilog.info(DOMAIN, TAG, '6/9翻转后仍冲突，保留 %{public}d', finalDigit);
+          swapNote = ' 6/9交换仍冲突';
+          hilog.info(DOMAIN, TAG, '【逐格修正详情】6/9翻转后仍冲突 保留%{public}d', finalDigit);
         } else {
-          hilog.info(DOMAIN, TAG, '6/9翻转 %{public}d -> %{public}d 冲突消除', finalDigit, swapped);
+          hilog.info(DOMAIN, TAG, '【逐格修正详情】6/9翻转 %{public}d -> %{public}d 冲突消除', finalDigit, swapped);
+          swapNote = ` 6/9→${swapped}消除`;
         }
       }
+      fixDetailLines.push(`修正${cellLabel} ${origDigit}→${finalDigit} P=${pStr} V=${vStr} ${decision}${swapNote}`);
     } else {
-      hilog.info(DOMAIN, TAG, '修正 [%{public}d,%{public}d] 结果不变=%{public}d', row, col, origDigit);
+      fixDetailLines.push(`不变${cellLabel}=${origDigit} P=${pStr} V=${vStr} ${decision}`);
     }
   }
 
+  // 加入逐格VK诊断摘要
+  const diag: PerCellVkDiag = g_perCellVkDiag;
+  const diagTotal: number = diag.cropFail + diag.noBlock + diag.noCenter + diag.found;
+  hilog.info(DOMAIN, TAG, '【逐格VK诊断】尝试%{public}d次 成功%{public}d 裁剪失败%{public}d 无block%{public}d 无中心%{public}d',
+    diagTotal, diag.found, diag.cropFail, diag.noBlock, diag.noCenter);
+  if (diagTotal > 0) {
+    const diagLines: string[] = [];
+    diagLines.push(`【逐格VK诊断】尝试${diagTotal}次 成功${diag.found} 裁剪失败${diag.cropFail} 无block${diag.noBlock} 无中心${diag.noCenter}`);
+    if (diag.samples.length > 0) {
+      diagLines.push(`  样本: ${diag.samples.join(' | ')}`);
+    }
+    fixDetailLines.unshift(diagLines.join('\n'), '');
+  }
+  g_lastDebugFixDetails = fixDetailLines.join('\n');
+
   if (vkInited) {
     try { await textRecognition.release(); } catch (_ee) { /* ignore */ }
+    g_vkInited = false;
   }
   pixelMap.release();
 
@@ -609,7 +866,7 @@ async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string): Promise<
   g_lastDebugFixCount = fixCount;
 
   if (fixCount > 0) {
-    hilog.info(DOMAIN, TAG, '修正完成: 修正了 %{public}d 个格子', fixCount);
+    hilog.info(DOMAIN, TAG, '【实际修正】修正了%{public}d个格子', fixCount);
     return { success: true, grid: grid, rawText: ocrResult.rawText + '+conflictFix', error: '', confidence: ocrResult.confidence, debugInfo: null };
   }
   return ocrResult;
@@ -624,6 +881,7 @@ async function tryVisionKitRecognition(imagePath: string): Promise<OCRResult> {
   g_lastDebugProbeInfo = '';
   try {
     const initOk: boolean = await textRecognition.init();
+    g_vkInited = initOk;
     if (!initOk) {
       g_lastDebugVkOcrError = 'VisionKit init() returned false';
       return { success: false, grid: null, rawText: '', error: 'VisionKit init failed', confidence: null, debugInfo: null };
@@ -660,6 +918,10 @@ async function tryVisionKitRecognition(imagePath: string): Promise<OCRResult> {
     const cellH: number = boardH / 9;
     const isFullImage: boolean = bbox.left === 0 && bbox.top === 0 &&
       bbox.right === probeImgW && bbox.bottom === probeImgH;
+    // 保存探测 bbox，供 fixAndFillGrid 复用确保 cell 定位一致
+    g_probeBbox = { left: bbox.left, top: bbox.top, right: bbox.right, bottom: bbox.bottom, isDark: bbox.isDark };
+    g_probeResizeW = probeImgW;
+    g_probeResizeH = probeImgH;
     const bgHist: number[] = new Array<number>(256).fill(0);
     const bgSampleStep: number = Math.max(1, Math.floor(probeImgW * probeImgH / 20000));
     let bgMin: number = 255;
@@ -696,8 +958,8 @@ async function tryVisionKitRecognition(imagePath: string): Promise<OCRResult> {
     g_lastDebugBbox = `原图${origW}x${origH}→探测${probeImgW}x${probeImgH} bbox=[${bbox.left},${bbox.top},${bbox.right},${bbox.bottom}] board=${boardW}x${boardH} cell=${cellW.toFixed(1)}x${cellH.toFixed(1)} isDark=${bbox.isDark ? 1 : 0} isFullImageFallback=${isFullImage ? 1 : 0} areaRatio=${boardAreaRatio.toFixed(3)} aspect=${boardAspect.toFixed(2)}`;
     g_lastDebugResize = `resize: ${origW}x${origH} → ${resize.targetW}x${resize.targetH} targetCellPx=${resize.targetCellPx}`;
 
-    hilog.info(DOMAIN, TAG, 'VisionKit probe: %{public}s', g_lastDebugProbeInfo);
-    hilog.info(DOMAIN, TAG, 'VisionKit bbox: %{public}s', g_lastDebugBbox);
+    hilog.info(DOMAIN, TAG, '【探测图详情】%{public}s', g_lastDebugProbeInfo);
+    hilog.info(DOMAIN, TAG, '【图片与棋盘】%{public}s', g_lastDebugBbox);
 
     if (isFullImage) {
       hilog.warn(DOMAIN, TAG, 'VisionKit: 警告 - findBoardBBox返回全图退化bbox，棋盘定位可能失败');
@@ -729,12 +991,24 @@ async function tryVisionKitRecognition(imagePath: string): Promise<OCRResult> {
       finalH = Math.round(finalH * ms2);
     }
 
-    hilog.info(DOMAIN, TAG, 'VisionKit: 探测图%{public}dx%{public}d 棋盘[%{public}d,%{public}d,%{public}d,%{public}d] 每格=%{public}.1fx%{public}.1f 放大=%{public}.2f 裁剪=%{public}d,%{public}d,%{public}d,%{public}d 目标=%{public}dx%{public}d',
+    hilog.info(DOMAIN, TAG, '【缩放参数】探测图%{public}dx%{public}d 棋盘[%{public}d,%{public}d,%{public}d,%{public}d] 每格=%{public}.1f 放大=%{public}.2f clip->target %{public}dx%{public}d',
       probeImgW, probeImgH, bbox.left, bbox.top, bbox.right, bbox.bottom,
-      cellW, cellH, boardScale, cropL, cropT, cropW, cropH, finalW, finalH);
+      Math.min(cellW, cellH), boardScale, finalW, finalH);
+
+    // cropL/cropT/cropW/cropH 基于探测图（probeImgW×probeImgH）坐标，但 imageSource 是原始大图。
+    // 必须将裁剪坐标缩放到原始图像空间，否则裁剪区域只有正确范围的 1/scale 大小。
+    const probeToOrigScaleX: number = origW / probeImgW;
+    const probeToOrigScaleY: number = origH / probeImgH;
+    const origCropL: number = Math.round(cropL * probeToOrigScaleX);
+    const origCropT: number = Math.round(cropT * probeToOrigScaleY);
+    const origCropW: number = Math.round(cropW * probeToOrigScaleX);
+    const origCropH: number = Math.round(cropH * probeToOrigScaleY);
+
+    hilog.info(DOMAIN, TAG, '【缩放参数】probe→orig scaleX=%{public}.2f scaleY=%{public}.2f crop(...)->orig(%{public}d,%{public}d,%{public}d,%{public}d)',
+      probeToOrigScaleX, probeToOrigScaleY, origCropL, origCropT, origCropW, origCropH);
 
     pixelMap = await imageSource.createPixelMap({
-      desiredRegion: { size: { width: cropW, height: cropH }, x: cropL, y: cropT },
+      desiredRegion: { size: { width: origCropW, height: origCropH }, x: origCropL, y: origCropT },
       desiredSize: { width: finalW, height: finalH },
       desiredPixelFormat: image.PixelMapFormat.RGBA_8888,
       cropAndScaleStrategy: image.CropAndScaleStrategy.CROP_FIRST
@@ -745,7 +1019,7 @@ async function tryVisionKitRecognition(imagePath: string): Promise<OCRResult> {
     const imgW: number = imageInfo.size.width;
     const imgH: number = imageInfo.size.height;
     g_lastDebugVkOcrSize = `${imgW}x${imgH}`;
-    hilog.info(DOMAIN, TAG, 'VisionKit: 实际PixelMap=%{public}dx%{public}d', imgW, imgH);
+    hilog.info(DOMAIN, TAG, '【VisionKit OCR图尺寸】%{public}dx%{public}d', imgW, imgH);
 
     const visionInfo: textRecognition.VisionInfo = { pixelMap: pixelMap };
     const recogResult: textRecognition.TextRecognitionResult =
@@ -753,13 +1027,15 @@ async function tryVisionKitRecognition(imagePath: string): Promise<OCRResult> {
         isDirectionDetectionSupported: true
       });
 
-    await textRecognition.release();
+    // 不释放 VK，留给 fixAndFillGrid 复用
+    // await textRecognition.release();
 
     const rawText: string = recogResult.value || '';
     const vkBlocks: Array<textRecognition.TextBlock> = recogResult.blocks || [];
     g_lastDebugVkRawText = rawText.substring(0, 500);
     g_lastDebugVkBlockCount = vkBlocks.length;
-    hilog.info(DOMAIN, TAG, 'VisionKit rawText(%{public}d chars): "%{public}s" blocks=%{public}d', rawText.length, rawText.substring(0, 200), vkBlocks.length);
+    hilog.info(DOMAIN, TAG, '【VisionKit原始文本】(%{public}d chars) "%{public}s"', rawText.length, rawText.substring(0, 200));
+    hilog.info(DOMAIN, TAG, '【VisionKit Block数】%{public}d', vkBlocks.length);
 
     let vkLineCount: number = 0;
     let vkWordCount: number = 0;
@@ -777,20 +1053,36 @@ async function tryVisionKitRecognition(imagePath: string): Promise<OCRResult> {
           const word: textRecognition.TextWord = words[wi];
           const hasDigit: boolean = new RegExp('[0-9]').test(word.value);
           if (hasDigit) { vkDigitWordCount++; }
-          if (vkBlockDetails.length < 800) {
-            vkBlockDetails += `B${bi}L${li}W${wi}="${word.value}" cp=${word.cornerPoints.length}`;
+          if (vkBlockDetails.length < 2000) {
+            const cp: Array<textRecognition.PixelPoint> = word.cornerPoints;
+            let posStr: string = '';
+            if (cp.length >= 4) {
+              const cx: number = Math.round((cp[0].x + cp[1].x + cp[2].x + cp[3].x) / 4);
+              const cy: number = Math.round((cp[0].y + cp[1].y + cp[2].y + cp[3].y) / 4);
+              posStr = ` xy=(${cx},${cy})`;
+            }
+            vkBlockDetails += `B${bi}L${li}W${wi}="${word.value}" cp=${cp.length}${posStr}`;
             if (wi < words.length - 1) { vkBlockDetails += ' | '; }
           }
         }
       }
-      if (bi < vkBlocks.length - 1 && vkBlockDetails.length < 800) { vkBlockDetails += '\n'; }
+      if (bi < vkBlocks.length - 1 && vkBlockDetails.length < 2000) { vkBlockDetails += '\n'; }
     }
-    hilog.info(DOMAIN, TAG, 'VisionKit detail: blocks=%{public}d lines=%{public}d words=%{public}d digitWords=%{public}d\n%{public}s',
+    hilog.info(DOMAIN, TAG, '【VisionKit Block详情】blocks=%{public}d lines=%{public}d words=%{public}d digitWords=%{public}d\n%{public}s',
       vkBlocks.length, vkLineCount, vkWordCount, vkDigitWordCount, vkBlockDetails);
+    g_lastDebugVkBlockDetail = vkBlockDetails;
     g_lastDebugVkOcrError = vkBlocks.length === 0 ? 'blocks为空，VisionKit未检测到任何文字' : (vkDigitWordCount === 0 ? `有${vkBlocks.length}个block但无数字word` : '');
 
     const cropToOcrScaleX: number = imgW / cropW;
     const cropToOcrScaleY: number = imgH / cropH;
+    // 记录位置映射参数，方便调试定位偏差
+    const mapL: number = (bbox.left - cropL) * cropToOcrScaleX;
+    const mapT: number = (bbox.top - cropT) * cropToOcrScaleY;
+    const mapR: number = (bbox.right - cropL) * cropToOcrScaleX;
+    const mapB: number = (bbox.bottom - cropT) * cropToOcrScaleY;
+    const mapCellW: number = (mapR - mapL) / 9;
+    const mapCellH: number = (mapB - mapT) / 9;
+    g_lastDebugVkOcrSize += ` boardOcr=[${mapL.toFixed(0)},${mapT.toFixed(0)},${mapR.toFixed(0)},${mapB.toFixed(0)}] cellOcr=${mapCellW.toFixed(1)}x${mapCellH.toFixed(1)}`;
     const posResult: VisionKitGridResult | null = buildGridByPosition(
       recogResult, imgW, imgH, bbox, cropL, cropT, cropToOcrScaleX, cropToOcrScaleY
     );
@@ -805,13 +1097,13 @@ async function tryVisionKitRecognition(imagePath: string): Promise<OCRResult> {
         }
         gridStr += line + '\n';
       }
-      hilog.info(DOMAIN, TAG, 'VisionKit positional OK, %{public}d digits:\n%{public}s', givenCount, gridStr);
+      hilog.info(DOMAIN, TAG, '【VisionKit网格】%{public}d digits\n%{public}s', givenCount, gridStr);
       return { success: true, grid: posResult.grid, rawText: 'positional', error: '', confidence: new Array<number>(81).fill(POSITIONAL_CONFIDENCE), debugInfo: null };
     }
 
     const gridByText: number[] | null = parseOCRToGrid(rawText);
     if (gridByText && gridByText.some((d: number) => d > 0)) {
-      hilog.info(DOMAIN, TAG, 'text fallback OK, raw="%{public}s"', rawText);
+      hilog.info(DOMAIN, TAG, '【步骤详情】text fallback OK raw="%{public}s"', rawText);
       return { success: true, grid: gridByText, rawText, error: '', confidence: new Array<number>(81).fill(TEXT_FALLBACK_CONFIDENCE), debugInfo: null };
     }
 
@@ -819,7 +1111,7 @@ async function tryVisionKitRecognition(imagePath: string): Promise<OCRResult> {
     if (structuredText.length > rawText.length) {
       const grid2: number[] | null = parseOCRToGrid(structuredText);
       if (grid2 && grid2.some((d: number) => d > 0)) {
-        hilog.info(DOMAIN, TAG, 'structured text fallback OK:\n%{public}s', structuredText);
+        hilog.info(DOMAIN, TAG, '【步骤详情】structured text fallback OK\n%{public}s', structuredText);
         return { success: true, grid: grid2, rawText: structuredText, error: '', confidence: new Array<number>(81).fill(TEXT_FALLBACK_CONFIDENCE), debugInfo: null };
       }
     }
@@ -833,6 +1125,7 @@ async function tryVisionKitRecognition(imagePath: string): Promise<OCRResult> {
     };
   } catch (_e) {
     g_lastDebugVkOcrError = `异常: ${_e}`;
+    g_vkInited = false;
     try { await textRecognition.release(); } catch (_ee) { /* ignore */ }
     return { success: false, grid: null, rawText: '', error: 'VisionKit unavailable', confidence: null, debugInfo: null };
   } finally {
@@ -983,7 +1276,7 @@ function buildGridByPosition(
     boardT = Math.max(boardT, 0);
     boardR = Math.min(boardR, imgW);
     boardB = Math.min(boardB, imgH);
-    hilog.info(DOMAIN, TAG, 'buildGrid: 使用像素棋盘边界 OCR坐标=[%{public}.1f,%{public}.1f,%{public}.1f,%{public}.1f]',
+    hilog.info(DOMAIN, TAG, '【VisionKit Block详情】buildGrid pixelBoard ocr=[%{public}.1f,%{public}.1f,%{public}.1f,%{public}.1f]',
       boardL, boardT, boardR, boardB);
   } else {
     const estimated: BoardBoundsOCR | null =
@@ -994,7 +1287,7 @@ function buildGridByPosition(
       boardR = estimated.boardR;
       boardB = estimated.boardB;
     }
-    hilog.info(DOMAIN, TAG, 'buildGrid: 使用数字估算边界 OCR坐标=[%{public}.1f,%{public}.1f,%{public}.1f,%{public}.1f]',
+    hilog.info(DOMAIN, TAG, '【VisionKit Block详情】buildGrid digitEst ocr=[%{public}.1f,%{public}.1f,%{public}.1f,%{public}.1f]',
       boardL, boardT, boardR, boardB);
   }
 
@@ -1048,7 +1341,7 @@ async function tryPixelGridRecognition(imagePath: string): Promise<OCRResult> {
     const resize: AdaptiveResizeParams = computeAdaptiveResize(origW, origH);
     const targetW: number = resize.targetW;
     const targetH: number = resize.targetH;
-    hilog.info(DOMAIN, TAG, '像素分析: 原图 %{public}dx%{public}d -> %{public}dx%{public}d', origW, origH, targetW, targetH);
+    hilog.info(DOMAIN, TAG, '【缩放参数】原图%{public}dx%{public}d -> %{public}dx%{public}d', origW, origH, targetW, targetH);
 
     pixelMap = await imageSource.createPixelMap({
       desiredSize: { width: targetW, height: targetH },
@@ -1065,7 +1358,7 @@ async function tryPixelGridRecognition(imagePath: string): Promise<OCRResult> {
     pixelMap = null;
 
     const givenCount: number = grid.filter((d: number) => d > 0).length;
-    hilog.info(DOMAIN, TAG, '像素分析完成: 识别到 %{public}d 个数字', givenCount);
+    hilog.info(DOMAIN, TAG, '【步骤详情】像素分析完成 识别到%{public}d个数字', givenCount);
     if (givenCount > 0) {
       return { success: true, grid: grid, rawText: 'pixel analysis', error: '', confidence: [...g_lastPixelConfidence], debugInfo: null };
     }
@@ -1095,7 +1388,7 @@ export function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, he
   let bgMin2: number = 255;
   let bgMax2: number = 0;
   for (let i: number = 0; i < width * height; i += bgSampleStep2) {
-    const g: number = Math.floor(0.299 * pixels[i * 4] + 0.587 * pixels[i * 4 + 1] + 0.114 * pixels[i * 4 + 2]);
+    const g: number = Math.floor(gray[i]);
     if (g >= 0 && g <= 255) { bgHist[g]++; }
     if (g < bgMin2) { bgMin2 = g; }
     if (g > bgMax2) { bgMax2 = g; }
@@ -1132,11 +1425,11 @@ export function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, he
     : '失败';
   g_lastDebugPixelBboxLocator = `longRun=${longRunInfo} final=[${bbox.left},${bbox.top},${bbox.right},${bbox.bottom}] isFullImage=${isFullImage ? 1 : 0} areaRatio=${boardAreaRatio2.toFixed(3)} cell=${cellW.toFixed(1)}x${cellH.toFixed(1)}`;
 
-  hilog.info(DOMAIN, TAG, '图像 %{public}dx%{public}d bg=%{public}.1f isDark=%{public}d 棋盘=[%{public}d,%{public}d,%{public}d,%{public}d] 尺寸=%{public}dx%{public}d 每格=%{public}.1fx%{public}.1f',
+  hilog.info(DOMAIN, TAG, '【图片与棋盘】%{public}dx%{public}d bg=%{public}.1f isDark=%{public}d 棋盘=[%{public}d,%{public}d,%{public}d,%{public}d] 每格=%{public}.1f',
     width, height, bg, isDark ? 1 : 0, bbox.left, bbox.top, bbox.right, bbox.bottom,
-    bbox.right - bbox.left, bbox.bottom - bbox.top, cellW, cellH);
-  hilog.info(DOMAIN, TAG, '像素背景: %{public}s', g_lastDebugPixelBgInfo);
-  hilog.info(DOMAIN, TAG, '像素定位: %{public}s', g_lastDebugPixelBboxLocator);
+    Math.min(cellW, cellH));
+  hilog.info(DOMAIN, TAG, '【像素背景分析】%{public}s', g_lastDebugPixelBgInfo);
+  hilog.info(DOMAIN, TAG, '【像素棋盘定位】%{public}s', g_lastDebugPixelBboxLocator);
 
   if (isFullImage) {
     hilog.warn(DOMAIN, TAG, '像素分析: 警告 - findBoardBBox返回全图退化bbox，棋盘定位可能失败');
@@ -1159,7 +1452,7 @@ export function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, he
     const warpBg: number = warpBgCnt > 0 ? warpBgSum / warpBgCnt : BG_DARK_THRESHOLD;
     const warpIsDark: boolean = warpBg < BG_DARK_THRESHOLD;
     g_lastDebugPixelWarpInfo = `透视校正 outSize=${outSize} confidence=${corners.confidence.toFixed(2)} warpBg=${warpBg.toFixed(1)} warpIsDark=${warpIsDark ? 1 : 0} corners=[${corners.topLeftX.toFixed(0)},${corners.topLeftY.toFixed(0)}]-[${corners.topRightX.toFixed(0)},${corners.topRightY.toFixed(0)}]-[${corners.bottomRightX.toFixed(0)},${corners.bottomRightY.toFixed(0)}]-[${corners.bottomLeftX.toFixed(0)},${corners.bottomLeftY.toFixed(0)}]`;
-    hilog.info(DOMAIN, TAG, '透视校正: outSize=%{public}d confidence=%{public}.2f', outSize, corners.confidence);
+    hilog.info(DOMAIN, TAG, '【像素透视/网格】outSize=%{public}d confidence=%{public}.2f', outSize, corners.confidence);
 
     let sigCount: number = 0;
     let digitCount: number = 0;
@@ -1180,12 +1473,12 @@ export function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, he
     }
     g_lastDebugPixelCellStats = `warp路径: sigOK=${sigCount}/81 digits=${digitCount}/81`;
   } else {
-    hilog.info(DOMAIN, TAG, '透视校正: 未能检测棋盘角点，使用原始AABB');
+    hilog.info(DOMAIN, TAG, '【像素透视/网格】角点检测失败 使用AABB');
     g_lastDebugPixelWarpInfo = '角点检测失败，使用AABB';
 
     const gridLines: GridLines | null = findPreciseGridLines(gray, width, height, bbox, bg);
     if (gridLines !== null) {
-      hilog.info(DOMAIN, TAG, '精确网格线定位成功');
+      hilog.info(DOMAIN, TAG, '【像素透视/网格】精确网格线OK');
       g_lastDebugPixelWarpInfo += ' → 精确网格线OK';
       let sigCount2: number = 0;
       let digitCount2: number = 0;
@@ -1258,7 +1551,7 @@ export function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, he
     }
     gridStr += line + '\n';
   }
-  hilog.info(DOMAIN, TAG, '像素分析结果:\n%{public}s', gridStr);
+  hilog.info(DOMAIN, TAG, '【像素分析网格】\n%{public}s', gridStr);
 
   return grid;
 }
