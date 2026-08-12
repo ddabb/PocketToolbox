@@ -236,6 +236,21 @@ export class ShapeDef {
     let t: number = (((theta + Math.PI / 2) % sector) + sector) % sector;
     return 1 / (Math.cos(t) + Math.sqrt(3) * Math.sin(t));
   };
+  static readonly triangleUpFn: (theta: number) => number = (theta: number) => {
+    let sector: number = (2 * Math.PI) / 3;
+    let t: number = (((theta - Math.PI / 2) % sector) + sector) % sector;
+    return 1 / (Math.cos(t) + Math.sqrt(3) * Math.sin(t));
+  };
+  static readonly triangleLeftFn: (theta: number) => number = (theta: number) => {
+    let sector: number = (2 * Math.PI) / 3;
+    let t: number = (((theta - Math.PI) % sector) + sector) % sector;
+    return 1 / (Math.cos(t) + Math.sqrt(3) * Math.sin(t));
+  };
+  static readonly triangleRightFn: (theta: number) => number = (theta: number) => {
+    let sector: number = (2 * Math.PI) / 3;
+    let t: number = ((theta % sector) + sector) % sector;
+    return 1 / (Math.cos(t) + Math.sqrt(3) * Math.sin(t));
+  };
   static readonly squareFn: (theta: number) => number = (theta: number) => {
     let absCos: number = Math.abs(Math.cos(theta));
     let absSin: number = Math.abs(Math.sin(theta));
@@ -296,13 +311,42 @@ export class ShapeDef {
     let y: number = Math.cos(t);
     return [x, y];
   };
+  static readonly star8Fn: (theta: number) => number = (theta: number) => {
+    let points: number = 8;
+    let outerR: number = 1.0;
+    let innerR: number = 0.65;
+    let sector: number = Math.PI / points;
+    let t: number = theta - Math.PI / 2;
+    t = ((t % (2 * sector)) + (2 * sector)) % (2 * sector);
+    if (t < sector) {
+      let ratio: number = t / sector;
+      return outerR + (innerR - outerR) * ratio;
+    } else {
+      let ratio: number = (t - sector) / sector;
+      return innerR + (outerR - innerR) * ratio;
+    }
+  };
+  static readonly flowerFn: (theta: number) => number = (theta: number) => {
+    let base: number = 0.6;
+    let amplitude: number = 0.4;
+    let petals: number = 5;
+    return base + amplitude * Math.cos(petals * theta);
+  };
+  static readonly octagonFn: (theta: number) => number = (theta: number) => {
+    let sector: number = Math.PI / 4;
+    let t: number = (((theta + Math.PI / 2) % sector) + sector) % sector;
+    return 1 / (Math.cos(t) + 0.4142 * Math.sin(t));
+  };
 
   static readonly SHAPES: ShapeDef[] = [
     new ShapeDef('circle', '圆形', ShapeDef.circleFn, 1.0),
     new ShapeDef('cardioid', '心形', ShapeDef.cardioidFn, 0.5).setParam(ShapeDef.heartParam),
     new ShapeDef('star5', '五角星', ShapeDef.star5Fn, 0.4),
     new ShapeDef('diamond', '菱形', ShapeDef.diamondFn, 0.5),
-    new ShapeDef('triangle', '三角', ShapeDef.triangleFn, 0.38),
+    new ShapeDef('triangle', '倒三角', ShapeDef.triangleFn, 0.38),
+    new ShapeDef('triangleUp', '正三角', ShapeDef.triangleUpFn, 0.38),
+    new ShapeDef('triangleLeft', '左三角', ShapeDef.triangleLeftFn, 0.38),
+    new ShapeDef('triangleRight', '右三角', ShapeDef.triangleRightFn, 0.38),
     new ShapeDef('square', '方形', ShapeDef.squareFn, 0.6),
     new ShapeDef('pentagon', '五边', ShapeDef.pentagonFn, 0.76),
     new ShapeDef('hexagon', '六边', ShapeDef.hexagonFn, 0.83),
@@ -310,6 +354,9 @@ export class ShapeDef {
     new ShapeDef('cloud', '云朵', ShapeDef.cloudFn, 0.58),
     new ShapeDef('oval', '椭圆', ShapeDef.ovalFn, 0.7),
     new ShapeDef('leaf', '叶片', ShapeDef.leafFn, 0.42).setParam(ShapeDef.leafParam),
+    new ShapeDef('star8', '八角星', ShapeDef.star8Fn, 0.55),
+    new ShapeDef('flower', '花朵', ShapeDef.flowerFn, 0.5),
+    new ShapeDef('octagon', '八边形', ShapeDef.octagonFn, 0.9),
   ];
 
   setParam(p: (t: number) => [number, number]): ShapeDef {

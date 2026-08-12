@@ -83,6 +83,10 @@ let g_lastDebugConflicts: number[] = [];
 let g_probeBbox: BoardBBox | null = null;
 let g_probeResizeW: number = 0;
 let g_probeResizeH: number = 0;
+let g_fittedBoardL: number = -1;
+let g_fittedBoardT: number = -1;
+let g_fittedBoardR: number = -1;
+let g_fittedBoardB: number = -1;
 let g_lastDebugLowConf: number[] = [];
 let g_lastDebugEmpty: number[] = [];
 let g_lastDebugFixCount: number = 0;
@@ -285,15 +289,78 @@ function computeAdaptiveResize(origW: number, origH: number): AdaptiveResizePara
 }
 
 function openImageSource(uri: string): image.ImageSource {
-  if (uri.startsWith('file://media/') || uri.startsWith('content://')) {
-    const file: fileIo.File = fileIo.openSync(uri, fileIo.OpenMode.READ_ONLY);
-    return image.createImageSource(file.fd);
+  const file: fileIo.File = fileIo.openSync(uri, fileIo.OpenMode.READ_ONLY);
+  return image.createImageSource(file.fd);
+}
+
+function openImageSourceFromBuffer(buf: ArrayBuffer): image.ImageSource {
+  return image.createImageSource(buf);
+}
+
+export async function recognizeSudokuFromBuffer(buf: ArrayBuffer): Promise<OCRResult> {
+  g_debugInfo = null;
+  g_fittedBoardL = -1;
+  g_fittedBoardT = -1;
+  g_fittedBoardR = -1;
+  g_fittedBoardB = -1;
+  const steps: OCRDebugStep[] = [];
+  try {
+    hilog.info(DOMAIN, TAG, '=== 识别调试信息(buffer) ===');
+    steps.push({ step: '1. VisionKit识别', detail: '开始(buffer)' });
+    const visionResult: OCRResult = await tryVisionKitRecognition('', buf);
+    hilog.info(DOMAIN, TAG, '【步骤详情】VisionKit识别 success=%{public}d error=%{public}s', visionResult.success ? 1 : 0, visionResult.error);
+    if (visionResult.success && visionResult.grid) {
+      const vkGrid: number[] = [...visionResult.grid];
+      steps.push({ step: '2. VisionKit结果', detail: `成功, ${visionResult.grid.filter((d: number) => d > 0).length}个数字` });
+      const corrected: OCRResult = await fixAndFillGrid(visionResult, '', buf);
+      g_debugInfo = buildDebugInfo(
+        'VisionKit+修正',
+        steps,
+        g_lastDebugBbox,
+        g_lastDebugResize,
+        g_lastDebugRawDigits,
+        vkGrid,
+        null,
+        corrected.grid,
+        g_lastDebugConflicts,
+        g_lastDebugLowConf,
+        g_lastDebugEmpty,
+        g_lastDebugFixCount,
+        corrected.confidence
+      );
+    return corrected;
+    }
+    steps.push({ step: '2. VisionKit失败', detail: visionResult.error });
+    hilog.info(DOMAIN, TAG, '【步骤详情】VisionKit失败，转像素分析');
+    const pixelResult: OCRResult = await tryPixelGridRecognition('', buf);
+    g_debugInfo = buildDebugInfo(
+      '像素分析',
+      steps,
+      g_lastDebugBbox,
+      g_lastDebugResize,
+      0,
+      null,
+      pixelResult.grid,
+      pixelResult.grid,
+      [],
+      [],
+      [],
+      0,
+      pixelResult.confidence
+    );
+    return pixelResult;
+  } catch (_err) {
+    hilog.error(DOMAIN, TAG, '异常: %{public}s', `${_err}`);
+    return { success: false, grid: null, rawText: '', error: '图片处理异常，请尝试手动输入', confidence: null, debugInfo: null };
   }
-  return image.createImageSource(uri);
 }
 
 export async function recognizeSudokuFromImage(imagePath: string): Promise<OCRResult> {
   g_debugInfo = null;
+  g_fittedBoardL = -1;
+  g_fittedBoardT = -1;
+  g_fittedBoardR = -1;
+  g_fittedBoardB = -1;
   const steps: OCRDebugStep[] = [];
   try {
     hilog.info(DOMAIN, TAG, '=== 识别调试信息 ===');
@@ -576,7 +643,7 @@ function recognizeDigitPixel(
   return recognizeDigit(sig, inkCount);
 }
 
-async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string): Promise<OCRResult> {
+async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, imageBuf: ArrayBuffer | null = null): Promise<OCRResult> {
   if (!ocrResult.success || !ocrResult.grid) { return ocrResult; }
   const grid: number[] = [...ocrResult.grid];
 
@@ -664,8 +731,21 @@ async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string): Promise<
       bbox.left, bbox.top, bbox.right, bbox.bottom, bbox.isDark ? 1 : 0);
   }
 
-  const cellW: number = (bbox.right - bbox.left) / 9;
-  const cellH: number = (bbox.bottom - bbox.top) / 9;
+  let boardL: number = bbox.left;
+  let boardT: number = bbox.top;
+  let boardR: number = bbox.right;
+  let boardB: number = bbox.bottom;
+  if (g_fittedBoardL >= 0 && g_probeResizeW === imgW && g_probeResizeH === imgH) {
+    boardL = g_fittedBoardL;
+    boardT = g_fittedBoardT;
+    boardR = g_fittedBoardR;
+    boardB = g_fittedBoardB;
+    hilog.info(DOMAIN, TAG, '【图片与棋盘】校正复用拟合bbox [%.1f,%.1f,%.1f,%.1f]',
+      boardL, boardT, boardR, boardB);
+  }
+
+  const cellW: number = (boardR - boardL) / 9;
+  const cellH: number = (boardB - boardT) / 9;
   const padFactor: number = CELL_CROP_PAD_FACTOR;
   const upscale: number = CELL_UPSCALE_FACTOR;
 
@@ -683,8 +763,8 @@ async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string): Promise<
     const origDigit: number = grid[idx];
     const row: number = Math.floor(idx / 9);
     const col: number = idx % 9;
-    const cellLeft: number = bbox.left + col * cellW;
-    const cellTop: number = bbox.top + row * cellH;
+    const cellLeft: number = boardL + col * cellW;
+    const cellTop: number = boardT + row * cellH;
     const cellLabel: string = `(${row},${col})`;
 
     let pixelDigit: number | null = null;
@@ -707,10 +787,10 @@ async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string): Promise<
         // 空格子：宽区域裁剪（3格宽），提供网格线/邻格上下文
         const startCol: number = Math.max(0, col - 1);
         const endCol: number = Math.min(8, col + 1);
-        cropX = Math.max(Math.floor(bbox.left + startCol * cellW - cellW * padFactor), 0);
-        cropY = Math.max(Math.floor(bbox.top + row * cellH - cellH * padFactor), 0);
-        const cropR: number = Math.min(Math.floor(bbox.left + (endCol + 1) * cellW + cellW * padFactor), imgW);
-        const cropB: number = Math.min(Math.floor(bbox.top + (row + 1) * cellH + cellH * padFactor), imgH);
+        cropX = Math.max(Math.floor(boardL + startCol * cellW - cellW * padFactor), 0);
+        cropY = Math.max(Math.floor(boardT + row * cellH - cellH * padFactor), 0);
+        const cropR: number = Math.min(Math.floor(boardL + (endCol + 1) * cellW + cellW * padFactor), imgW);
+        const cropB: number = Math.min(Math.floor(boardT + (row + 1) * cellH + cellH * padFactor), imgH);
         cropW = cropR - cropX;
         cropH = cropB - cropY;
         // 中心格在裁剪区域（未上采样）中的坐标
@@ -777,19 +857,32 @@ async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string): Promise<
     const vStr: string = vkDigit !== null && vkDigit > 0 ? `${vkDigit}` : '-';
 
     if (origDigit === 0) {
+      let fillDigit: number | null = null;
+      let fillSource: string = '';
       if (vkDigit !== null && vkDigit > 0) {
-        grid[idx] = vkDigit;
+        fillDigit = vkDigit;
+        fillSource = 'V';
+      } else if (pixelDigit !== null && pixelDigit > 0) {
+        const pConf: number = getLastConfidence();
+        if (pConf >= 0.6) {
+          fillDigit = pixelDigit;
+          fillSource = `P(conf=${pConf.toFixed(2)})`;
+        }
+      }
+      if (fillDigit !== null) {
+        grid[idx] = fillDigit;
         const newConflicts: number[] = findConflictCells(grid);
         const selfConflict: boolean = newConflicts.some((ci: number) => ci === idx);
         if (selfConflict) {
           grid[idx] = 0;
-          hilog.info(DOMAIN, TAG, '【逐格修正详情】填充冲突回退 %{public}s V=%{public}d', cellLabel, vkDigit);
-          fixDetailLines.push(`冲突回填${cellLabel} V=${vkDigit}冲突→留空 P=${pStr} crop=${vkCropInfo}`);
+          hilog.info(DOMAIN, TAG, '【逐格修正详情】填充冲突回退 %{public}s %{public}s=%{public}d',
+            cellLabel, fillSource, fillDigit);
+          fixDetailLines.push(`冲突回填${cellLabel} ${fillSource}=${fillDigit}冲突→留空 P=${pStr} crop=${vkCropInfo}`);
         } else {
-          hilog.info(DOMAIN, TAG, '【逐格修正详情】填充 %{public}s 空→%{public}d V=%{public}d P=%{public}s',
-            cellLabel, vkDigit, vkDigit, pStr);
+          hilog.info(DOMAIN, TAG, '【逐格修正详情】填充 %{public}s 空→%{public}d %{public}s',
+            cellLabel, fillDigit, fillSource);
           fixCount++;
-          fixDetailLines.push(`填充${cellLabel} 空→${vkDigit} V=${vStr} P=${pStr} crop=${vkCropInfo}`);
+          fixDetailLines.push(`填充${cellLabel} 空→${fillDigit} ${fillSource} P=${pStr} V=${vStr} crop=${vkCropInfo}`);
         }
       } else {
         fixDetailLines.push(`留空${cellLabel} V=${vStr} P=${pStr} crop=${vkCropInfo}`);
@@ -835,6 +928,24 @@ async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string): Promise<
         }
       }
       fixDetailLines.push(`修正${cellLabel} ${origDigit}→${finalDigit} P=${pStr} V=${vStr} ${decision}${swapNote}`);
+    } else if (finalDigit === null && (origDigit === 6 || origDigit === 9)) {
+      const isConflict: boolean = conflictIndices.some((ci: number) => ci === idx);
+      if (isConflict) {
+        const swapped: number = origDigit === 6 ? 9 : 6;
+        grid[idx] = swapped;
+        const afterSwap: number[] = findConflictCells(grid);
+        const swapConflict: boolean = afterSwap.some((ci: number) => ci === idx);
+        if (swapConflict) {
+          grid[idx] = origDigit;
+          fixDetailLines.push(`不变${cellLabel}=${origDigit} P=${pStr} V=${vStr} ${decision} 6/9冲突交换失败`);
+        } else {
+          fixCount++;
+          hilog.info(DOMAIN, TAG, '【逐格修正详情】6/9冲突交换 %{public}s %{public}d -> %{public}d', cellLabel, origDigit, swapped);
+          fixDetailLines.push(`修正${cellLabel} ${origDigit}→${swapped} P=${pStr} V=${vStr} 冲突6/9交换`);
+        }
+      } else {
+        fixDetailLines.push(`不变${cellLabel}=${origDigit} P=${pStr} V=${vStr} ${decision}`);
+      }
     } else {
       fixDetailLines.push(`不变${cellLabel}=${origDigit} P=${pStr} V=${vStr} ${decision}`);
     }
@@ -873,7 +984,7 @@ async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string): Promise<
   return ocrResult;
 }
 
-async function tryVisionKitRecognition(imagePath: string): Promise<OCRResult> {
+async function tryVisionKitRecognition(imagePath: string, imageBuf: ArrayBuffer | null = null): Promise<OCRResult> {
   let pixelMap: image.PixelMap | null = null;
   g_lastDebugVkRawText = '';
   g_lastDebugVkBlockCount = 0;
@@ -888,7 +999,7 @@ async function tryVisionKitRecognition(imagePath: string): Promise<OCRResult> {
       return { success: false, grid: null, rawText: '', error: 'VisionKit init failed', confidence: null, debugInfo: null };
     }
 
-    const imageSource: image.ImageSource = openImageSource(imagePath);
+    const imageSource: image.ImageSource = imageBuf !== null ? openImageSourceFromBuffer(imageBuf) : openImageSource(imagePath);
     const srcInfo: image.ImageInfo = await imageSource.getImageInfo();
     const origW: number = srcInfo.size.width;
     const origH: number = srcInfo.size.height;
@@ -1022,6 +1133,47 @@ async function tryVisionKitRecognition(imagePath: string): Promise<OCRResult> {
     g_lastDebugVkOcrSize = `${imgW}x${imgH}`;
     hilog.info(DOMAIN, TAG, '【VisionKit OCR图尺寸】%{public}dx%{public}d', imgW, imgH);
 
+    // Pre-process: soft contrast stretch on ink-intensity before VK recognition.
+    // Instead of hard binarization (which creates jagged artifacts that VK
+    // misreads as letters like "M"), we compute per-pixel ink intensity and
+    // apply a smooth contrast curve. This makes colored digits (red, green,
+    // blue) consistently dark on a white background, without harsh edges.
+    const ocrBuf: ArrayBuffer = new ArrayBuffer(imgW * imgH * 4);
+    pixelMap.readPixelsToBuffer(ocrBuf);
+    const ocrPx: Uint8Array = new Uint8Array(ocrBuf);
+    let ocrBgSum: number = 0;
+    const ocrBgStep: number = Math.max(1, Math.floor(imgW * imgH / 10000));
+    let ocrBgCnt: number = 0;
+    for (let i: number = 0; i < imgW * imgH; i += ocrBgStep) {
+      ocrBgSum += Math.floor(0.299 * ocrPx[i * 4] + 0.587 * ocrPx[i * 4 + 1] + 0.114 * ocrPx[i * 4 + 2]);
+      ocrBgCnt++;
+    }
+    const ocrBg: number = ocrBgCnt > 0 ? ocrBgSum / ocrBgCnt : 128;
+    for (let i: number = 0; i < imgW * imgH; i++) {
+      const rv: number = ocrPx[i * 4];
+      const gv: number = ocrPx[i * 4 + 1];
+      const bv: number = ocrPx[i * 4 + 2];
+      const gray: number = 0.299 * rv + 0.587 * gv + 0.114 * bv;
+      const ink: number = ocrBg >= 128
+        ? Math.max(0, (ocrBg - gray) / ocrBg)
+        : Math.max(0, (gray - ocrBg) / (255 - ocrBg));
+      // Soft contrast stretch: ink 0→1 maps to pixel 255→0 via a smooth S-curve.
+      // Low ink (<0.1) → near-white, high ink (>0.3) → near-black, smooth transition.
+      const contrastInk: number = Math.min(1, Math.max(0, (ink - 0.1) / 0.2));
+      const outVal: number = Math.round(255 * (1 - contrastInk));
+      ocrPx[i * 4] = outVal;
+      ocrPx[i * 4 + 1] = outVal;
+      ocrPx[i * 4 + 2] = outVal;
+    }
+    const destArea: image.PositionArea = {
+      pixels: ocrBuf,
+      offset: 0,
+      stride: imgW * 4,
+      region: { size: { width: imgW, height: imgH }, x: 0, y: 0 }
+    };
+    pixelMap.writePixelsSync(destArea);
+    hilog.info(DOMAIN, TAG, '【VisionKit预处理】软对比度拉伸 ocrBg=%{public}.1f', ocrBg);
+
     const visionInfo: textRecognition.VisionInfo = { pixelMap: pixelMap };
     const recogResult: textRecognition.TextRecognitionResult =
       await textRecognition.recognizeText(visionInfo, {
@@ -1087,6 +1239,18 @@ async function tryVisionKitRecognition(imagePath: string): Promise<OCRResult> {
     const posResult: VisionKitGridResult | null = buildGridByPosition(
       recogResult, imgW, imgH, bbox, cropL, cropT, cropToOcrScaleX, cropToOcrScaleY
     );
+    if (posResult !== null) {
+      const fittedL: number = posResult.boardL / cropToOcrScaleX + cropL;
+      const fittedT: number = posResult.boardT / cropToOcrScaleY + cropT;
+      const fittedR: number = (posResult.boardL + posResult.boardW) / cropToOcrScaleX + cropL;
+      const fittedB: number = (posResult.boardT + posResult.boardH) / cropToOcrScaleY + cropT;
+      g_fittedBoardL = fittedL;
+      g_fittedBoardT = fittedT;
+      g_fittedBoardR = fittedR;
+      g_fittedBoardB = fittedB;
+      hilog.info(DOMAIN, TAG, '【VisionKit Block详情】fittedBoard detect=[%{public}.1f,%{public}.1f,%{public}.1f,%{public}.1f]',
+        fittedL, fittedT, fittedR, fittedB);
+    }
     g_lastDebugRawDigits = posResult !== null ? posResult.grid.filter((d: number) => d > 0).length : 0;
     if (posResult && posResult.grid.some((d: number) => d > 0)) {
       const givenCount: number = posResult.grid.filter((d: number) => d > 0).length;
@@ -1407,10 +1571,10 @@ function buildGridByPosition(
   return gridResult;
 }
 
-async function tryPixelGridRecognition(imagePath: string): Promise<OCRResult> {
+async function tryPixelGridRecognition(imagePath: string, imageBuf: ArrayBuffer | null = null): Promise<OCRResult> {
   let pixelMap: image.PixelMap | null = null;
   try {
-    const imageSource: image.ImageSource = openImageSource(imagePath);
+    const imageSource: image.ImageSource = imageBuf !== null ? openImageSourceFromBuffer(imageBuf) : openImageSource(imagePath);
 
     const srcInfo: image.ImageInfo = await imageSource.getImageInfo();
     const origW: number = srcInfo.size.width;

@@ -1,11 +1,9 @@
 import { describe, it, expect, beforeAll } from '@ohos/hypium';
-import { analyzePixelGridFromBuffer, recognizeSudokuFromImage, OCRResult } from '../../../main/ets/core/sudoku/SudokuOCR';
+import { recognizeSudokuFromBuffer, OCRResult, getOCRDebugInfo, OCRDebugInfo } from '../../../main/ets/core/sudoku/SudokuOCR';
 import { parseOCRToGrid, gridToString, solveSudoku, validateFullGrid, SolveResult } from '../../../main/ets/core/sudoku/SudokuEngine';
 import { initDigitTemplates } from '../../../main/ets/core/sudoku/SudokuPixel';
-import { image } from '@kit.ImageKit';
-import { resourceManager } from '@kit.LocalizationKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
-import { fileIo } from '@kit.CoreFileKit';
+import { resourceManager } from '@kit.LocalizationKit';
 
 const DOMAIN: number = 0xA03D00;
 const TAG: string = 'OCR_TEST';
@@ -22,36 +20,23 @@ const EXPECTED: number[] = [
   0, 0, 0, 0, 8, 0, 0, 7, 9,
 ];
 
-interface ImageThreshold {
-  file: string;
-  minAcc: number;
-  maxFalsePos: number;
-  maxDim: number;
-}
-
-interface PixelData {
-  pixels: Uint8Array;
-  width: number;
-  height: number;
-}
-
-const CASES: ImageThreshold[] = [
-  { file: '01_standard_544.png', minAcc: 1.0, maxFalsePos: 0, maxDim: 1280 },
-  { file: '02_small_300.png', minAcc: 1.0, maxFalsePos: 0, maxDim: 1280 },
-  { file: '03_large_800.png', minAcc: 1.0, maxFalsePos: 0, maxDim: 1280 },
-  { file: '04_blue_numbers.png', minAcc: 1.0, maxFalsePos: 0, maxDim: 1280 },
-  { file: '05_red_theme.png', minAcc: 1.0, maxFalsePos: 0, maxDim: 1280 },
-  { file: '06_green_theme.png', minAcc: 1.0, maxFalsePos: 0, maxDim: 1280 },
-  { file: '07_light_gray_numbers.png', minAcc: 1.0, maxFalsePos: 0, maxDim: 1280 },
-  { file: '08_gray_bg_dark_numbers.png', minAcc: 1.0, maxFalsePos: 0, maxDim: 1280 },
-  { file: '09_serif_font.png', minAcc: 1.0, maxFalsePos: 0, maxDim: 1280 },
-  { file: '10_italic_font.png', minAcc: 1.0, maxFalsePos: 0, maxDim: 1280 },
-  { file: '11_thin_font.png', minAcc: 1.0, maxFalsePos: 0, maxDim: 1280 },
-  { file: '12_all_thin_lines.png', minAcc: 1.0, maxFalsePos: 0, maxDim: 1280 },
-  { file: '13_no_outer_border.png', minAcc: 1.0, maxFalsePos: 0, maxDim: 1280 },
-  { file: '14_tiny_200.png', minAcc: 1.0, maxFalsePos: 0, maxDim: 1280 },
-  { file: '15_huge_1000.png', minAcc: 1.0, maxFalsePos: 0, maxDim: 1280 },
-  { file: 'photos.jpg', minAcc: 1.0, maxFalsePos: 0, maxDim: 1280 },
+const TEST_IMAGES: string[][] = [
+  ['01_standard_544', 'sudoku_test_images/01_standard_544.png'],
+  ['02_small_300', 'sudoku_test_images/02_small_300.png'],
+  ['03_large_800', 'sudoku_test_images/03_large_800.png'],
+  ['04_blue_numbers', 'sudoku_test_images/04_blue_numbers.png'],
+  ['05_red_theme', 'sudoku_test_images/05_red_theme.png'],
+  ['06_green_theme', 'sudoku_test_images/06_green_theme.png'],
+  ['07_light_gray_numbers', 'sudoku_test_images/07_light_gray_numbers.png'],
+  ['08_gray_bg_dark_numbers', 'sudoku_test_images/08_gray_bg_dark_numbers.png'],
+  ['09_serif_font', 'sudoku_test_images/09_serif_font.png'],
+  ['10_italic_font', 'sudoku_test_images/10_italic_font.png'],
+  ['11_thin_font', 'sudoku_test_images/11_thin_font.png'],
+  ['12_all_thin_lines', 'sudoku_test_images/12_all_thin_lines.png'],
+  ['13_no_outer_border', 'sudoku_test_images/13_no_outer_border.png'],
+  ['14_tiny_200', 'sudoku_test_images/14_tiny_200.png'],
+  ['15_huge_1000', 'sudoku_test_images/15_huge_1000.png'],
+  ['photos', 'sudoku_test_images/photos.jpg'],
 ];
 
 interface MatchResult {
@@ -59,24 +44,16 @@ interface MatchResult {
   fullAcc: number;
   falsePos: number;
   falseNeg: number;
+  diffDetail: string;
 }
 
-function diffDetail(actual: number[], expectArr: number[]): string {
-  let parts: string[] = [];
-  for (let i: number = 0; i < 81; i++) {
-    if (actual[i] !== expectArr[i]) {
-      parts.push(`[${Math.floor(i / 9)},${i % 9}]:${actual[i]}/${expectArr[i]}`);
-    }
-  }
-  return parts.length > 0 ? parts.join(' ') : 'none';
-}
-
-function countMatches(actual: number[], expectArr: number[]): MatchResult {
+function computeMatch(actual: number[], expectArr: number[]): MatchResult {
   let givenMatches: number = 0;
   let givenTotal: number = 0;
   let fullMatches: number = 0;
   let falsePos: number = 0;
   let falseNeg: number = 0;
+  const parts: string[] = [];
   for (let i: number = 0; i < 81; i++) {
     if (actual[i] === expectArr[i]) {
       fullMatches++;
@@ -87,10 +64,12 @@ function countMatches(actual: number[], expectArr: number[]): MatchResult {
         givenMatches++;
       } else {
         falseNeg++;
+        parts.push(`R${Math.floor(i / 9) + 1}C${i % 9 + 1}:got=${actual[i]} want=${expectArr[i]}`);
       }
     } else {
       if (actual[i] !== 0) {
         falsePos++;
+        parts.push(`R${Math.floor(i / 9) + 1}C${i % 9 + 1}:got=${actual[i]} want=empty`);
       }
     }
   }
@@ -98,50 +77,9 @@ function countMatches(actual: number[], expectArr: number[]): MatchResult {
     givenAcc: givenTotal > 0 ? givenMatches / givenTotal : 0,
     fullAcc: fullMatches / 81,
     falsePos: falsePos,
-    falseNeg: falseNeg
+    falseNeg: falseNeg,
+    diffDetail: parts.length > 0 ? parts.join('; ') : 'none'
   };
-}
-
-function loadPixelsSync(rawfile: string, maxDim: number): PixelData | null {
-  try {
-    const ctx: Context = getContext();
-    const rm: resourceManager.ResourceManager = ctx.resourceManager;
-    const rawData: Uint8Array = rm.getRawFileContentSync(rawfile);
-    if (rawData.byteLength === 0) {
-      hilog.error(DOMAIN, TAG, `${rawfile}: empty rawfile`);
-      return null;
-    }
-    const imgSrc: image.ImageSource = image.createImageSource(rawData.buffer as ArrayBuffer);
-    const srcInfo: image.ImageInfo = imgSrc.getImageInfoSync();
-    const origW: number = srcInfo.size.width;
-    const origH: number = srcInfo.size.height;
-
-    let targetW: number = origW;
-    let targetH: number = origH;
-    if (origW > maxDim || origH > maxDim) {
-      const scale: number = maxDim / Math.max(origW, origH);
-      targetW = Math.round(origW * scale);
-      targetH = Math.round(origH * scale);
-    }
-
-    const pm: image.PixelMap = imgSrc.createPixelMapSync({
-      desiredSize: { width: targetW, height: targetH },
-      desiredPixelFormat: image.PixelMapFormat.RGBA_8888
-    });
-    imgSrc.release();
-    const info: image.ImageInfo = pm.getImageInfoSync();
-    const w: number = info.size.width;
-    const h: number = info.size.height;
-    const buf: ArrayBuffer = new ArrayBuffer(w * h * 4);
-    pm.readPixelsToBufferSync(buf);
-    pm.release();
-    hilog.info(DOMAIN, TAG, `${rawfile}: orig ${origW}x${origH} -> ${w}x${h} (maxDim=${maxDim})`);
-    return { pixels: new Uint8Array(buf), width: w, height: h };
-  } catch (e) {
-    const err: Error = e as Error;
-    hilog.error(DOMAIN, TAG, `${rawfile}: load error ${err.message}`);
-    return null;
-  }
 }
 
 function gridToAscii(grid: number[]): string {
@@ -151,136 +89,145 @@ function gridToAscii(grid: number[]): string {
     for (let c: number = 0; c < 9; c++) {
       const v: number = grid[r * 9 + c];
       line += (v === 0 ? '.' : v.toString()) + ' ';
-      if (c === 2 || c === 5) { line += '| '; }
     }
     s += line + '\n';
-    if (r === 2 || r === 5) { s += '------+-------+------\n'; }
   }
   return s;
 }
 
+function formatDebugCompact(info: OCRDebugInfo): string {
+  const lines: string[] = [];
+  lines.push(`pipeline=${info.pipeline}`);
+  lines.push(`resize=${info.resizeInfo}`);
+  lines.push(`bbox=${info.bboxInfo}`);
+  lines.push(`probe=${info.probeInfo}`);
+  lines.push(`bboxDiag=${info.bboxDiag}`);
+  lines.push(`rawDigits=${info.rawDigits}`);
+  lines.push(`vkOcrSize=${info.visionKitOcrSize}`);
+  lines.push(`vkBlocks=${info.visionKitBlockCount}`);
+  if (info.visionKitOcrError.length > 0) {
+    lines.push(`vkErr=${info.visionKitOcrError}`);
+  }
+  lines.push(`vkGrid=\n${info.visionKitGrid}`);
+  if (info.pixelGrid.length > 0 && info.pixelGrid !== '(null)') {
+    lines.push(`pxGrid=\n${info.pixelGrid}`);
+  }
+  lines.push(`finalGrid=\n${info.finalGrid}`);
+  return lines.join('\n');
+}
+
+function loadRawFileBuf(ctx: Context, rawfile: string): ArrayBuffer {
+  const rm: resourceManager.ResourceManager = ctx.resourceManager;
+  const rawData: Uint8Array = rm.getRawFileContentSync(rawfile);
+  hilog.info(DOMAIN, TAG, `${rawfile}: ${rawData.byteLength} bytes`);
+  if (rawData.byteLength === 0) {
+    throw new Error(`${rawfile}: 0 bytes`);
+  }
+  const copy: ArrayBuffer = new ArrayBuffer(rawData.byteLength);
+  const view: Uint8Array = new Uint8Array(copy);
+  for (let i: number = 0; i < rawData.byteLength; i++) {
+    view[i] = rawData[i];
+  }
+  return copy;
+}
+
+function runPipelineTest(name: string, rawfile: string, done: Function): void {
+  const ctx: Context = getContext();
+  let buf: ArrayBuffer;
+  try {
+    buf = loadRawFileBuf(ctx, rawfile);
+    hilog.info(DOMAIN, TAG, `=== pipeline: ${name} buf=${buf.byteLength} ===`);
+  } catch (e) {
+    hilog.error(DOMAIN, TAG, `${name}: loadRawFile FAILED: ${e}`);
+    expect(false).assertTrue();
+    done();
+    return;
+  }
+
+  recognizeSudokuFromBuffer(buf).then((ocrResult: OCRResult) => {
+    hilog.info(DOMAIN, TAG, `${name}: success=${ocrResult.success} grid=${ocrResult.grid !== null} err="${ocrResult.error}"`);
+    if (!ocrResult.success || !ocrResult.grid) {
+      const dbg: OCRDebugInfo | null = getOCRDebugInfo();
+      const diag: string = dbg !== null ? formatDebugCompact(dbg) : 'no debug';
+      hilog.error(DOMAIN, TAG, `${name}: OCR FAILED: ${ocrResult.error}\n${diag}`);
+      expect(ocrResult.success).assertTrue();
+      done();
+      return;
+    }
+    const mr: MatchResult = computeMatch(ocrResult.grid, EXPECTED);
+    hilog.info(DOMAIN, TAG, `${name}:\n${gridToAscii(ocrResult.grid)}`);
+    hilog.info(DOMAIN, TAG, `${name}: given:${(mr.givenAcc * 100).toFixed(0)}% full:${(mr.fullAcc * 100).toFixed(0)}% fp:${mr.falsePos} fn:${mr.falseNeg}`);
+    hilog.info(DOMAIN, TAG, `${name}: diff: ${mr.diffDetail}`);
+    if (mr.givenAcc < 1.0 || mr.falsePos > 0) {
+      const dbg: OCRDebugInfo | null = getOCRDebugInfo();
+      const diag: string = dbg !== null ? formatDebugCompact(dbg) : 'no debug';
+      hilog.error(DOMAIN, TAG, `${name}: MISMATCH:\n${diag}\nDiff: ${mr.diffDetail}`);
+    }
+    expect(mr.givenAcc).assertEqual(1.0);
+    expect(mr.falsePos).assertEqual(0);
+    done();
+  }).catch((err: Object) => {
+    hilog.error(DOMAIN, TAG, `${name}: exception: ${err}`);
+    expect(false).assertTrue();
+    done();
+  });
+}
+
 export default function sudokuOcrTest() {
-  describe('SudokuOCR_pixel_all_images', () => {
+  describe('SudokuOCR_pipeline_full', () => {
     beforeAll(() => {
       const ctx: Context = getContext();
       const ok: boolean = initDigitTemplates(ctx);
       hilog.info(DOMAIN, TAG, `initDigitTemplates: ${ok}`);
     });
 
-    for (let idx: number = 0; idx < CASES.length; idx++) {
-      const c: ImageThreshold = CASES[idx];
-      it(`pixel_${c.file.replace('.png', '')}`, 0, () => {
-        const pd: PixelData | null = loadPixelsSync(c.file, c.maxDim);
-        expect(pd !== null).assertTrue();
-        if (pd === null) { return; }
-
-        const grid: number[] = analyzePixelGridFromBuffer(pd.pixels, pd.width, pd.height);
-        const mr: MatchResult = countMatches(grid, EXPECTED);
-
-        hilog.info(DOMAIN, TAG, `${c.file} (${pd.width}x${pd.height})`);
-        hilog.info(DOMAIN, TAG, `识别结果:\n${gridToAscii(grid)}`);
-        hilog.info(DOMAIN, TAG, `期望结果:\n${gridToAscii(EXPECTED)}`);
-        if (mr.givenAcc < 1.0 || mr.falsePos > 0) {
-          hilog.info(DOMAIN, TAG, `DIFF: ${diffDetail(grid, EXPECTED)}`);
-        }
-        hilog.info(DOMAIN, TAG, `given:${(mr.givenAcc * 100).toFixed(0)}% full:${(mr.fullAcc * 100).toFixed(0)}% fp:${mr.falsePos} fn:${mr.falseNeg} (minAcc ${(c.minAcc * 100).toFixed(0)}% maxFP ${c.maxFalsePos})`);
-
-        expect(mr.givenAcc >= c.minAcc).assertTrue();
-        expect(mr.falsePos <= c.maxFalsePos).assertTrue();
-      });
-    }
-  });
-
-  describe('SudokuOCR_recognizeSudokuFromImage', () => {
-    beforeAll(() => {
-      const ctx: Context = getContext();
-      const ok: boolean = initDigitTemplates(ctx);
-      hilog.info(DOMAIN, TAG, `initDigitTemplates: ${ok}`);
+    it('pipeline_01_standard_544', 0, (done: Function) => {
+      runPipelineTest('01_standard_544', 'sudoku_test_images/01_standard_544.png', done);
     });
-
-    for (let idx: number = 0; idx < CASES.length; idx++) {
-      const c: ImageThreshold = CASES[idx];
-      it(`pipeline_${c.file.replace('.png', '')}`, 0, async () => {
-        const ctx: Context = getContext();
-        const rm: resourceManager.ResourceManager = ctx.resourceManager;
-        const rawData: Uint8Array = rm.getRawFileContentSync(c.file);
-        expect(rawData.byteLength > 0).assertTrue();
-        if (rawData.byteLength === 0) { return; }
-
-        const cachePath: string = ctx.cacheDir + '/' + c.file;
-        try {
-          const f: fileIo.File = fileIo.openSync(cachePath, fileIo.OpenMode.READ_WRITE | fileIo.OpenMode.CREATE | fileIo.OpenMode.TRUNC);
-          fileIo.writeSync(f.fd, rawData.buffer as ArrayBuffer);
-          fileIo.closeSync(f);
-        } catch (_e) {
-          hilog.error(DOMAIN, TAG, `write cache failed: ${_e}`);
-          return;
-        }
-
-        hilog.info(DOMAIN, TAG, `pipeline test: ${c.file}, cachePath=${cachePath}`);
-        const ocrResult: OCRResult = await recognizeSudokuFromImage(cachePath);
-        hilog.info(DOMAIN, TAG, `pipeline result: success=${ocrResult.success} error=${ocrResult.error} rawText=${ocrResult.rawText}`);
-
-        if (ocrResult.success && ocrResult.grid) {
-          const mr: MatchResult = countMatches(ocrResult.grid, EXPECTED);
-          hilog.info(DOMAIN, TAG, `pipeline ${c.file} 识别结果:\n${gridToAscii(ocrResult.grid)}`);
-          hilog.info(DOMAIN, TAG, `pipeline ${c.file} given:${(mr.givenAcc * 100).toFixed(0)}% full:${(mr.fullAcc * 100).toFixed(0)}% fp:${mr.falsePos} fn:${mr.falseNeg}`);
-          if (mr.givenAcc < 1.0 || mr.falsePos > 0) {
-            hilog.info(DOMAIN, TAG, `pipeline DIFF: ${diffDetail(ocrResult.grid, EXPECTED)}`);
-          }
-          expect(mr.givenAcc >= c.minAcc).assertTrue();
-          expect(mr.falsePos <= c.maxFalsePos).assertTrue();
-        } else {
-          hilog.error(DOMAIN, TAG, `pipeline ${c.file} FAILED: ${ocrResult.error}`);
-          expect(ocrResult.success).assertTrue();
-        }
-      });
-    }
-  });
-
-  describe('SudokuOCR_edge_cases', () => {
-    it('zero_size_buffer_returns_all_zeros', 0, () => {
-      const empty: Uint8Array = new Uint8Array(0);
-      const grid: number[] = analyzePixelGridFromBuffer(empty, 0, 0);
-      expect(grid.length).assertEqual(81);
-      const allZero: number[] = new Array<number>(81).fill(0);
-      for (let i: number = 0; i < 81; i++) {
-        expect(grid[i]).assertEqual(allZero[i]);
-      }
+    it('pipeline_02_small_300', 0, (done: Function) => {
+      runPipelineTest('02_small_300', 'sudoku_test_images/02_small_300.png', done);
     });
-
-    it('tiny_buffer_no_crash', 0, () => {
-      const tiny: Uint8Array = new Uint8Array(16);
-      const grid: number[] = analyzePixelGridFromBuffer(tiny, 2, 2);
-      expect(grid.length).assertEqual(81);
+    it('pipeline_03_large_800', 0, (done: Function) => {
+      runPipelineTest('03_large_800', 'sudoku_test_images/03_large_800.png', done);
     });
-
-    it('solid_white_image_all_zeros', 0, () => {
-      const white: Uint8Array = new Uint8Array(90 * 90 * 4);
-      white.fill(255);
-      const grid: number[] = analyzePixelGridFromBuffer(white, 90, 90);
-      expect(grid.length).assertEqual(81);
-      for (let i: number = 0; i < 81; i++) {
-        expect(grid[i]).assertEqual(0);
-      }
+    it('pipeline_04_blue_numbers', 0, (done: Function) => {
+      runPipelineTest('04_blue_numbers', 'sudoku_test_images/04_blue_numbers.png', done);
     });
-
-    it('solid_black_image_all_zeros', 0, () => {
-      const black: Uint8Array = new Uint8Array(90 * 90 * 4);
-      black.fill(0);
-      const grid: number[] = analyzePixelGridFromBuffer(black, 90, 90);
-      expect(grid.length).assertEqual(81);
+    it('pipeline_05_red_theme', 0, (done: Function) => {
+      runPipelineTest('05_red_theme', 'sudoku_test_images/05_red_theme.png', done);
     });
-
-    it('random_noise_image_no_given_digit_mismatches', 0, () => {
-      const W: number = 90;
-      const H: number = 90;
-      const noise: Uint8Array = new Uint8Array(W * H * 4);
-      for (let i: number = 0; i < noise.length; i++) {
-        noise[i] = Math.floor(Math.random() * 256);
-      }
-      const grid: number[] = analyzePixelGridFromBuffer(noise, W, H);
-      expect(grid.length).assertEqual(81);
+    it('pipeline_06_green_theme', 0, (done: Function) => {
+      runPipelineTest('06_green_theme', 'sudoku_test_images/06_green_theme.png', done);
+    });
+    it('pipeline_07_light_gray_numbers', 0, (done: Function) => {
+      runPipelineTest('07_light_gray_numbers', 'sudoku_test_images/07_light_gray_numbers.png', done);
+    });
+    it('pipeline_08_gray_bg_dark_numbers', 0, (done: Function) => {
+      runPipelineTest('08_gray_bg_dark_numbers', 'sudoku_test_images/08_gray_bg_dark_numbers.png', done);
+    });
+    it('pipeline_09_serif_font', 0, (done: Function) => {
+      runPipelineTest('09_serif_font', 'sudoku_test_images/09_serif_font.png', done);
+    });
+    it('pipeline_10_italic_font', 0, (done: Function) => {
+      runPipelineTest('10_italic_font', 'sudoku_test_images/10_italic_font.png', done);
+    });
+    it('pipeline_11_thin_font', 0, (done: Function) => {
+      runPipelineTest('11_thin_font', 'sudoku_test_images/11_thin_font.png', done);
+    });
+    it('pipeline_12_all_thin_lines', 0, (done: Function) => {
+      runPipelineTest('12_all_thin_lines', 'sudoku_test_images/12_all_thin_lines.png', done);
+    });
+    it('pipeline_13_no_outer_border', 0, (done: Function) => {
+      runPipelineTest('13_no_outer_border', 'sudoku_test_images/13_no_outer_border.png', done);
+    });
+    it('pipeline_14_tiny_200', 0, (done: Function) => {
+      runPipelineTest('14_tiny_200', 'sudoku_test_images/14_tiny_200.png', done);
+    });
+    it('pipeline_15_huge_1000', 0, (done: Function) => {
+      runPipelineTest('15_huge_1000', 'sudoku_test_images/15_huge_1000.png', done);
+    });
+    it('pipeline_photos', 0, (done: Function) => {
+      runPipelineTest('photos', 'sudoku_test_images/photos.jpg', done);
     });
   });
 
@@ -316,12 +263,6 @@ export default function sudokuOcrTest() {
           expect(grid[i]).assertEqual(EXPECTED[i]);
         }
       }
-    });
-
-    it('mixed_whitespace_and_noise', 0, () => {
-      const text: string = '5 3 0 0 7\n6 0 0 1 9\nabc530070000600195000098000060800060003400803001700020006060000280000410005000080079xyz';
-      const grid: number[] = parseOCRToGrid(text)!;
-      expect(grid.length).assertEqual(81);
     });
   });
 

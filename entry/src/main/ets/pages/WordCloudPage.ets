@@ -50,19 +50,26 @@ struct WordCloudContent {
   private shapes: ShapeDef[] = ShapeDef.SHAPES;
   private shapeIcons: string[] = [
     'shape_circle', 'shape_cardioid', 'shape_star5', 'shape_diamond',
-    'shape_triangle', 'shape_square', 'shape_pentagon', 'shape_hexagon',
-    'shape_cross', 'shape_cloud', 'shape_oval', 'shape_leaf'
+    'shape_triangle', 'shape_triangleUp', 'shape_triangleLeft', 'shape_triangleRight',
+    'shape_square', 'shape_pentagon', 'shape_hexagon',
+    'shape_cross', 'shape_cloud', 'shape_oval', 'shape_leaf',
+    'shape_star8', 'shape_flower', 'shape_octagon'
   ];
   private fontNames: string[] = [
     Md2PngTemplates.FONT_SMILEY, Md2PngTemplates.FONT_WENKAI,
     Md2PngTemplates.FONT_MASHAN, Md2PngTemplates.FONT_KUAILE,
     Md2PngTemplates.FONT_HUANGYOU, Md2PngTemplates.FONT_LONGCANG,
     Md2PngTemplates.FONT_MAOMAO, Md2PngTemplates.FONT_XIAOWEI,
-    Md2PngTemplates.FONT_ZHIMANG
+    Md2PngTemplates.FONT_ZHIMANG,
+    Md2PngTemplates.FONT_SOURCE_HAN_SANS, Md2PngTemplates.FONT_SOURCE_HAN_SERIF,
+    Md2PngTemplates.FONT_CHILL_CHUNQIU, Md2PngTemplates.FONT_CHILL_ROUND,
+    Md2PngTemplates.FONT_TSANGER_FEIBAI, Md2PngTemplates.FONT_TSANGER_XWZ
   ];
   private fontLabels: string[] = [
     '得意黑', '霞鹜文楷', '马善政', '站酷快乐',
-    '站酷庆科黄油', '龙藏体', '刘建毛草', '站酷小薇', '志芒行'
+    '站酷庆科黄油', '龙藏体', '刘建毛草', '站酷小薇', '志芒行',
+    '思源黑体', '思源宋体',
+    '寒蝉春风', '寒蝉全圆体', '仓耳非白', '仓耳小丸子'
   ];
   private readonly COMPONENT_ID: string = 'wordcloud_canvas';
   private readonly MAX_WORDS: number = 180;
@@ -433,51 +440,49 @@ struct WordCloudContent {
       }
       .width('100%').padding({ left: 16, right: 16 }).alignItems(VerticalAlign.Top)
 
-      // 形状行
+      // 形状行 — 自动换行
       Row({ space: 4 }) {
         Text('形状')
           .fontSize(11)
           .fontColor($r('app.color.tertiary_text'))
           .width(32)
-        Scroll() {
-          Row({ space: 2 }) {
-            ForEach(this.shapes, (shape: ShapeDef, index: number) => {
-              Image($r('app.media.' + this.shapeIcons[index]))
-                .width(18).height(18)
-                .fillColor(this.currentShapeIndex === index ? this.getAccentColor() : $r('app.color.tertiary_text'))
-                .borderRadius(4).padding(2)
-                .border({ width: this.currentShapeIndex === index ? 1.5 : 0,
-                  color: this.getAccentColor(), radius: 6 })
-                .onClick(() => { this.currentShapeIndex = index; })
-            })
-          }
+        Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
+          ForEach(this.shapes, (shape: ShapeDef, index: number) => {
+            Image($r('app.media.' + this.shapeIcons[index]))
+              .width(18).height(18)
+              .fillColor(this.currentShapeIndex === index ? this.getAccentColor() : $r('app.color.tertiary_text'))
+              .borderRadius(4).padding(2)
+              .margin({ right: 4, bottom: 3 })
+              .border({ width: this.currentShapeIndex === index ? 1.5 : 0,
+                color: this.getAccentColor(), radius: 6 })
+              .onClick(() => { this.currentShapeIndex = index; })
+          })
         }
-        .scrollable(ScrollDirection.Horizontal).scrollBar(BarState.Off).height(22).layoutWeight(1)
+        .layoutWeight(1)
       }
-      .width('100%').height(26).padding({ left: 16, right: 16 }).alignItems(VerticalAlign.Center)
+      .width('100%').padding({ left: 16, right: 16 }).alignItems(VerticalAlign.Top)
 
-      // 字体行
+      // 字体行 — 自动换行
       Row({ space: 4 }) {
         Text('字体')
           .fontSize(11)
           .fontColor($r('app.color.tertiary_text'))
           .width(32)
-        Scroll() {
-          Row({ space: 3 }) {
-            ForEach(this.fontNames, (fontName: string, index: number) => {
-              Text('云')
-                .fontSize(15).fontFamily(fontName)
-                .fontColor(this.currentFontIndex === index ? this.getAccentColor() : $r('app.color.tertiary_text'))
-                .borderRadius(4).width(24).height(20).textAlign(TextAlign.Center)
-                .border({ width: this.currentFontIndex === index ? 1.5 : 0,
-                  color: this.getAccentColor(), radius: 6 })
-                .onClick(() => { this.currentFontIndex = index; this.refreshFont(); })
-            })
-          }
+        Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
+          ForEach(this.fontNames, (fontName: string, index: number) => {
+            Text('云')
+              .fontSize(15).fontFamily(fontName)
+              .fontColor(this.currentFontIndex === index ? this.getAccentColor() : $r('app.color.tertiary_text'))
+              .borderRadius(4).width(24).height(20).textAlign(TextAlign.Center)
+              .margin({ right: 4, bottom: 3 })
+              .border({ width: this.currentFontIndex === index ? 1.5 : 0,
+                color: this.getAccentColor(), radius: 6 })
+              .onClick(() => { this.currentFontIndex = index; this.refreshFont(); })
+          })
         }
-        .scrollable(ScrollDirection.Horizontal).scrollBar(BarState.Off).height(22).layoutWeight(1)
+        .layoutWeight(1)
       }
-      .width('100%').height(26).padding({ left: 16, right: 16 }).alignItems(VerticalAlign.Center)
+      .width('100%').padding({ left: 16, right: 16 }).alignItems(VerticalAlign.Top)
 
       // 当前配置提示
       Text('配色: ' + this.templates[this.currentPaletteIndex].name +

@@ -19,6 +19,12 @@ export class FontUtil {
     { familyName: Md2PngTemplates.FONT_MAOMAO, fileName: 'font/LiuJianMaoCao-Regular.ttf' },
     { familyName: Md2PngTemplates.FONT_XIAOWEI, fileName: 'font/ZCOOLXiaoWei-Regular.ttf' },
     { familyName: Md2PngTemplates.FONT_ZHIMANG, fileName: 'font/ZhiMangXing-Regular.ttf' },
+    { familyName: Md2PngTemplates.FONT_SOURCE_HAN_SANS, fileName: 'font/SourceHanSansSC-Regular.ttf' },
+    { familyName: Md2PngTemplates.FONT_SOURCE_HAN_SERIF, fileName: 'font/SourceHanSerifCN-Regular.otf' },
+    { familyName: Md2PngTemplates.FONT_CHILL_CHUNQIU, fileName: 'font/ChillCalligraphyChunQiu_ChenFeng.ttf' },
+    { familyName: Md2PngTemplates.FONT_CHILL_ROUND, fileName: 'font/ChillRoundF.ttf' },
+    { familyName: Md2PngTemplates.FONT_TSANGER_FEIBAI, fileName: 'font/TsangerFeiBaiW03.ttf' },
+    { familyName: Md2PngTemplates.FONT_TSANGER_XWZ, fileName: 'font/TsangerXWZ.ttf' },
   ];
 
   static registerAll(uiCtx: UIContext): void {

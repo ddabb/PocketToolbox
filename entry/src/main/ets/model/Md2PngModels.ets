@@ -149,6 +149,12 @@ export class Md2PngTemplates {
   static readonly FONT_MAOMAO: string = 'LiuJianMaoCao';
   static readonly FONT_XIAOWEI: string = 'ZCOOLXiaoWei';
   static readonly FONT_ZHIMANG: string = 'ZhiMangXing';
+  static readonly FONT_SOURCE_HAN_SANS: string = 'SourceHanSansSC';
+  static readonly FONT_SOURCE_HAN_SERIF: string = 'SourceHanSerifCN';
+  static readonly FONT_CHILL_CHUNQIU: string = 'ChillCalligraphyChunQiu';
+  static readonly FONT_CHILL_ROUND: string = 'ChillRound';
+  static readonly FONT_TSANGER_FEIBAI: string = 'TsangerFeiBai';
+  static readonly FONT_TSANGER_XWZ: string = 'TsangerXWZ';
 
   static getAll(): TemplateInfo[] {
     let smiley: string = Md2PngTemplates.FONT_SMILEY;

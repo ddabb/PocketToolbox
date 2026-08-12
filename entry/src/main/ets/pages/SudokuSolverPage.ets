@@ -158,6 +158,36 @@ struct SudokuSolverPage {
     }
   }
 
+  loadExample(index: number): void {
+    const puzzle: number[] = PRESET_PUZZLES[0];
+    if (index === 0) {
+      // 示例1: 单行81位数字，0表示空格
+    let s1: string = '';
+    for (let i: number = 0; i < 81; i++) {
+      s1 += puzzle[i].toString();
+    }
+    this.pasteInput = s1;
+    } else if (index === 1) {
+      // 示例2: 单行81位数字，.表示空格
+    let s2: string = '';
+    for (let i: number = 0; i < 81; i++) {
+      s2 += puzzle[i] === 0 ? '.' : puzzle[i].toString();
+    }
+    this.pasteInput = s2;
+    } else {
+      // 示例3: 多行输入，每行9位
+    const lines: string[] = [];
+    for (let r: number = 0; r < 9; r++) {
+      let line: string = '';
+      for (let c: number = 0; c < 9; c++) {
+        line += puzzle[r * 9 + c].toString();
+      }
+      lines.push(line);
+    }
+    this.pasteInput = lines.join('\n');
+    }
+  }
+
   openPasteDialog(): void {
     this.pasteInput = '';
     this.pasteDialogShow = true;
@@ -326,7 +356,9 @@ struct SudokuSolverPage {
   async processImageOCR(uri: string): Promise<void> {
     this.recognizing = true;
     this.clearGrid();
-    this.showMessage('正在识别图片中的数独...', 0);
+    this.debugText = '';
+    this.debugExpanded = false;
+    this.showMessage('正在识别图片中的数独...', 0, true);
 
     try {
       hilog.info(0xA03D00, 'SudokuSolver', `processImageOCR start, uri=${uri}`);
@@ -492,14 +524,16 @@ struct SudokuSolverPage {
     this.showNumberPad = false;
   }
 
-  showMessage(text: string, type: number): void {
+  showMessage(text: string, type: number, sticky: boolean = false): void {
     this.message = text;
     this.messageType = type;
-    setTimeout(() => {
-      if (this.message === text) {
-        this.message = '';
-      }
-    }, 3000);
+    if (!sticky) {
+      setTimeout(() => {
+        if (this.message === text) {
+          this.message = '';
+        }
+      }, 3000);
+    }
   }
 
   clearMessage(): void {
@@ -856,14 +890,54 @@ struct SudokuSolverPage {
           .fontColor($r('app.color.primary_text'))
           .width('100%')
 
-        Text('输入 81 位数字（0 或 . 表示空格），可多行输入')
-          .fontSize(12)
-          .fontColor($r('app.color.tertiary_text'))
-          .margin({ top: 6 })
-          .width('100%')
+        Flex({ wrap: FlexWrap.Wrap, justifyContent: FlexAlign.SpaceBetween }) {
+          Text('示例1')
+            .fontSize(12)
+            .fontColor('#6366f1')
+            .backgroundColor('#eef2ff')
+            .borderRadius(12)
+            .padding({ left: 12, right: 12, top: 5, bottom: 5 })
+            .margin({ bottom: 6 })
+            .onClick(() => { this.loadExample(0); })
 
-        TextArea({ text: this.pasteInput, placeholder: '示例：530070000\n600195000\n098000060\n...' })
-          .margin({ top: 14 })
+          Text('示例2')
+            .fontSize(12)
+            .fontColor('#6366f1')
+            .backgroundColor('#eef2ff')
+            .borderRadius(12)
+            .padding({ left: 12, right: 12, top: 5, bottom: 5 })
+            .margin({ bottom: 6 })
+            .onClick(() => { this.loadExample(1); })
+
+          Text('示例3')
+            .fontSize(12)
+            .fontColor('#6366f1')
+            .backgroundColor('#eef2ff')
+            .borderRadius(12)
+            .padding({ left: 12, right: 12, top: 5, bottom: 5 })
+            .margin({ bottom: 6 })
+            .onClick(() => { this.loadExample(2); })
+
+          Text('清空')
+            .fontSize(12)
+            .fontColor('#ef4444')
+            .backgroundColor('#fef2f2')
+            .borderRadius(12)
+            .padding({ left: 12, right: 12, top: 5, bottom: 5 })
+            .margin({ bottom: 6 })
+            .onClick(() => { this.pasteInput = ''; })
+        }
+        .width('100%')
+        .margin({ top: 12 })
+
+        Text('示例1: 0表示空格 | 示例2: .表示空格 | 示例3: 多行格式')
+          .fontSize(10)
+          .fontColor($r('app.color.tertiary_text'))
+          .width('100%')
+          .margin({ bottom: 4 })
+
+        TextArea({ text: this.pasteInput, placeholder: '支持 81 位数字（0 或 . 表示空格），可多行输入' })
+          .margin({ top: 12 })
           .width('100%')
           .height(160)
           .backgroundColor($r('app.color.page_background'))
