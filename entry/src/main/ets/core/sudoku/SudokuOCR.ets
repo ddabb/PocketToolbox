@@ -40,6 +40,21 @@ const CELL_UPSCALE_FACTOR: number = 3;
 // Smaller crops are too low-resolution to be useful.
 const MIN_CELL_CROP_DIM: number = 10;
 
+const PER_CELL_VK_TIMEOUT_MS: number = 2000;
+
+const MAX_FIX_CELLS: number = 15;
+
+// If a single VK call takes longer than this, subsequent VK calls are skipped
+// to avoid native-layer blocking that can freeze the JS event loop.
+const VK_SLOW_CALL_THRESHOLD_MS: number = 1500;
+
+// Number of consecutive VK null results before giving up on VK entirely.
+const VK_MAX_CONSECUTIVE_NULL: number = 2;
+
+// Total pipeline timeout: if recognizeSudokuFromBuffer hasn't resolved within
+// this many milliseconds, return a failure result instead of hanging forever.
+const OCR_PIPELINE_TOTAL_TIMEOUT_MS: number = 30000;
+
 // Resize thresholds: images larger than these are downscaled to the
 // corresponding target to balance OCR quality and speed.
 const RESIZE_LARGE_THRESHOLD: number = 2000;
@@ -91,6 +106,11 @@ let g_lastDebugLowConf: number[] = [];
 let g_lastDebugEmpty: number[] = [];
 let g_lastDebugFixCount: number = 0;
 let g_vkInited: boolean = false;
+let g_vkFailed: boolean = false;
+
+let g_cachedPixels: Uint8Array = new Uint8Array(0);
+let g_cachedImgW: number = 0;
+let g_cachedImgH: number = 0;
 
 let g_lastDebugVkRawText: string = '';
 let g_lastDebugVkBlockCount: number = 0;
@@ -303,15 +323,55 @@ export async function recognizeSudokuFromBuffer(buf: ArrayBuffer): Promise<OCRRe
   g_fittedBoardT = -1;
   g_fittedBoardR = -1;
   g_fittedBoardB = -1;
+  g_cachedPixels = new Uint8Array(0);
+  g_cachedImgW = 0;
+  g_cachedImgH = 0;
   const steps: OCRDebugStep[] = [];
+  const pipelineStart: number = Date.now();
   try {
+    console.info(`[SudokuOCR] === recognizeSudokuFromBuffer START ===`);
     hilog.info(DOMAIN, TAG, '=== 识别调试信息(buffer) ===');
-    steps.push({ step: '1. VisionKit识别', detail: '开始(buffer)' });
+
+    steps.push({ step: '1. 像素分析', detail: '开始(buffer)' });
+    console.info(`[SudokuOCR] >>> tryPixelGridRecognition`);
+    hilog.info(DOMAIN, TAG, '>>> tryPixelGridRecognition 开始');
+    const pixelResult: OCRResult = await tryPixelGridRecognition('', buf);
+    const pixelDigits: number = pixelResult.grid !== null ? pixelResult.grid.filter((d: number) => d > 0).length : 0;
+    console.info(`[SudokuOCR] <<< tryPixelGridRecognition success=${pixelResult.success} digits=${pixelDigits} elapsed=${Date.now() - pipelineStart}ms`);
+    hilog.info(DOMAIN, TAG, '<<< tryPixelGridRecognition 返回 success=%{public}d digits=%{public}d', pixelResult.success ? 1 : 0, pixelDigits);
+
+    if (pixelResult.success && pixelResult.grid && pixelDigits > 0) {
+      steps.push({ step: '2. 像素分析结果', detail: `成功, ${pixelDigits}个数字` });
+      const pixelGrid: number[] = [...pixelResult.grid];
+      const corrected: OCRResult = await fixAndFillGrid(pixelResult, '', buf);
+      console.info(`[SudokuOCR] <<< fixAndFillGrid success=${corrected.success} elapsed=${Date.now() - pipelineStart}ms`);
+      g_debugInfo = buildDebugInfo(
+        '像素分析+修正',
+        steps,
+        g_lastDebugBbox,
+        g_lastDebugResize,
+        0,
+        pixelGrid,
+        null,
+        corrected.grid,
+        g_lastDebugConflicts,
+        g_lastDebugLowConf,
+        g_lastDebugEmpty,
+        g_lastDebugFixCount,
+        corrected.confidence
+      );
+      return corrected;
+    }
+
+    steps.push({ step: '2. 像素分析失败', detail: pixelResult.error });
+    console.info(`[SudokuOCR] 像素分析失败, 转VisionKit`);
+    hilog.info(DOMAIN, TAG, '【步骤详情】像素分析失败，转VisionKit识别');
+    hilog.info(DOMAIN, TAG, '>>> tryVisionKitRecognition 开始');
     const visionResult: OCRResult = await tryVisionKitRecognition('', buf);
-    hilog.info(DOMAIN, TAG, '【步骤详情】VisionKit识别 success=%{public}d error=%{public}s', visionResult.success ? 1 : 0, visionResult.error);
+    hilog.info(DOMAIN, TAG, '<<< tryVisionKitRecognition 返回 success=%{public}d', visionResult.success ? 1 : 0);
     if (visionResult.success && visionResult.grid) {
       const vkGrid: number[] = [...visionResult.grid];
-      steps.push({ step: '2. VisionKit结果', detail: `成功, ${visionResult.grid.filter((d: number) => d > 0).length}个数字` });
+      steps.push({ step: '3. VisionKit结果', detail: `成功, ${visionResult.grid.filter((d: number) => d > 0).length}个数字` });
       const corrected: OCRResult = await fixAndFillGrid(visionResult, '', buf);
       g_debugInfo = buildDebugInfo(
         'VisionKit+修正',
@@ -328,28 +388,12 @@ export async function recognizeSudokuFromBuffer(buf: ArrayBuffer): Promise<OCRRe
         g_lastDebugFixCount,
         corrected.confidence
       );
-    return corrected;
+      return corrected;
     }
-    steps.push({ step: '2. VisionKit失败', detail: visionResult.error });
-    hilog.info(DOMAIN, TAG, '【步骤详情】VisionKit失败，转像素分析');
-    const pixelResult: OCRResult = await tryPixelGridRecognition('', buf);
-    g_debugInfo = buildDebugInfo(
-      '像素分析',
-      steps,
-      g_lastDebugBbox,
-      g_lastDebugResize,
-      0,
-      null,
-      pixelResult.grid,
-      pixelResult.grid,
-      [],
-      [],
-      [],
-      0,
-      pixelResult.confidence
-    );
+
     return pixelResult;
   } catch (_err) {
+    console.info(`[SudokuOCR] 异常: ${_err}`);
     hilog.error(DOMAIN, TAG, '异常: %{public}s', `${_err}`);
     return { success: false, grid: null, rawText: '', error: '图片处理异常，请尝试手动输入', confidence: null, debugInfo: null };
   }
@@ -643,6 +687,33 @@ function recognizeDigitPixel(
   return recognizeDigit(sig, inkCount);
 }
 
+function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  return new Promise<T>((resolve: Function) => {
+    let settled: boolean = false;
+    const timer: number = setTimeout(() => {
+      if (!settled) {
+        settled = true;
+        hilog.warn(DOMAIN, TAG, 'withTimeout: %{public}dms超时', ms);
+        resolve(fallback);
+      }
+    }, ms);
+    promise.then((result: T) => {
+      if (!settled) {
+        settled = true;
+        clearTimeout(timer);
+        resolve(result);
+      }
+    }).catch((_err: Object) => {
+      if (!settled) {
+        settled = true;
+        clearTimeout(timer);
+        hilog.warn(DOMAIN, TAG, 'withTimeout: 异常 %{public}s', `${_err}`);
+        resolve(fallback);
+      }
+    });
+  });
+}
+
 async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, imageBuf: ArrayBuffer | null = null): Promise<OCRResult> {
   if (!ocrResult.success || !ocrResult.grid) { return ocrResult; }
   const grid: number[] = [...ocrResult.grid];
@@ -684,6 +755,7 @@ async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, imageBuf:
   }
   hilog.info(DOMAIN, TAG, '【步骤详情】共需修正%{public}d格 (%{public}d冲突+%{public}d低置信+%{public}d空)',
     allFixIndices.length, conflictIndices.length, lowConfIndices.length, emptyIndices.length);
+  hilog.info(DOMAIN, TAG, 'fixAndFillGrid: allFixIndices=%{public}d', allFixIndices.length);
 
   if (allFixIndices.length === 0) {
     hilog.info(DOMAIN, TAG, '【实际修正】无冲突且无空格，直接采用结果');
@@ -695,27 +767,61 @@ async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, imageBuf:
     return ocrResult;
   }
 
-  const imageSource: image.ImageSource = openImageSource(imagePath);
-  const srcInfo: image.ImageInfo = await imageSource.getImageInfo();
-  const origW: number = srcInfo.size.width;
-  const origH: number = srcInfo.size.height;
+  let pixels: Uint8Array;
+  let imgW: number = 0;
+  let imgH: number = 0;
+  let pixelMap: image.PixelMap | null = null;
 
-  const resize: AdaptiveResizeParams = computeAdaptiveResize(origW, origH);
+  if (g_cachedPixels.length > 0 && g_cachedImgW > 0 && g_cachedImgH > 0 &&
+      g_probeBbox !== null) {
+    pixels = g_cachedPixels;
+    imgW = g_cachedImgW;
+    imgH = g_cachedImgH;
+    hilog.info(DOMAIN, TAG, '【步骤详情】校正复用缓存像素 %{public}dx%{public}d', imgW, imgH);
+  } else {
+    const imageSource = imageBuf !== null
+      ? openImageSourceFromBuffer(imageBuf)
+      : openImageSource(imagePath);
+    const srcInfo: image.ImageInfo = await withTimeout<image.ImageInfo>(imageSource.getImageInfo(), 5000,
+      { size: { width: 0, height: 0 } } as image.ImageInfo);
+    if (srcInfo.size.width === 0 || srcInfo.size.height === 0) {
+      hilog.error(DOMAIN, TAG, '【步骤详情】getImageInfo超时或失败');
+      imageSource.release();
+      return ocrResult;
+    }
+    const origW: number = srcInfo.size.width;
+    const origH: number = srcInfo.size.height;
 
-  const pixelMap: image.PixelMap = await imageSource.createPixelMap({
-    desiredSize: { width: resize.targetW, height: resize.targetH },
-    desiredPixelFormat: image.PixelMapFormat.RGBA_8888
-  });
-  imageSource.release();
+    const resize: AdaptiveResizeParams = computeAdaptiveResize(origW, origH);
 
-  const info: image.ImageInfo = await pixelMap.getImageInfo();
-  const imgW: number = info.size.width;
-  const imgH: number = info.size.height;
+    pixelMap = await withTimeout<image.PixelMap | null>(
+      imageSource.createPixelMap({
+        desiredSize: { width: resize.targetW, height: resize.targetH },
+        desiredPixelFormat: image.PixelMapFormat.RGBA_8888
+      }), 5000, null);
+    imageSource.release();
 
-  const buffer: ArrayBuffer = new ArrayBuffer(imgW * imgH * 4);
-  pixelMap.readPixelsToBuffer(buffer);
-  const pixels: Uint8Array = new Uint8Array(buffer);
+    if (pixelMap === null) {
+      hilog.error(DOMAIN, TAG, '【步骤详情】createPixelMap超时');
+      return ocrResult;
+    }
 
+    const info: image.ImageInfo = await withTimeout<image.ImageInfo>(pixelMap.getImageInfo(), 5000,
+      { size: { width: 0, height: 0 } } as image.ImageInfo);
+    if (info.size.width === 0 || info.size.height === 0) {
+      hilog.error(DOMAIN, TAG, '【步骤详情】fixAndFillGrid getImageInfo超时或失败');
+      pixelMap.release();
+      return ocrResult;
+    }
+    imgW = info.size.width;
+    imgH = info.size.height;
+
+    const buffer: ArrayBuffer = new ArrayBuffer(imgW * imgH * 4);
+    pixelMap.readPixelsToBuffer(buffer);
+    pixels = new Uint8Array(buffer);
+  }
+
+  hilog.info(DOMAIN, TAG, 'fixAndFillGrid: 像素加载完成 %{public}dx%{public}d', imgW, imgH);
   const bg: number = bgColor(pixels, imgW, imgH);
   const gray: Float32Array = toGrayArray(pixels, imgW, imgH);
 
@@ -753,8 +859,10 @@ async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, imageBuf:
     imgW, imgH, cellW, cellH, upscale);
 
   let vkInited: boolean = false;
-  let vkInitFailed: boolean = false;
+  let vkInitFailed: boolean = true;
   let fixCount: number = 0;
+  let vkCellCount: number = 0;
+  let vkConsecutiveNull: number = 0;
 
   g_perCellVkDiag = { cropFail: 0, noBlock: 0, noCenter: 0, found: 0, samples: [] };
   const fixDetailLines: string[] = [];
@@ -772,86 +880,8 @@ async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, imageBuf:
       pixelDigit = recognizeDigitPixel(gray, imgW, cellLeft, cellTop, cellW, cellH, bbox.isDark, bg);
     }
 
-    // VisionKit 逐格识别：
-    // 空格子 → 宽区域裁剪（目标格±邻格），用位置定位中心格数字，提高上下文识别率
-    // 非空格子（冲突/低置信）→ 单格裁剪，仅作重验证
     let vkDigit: number | null = null;
-    let vkCropInfo: string = `${cellW.toFixed(0)}x${cellH.toFixed(0)}`;
-    if (!vkInitFailed) {
-      let cropX: number = 0; let cropY: number = 0;
-      let cropW: number = 0; let cropH: number = 0;
-      let centerCellX: number = 0; let centerCellY: number = 0;
-      let useWideCrop: boolean = false;
-
-      if (origDigit === 0) {
-        // 空格子：宽区域裁剪（3格宽），提供网格线/邻格上下文
-        const startCol: number = Math.max(0, col - 1);
-        const endCol: number = Math.min(8, col + 1);
-        cropX = Math.max(Math.floor(boardL + startCol * cellW - cellW * padFactor), 0);
-        cropY = Math.max(Math.floor(boardT + row * cellH - cellH * padFactor), 0);
-        const cropR: number = Math.min(Math.floor(boardL + (endCol + 1) * cellW + cellW * padFactor), imgW);
-        const cropB: number = Math.min(Math.floor(boardT + (row + 1) * cellH + cellH * padFactor), imgH);
-        cropW = cropR - cropX;
-        cropH = cropB - cropY;
-        // 中心格在裁剪区域（未上采样）中的坐标
-        centerCellX = (col - startCol) * cellW + cellW * padFactor;
-        centerCellY = cellH * padFactor;
-        useWideCrop = true;
-      } else {
-        // 非空格子：单格裁剪
-        cropX = Math.max(Math.floor(cellLeft - cellW * padFactor), 0);
-        cropY = Math.max(Math.floor(cellTop - cellH * padFactor), 0);
-        const cropR: number = Math.min(Math.floor(cellLeft + cellW + cellW * padFactor), imgW);
-        const cropB: number = Math.min(Math.floor(cellTop + cellH + cellH * padFactor), imgH);
-        cropW = cropR - cropX;
-        cropH = cropB - cropY;
-      }
-
-      vkCropInfo = useWideCrop
-        ? `宽${cropW}x${cropH}→${Math.round(cropW * upscale)}x${Math.round(cropH * upscale)}`
-        : `${cropW}x${cropH}→${Math.round(cropW * upscale)}x${Math.round(cropH * upscale)}`;
-
-      if (cropW >= MIN_CELL_CROP_DIM && cropH >= MIN_CELL_CROP_DIM) {
-        const cellPm: image.PixelMap | null = cropCellFromBuffer(pixels, imgW, imgH, cropX, cropY, cropW, cropH, upscale);
-        if (cellPm !== null) {
-          const doRecognize = async (pm: image.PixelMap): Promise<number | null> => {
-            if (useWideCrop) {
-              return await recognizeDigitInWideRegion(pm, upscale, centerCellX, centerCellY, cellW, cellH);
-            } else {
-              return await recognizeDigitVisionKit(pm);
-            }
-          };
-          if (!vkInited) {
-            if (g_vkInited) {
-              vkInited = true;
-              vkDigit = await doRecognize(cellPm);
-              cellPm.release();
-            } else {
-              vkInited = true;
-              const initOk: boolean = await textRecognition.init();
-              g_vkInited = initOk;
-              if (!initOk) {
-                vkInitFailed = true;
-                cellPm.release();
-                hilog.info(DOMAIN, TAG, '【步骤详情】VisionKit init失败');
-              } else {
-                vkDigit = await doRecognize(cellPm);
-                cellPm.release();
-              }
-            }
-          } else {
-            vkDigit = await doRecognize(cellPm);
-            cellPm.release();
-          }
-        } else {
-          if (useWideCrop) {
-            g_perCellVkDiag.cropFail++;
-            hilog.info(DOMAIN, TAG, '【逐格修正详情】cropCellFromBuffer失败 crop=%{public}dx%{public}d→%{public}dx%{public}d',
-              cropW, cropH, Math.round(cropW * upscale), Math.round(cropH * upscale));
-          }
-        }
-      }
-    }
+    let vkCropInfo: string = 'skip';
 
     const pStr: string = pixelDigit !== null && pixelDigit > 0 ? `${pixelDigit}` : '-';
     const vStr: string = vkDigit !== null && vkDigit > 0 ? `${vkDigit}` : '-';
@@ -966,11 +996,10 @@ async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, imageBuf:
   }
   g_lastDebugFixDetails = fixDetailLines.join('\n');
 
-  if (vkInited) {
-    try { await textRecognition.release(); } catch (_ee) { /* ignore */ }
-    g_vkInited = false;
+  hilog.info(DOMAIN, TAG, 'fixAndFillGrid: 循环结束 fixCount=%{public}d', fixCount);
+  if (pixelMap !== null) {
+    pixelMap.release();
   }
-  pixelMap.release();
 
   g_lastDebugConflicts = conflictIndices;
   g_lastDebugLowConf = lowConfIndices;
@@ -991,8 +1020,17 @@ async function tryVisionKitRecognition(imagePath: string, imageBuf: ArrayBuffer 
   g_lastDebugVkOcrSize = '';
   g_lastDebugVkOcrError = '';
   g_lastDebugProbeInfo = '';
+  if (g_vkFailed) {
+    console.info(`[SudokuOCR] VK: skip (g_vkFailed=true)`);
+    g_lastDebugVkOcrError = 'VK previously failed, skipped';
+    return { success: false, grid: null, rawText: '', error: 'VisionKit skipped (previous failure)', confidence: null, debugInfo: null };
+  }
   try {
-    const initOk: boolean = await textRecognition.init();
+    console.info(`[SudokuOCR] VK: await textRecognition.init()`);
+    hilog.info(DOMAIN, TAG, 'VK: await textRecognition.init()');
+    const initOk: boolean = await withTimeout<boolean>(textRecognition.init(), 5000, false);
+    console.info(`[SudokuOCR] VK: init() returned ${initOk}`);
+    hilog.info(DOMAIN, TAG, 'VK: init() 返回 %{public}d', initOk ? 1 : 0);
     g_vkInited = initOk;
     if (!initOk) {
       g_lastDebugVkOcrError = 'VisionKit init() returned false';
@@ -1000,7 +1038,9 @@ async function tryVisionKitRecognition(imagePath: string, imageBuf: ArrayBuffer 
     }
 
     const imageSource: image.ImageSource = imageBuf !== null ? openImageSourceFromBuffer(imageBuf) : openImageSource(imagePath);
-    const srcInfo: image.ImageInfo = await imageSource.getImageInfo();
+    hilog.info(DOMAIN, TAG, 'VK: await imageSource.getImageInfo()');
+    const srcInfo: image.ImageInfo = await withTimeout<image.ImageInfo>(imageSource.getImageInfo(), 5000,
+      { size: { width: 0, height: 0 } } as image.ImageInfo);
     const origW: number = srcInfo.size.width;
     const origH: number = srcInfo.size.height;
 
@@ -1008,10 +1048,16 @@ async function tryVisionKitRecognition(imagePath: string, imageBuf: ArrayBuffer 
     const probeW: number = resize.targetW;
     const probeH: number = resize.targetH;
 
-    const probePm: image.PixelMap = await imageSource.createPixelMap({
+    const probePm: image.PixelMap | null = await withTimeout<image.PixelMap | null>(imageSource.createPixelMap({
       desiredSize: { width: probeW, height: probeH },
       desiredPixelFormat: image.PixelMapFormat.RGBA_8888
-    });
+    }), 5000, null);
+    hilog.info(DOMAIN, TAG, 'VK: createPixelMap(probe) 返回 %{public}s', probePm !== null ? 'OK' : 'null');
+    if (probePm === null) {
+      imageSource.release();
+      g_lastDebugVkOcrError = 'createPixelMap(probe)超时';
+      return { success: false, grid: null, rawText: '', error: 'createPixelMap超时', confidence: null, debugInfo: null };
+    }
     const probeImgInfo: image.ImageInfo = await probePm.getImageInfo();
     const probeImgW: number = probeImgInfo.size.width;
     const probeImgH: number = probeImgInfo.size.height;
@@ -1020,6 +1066,10 @@ async function tryVisionKitRecognition(imagePath: string, imageBuf: ArrayBuffer 
     probePm.readPixelsToBuffer(probeBuf);
     const probePixels: Uint8Array = new Uint8Array(probeBuf);
     probePm.release();
+
+    g_cachedPixels = probePixels;
+    g_cachedImgW = probeImgW;
+    g_cachedImgH = probeImgH;
 
     const bg: number = bgColor(probePixels, probeImgW, probeImgH);
     const isDark: boolean = bg < BG_DARK_THRESHOLD;
@@ -1119,13 +1169,18 @@ async function tryVisionKitRecognition(imagePath: string, imageBuf: ArrayBuffer 
     hilog.info(DOMAIN, TAG, '【缩放参数】probe→orig scaleX=%{public}.2f scaleY=%{public}.2f crop(...)->orig(%{public}d,%{public}d,%{public}d,%{public}d)',
       probeToOrigScaleX, probeToOrigScaleY, origCropL, origCropT, origCropW, origCropH);
 
-    pixelMap = await imageSource.createPixelMap({
+    pixelMap = await withTimeout<image.PixelMap | null>(imageSource.createPixelMap({
       desiredRegion: { size: { width: origCropW, height: origCropH }, x: origCropL, y: origCropT },
       desiredSize: { width: finalW, height: finalH },
       desiredPixelFormat: image.PixelMapFormat.RGBA_8888,
       cropAndScaleStrategy: image.CropAndScaleStrategy.CROP_FIRST
-    });
+    }), 5000, null);
     imageSource.release();
+
+    if (pixelMap === null) {
+      g_lastDebugVkOcrError = 'createPixelMap(OCR)超时';
+      return { success: false, grid: null, rawText: '', error: 'createPixelMap超时', confidence: null, debugInfo: null };
+    }
 
     const imageInfo: image.ImageInfo = await pixelMap.getImageInfo();
     const imgW: number = imageInfo.size.width;
@@ -1175,10 +1230,17 @@ async function tryVisionKitRecognition(imagePath: string, imageBuf: ArrayBuffer 
     hilog.info(DOMAIN, TAG, '【VisionKit预处理】软对比度拉伸 ocrBg=%{public}.1f', ocrBg);
 
     const visionInfo: textRecognition.VisionInfo = { pixelMap: pixelMap };
+    console.info(`[SudokuOCR] VK: await recognizeText() main OCR`);
+    hilog.info(DOMAIN, TAG, 'VK: await recognizeText() 主识别');
     const recogResult: textRecognition.TextRecognitionResult =
-      await textRecognition.recognizeText(visionInfo, {
-        isDirectionDetectionSupported: true
-      });
+      await withTimeout<textRecognition.TextRecognitionResult>(
+        textRecognition.recognizeText(visionInfo, {
+          isDirectionDetectionSupported: true
+        }), 10000,
+        { value: '', blocks: [] } as textRecognition.TextRecognitionResult
+      );
+    console.info(`[SudokuOCR] VK: recognizeText() returned blocks=${(recogResult.blocks || []).length}`);
+    hilog.info(DOMAIN, TAG, 'VK: recognizeText() 返回 blocks=%{public}d', (recogResult.blocks || []).length);
 
     // 不释放 VK，留给 fixAndFillGrid 复用
     // await textRecognition.release();
@@ -1291,7 +1353,9 @@ async function tryVisionKitRecognition(imagePath: string, imageBuf: ArrayBuffer 
   } catch (_e) {
     g_lastDebugVkOcrError = `异常: ${_e}`;
     g_vkInited = false;
-    try { await textRecognition.release(); } catch (_ee) { /* ignore */ }
+    g_vkFailed = true;
+    console.info(`[SudokuOCR] VK exception: ${_e}, setting g_vkFailed=true`);
+    textRecognition.release().catch((_ee: Object) => { /* ignore */ });
     return { success: false, grid: null, rawText: '', error: 'VisionKit unavailable', confidence: null, debugInfo: null };
   } finally {
     if (pixelMap !== null) { pixelMap.release(); }
@@ -1574,9 +1638,18 @@ function buildGridByPosition(
 async function tryPixelGridRecognition(imagePath: string, imageBuf: ArrayBuffer | null = null): Promise<OCRResult> {
   let pixelMap: image.PixelMap | null = null;
   try {
+    console.info(`[SudokuOCR] Pixel: start`);
     const imageSource: image.ImageSource = imageBuf !== null ? openImageSourceFromBuffer(imageBuf) : openImageSource(imagePath);
 
-    const srcInfo: image.ImageInfo = await imageSource.getImageInfo();
+    hilog.info(DOMAIN, TAG, 'Pixel: await imageSource.getImageInfo()');
+    const srcInfo: image.ImageInfo = await withTimeout<image.ImageInfo>(imageSource.getImageInfo(), 5000,
+      { size: { width: 0, height: 0 } } as image.ImageInfo);
+    if (srcInfo.size.width === 0 || srcInfo.size.height === 0) {
+      console.info(`[SudokuOCR] Pixel: getImageInfo timeout or failed`);
+      hilog.error(DOMAIN, TAG, 'Pixel: getImageInfo超时或失败');
+      imageSource.release();
+      return { success: false, grid: null, rawText: '', error: 'getImageInfo超时', confidence: null, debugInfo: null };
+    }
     const origW: number = srcInfo.size.width;
     const origH: number = srcInfo.size.height;
 
@@ -1585,25 +1658,49 @@ async function tryPixelGridRecognition(imagePath: string, imageBuf: ArrayBuffer 
     const targetH: number = resize.targetH;
     hilog.info(DOMAIN, TAG, '【缩放参数】原图%{public}dx%{public}d -> %{public}dx%{public}d', origW, origH, targetW, targetH);
 
-    pixelMap = await imageSource.createPixelMap({
+    hilog.info(DOMAIN, TAG, 'Pixel: await createPixelMap()');
+    pixelMap = await withTimeout<image.PixelMap | null>(imageSource.createPixelMap({
       desiredSize: { width: targetW, height: targetH },
       desiredPixelFormat: image.PixelMapFormat.RGBA_8888
-    });
+    }), 5000, null);
     imageSource.release();
+
+    if (pixelMap === null) {
+      hilog.error(DOMAIN, TAG, 'Pixel: createPixelMap超时');
+      return { success: false, grid: null, rawText: '', error: 'createPixelMap超时', confidence: null, debugInfo: null };
+    }
+    hilog.info(DOMAIN, TAG, 'Pixel: createPixelMap OK');
 
     const imageInfo: image.ImageInfo = await pixelMap.getImageInfo();
     const width: number = imageInfo.size.width;
     const height: number = imageInfo.size.height;
 
-    const grid: number[] = analyzePixelGrid(pixelMap, width, height);
+    const pixelBuf: ArrayBuffer = new ArrayBuffer(width * height * 4);
+    pixelMap.readPixelsToBuffer(pixelBuf);
+    const pixelBytes: Uint8Array = new Uint8Array(pixelBuf);
+    g_cachedPixels = pixelBytes;
+    g_cachedImgW = width;
+    g_cachedImgH = height;
+
+    const pxBg: number = bgColor(pixelBytes, width, height);
+    const pxBbox: BoardBBox = findBoardBBox(pixelBytes, width, height, pxBg);
+    g_probeBbox = { left: pxBbox.left, top: pxBbox.top, right: pxBbox.right, bottom: pxBbox.bottom, isDark: pxBbox.isDark };
+    g_probeResizeW = width;
+    g_probeResizeH = height;
+
+    hilog.info(DOMAIN, TAG, 'Pixel: 开始 analyzePixelGrid');
+    const grid: number[] = analyzePixelGridFromBuffer(pixelBytes, width, height);
+    const givenCount: number = grid.filter((d: number) => d > 0).length;
+    console.info(`[SudokuOCR] Pixel: analyzePixelGrid done digits=${givenCount}`);
+    hilog.info(DOMAIN, TAG, 'Pixel: analyzePixelGrid 完成 digits=%{public}d', givenCount);
     pixelMap.release();
     pixelMap = null;
 
-    const givenCount: number = grid.filter((d: number) => d > 0).length;
     hilog.info(DOMAIN, TAG, '【步骤详情】像素分析完成 识别到%{public}d个数字', givenCount);
     if (givenCount > 0) {
       return { success: true, grid: grid, rawText: 'pixel analysis', error: '', confidence: [...g_lastPixelConfidence], debugInfo: null };
     }
+    console.info(`[SudokuOCR] Pixel: no digits found`);
     return {
       success: false, grid: null, rawText: '',
       error: '未能识别数独，请确保图片清晰或手动输入',
