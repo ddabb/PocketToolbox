@@ -1,5 +1,9 @@
 import { Context } from '@kit.AbilityKit';
+import { hilog } from '@kit.PerformanceAnalysisKit';
 import { RawFileUtil } from '../../common/utils/RawFileUtil';
+
+const DOMAIN: number = 0xA03D00;
+const TAG: string = 'SudokuPixel';
 
 export interface DigitTemplate {
   digit: number;
@@ -50,15 +54,40 @@ const MIN_INK_RATIO: number = 0.25;
 const MAX_INK_RATIO: number = 0.75;
 const MIN_INK_COUNT: number = Math.floor(SIG_LEN * MIN_INK_RATIO);
 const MAX_INK_COUNT: number = Math.floor(SIG_LEN * MAX_INK_RATIO);
+// Ink count boundary between "very thin" and "normal low ink" in the lowInk
+// path of recognizeDigit. When inkCount is in [THIN1_MIN_INK_COUNT, this value),
+// the detectThinOne fallback requires a stricter template-score gate
+// (lowInkMinScore = 0.70×SIG_LEN) to avoid false positives on noise.
+const MIN_INK_COUNT_DIGIT1: number = Math.floor(SIG_LEN * 0.12);
+
+// Absolute minimum ink count for recognizeDigit entry gate. Below this, the
+// signature is treated as empty/noise and returns 0 immediately. Above this
+// but below MIN_INK_COUNT_DIGIT1, only thin-"1" detection is attempted with a
+// strict triple-gate (high template score + template recall + detectThinOne geometry).
+// Also serves as the internal lower bound inside detectThinOne() itself.
+const THIN1_MIN_INK_COUNT: number = Math.floor(SIG_LEN * 0.06);
 
 // Minimum template-match score (out of SIG_LEN) for a digit to be accepted.
 // SIG_LEN * 0.65 ≈ 364 of 560 pixels must match template.
 const MIN_DIGIT_SCORE: number = Math.floor(SIG_LEN * 0.65);
 
+// When inkCount is in the "low ink" range [MIN_INK_COUNT_DIGIT1, MIN_INK_COUNT),
+// the primary path only matches digit "1". If that fails, we fall back to matching
+// digits 2-9 with this score gate. Lower than MIN_DIGIT_SCORE (0.65) because
+// low-ink signatures have fewer ink pixels to match, but must still be strict
+// enough to reject noise and grid-line fragments. 0.60 ≈ 336 of 560 pixels.
+const LOW_INK_FALLBACK_MIN_SCORE: number = Math.floor(SIG_LEN * 0.60);
+
+// Minimum recall (fraction of template ink pixels present in the signature)
+// for low-ink fallback matches. Prevents partial matches where a few ink pixels
+// happen to overlap a template by chance.
+const LOW_INK_FALLBACK_MIN_RECALL: number = 0.35;
+
 // Ink detection threshold: a pixel is "ink" if its gray value differs from
 // the background by at least INK_THRESH. Lower = more sensitive to faint ink;
 // higher = more selective, avoids noise.
 const INK_THRESH: number = 50;
+const GRID_LINE_GRAY_DIFF: number = INK_THRESH * 0.6;
 
 // Sauvola adaptive thresholding parameters:
 //   k controls sensitivity to local variance (0.2 = moderate).
@@ -71,8 +100,10 @@ const SAUVOLA_R: number = 128;
 const CELL_MARGIN_RATIO: number = 0.08;
 
 // Minimum ink ratio (relative to cell area) for a cell to be considered
-// occupied. Cells with ink ratio below this are treated as empty.
-const MIN_CELL_INK_RATIO: number = 0.04;
+// occupied. Cells with ink ratio below this (2.5%) are treated as empty. This
+// stays sensitive enough for very thin "1" digits while later recognition gates
+// still reject noise and no-border false positives.
+const MIN_CELL_INK_RATIO: number = 0.025;
 
 // Otsu fallback: reject the Otsu threshold if it is too close to the
 // background value (within OTSU_BG_MIN_DIFF gray levels).
@@ -151,8 +182,16 @@ const LONGRUN_TIGHTER_OFFSETS: number[] = [40, 25, 12];
 // findBoxLongRun: minimum number of kept pixels for a valid board detection.
 const LONGRUN_MIN_PIXELS: number = 50;
 
-// findBoxLongRun: aspect ratio bounds for a valid board.
-const LONGRUN_MIN_ASPECT: number = 0.5;
+// findBoxLongRun: reject thresholds that generate too many long runs. In photos,
+// wood grain and shadows can create thousands of long horizontal/vertical runs;
+// a real Sudoku grid has only tens of long runs even after resizing.
+const LONGRUN_MAX_RUN_COUNT_FRAC: number = 0.50;
+
+// findBoxLongRun: aspect ratio bounds for a valid board. Portrait photos can
+// compress the board vertically, but aspect≈0.51 in logs29 selected only the
+// left half of photos.jpg and shifted all cells, while the good photo bbox was
+// still about 0.69. Keep a stricter floor for long-run candidates.
+const LONGRUN_MIN_ASPECT: number = 0.6;
 const LONGRUN_MAX_ASPECT: number = 2.0;
 
 // Hough transform: edge magnitude threshold. Pixels with gradient below
@@ -223,6 +262,9 @@ const GRID_LINE_SMOOTH_DIV: number = 60;
 // findPreciseGridLines: minimum max-ink-fraction for profile to be usable.
 const GRID_LINE_MIN_MAX_FRAC: number = 0.05;
 
+// detectGridLineWidths: minimum ink percentage in a row/column scan to confirm a thick grid line.
+const GRID_LINE_INK_EXIST_THRESH: number = 0.15;
+
 // findPreciseGridLines: peak threshold as fraction of smoothed max.
 const GRID_LINE_PEAK_THRESH_FRAC: number = 0.3;
 
@@ -230,12 +272,14 @@ const GRID_LINE_PEAK_THRESH_FRAC: number = 0.3;
 const GRID_LINE_SPACING_TOLERANCE: number = 0.3;
 
 // Recognize digit 6/9 disambiguation voting weights.
-const DISAMBIG_HOLE_WEIGHT: number = 3;
-const DISAMBIG_CENTROID_WEIGHT: number = 2;
+const DISAMBIG_HOLE_WEIGHT: number = 2;
+const DISAMBIG_CENTROID_WEIGHT: number = 1;
 const DISAMBIG_TOP_RATIO_WEIGHT: number = 2;
 const DISAMBIG_HOG_WEIGHT: number = 1;
 const DISAMBIG_SW_WEIGHT: number = 1;
-const DISAMBIG_SCORE_WEIGHT: number = 1;
+const DISAMBIG_SCORE_WEIGHT: number = 4;
+
+const DISAMBIG_SCORE_GAP_SKIP: number = 80;
 
 // Recognize digit: template scoring formula penalty multiplier for mismatches.
 const TEMPLATE_MISMATCH_PENALTY: number = 0.5;
@@ -317,11 +361,172 @@ interface DigitTemplateFile {
 let g_templates: DigitTemplate[] = [];
 let g_holeRows: number[] = [];
 let g_loaded: boolean = false;
+let g_gridLineCropTop: number[] = new Array<number>(81).fill(0);
+let g_gridLineCropBot: number[] = new Array<number>(81).fill(0);
+let g_gridLineCropLeft: number[] = new Array<number>(81).fill(0);
+let g_gridLineCropRight: number[] = new Array<number>(81).fill(0);
+let g_gridLineDetected: boolean = false;
 let g_lastConfidence: number = 0;
 let g_lastBboxDiag: string = '';
+let g_lastPixelDiag: string = '';
+let g_lastRawInkRatio: number = 0;
 
 export function getLastBboxDiag(): string {
   return g_lastBboxDiag;
+}
+
+export function getLastPixelDiag(): string {
+  return g_lastPixelDiag;
+}
+
+export function getLastRawInkRatio(): number {
+  return g_lastRawInkRatio;
+}
+
+export function resetLastPixelDiag(): void {
+  g_lastPixelDiag = '';
+  g_lastRawInkRatio = 0;
+}
+
+export function resetGridLineCrop(): void {
+  g_gridLineCropTop = new Array<number>(81).fill(0);
+  g_gridLineCropBot = new Array<number>(81).fill(0);
+  g_gridLineCropLeft = new Array<number>(81).fill(0);
+  g_gridLineCropRight = new Array<number>(81).fill(0);
+  g_gridLineDetected = false;
+}
+
+export function isGridLineCropDetected(): boolean {
+  return g_gridLineDetected;
+}
+
+export function detectGridLineWidths(
+  gray: Float32Array,
+  imgW: number,
+  boardL: number, boardT: number,
+  boardR: number, boardB: number,
+  isDark: boolean, bg: number
+): void {
+  g_gridLineCropTop = new Array<number>(81).fill(0);
+  g_gridLineCropBot = new Array<number>(81).fill(0);
+  g_gridLineCropLeft = new Array<number>(81).fill(0);
+  g_gridLineCropRight = new Array<number>(81).fill(0);
+  const cellW: number = (boardR - boardL) / 9;
+  const cellH: number = (boardB - boardT) / 9;
+  const imgH: number = Math.floor(gray.length / imgW);
+  const hLineInkDown: number[] = new Array<number>(10).fill(0);
+  const hLineInkUp: number[] = new Array<number>(10).fill(0);
+  const vLineInkRight: number[] = new Array<number>(10).fill(0);
+  const vLineInkLeft: number[] = new Array<number>(10).fill(0);
+
+  for (let i: number = 0; i < 10; i++) {
+    const lineY: number = Math.round(boardT + i * cellH);
+    if (lineY < 0 || lineY >= imgH) { continue; }
+    const bandHalf: number = Math.max(3, Math.floor(cellH * CENTERING_MARGIN));
+    const yStart: number = Math.max(0, lineY - bandHalf);
+    const yEnd: number = Math.min(imgH - 1, lineY + bandHalf);
+    const innerX0: number = Math.floor(boardL + cellW * CENTERING_MARGIN);
+    const innerX1: number = Math.floor(boardR - cellW * CENTERING_MARGIN);
+    const spanLen: number = innerX1 - innerX0 + 1;
+    if (spanLen < 5) { continue; }
+    let maxInkPct: number = 0;
+    let bestY: number = lineY;
+    for (let y: number = yStart; y <= yEnd; y++) {
+      let inkCount: number = 0;
+      for (let x: number = innerX0; x <= innerX1; x++) {
+        if (grayInkPixel(gray[y * imgW + x], bg, isDark, INK_THRESH)) { inkCount++; }
+      }
+      const pct: number = inkCount / spanLen;
+      if (pct > maxInkPct) { maxInkPct = pct; bestY = y; }
+    }
+    if (maxInkPct < GRID_LINE_INK_EXIST_THRESH) { continue; }
+    const threshPct: number = maxInkPct * 0.5;
+    let topInkY: number = bestY;
+    let botInkY: number = bestY;
+    for (let y: number = bestY - 1; y >= yStart; y--) {
+      let inkCount: number = 0;
+      for (let x: number = innerX0; x <= innerX1; x++) {
+        if (grayInkPixel(gray[y * imgW + x], bg, isDark, INK_THRESH)) { inkCount++; }
+      }
+      if (inkCount / spanLen < threshPct) { break; }
+      topInkY = y;
+    }
+    for (let y: number = bestY + 1; y <= yEnd; y++) {
+      let inkCount: number = 0;
+      for (let x: number = innerX0; x <= innerX1; x++) {
+        if (grayInkPixel(gray[y * imgW + x], bg, isDark, INK_THRESH)) { inkCount++; }
+      }
+      if (inkCount / spanLen < threshPct) { break; }
+      botInkY = y;
+    }
+    hLineInkUp[i] = Math.max(0, lineY - topInkY);
+    hLineInkDown[i] = Math.max(0, botInkY - lineY);
+  }
+
+  for (let j: number = 0; j < 10; j++) {
+    const lineX: number = Math.round(boardL + j * cellW);
+    if (lineX < 0 || lineX >= imgW) { continue; }
+    const bandHalf: number = Math.max(3, Math.floor(cellW * CENTERING_MARGIN));
+    const xStart: number = Math.max(0, lineX - bandHalf);
+    const xEnd: number = Math.min(imgW - 1, lineX + bandHalf);
+    const innerY0: number = Math.floor(boardT + cellH * CENTERING_MARGIN);
+    const innerY1: number = Math.floor(boardB - cellH * CENTERING_MARGIN);
+    const spanLen: number = innerY1 - innerY0 + 1;
+    if (spanLen < 5) { continue; }
+    let maxInkPct: number = 0;
+    let bestX: number = lineX;
+    for (let x: number = xStart; x <= xEnd; x++) {
+      let inkCount: number = 0;
+      for (let y: number = innerY0; y <= innerY1; y++) {
+        if (grayInkPixel(gray[y * imgW + x], bg, isDark, INK_THRESH)) { inkCount++; }
+      }
+      const pct: number = inkCount / spanLen;
+      if (pct > maxInkPct) { maxInkPct = pct; bestX = x; }
+    }
+    if (maxInkPct < GRID_LINE_INK_EXIST_THRESH) { continue; }
+    const threshPct: number = maxInkPct * 0.5;
+    let leftInkX: number = bestX;
+    let rightInkX: number = bestX;
+    for (let x: number = bestX - 1; x >= xStart; x--) {
+      let inkCount: number = 0;
+      for (let y: number = innerY0; y <= innerY1; y++) {
+        if (grayInkPixel(gray[y * imgW + x], bg, isDark, INK_THRESH)) { inkCount++; }
+      }
+      if (inkCount / spanLen < threshPct) { break; }
+      leftInkX = x;
+    }
+    for (let x: number = bestX + 1; x <= xEnd; x++) {
+      let inkCount: number = 0;
+      for (let y: number = innerY0; y <= innerY1; y++) {
+        if (grayInkPixel(gray[y * imgW + x], bg, isDark, INK_THRESH)) { inkCount++; }
+      }
+      if (inkCount / spanLen < threshPct) { break; }
+      rightInkX = x;
+    }
+    vLineInkLeft[j] = Math.max(0, lineX - leftInkX);
+    vLineInkRight[j] = Math.max(0, rightInkX - lineX);
+  }
+
+  const minMargin: number = Math.max(1, Math.floor(Math.min(cellW, cellH) * GRID_LINE_MIN_MAX_FRAC));
+  for (let row: number = 0; row < 9; row++) {
+    for (let col: number = 0; col < 9; col++) {
+      const idx: number = row * 9 + col;
+      const rawTop: number = hLineInkDown[row] + 1;
+      const rawBot: number = hLineInkUp[row + 1] + 1;
+      const rawLeft: number = vLineInkRight[col] + 1;
+      const rawRight: number = vLineInkLeft[col + 1] + 1;
+      const maxM: number = Math.floor(Math.min(cellW, cellH) * 0.45);
+      g_gridLineCropTop[idx] = Math.max(minMargin, Math.min(rawTop, maxM));
+      g_gridLineCropBot[idx] = Math.max(minMargin, Math.min(rawBot, maxM));
+      g_gridLineCropLeft[idx] = Math.max(minMargin, Math.min(rawLeft, maxM));
+      g_gridLineCropRight[idx] = Math.max(minMargin, Math.min(rawRight, maxM));
+    }
+  }
+
+  g_gridLineDetected = true;
+  const diagH: string = hLineInkDown.map((d: number, i: number) => `${hLineInkUp[i]}+${d}`).join(',');
+  const diagV: string = vLineInkRight.map((r: number, j: number) => `${vLineInkLeft[j]}+${r}`).join(',');
+  g_lastPixelDiag = `gridLineCrop: hUp=[${hLineInkUp.join(',')}] hDown=[${hLineInkDown.join(',')}] vLeft=[${vLineInkLeft.join(',')}] vRight=[${vLineInkRight.join(',')}]`;
 }
 
 export function holeCenterRow(sig: number[]): number {
@@ -434,10 +639,10 @@ export function initDigitTemplates(context: Context): boolean {
     }
     g_holeRows = g_templates.map((t: DigitTemplate) => holeCenterRow(t.key));
     g_loaded = true;
-    console.info(`[SudokuPixel] 已加载 ${g_templates.length} 个数字模板 (${SIG_ROWS}x${SIG_COLS})`);
+    hilog.info(DOMAIN, TAG, '已加载 %{public}d 个数字模板 (%{public}dx%{public}d)', g_templates.length, SIG_ROWS, SIG_COLS);
     return true;
   } catch (err) {
-    console.error(`[SudokuPixel] 加载模板失败: ${(err as Error).message}`);
+    hilog.error(DOMAIN, TAG, '加载模板失败: %{public}s', `${(err as Error).message}`);
     return false;
   }
 }
@@ -1089,6 +1294,10 @@ function findBoxLongRunWithThresh(
     g_lastBboxDiag += `\n  → n<MIN(${LONGRUN_MIN_PIXELS}) null`;
     return null;
   }
+  if (hRunCount > H * LONGRUN_MAX_RUN_COUNT_FRAC || vRunCount > W * LONGRUN_MAX_RUN_COUNT_FRAC) {
+    g_lastBboxDiag += `\n  → runs>${LONGRUN_MAX_RUN_COUNT_FRAC.toFixed(2)}dim null`;
+    return null;
+  }
   if (bw < CONSERVATIVE_MIN_DIM || bh < CONSERVATIVE_MIN_DIM) {
     g_lastBboxDiag += `\n  → dim<MIN(${CONSERVATIVE_MIN_DIM}) null`;
     return null;
@@ -1607,6 +1816,70 @@ export function findBoardBBox(pixels: Uint8Array, width: number, height: number,
   return { left: 0, top: 0, right: width, bottom: height, isDark };
 }
 
+// Detect and strip grid lines from signature edges.
+// Grid lines intrude into cells as near-solid rows (horizontal) or columns (vertical)
+// at the edge of the signature. A real digit never has ink in >=80% of positions
+// along an entire edge row or column. If detected, clear that edge to prevent
+// the grid line from corrupting the digit signature.
+// Also checks the second row/column inward — a thick grid line may span 2 bins.
+const GRID_LINE_RATIO: number = 0.80;
+
+function stripEdgeGridLines(sig: number[]): void {
+  const minCount: number = Math.floor(Math.max(SIG_ROWS, SIG_COLS) * GRID_LINE_RATIO);
+
+  // Top edge rows (row 0, row 1)
+  for (let row: number = 0; row <= 1 && row < SIG_ROWS; row++) {
+    let inkCount: number = 0;
+    for (let c: number = 0; c < SIG_COLS; c++) {
+      if (sig[row * SIG_COLS + c] === 1) { inkCount++; }
+    }
+    if (inkCount >= minCount) {
+      for (let c: number = 0; c < SIG_COLS; c++) {
+        sig[row * SIG_COLS + c] = 0;
+      }
+    }
+  }
+
+  // Bottom edge rows (last row, second-to-last row)
+  for (let row: number = SIG_ROWS - 1; row >= SIG_ROWS - 2 && row >= 0; row--) {
+    let inkCount: number = 0;
+    for (let c: number = 0; c < SIG_COLS; c++) {
+      if (sig[row * SIG_COLS + c] === 1) { inkCount++; }
+    }
+    if (inkCount >= minCount) {
+      for (let c: number = 0; c < SIG_COLS; c++) {
+        sig[row * SIG_COLS + c] = 0;
+      }
+    }
+  }
+
+  // Left edge columns (col 0, col 1)
+  for (let col: number = 0; col <= 1 && col < SIG_COLS; col++) {
+    let inkCount: number = 0;
+    for (let r: number = 0; r < SIG_ROWS; r++) {
+      if (sig[r * SIG_COLS + col] === 1) { inkCount++; }
+    }
+    if (inkCount >= minCount) {
+      for (let r: number = 0; r < SIG_ROWS; r++) {
+        sig[r * SIG_COLS + col] = 0;
+      }
+    }
+  }
+
+  // Right edge columns (last col, second-to-last col)
+  for (let col: number = SIG_COLS - 1; col >= SIG_COLS - 2 && col >= 0; col--) {
+    let inkCount: number = 0;
+    for (let r: number = 0; r < SIG_ROWS; r++) {
+      if (sig[r * SIG_COLS + col] === 1) { inkCount++; }
+    }
+    if (inkCount >= minCount) {
+      for (let r: number = 0; r < SIG_ROWS; r++) {
+        sig[r * SIG_COLS + col] = 0;
+      }
+    }
+  }
+}
+
 export function cellSigFromGray(
   gray: Float32Array,
   width: number,
@@ -1615,15 +1888,118 @@ export function cellSigFromGray(
   cellW: number,
   cellH: number,
   isDark: boolean,
-  bg: number
+  bg: number,
+  gridRow: number = -1,
+  gridCol: number = -1
 ): number[] | null {
-  const mx: number = cellW * CELL_MARGIN_RATIO;
-  const my: number = cellH * CELL_MARGIN_RATIO;
-  const x0: number = Math.floor(cellLeft + mx);
-  const y0: number = Math.floor(cellTop + my);
-  const x1: number = Math.floor(cellLeft + cellW - mx);
-  const y1: number = Math.floor(cellTop + cellH - my);
+  let mxLeft: number = cellW * CELL_MARGIN_RATIO;
+  let mxRight: number = cellW * CELL_MARGIN_RATIO;
+  let myTop: number = cellH * CELL_MARGIN_RATIO;
+  let myBot: number = cellH * CELL_MARGIN_RATIO;
+  if (g_gridLineDetected && gridRow >= 0 && gridRow < 9 && gridCol >= 0 && gridCol < 9) {
+    const idx: number = gridRow * 9 + gridCol;
+    const maxMarginW: number = Math.floor(cellW * 0.45);
+    const maxMarginH: number = Math.floor(cellH * 0.45);
+    mxLeft = Math.max(mxLeft, Math.min(g_gridLineCropLeft[idx], maxMarginW));
+    mxRight = Math.max(mxRight, Math.min(g_gridLineCropRight[idx], maxMarginW));
+    myTop = Math.max(myTop, Math.min(g_gridLineCropTop[idx], maxMarginH));
+    myBot = Math.max(myBot, Math.min(g_gridLineCropBot[idx], maxMarginH));
+  }
+  const x0: number = Math.floor(cellLeft + mxLeft);
+  const y0: number = Math.floor(cellTop + myTop);
+  const x1: number = Math.floor(cellLeft + cellW - mxRight);
+  const y1: number = Math.floor(cellTop + cellH - myBot);
   const H: number = Math.floor(gray.length / width);
+  const cellWInner: number = x1 - x0;
+  const cellHInner: number = y1 - y0;
+
+  let savedPixels: number[] = [];
+  let savedPositions: number[] = [];
+
+  {
+    const rowAvg: Float32Array = new Float32Array(cellHInner);
+    for (let dy: number = 0; dy < cellHInner; dy++) {
+      let sum: number = 0;
+      const y: number = y0 + dy;
+      for (let dx: number = 0; dx < cellWInner; dx++) {
+        sum += gray[y * width + x0 + dx];
+      }
+      rowAvg[dy] = sum / cellWInner;
+    }
+    const colAvg: Float32Array = new Float32Array(cellWInner);
+    for (let dx: number = 0; dx < cellWInner; dx++) {
+      let sum: number = 0;
+      const x: number = x0 + dx;
+      for (let dy: number = 0; dy < cellHInner; dy++) {
+        sum += gray[(y0 + dy) * width + x];
+      }
+      colAvg[dx] = sum / cellHInner;
+    }
+    const isGridRow: boolean[] = new Array<boolean>(cellHInner).fill(false);
+    let gridRowCount: number = 0;
+    for (let dy: number = 0; dy < cellHInner; dy++) {
+      const diff: number = isDark ? (rowAvg[dy] - bg) : (bg - rowAvg[dy]);
+      if (diff > GRID_LINE_GRAY_DIFF) {
+        let variance: number = 0;
+        const y: number = y0 + dy;
+        for (let dx: number = 0; dx < cellWInner; dx++) {
+          const g: number = gray[y * width + x0 + dx];
+          const d: number = g - rowAvg[dy];
+          variance += d * d;
+        }
+        variance = Math.sqrt(variance / cellWInner);
+        if (variance < GRID_LINE_GRAY_DIFF * 2) {
+          isGridRow[dy] = true;
+          gridRowCount++;
+        }
+      }
+    }
+    if (gridRowCount > Math.floor(cellHInner * 0.3)) {
+      for (let dy: number = 0; dy < cellHInner; dy++) { isGridRow[dy] = false; }
+    }
+    const isGridCol: boolean[] = new Array<boolean>(cellWInner).fill(false);
+    let gridColCount: number = 0;
+    for (let dx: number = 0; dx < cellWInner; dx++) {
+      const diff: number = isDark ? (colAvg[dx] - bg) : (bg - colAvg[dx]);
+      if (diff > GRID_LINE_GRAY_DIFF) {
+        let variance: number = 0;
+        const x: number = x0 + dx;
+        for (let dy: number = 0; dy < cellHInner; dy++) {
+          const g: number = gray[(y0 + dy) * width + x];
+          const d: number = g - colAvg[dx];
+          variance += d * d;
+        }
+        variance = Math.sqrt(variance / cellHInner);
+        if (variance < GRID_LINE_GRAY_DIFF * 2) {
+          isGridCol[dx] = true;
+          gridColCount++;
+        }
+      }
+    }
+    if (gridColCount > Math.floor(cellWInner * 0.3)) {
+      for (let dx: number = 0; dx < cellWInner; dx++) { isGridCol[dx] = false; }
+    }
+    for (let dy: number = 0; dy < cellHInner; dy++) {
+      if (!isGridRow[dy]) { continue; }
+      const y: number = y0 + dy;
+      for (let dx: number = 0; dx < cellWInner; dx++) {
+        const pos: number = y * width + x0 + dx;
+        savedPixels.push(gray[pos]);
+        savedPositions.push(pos);
+        gray[pos] = bg;
+      }
+    }
+    for (let dx: number = 0; dx < cellWInner; dx++) {
+      if (!isGridCol[dx]) { continue; }
+      const x: number = x0 + dx;
+      for (let dy: number = 0; dy < cellHInner; dy++) {
+        const pos: number = (y0 + dy) * width + x;
+        savedPixels.push(gray[pos]);
+        savedPositions.push(pos);
+        gray[pos] = bg;
+      }
+    }
+  }
 
   let ink: number = 0;
   let area: number = 0;
@@ -1646,75 +2022,252 @@ export function cellSigFromGray(
     }
   }
 
-  if (ink < area * MIN_CELL_INK_RATIO || bmaxX < 0) {
-    return null;
+  g_lastRawInkRatio = area > 0 ? ink / area : 0;
+
+  let result: number[] | null = null;
+  if (ink >= area * MIN_CELL_INK_RATIO && bmaxX >= 0) {
+    const bw: number = bmaxX - bminX + 1;
+    const bh: number = bmaxY - bminY + 1;
+
+    const sauvBinary: Float32Array | null = sauvolaThreshold(gray, width, H, bminX, bminY, bw, bh, isDark);
+    if (sauvBinary !== null) {
+      const sauvSig: number[] = new Array<number>(SIG_LEN).fill(0);
+      for (let r: number = 0; r < SIG_ROWS; r++) {
+        for (let c: number = 0; c < SIG_COLS; c++) {
+          const sx0: number = Math.floor(bw * c / SIG_COLS);
+          const sx1: number = Math.floor(bw * (c + 1) / SIG_COLS);
+          const sy0: number = Math.floor(bh * r / SIG_ROWS);
+          const sy1: number = Math.floor(bh * (r + 1) / SIG_ROWS);
+          let s: number = 0;
+          let n: number = 0;
+          for (let ly: number = sy0; ly < sy1; ly++) {
+            for (let lx: number = sx0; lx < sx1; lx++) {
+              s += sauvBinary[ly * bw + lx];
+              n++;
+            }
+          }
+          sauvSig[r * SIG_COLS + c] = (n > 0 && s / n > 0.5) ? 1 : 0;
+        }
+      }
+      const sauvInk: number = countInk(sauvSig);
+      stripEdgeGridLines(sauvSig);
+      const sauvInkStripped: number = countInk(sauvSig);
+      if (sauvInkStripped >= THIN1_MIN_INK_COUNT && sauvInkStripped <= MAX_INK_COUNT) {
+        result = sauvSig;
+      }
+    }
+
+    if (result === null) {
+      const sig: number[] = new Array<number>(SIG_LEN).fill(0);
+      for (let r: number = 0; r < SIG_ROWS; r++) {
+        for (let c: number = 0; c < SIG_COLS; c++) {
+          const sx0: number = bminX + Math.floor(bw * c / SIG_COLS);
+          const sx1: number = bminX + Math.floor(bw * (c + 1) / SIG_COLS);
+          const sy0: number = bminY + Math.floor(bh * r / SIG_ROWS);
+          const sy1: number = bminY + Math.floor(bh * (r + 1) / SIG_ROWS);
+          let s: number = 0;
+          let n: number = 0;
+          for (let y: number = sy0; y < sy1; y++) {
+            for (let x: number = sx0; x < sx1; x++) {
+              if (y >= 0 && y < H && x >= 0 && x < width) {
+                s += gray[y * width + x];
+                n++;
+              }
+            }
+          }
+          const avg: number = n > 0 ? s / n : bg;
+          sig[r * SIG_COLS + c] = grayInkPixel(avg, bg, isDark, INK_THRESH) ? 1 : 0;
+        }
+      }
+      const inkCount: number = countInk(sig);
+      stripEdgeGridLines(sig);
+      const inkCountStripped: number = countInk(sig);
+      if (inkCountStripped >= THIN1_MIN_INK_COUNT && inkCountStripped <= MAX_INK_COUNT) {
+        result = sig;
+      } else {
+        g_lastPixelDiag = `sigInk=${inkCountStripped} gate=${THIN1_MIN_INK_COUNT}`;
+      }
+    }
+  } else {
+    const ratio: number = g_lastRawInkRatio;
+    g_lastPixelDiag = `rawInk=${ink}/${area} ratio=${ratio.toFixed(4)} gate=${MIN_CELL_INK_RATIO.toFixed(3)}`;
   }
 
-  const bw: number = bmaxX - bminX + 1;
-  const bh: number = bmaxY - bminY + 1;
+  for (let i: number = 0; i < savedPositions.length; i++) {
+    gray[savedPositions[i]] = savedPixels[i];
+  }
+  return result;
+}
 
-  const sauvBinary: Float32Array | null = sauvolaThreshold(gray, width, H, bminX, bminY, bw, bh, isDark);
-  if (sauvBinary !== null) {
-    const sauvSig: number[] = new Array<number>(SIG_LEN).fill(0);
+// Lower ink threshold for retry when initial signature has low inkCount.
+// Half of INK_THRESH, used to recover faint strokes in small cells.
+const LOW_INK_THRESH_RETRY: number = Math.floor(INK_THRESH / 2);
+
+export function cellSigFromGrayLowThresh(
+  gray: Float32Array,
+  width: number,
+  cellLeft: number,
+  cellTop: number,
+  cellW: number,
+  cellH: number,
+  isDark: boolean,
+  bg: number,
+  gridRow: number = -1,
+  gridCol: number = -1
+): number[] | null {
+  let mxLeft: number = cellW * CELL_MARGIN_RATIO;
+  let mxRight: number = cellW * CELL_MARGIN_RATIO;
+  let myTop: number = cellH * CELL_MARGIN_RATIO;
+  let myBot: number = cellH * CELL_MARGIN_RATIO;
+  if (g_gridLineDetected && gridRow >= 0 && gridRow < 9 && gridCol >= 0 && gridCol < 9) {
+    const idx: number = gridRow * 9 + gridCol;
+    const maxMarginW: number = Math.floor(cellW * 0.45);
+    const maxMarginH: number = Math.floor(cellH * 0.45);
+    mxLeft = Math.max(mxLeft, Math.min(g_gridLineCropLeft[idx], maxMarginW));
+    mxRight = Math.max(mxRight, Math.min(g_gridLineCropRight[idx], maxMarginW));
+    myTop = Math.max(myTop, Math.min(g_gridLineCropTop[idx], maxMarginH));
+    myBot = Math.max(myBot, Math.min(g_gridLineCropBot[idx], maxMarginH));
+  }
+  const x0: number = Math.floor(cellLeft + mxLeft);
+  const y0: number = Math.floor(cellTop + myTop);
+  const x1: number = Math.floor(cellLeft + cellW - mxRight);
+  const y1: number = Math.floor(cellTop + cellH - myBot);
+  const H: number = Math.floor(gray.length / width);
+  const cellWInner: number = x1 - x0;
+  const cellHInner: number = y1 - y0;
+
+  const rowAvg: number[] = new Array<number>(cellHInner).fill(0);
+  for (let dy: number = 0; dy < cellHInner; dy++) {
+    let s: number = 0;
+    for (let dx: number = 0; dx < cellWInner; dx++) {
+      s += gray[(y0 + dy) * width + x0 + dx];
+    }
+    rowAvg[dy] = s / cellWInner;
+  }
+  const isGridRow: boolean[] = new Array<boolean>(cellHInner).fill(false);
+  for (let dy: number = 0; dy < cellHInner; dy++) {
+    const diff: number = isDark ? (rowAvg[dy] - bg) : (bg - rowAvg[dy]);
+    if (diff > GRID_LINE_GRAY_DIFF) {
+      let variance: number = 0;
+      const y: number = y0 + dy;
+      for (let dx: number = 0; dx < cellWInner; dx++) {
+        const g: number = gray[y * width + x0 + dx];
+        const d: number = g - rowAvg[dy];
+        variance += d * d;
+      }
+      variance = Math.sqrt(variance / cellWInner);
+      if (variance < GRID_LINE_GRAY_DIFF * 2) {
+        isGridRow[dy] = true;
+      }
+    }
+  }
+  const colAvg: number[] = new Array<number>(cellWInner).fill(0);
+  for (let dx: number = 0; dx < cellWInner; dx++) {
+    let s: number = 0;
+    for (let dy: number = 0; dy < cellHInner; dy++) {
+      s += gray[(y0 + dy) * width + x0 + dx];
+    }
+    colAvg[dx] = s / cellHInner;
+  }
+  const isGridCol: boolean[] = new Array<boolean>(cellWInner).fill(false);
+  for (let dx: number = 0; dx < cellWInner; dx++) {
+    const diff: number = isDark ? (colAvg[dx] - bg) : (bg - colAvg[dx]);
+    if (diff > GRID_LINE_GRAY_DIFF) {
+      let variance: number = 0;
+      const x: number = x0 + dx;
+      for (let dy: number = 0; dy < cellHInner; dy++) {
+        const g: number = gray[(y0 + dy) * width + x];
+        const d: number = g - colAvg[dx];
+        variance += d * d;
+      }
+      variance = Math.sqrt(variance / cellHInner);
+      if (variance < GRID_LINE_GRAY_DIFF * 2) {
+        isGridCol[dx] = true;
+      }
+    }
+  }
+
+  const savedPixels: number[] = [];
+  const savedPositions: number[] = [];
+  for (let dy: number = 0; dy < cellHInner; dy++) {
+    if (!isGridRow[dy]) { continue; }
+    const y: number = y0 + dy;
+    for (let dx: number = 0; dx < cellWInner; dx++) {
+      const pos: number = y * width + x0 + dx;
+      savedPixels.push(gray[pos]);
+      savedPositions.push(pos);
+      gray[pos] = bg;
+    }
+  }
+  for (let dx: number = 0; dx < cellWInner; dx++) {
+    if (!isGridCol[dx]) { continue; }
+    const x: number = x0 + dx;
+    for (let dy: number = 0; dy < cellHInner; dy++) {
+      const pos: number = (y0 + dy) * width + x;
+      savedPixels.push(gray[pos]);
+      savedPositions.push(pos);
+      gray[pos] = bg;
+    }
+  }
+
+  let bminX: number = 1000000;
+  let bmaxX: number = -1;
+  let bminY: number = 1000000;
+  let bmaxY: number = -1;
+  let inkCount: number = 0;
+
+  for (let y: number = y0; y < y1; y++) {
+    for (let x: number = x0; x < x1; x++) {
+      const g: number = gray[y * width + x];
+      if (grayInkPixel(g, bg, isDark, LOW_INK_THRESH_RETRY)) {
+        inkCount++;
+        if (x < bminX) { bminX = x; }
+        if (x > bmaxX) { bmaxX = x; }
+        if (y < bminY) { bminY = y; }
+        if (y > bmaxY) { bmaxY = y; }
+      }
+    }
+  }
+
+  let result: number[] | null = null;
+  if (bmaxX >= 0) {
+    const bw: number = bmaxX - bminX + 1;
+    const bh: number = bmaxY - bminY + 1;
+
+    const sig: number[] = new Array<number>(SIG_LEN).fill(0);
     for (let r: number = 0; r < SIG_ROWS; r++) {
       for (let c: number = 0; c < SIG_COLS; c++) {
-        const sx0: number = Math.floor(bw * c / SIG_COLS);
-        const sx1: number = Math.floor(bw * (c + 1) / SIG_COLS);
-        const sy0: number = Math.floor(bh * r / SIG_ROWS);
-        const sy1: number = Math.floor(bh * (r + 1) / SIG_ROWS);
+        const sx0: number = bminX + Math.floor(bw * c / SIG_COLS);
+        const sx1: number = bminX + Math.floor(bw * (c + 1) / SIG_COLS);
+        const sy0: number = bminY + Math.floor(bh * r / SIG_ROWS);
+        const sy1: number = bminY + Math.floor(bh * (r + 1) / SIG_ROWS);
         let s: number = 0;
         let n: number = 0;
-        for (let ly: number = sy0; ly < sy1; ly++) {
-          for (let lx: number = sx0; lx < sx1; lx++) {
-            s += sauvBinary[ly * bw + lx];
-            n++;
+        for (let y: number = sy0; y < sy1; y++) {
+          for (let x: number = sx0; x < sx1; x++) {
+            if (y >= 0 && y < H && x >= 0 && x < width) {
+              s += gray[y * width + x];
+              n++;
+            }
           }
         }
-        sauvSig[r * SIG_COLS + c] = (n > 0 && s / n > 0.5) ? 1 : 0;
+        const avg: number = n > 0 ? s / n : bg;
+        sig[r * SIG_COLS + c] = grayInkPixel(avg, bg, isDark, LOW_INK_THRESH_RETRY) ? 1 : 0;
       }
     }
-    const sauvInk: number = countInk(sauvSig);
-    if (sauvInk >= MIN_INK_COUNT && sauvInk <= MAX_INK_COUNT) {
-      return sauvSig;
+
+    const sigInk: number = countInk(sig);
+    stripEdgeGridLines(sig);
+    const sigInkStripped: number = countInk(sig);
+    if (sigInkStripped >= THIN1_MIN_INK_COUNT && sigInkStripped <= MAX_INK_COUNT) {
+      result = sig;
     }
   }
 
-  const sig: number[] = new Array<number>(SIG_LEN).fill(0);
-  for (let r: number = 0; r < SIG_ROWS; r++) {
-    for (let c: number = 0; c < SIG_COLS; c++) {
-      const sx0: number = bminX + Math.floor(bw * c / SIG_COLS);
-      const sx1: number = bminX + Math.floor(bw * (c + 1) / SIG_COLS);
-      const sy0: number = bminY + Math.floor(bh * r / SIG_ROWS);
-      const sy1: number = bminY + Math.floor(bh * (r + 1) / SIG_ROWS);
-      let s: number = 0;
-      let n: number = 0;
-      for (let y: number = sy0; y < sy1; y++) {
-        for (let x: number = sx0; x < sx1; x++) {
-          if (y >= 0 && y < H && x >= 0 && x < width) {
-            s += gray[y * width + x];
-            n++;
-          }
-        }
-      }
-      const avg: number = n > 0 ? s / n : bg;
-      sig[r * SIG_COLS + c] = grayInkPixel(avg, bg, isDark, INK_THRESH) ? 1 : 0;
-    }
+  for (let i: number = 0; i < savedPositions.length; i++) {
+    gray[savedPositions[i]] = savedPixels[i];
   }
-
-  const inkCount: number = countInk(sig);
-  if (inkCount < MIN_INK_COUNT || inkCount > MAX_INK_COUNT) {
-    const fallbackSig: number[] | null = cellSigOtsuFallbackGray(
-      gray, width, bminX, bminY, bw, bh, isDark, bg
-    );
-    if (fallbackSig !== null) {
-      const fbInk: number = countInk(fallbackSig);
-      if (fbInk >= MIN_INK_COUNT && fbInk <= MAX_INK_COUNT) {
-        return fallbackSig;
-      }
-    }
-    return null;
-  }
-  return sig;
+  return result;
 }
 
 function cellSigOtsuFallbackGray(
@@ -1765,7 +2318,7 @@ function cellSigOtsuFallbackGray(
   }
 
   const inkCount: number = countInk(sig);
-  if (inkCount < MIN_INK_COUNT || inkCount > MAX_INK_COUNT) { return null; }
+  if (inkCount < THIN1_MIN_INK_COUNT || inkCount > MAX_INK_COUNT) { return null; }
   return sig;
 }
 
@@ -1839,13 +2392,13 @@ export function cellSig(
   }
 
   const inkCount: number = countInk(sig);
-  if (inkCount < MIN_INK_COUNT || inkCount > MAX_INK_COUNT) {
+  if (inkCount < THIN1_MIN_INK_COUNT || inkCount > MAX_INK_COUNT) {
     const fallbackSig: number[] | null = cellSigOtsuFallback(
       pixels, width, bminX, bminY, bw, bh, isDark, bg
     );
     if (fallbackSig !== null) {
       const fbInk: number = countInk(fallbackSig);
-      if (fbInk >= MIN_INK_COUNT && fbInk <= MAX_INK_COUNT) {
+      if (fbInk >= THIN1_MIN_INK_COUNT && fbInk <= MAX_INK_COUNT) {
         return fallbackSig;
       }
     }
@@ -1899,7 +2452,7 @@ function cellSigOtsuFallback(
   }
 
   const inkCount: number = countInk(sig);
-  if (inkCount < MIN_INK_COUNT || inkCount > MAX_INK_COUNT) { return null; }
+  if (inkCount < THIN1_MIN_INK_COUNT || inkCount > MAX_INK_COUNT) { return null; }
   return sig;
 }
 
@@ -1973,9 +2526,436 @@ function loopVerticalCenter(sig: number[]): number {
   return cnt > 0 ? sumR / cnt : SIG_ROWS / 2;
 }
 
+function detectThinOne(sig: number[], inkCount: number): boolean {
+  if (inkCount < THIN1_MIN_INK_COUNT) { return false; }
+  let minCol: number = SIG_COLS;
+  let maxCol: number = -1;
+  let minRow: number = SIG_ROWS;
+  let maxRow: number = -1;
+  const colInk: number[] = new Array<number>(SIG_COLS).fill(0);
+  const rowInk: number[] = new Array<number>(SIG_ROWS).fill(0);
+
+  for (let r: number = 0; r < SIG_ROWS; r++) {
+    for (let c: number = 0; c < SIG_COLS; c++) {
+      if (sig[r * SIG_COLS + c] === 1) {
+        if (c < minCol) { minCol = c; }
+        if (c > maxCol) { maxCol = c; }
+        if (r < minRow) { minRow = r; }
+        if (r > maxRow) { maxRow = r; }
+        colInk[c]++;
+        rowInk[r]++;
+      }
+    }
+  }
+
+  if (maxCol < 0) { return false; }
+
+  const inkWidth: number = maxCol - minCol + 1;
+  const inkHeight: number = maxRow - minRow + 1;
+
+  if (inkWidth > SIG_COLS * 0.50) { return false; }
+  if (inkHeight < SIG_ROWS * 0.50) { return false; }
+  if (inkWidth === 0 || inkHeight / inkWidth < 1.8) { return false; }
+
+  const bboxArea: number = inkWidth * inkHeight;
+  if (bboxArea === 0) { return false; }
+  const density: number = inkCount / bboxArea;
+  if (density < 0.30) { return false; }
+
+  const startRow: number = Math.floor(SIG_ROWS * 0.2);
+  const endRow: number = Math.floor(SIG_ROWS * 0.8);
+  let rowsWithInk: number = 0;
+  const totalMidRows: number = endRow - startRow;
+  for (let r: number = startRow; r < endRow; r++) {
+    if (rowInk[r] > 0) { rowsWithInk++; }
+  }
+  if (rowsWithInk < totalMidRows * 0.65) { return false; }
+
+  let colSum: number = 0;
+  for (let c: number = 0; c < SIG_COLS; c++) {
+    colSum += c * colInk[c];
+  }
+  const colCenter: number = inkCount > 0 ? colSum / inkCount : SIG_COLS / 2;
+  if (colCenter < SIG_COLS * 0.20 || colCenter > SIG_COLS * 0.80) { return false; }
+
+  return true;
+}
+
+function tryStripLeftEdgeAs1(sig: number[], inkCount: number, origBestDigit: number, origBestScore: number): number {
+  if (origBestDigit !== 4) { return 0; }
+
+  let leftColInk: number = 0;
+  for (let r: number = 0; r < SIG_ROWS; r++) {
+    if (sig[r * SIG_COLS] === 1) { leftColInk++; }
+  }
+  if (leftColInk < 3) {
+    g_lastPixelDiag = `stripLeftSkip: col0=${leftColInk}`;
+    return 0;
+  }
+
+  const midTop: number = Math.floor(SIG_ROWS * 0.35);
+  const midBot: number = Math.floor(SIG_ROWS * 0.65);
+  let maxMidRowSpan: number = 0;
+  for (let r: number = midTop; r < midBot; r++) {
+    let span: number = 0;
+    let start: number = -1;
+    for (let c: number = 0; c < SIG_COLS; c++) {
+      if (sig[r * SIG_COLS + c] === 1) {
+        if (start < 0) { start = c; }
+        span = c - start + 1;
+      } else if (start >= 0) {
+        break;
+      }
+    }
+    if (span > maxMidRowSpan) { maxMidRowSpan = span; }
+  }
+  if (maxMidRowSpan >= SIG_COLS * 0.40) {
+    g_lastPixelDiag = `stripLeftSkip: hasHBar span=${maxMidRowSpan}`;
+    return 0;
+  }
+
+  const cleaned: number[] = new Array<number>(SIG_LEN).fill(0);
+  let cleanInk: number = 0;
+  for (let r: number = 0; r < SIG_ROWS; r++) {
+    for (let c: number = 0; c < SIG_COLS; c++) {
+      const idx: number = r * SIG_COLS + c;
+      if (c >= 2) {
+        cleaned[idx] = sig[idx];
+        if (sig[idx] === 1) { cleanInk++; }
+      }
+    }
+  }
+  if (cleanInk < THIN1_MIN_INK_COUNT) {
+    g_lastPixelDiag = `stripLeftCleanInkLow: cleanInk=${cleanInk}`;
+    return 0;
+  }
+
+  const digitBestScore: number[] = new Array<number>(10).fill(-100000);
+  const digitBestRecall: number[] = new Array<number>(10).fill(0);
+  for (let ti: number = 0; ti < g_templates.length; ti++) {
+    const t: DigitTemplate = g_templates[ti];
+    let match: number = 0;
+    let tplInk: number = 0;
+    let tp: number = 0;
+    for (let i: number = 0; i < SIG_LEN; i++) {
+      if (cleaned[i] === t.key[i]) { match++; }
+      if (t.key[i] === 1) {
+        tplInk++;
+        if (cleaned[i] === 1) { tp++; }
+      }
+    }
+    const score: number = match - (SIG_LEN - match) * TEMPLATE_MISMATCH_PENALTY;
+    if (score > digitBestScore[t.digit]) {
+      digitBestScore[t.digit] = score;
+      digitBestRecall[t.digit] = tplInk > 0 ? tp / tplInk : 0;
+    }
+  }
+
+  const score1: number = digitBestScore[1];
+  const recall1: number = digitBestRecall[1];
+  const geoMinScore: number = Math.floor(SIG_LEN * 0.55);
+
+  let bestCleanDigit: number = 0;
+  let bestCleanScore: number = -100000;
+  for (let d: number = 1; d <= 9; d++) {
+    if (digitBestScore[d] > bestCleanScore) {
+      bestCleanDigit = d;
+      bestCleanScore = digitBestScore[d];
+    }
+  }
+
+  hilog.info(DOMAIN, TAG, 'stripLeftMatch: score1=%{public}.1f recall1=%{public}.2f bestClean=%{public}d(%{public}.1f) orig=4(%{public}.1f) cleanInk=%{public}d hBar=${maxMidRowSpan}',
+    score1, recall1, bestCleanDigit, bestCleanScore, origBestScore, cleanInk, maxMidRowSpan);
+
+  if (score1 < geoMinScore || recall1 < 0.30) {
+    g_lastPixelDiag = `stripLeftFail: score1=${score1} recall1=${recall1.toFixed(2)}`;
+    return 0;
+  }
+
+  if (bestCleanDigit !== 1) {
+    g_lastPixelDiag = `stripLeftFail: bestClean=${bestCleanDigit}(${bestCleanScore.toFixed(0)})>1`;
+    return 0;
+  }
+
+  g_lastPixelDiag = `stripLeft→1: score1=${score1} recall1=${recall1.toFixed(2)} cleanInk=${cleanInk}`;
+  g_lastConfidence = 0.55;
+  return 1;
+}
+
+function sigToCompactStr(sig: number[]): string {
+  let s: string = '';
+  for (let r: number = 0; r < SIG_ROWS; r++) {
+    for (let c: number = 0; c < SIG_COLS; c++) {
+      s += sig[r * SIG_COLS + c] === 1 ? '#' : '.';
+    }
+    if (r < SIG_ROWS - 1) { s += '|'; }
+  }
+  return s;
+}
+
+function maxHorizontalSpan(sig: number[], rowStart: number, rowEnd: number): number {
+  let maxSpan: number = 0;
+  for (let r: number = rowStart; r < rowEnd; r++) {
+    let start: number = -1;
+    let span: number = 0;
+    for (let c: number = 0; c < SIG_COLS; c++) {
+      if (sig[r * SIG_COLS + c] === 1) {
+        if (start < 0) { start = c; }
+        span = c - start + 1;
+      } else if (start >= 0) {
+        break;
+      }
+    }
+    if (span > maxSpan) { maxSpan = span; }
+  }
+  return maxSpan;
+}
+
+function isLikelyNot4(sig: number[]): boolean {
+  const midTop: number = Math.floor(SIG_ROWS * 0.25);
+  const midBot: number = Math.floor(SIG_ROWS * 0.60);
+  const hSpan: number = maxHorizontalSpan(sig, midTop, midBot);
+  if (hSpan < SIG_COLS * 0.30) { return true; }
+
+  const topRow: number = Math.floor(SIG_ROWS * 0.15);
+  const midRow: number = Math.floor(SIG_ROWS * 0.45);
+  let topLeftInk: number = 0;
+  let topRightInk: number = 0;
+  for (let r: number = topRow; r < midRow; r++) {
+    for (let c: number = 0; c < SIG_COLS; c++) {
+      if (sig[r * SIG_COLS + c] === 1) {
+        if (c < SIG_COLS / 2) { topLeftInk++; } else { topRightInk++; }
+      }
+    }
+  }
+  if (topLeftInk === 0 && topRightInk > 0) { return true; }
+
+  return false;
+}
+
 export function recognizeDigit(sig: number[], inkCount: number): number {
-  if (inkCount < MIN_INK_COUNT) { return 0; }
+  if (inkCount < THIN1_MIN_INK_COUNT) { return 0; }
   if (g_templates.length === 0) { return 0; }
+  const lowInk: boolean = inkCount < MIN_INK_COUNT;
+  if (lowInk) {
+    let best1Score: number = -100000;
+    let best1Key: number[] | null = null;
+    for (let ti: number = 0; ti < g_templates.length; ti++) {
+      if (g_templates[ti].digit !== 1) { continue; }
+      const t: DigitTemplate = g_templates[ti];
+      let match: number = 0;
+      for (let i: number = 0; i < SIG_LEN; i++) {
+        if (sig[i] === t.key[i]) { match++; }
+      }
+      const score: number = match - (SIG_LEN - match) * TEMPLATE_MISMATCH_PENALTY;
+      if (score > best1Score) { best1Score = score; best1Key = t.key; }
+    }
+    const lowInkMinScore: number = Math.floor(SIG_LEN * 0.57);
+    const geoMinScore: number = Math.floor(SIG_LEN * 0.55);
+    const veryThinInk: boolean = inkCount < MIN_INK_COUNT_DIGIT1;
+    if (veryThinInk) {
+      if (best1Key !== null) {
+        let tplInk: number = 0;
+        let tp: number = 0;
+        for (let i: number = 0; i < SIG_LEN; i++) {
+          if (best1Key[i] === 1) {
+            tplInk++;
+            if (sig[i] === 1) { tp++; }
+          }
+        }
+        const recall: number = tplInk > 0 ? tp / tplInk : 0;
+        const thinOk: boolean = detectThinOne(sig, inkCount);
+        g_lastPixelDiag = `ink=${inkCount} score=${best1Score} recall=${recall.toFixed(2)} thinOk=${thinOk ? 1 : 0} tp=${tp}/${tplInk}`;
+        if (best1Score >= lowInkMinScore && recall >= 0.25 && thinOk) {
+          g_lastConfidence = 0.50;
+          return 1;
+        }
+      }
+      g_lastConfidence = 0;
+      return 0;
+    }
+    if (best1Score >= lowInkMinScore && best1Key !== null) {
+      const inkCentroid: number = inkCentroidRow(sig);
+      const tplCentroid: number = inkCentroidRow(best1Key);
+      if (Math.abs(inkCentroid - tplCentroid) <= SIG_ROWS * 0.4) {
+        // Check if this might be 7 not 1: 7 has wide top bar with solid rows
+        const topRow: number = Math.floor(SIG_ROWS * 0.10);
+        const topEnd: number = Math.floor(SIG_ROWS * 0.30);
+        let topMinC: number = SIG_COLS;
+        let topMaxC: number = 0;
+        for (let r: number = topRow; r < topEnd; r++) {
+          for (let c: number = 0; c < SIG_COLS; c++) {
+            if (sig[r * SIG_COLS + c] === 1) {
+              if (c < topMinC) { topMinC = c; }
+              if (c > topMaxC) { topMaxC = c; }
+            }
+          }
+        }
+        const topSpan: number = topMaxC >= topMinC ? topMaxC - topMinC + 1 : 0;
+        if (topSpan >= SIG_COLS * 0.6) {
+          let solidTopRows: number = 0;
+          for (let r: number = topRow; r < topEnd; r++) {
+            let inkInRow: number = 0;
+            for (let c: number = 0; c < SIG_COLS; c++) {
+              if (sig[r * SIG_COLS + c] === 1) { inkInRow++; }
+            }
+            if (inkInRow >= SIG_COLS * 0.5) { solidTopRows++; }
+          }
+          if (solidTopRows >= 2) {
+            let best7Score: number = -100000;
+            for (let ti2: number = 0; ti2 < g_templates.length; ti2++) {
+              if (g_templates[ti2].digit !== 7) { continue; }
+              const t7: DigitTemplate = g_templates[ti2];
+              let m7: number = 0;
+              for (let i: number = 0; i < SIG_LEN; i++) {
+                if (sig[i] === t7.key[i]) { m7++; }
+              }
+              const s7: number = m7 - (SIG_LEN - m7) * TEMPLATE_MISMATCH_PENALTY;
+              if (s7 > best7Score) { best7Score = s7; }
+            }
+            if (best7Score >= lowInkMinScore - 50) {
+              if (best1Score > best7Score + 30) {
+                g_lastPixelDiag = `lowInk7→1: s1=${best1Score}>s7=${best7Score}+30 topSpan=${topSpan} solidTop=${solidTopRows}`;
+                const rawConf1: number = best1Score / (SIG_LEN + 200);
+                g_lastConfidence = rawConf1 > 1 ? 1 : (rawConf1 < 0 ? 0 : rawConf1);
+                return 1;
+              }
+              g_lastPixelDiag = `lowInk7-over-1: topSpan=${topSpan} solidTop=${solidTopRows} s7=${best7Score} s1=${best1Score}`;
+              const rawConf7: number = best7Score / (SIG_LEN + 200);
+              g_lastConfidence = rawConf7 > 1 ? 1 : (rawConf7 < 0 ? 0 : rawConf7);
+              return 7;
+            }
+          }
+        }
+        const rawConf: number = best1Score / (SIG_LEN + 200);
+        g_lastConfidence = rawConf > 1 ? 1 : (rawConf < 0 ? 0 : rawConf);
+        return 1;
+      }
+    }
+    if (best1Score >= geoMinScore && detectThinOne(sig, inkCount)) {
+      g_lastConfidence = 0.55;
+      return 1;
+    }
+    const digitBestScore: number[] = new Array<number>(10).fill(-100000);
+    const digitBestIdx: number[] = new Array<number>(10).fill(-1);
+    const digitBestRecall: number[] = new Array<number>(10).fill(0);
+    for (let ti: number = 0; ti < g_templates.length; ti++) {
+      const t: DigitTemplate = g_templates[ti];
+      if (t.digit === 1) { continue; }
+      let match: number = 0;
+      let tplInk: number = 0;
+      let tp: number = 0;
+      for (let i: number = 0; i < SIG_LEN; i++) {
+        if (t.key[i] === 1) {
+          tplInk++;
+          if (sig[i] === 1) { tp++; }
+        }
+        if (sig[i] === t.key[i]) { match++; }
+      }
+      const recall: number = tplInk > 0 ? tp / tplInk : 0;
+      const prec: number = inkCount > 0 ? tp / inkCount : 0;
+      const f1: number = (recall + prec) > 0 ? (2 * recall * prec) / (recall + prec) : 0;
+      const score: number = match - (SIG_LEN - match) * TEMPLATE_MISMATCH_PENALTY + f1 * TEMPLATE_F1_WEIGHT;
+      if (score > digitBestScore[t.digit]) {
+        digitBestScore[t.digit] = score;
+        digitBestIdx[t.digit] = ti;
+        digitBestRecall[t.digit] = recall;
+      }
+    }
+    let lowBestDigit: number = 0;
+    let lowBestScore: number = -100000;
+    let lowBestRecall: number = 0;
+    for (let d: number = 2; d <= 9; d++) {
+      if (digitBestScore[d] > lowBestScore) {
+        lowBestDigit = d;
+        lowBestScore = digitBestScore[d];
+        lowBestRecall = digitBestRecall[d];
+      }
+    }
+    const lowMinScore: number = LOW_INK_FALLBACK_MIN_SCORE;
+    if (lowBestDigit > 0 && lowBestScore >= lowMinScore && lowBestRecall >= LOW_INK_FALLBACK_MIN_RECALL) {
+      if (lowBestDigit === 4 && isLikelyNot4(sig)) {
+        let best1Score2: number = -100000;
+        for (let ti: number = 0; ti < g_templates.length; ti++) {
+          if (g_templates[ti].digit !== 1) { continue; }
+          const t: DigitTemplate = g_templates[ti];
+          let match: number = 0;
+          for (let i: number = 0; i < SIG_LEN; i++) {
+            if (sig[i] === t.key[i]) { match++; }
+          }
+          const score: number = match - (SIG_LEN - match) * TEMPLATE_MISMATCH_PENALTY;
+          if (score > best1Score2) { best1Score2 = score; }
+        }
+        const geoGate1: number = Math.floor(SIG_LEN * 0.55);
+        if (best1Score2 >= geoGate1) {
+          g_lastPixelDiag = `not4→1: score1=${best1Score2} ink=${inkCount} sig=${sigToCompactStr(sig)}`;
+          g_lastConfidence = 0.55;
+          return 1;
+        }
+      }
+      if (lowBestDigit === 4 || lowBestDigit === 7) {
+        const stripResult: number = tryStripLeftEdgeAs1(sig, inkCount, lowBestDigit, lowBestScore);
+        const stripDiag: string = g_lastPixelDiag;
+        if (stripResult === 1) { return 1; }
+        if (lowBestDigit === 7) {
+          if (best1Score > digitBestScore[7] + 30) {
+            g_lastPixelDiag = `lowInkFallback7→1: s1=${best1Score}>s7=${digitBestScore[7]}+30 ink=${inkCount}`;
+            const rawConf1: number = best1Score / (SIG_LEN + 200);
+            g_lastConfidence = rawConf1 > 1 ? 1 : (rawConf1 < 0 ? 0 : rawConf1);
+            return 1;
+          }
+          const topRow7: number = Math.floor(SIG_ROWS * 0.05);
+          const topEnd7: number = Math.floor(SIG_ROWS * 0.35);
+          let topSolid7: number = 0;
+          let topTotal7: number = 0;
+          for (let r: number = topRow7; r < topEnd7; r++) {
+            let inkInRow7: number = 0;
+            for (let c: number = 0; c < SIG_COLS; c++) {
+              if (sig[r * SIG_COLS + c] === 1) { inkInRow7++; }
+            }
+            topTotal7++;
+            if (inkInRow7 >= SIG_COLS * 0.4) { topSolid7++; }
+          }
+          g_lastPixelDiag = `lowInk7check: s1=${best1Score} s7=${digitBestScore[7]} topSolid=${topSolid7}/${topTotal7} ink=${inkCount}`;
+          if (topSolid7 === 0) {
+            g_lastPixelDiag = `lowInkFallback7→1: noSolidTop ink=${inkCount} topSolid=${topSolid7}/${topTotal7}`;
+            const rawConf1: number = best1Score / (SIG_LEN + 200);
+            g_lastConfidence = rawConf1 > 1 ? 1 : (rawConf1 < 0 ? 0 : rawConf1);
+            return 1;
+          }
+        }
+        const sigDump: string = sigToCompactStr(sig);
+        g_lastPixelDiag = `lowInk fallback: best=${lowBestDigit} score=${lowBestScore.toFixed(0)} recall=${lowBestRecall.toFixed(2)} gate=${lowMinScore} ink=${inkCount} [${stripDiag}] sig=${sigDump}`;
+      } else {
+        g_lastPixelDiag = `lowInk fallback: best=${lowBestDigit} score=${lowBestScore.toFixed(0)} recall=${lowBestRecall.toFixed(2)} gate=${lowMinScore} ink=${inkCount}`;
+      }
+      const rawConf: number = lowBestScore / (SIG_LEN + 200);
+      g_lastConfidence = rawConf > 1 ? 1 : (rawConf < 0 ? 0 : rawConf);
+      return lowBestDigit;
+    }
+    g_lastPixelDiag = `lowInk no1: best=${lowBestDigit} score=${lowBestScore.toFixed(0)} recall=${lowBestRecall.toFixed(2)} gate=${lowMinScore} ink=${inkCount}`;
+    if (lowBestDigit === 4 && isLikelyNot4(sig)) {
+      let best1Score4: number = -100000;
+      for (let ti: number = 0; ti < g_templates.length; ti++) {
+        if (g_templates[ti].digit !== 1) { continue; }
+        const t: DigitTemplate = g_templates[ti];
+        let match: number = 0;
+        for (let i: number = 0; i < SIG_LEN; i++) {
+          if (sig[i] === t.key[i]) { match++; }
+        }
+        const score: number = match - (SIG_LEN - match) * TEMPLATE_MISMATCH_PENALTY;
+        if (score > best1Score4) { best1Score4 = score; }
+      }
+      const geoGate3: number = Math.floor(SIG_LEN * 0.50);
+      if (best1Score4 >= geoGate3) {
+        g_lastPixelDiag = `not4→1(no1path): score1=${best1Score4} ink=${inkCount}`;
+        g_lastConfidence = 0.50;
+        return 1;
+      }
+    }
+    g_lastConfidence = 0;
+    return 0;
+  }
   const qHole: number = holeCenterRow(sig);
 
   const digitBestScore: number[] = new Array<number>(10).fill(-100000);
@@ -2019,16 +2999,22 @@ export function recognizeDigit(sig: number[], inkCount: number): number {
   g_lastConfidence = rawConf > 1 ? 1 : (rawConf < 0 ? 0 : rawConf);
 
   if (bestDigit === 6 || bestDigit === 9) {
+    const score6: number = digitBestScore[6];
+    const score9: number = digitBestScore[9];
+    const scoreGap: number = Math.abs(score6 - score9);
+
+    if (scoreGap >= DISAMBIG_SCORE_GAP_SKIP) {
+      return score6 > score9 ? 6 : 9;
+    }
+
     const qHole: number = holeCenterRow(sig);
     const iCentroid: number = inkCentroidRow(sig);
     const ratio: number = topBottomInkRatio(sig);
     const hogGrad: number = hogVerticalGradient(sig);
     const swRatio: number = strokeWidthRatio(sig);
-    const score6: number = digitBestScore[6];
-    const score9: number = digitBestScore[9];
 
-    console.info(`[SudokuPixel] 6/9消歧: score6=${score6.toFixed(1)} score9=${score9.toFixed(1)} qHole=${qHole.toFixed(2)} centroid=${iCentroid.toFixed(2)} topRatio=${ratio.toFixed(2)} hogGrad=${hogGrad.toFixed(2)} swRatio=${swRatio.toFixed(2)}`);
-    console.info(`[SudokuPixel] sig:\n${sigToAscii(sig)}`);
+    hilog.info(DOMAIN, TAG, '6/9消歧: score6=%{public}.1f score9=%{public}.1f gap=%{public}.1f qHole=%{public}.2f centroid=%{public}.2f topRatio=%{public}.2f hogGrad=%{public}.2f swRatio=%{public}.2f',
+      score6, score9, scoreGap, qHole, iCentroid, ratio, hogGrad, swRatio);
 
     let vote6: number = 0;
     let vote9: number = 0;
@@ -2042,10 +3028,165 @@ export function recognizeDigit(sig: number[], inkCount: number): number {
     if (ratio > 0.5) { vote9 += DISAMBIG_TOP_RATIO_WEIGHT; } else { vote6 += DISAMBIG_TOP_RATIO_WEIGHT; }
     if (hogGrad > 0.5) { vote9 += DISAMBIG_HOG_WEIGHT; } else { vote6 += DISAMBIG_HOG_WEIGHT; }
     if (swRatio > 1.1) { vote9 += DISAMBIG_SW_WEIGHT; } else if (swRatio < 0.9) { vote6 += DISAMBIG_SW_WEIGHT; }
-    if (score6 > score9) { vote6 += DISAMBIG_SCORE_WEIGHT; } else { vote9 += DISAMBIG_SCORE_WEIGHT; }
+    if (score6 > score9 + 50) { vote6 += DISAMBIG_SCORE_WEIGHT; }
+    else if (score9 > score6 + 50) { vote9 += DISAMBIG_SCORE_WEIGHT; }
+    else if (score6 > score9) { vote6 += 1; }
+    else { vote9 += 1; }
 
-    console.info(`[SudokuPixel] vote6=${vote6} vote9=${vote9} => ${vote6 >= vote9 ? 6 : 9}`);
-    return vote6 >= vote9 ? 6 : 9;
+    hilog.info(DOMAIN, TAG, 'vote6=%{public}d vote9=%{public}d => %{public}d', vote6, vote9, vote6 > vote9 ? 6 : 9);
+    if (vote6 === vote9) { return score6 >= score9 ? 6 : 9; }
+    return vote6 > vote9 ? 6 : 9;
+  }
+
+  // 5/6 disambiguation
+  if (bestDigit === 5 || bestDigit === 6) {
+    const score5: number = digitBestScore[5];
+    const score6d: number = digitBestScore[6];
+    const gap56: number = Math.abs(score5 - score6d);
+    if (gap56 >= 80) {
+      return score5 > score6d ? 5 : 6;
+    }
+    const hole56: number = holeCenterRow(sig);
+    if (hole56 >= 0 && hole56 > SIG_ROWS * 0.45) {
+      return 6;
+    }
+    let topInkCols56: number = 0;
+    let botInkCols56: number = 0;
+    for (let c: number = 0; c < SIG_COLS; c++) {
+      let topHas: boolean = false;
+      let botHas: boolean = false;
+      for (let r: number = 0; r < SIG_ROWS / 2; r++) {
+        if (sig[r * SIG_COLS + c] === 1) { topHas = true; }
+      }
+      for (let r2: number = Math.floor(SIG_ROWS / 2); r2 < SIG_ROWS; r2++) {
+        if (sig[r2 * SIG_COLS + c] === 1) { botHas = true; }
+      }
+      if (topHas) { topInkCols56++; }
+      if (botHas) { botInkCols56++; }
+    }
+    if (botInkCols56 > topInkCols56 + 2 && score6d >= score5 - 30) {
+      return 6;
+    }
+    return score5 >= score6d ? 5 : 6;
+  }
+
+  // 5/9 disambiguation
+  if (bestDigit === 5 || bestDigit === 9) {
+    const score5b: number = digitBestScore[5];
+    const score9b: number = digitBestScore[9];
+    const gap59: number = Math.abs(score5b - score9b);
+    if (gap59 >= 80) {
+      return score5b > score9b ? 5 : 9;
+    }
+    const hole59: number = holeCenterRow(sig);
+    if (hole59 >= 0 && hole59 < SIG_ROWS * 0.45) {
+      return 9;
+    }
+    const botRow59: number = Math.floor(SIG_ROWS * 0.7);
+    const endRow59: number = Math.floor(SIG_ROWS * 0.9);
+    let botLeftInk59: number = 0;
+    let botRightInk59: number = 0;
+    for (let r: number = botRow59; r < endRow59; r++) {
+      for (let c: number = 0; c < SIG_COLS / 2; c++) {
+        if (sig[r * SIG_COLS + c] === 1) { botLeftInk59++; }
+      }
+      for (let c2: number = Math.floor(SIG_COLS / 2); c2 < SIG_COLS; c2++) {
+        if (sig[r * SIG_COLS + c2] === 1) { botRightInk59++; }
+      }
+    }
+    if (botLeftInk59 > botRightInk59 * 1.5 && score5b >= score9b - 20) {
+      return 5;
+    }
+    const topInkRatio59: number = topBottomInkRatio(sig);
+    if (topInkRatio59 > 0.55 && score9b >= score5b - 30) {
+      return 9;
+    }
+    return score5b >= score9b ? 5 : 9;
+  }
+
+  // 3/8 disambiguation
+  if (bestDigit === 3 || bestDigit === 8) {
+    const score3: number = digitBestScore[3];
+    const score8: number = digitBestScore[8];
+    const gap38: number = Math.abs(score3 - score8);
+    if (gap38 >= 80) {
+      return score3 > score8 ? 3 : 8;
+    }
+    const midTop38: number = Math.floor(SIG_ROWS * 0.3);
+    const midBot38: number = Math.floor(SIG_ROWS * 0.7);
+    let leftInk38: number = 0;
+    let rightInk38: number = 0;
+    for (let r: number = midTop38; r < midBot38; r++) {
+      for (let c: number = 0; c < SIG_COLS / 2; c++) {
+        if (sig[r * SIG_COLS + c] === 1) { leftInk38++; }
+      }
+      for (let c2: number = Math.floor(SIG_COLS / 2); c2 < SIG_COLS; c2++) {
+        if (sig[r * SIG_COLS + c2] === 1) { rightInk38++; }
+      }
+    }
+    const leftRatio38: number = (leftInk38 + rightInk38) > 0 ? leftInk38 / (leftInk38 + rightInk38) : 0.5;
+    if (leftRatio38 > 0.30) {
+      return 8;
+    }
+    return score3 >= score8 ? 3 : 8;
+  }
+
+  // 7/1 disambiguation: only check if 7 might actually be 1 (never flip 1→7)
+  if (bestDigit === 7) {
+    const score7: number = digitBestScore[7];
+    const score1: number = digitBestScore[1];
+    const gap71: number = score7 - score1;
+    if (gap71 < 20) {
+      const topRow71: number = Math.floor(SIG_ROWS * 0.10);
+      const topEnd71: number = Math.floor(SIG_ROWS * 0.30);
+      let topMinC71: number = SIG_COLS;
+      let topMaxC71: number = 0;
+      for (let r: number = topRow71; r < topEnd71; r++) {
+        for (let c: number = 0; c < SIG_COLS; c++) {
+          if (sig[r * SIG_COLS + c] === 1) {
+            if (c < topMinC71) { topMinC71 = c; }
+            if (c > topMaxC71) { topMaxC71 = c; }
+          }
+        }
+      }
+      const topSpan71: number = topMaxC71 >= topMinC71 ? topMaxC71 - topMinC71 + 1 : 0;
+      if (topSpan71 >= SIG_COLS * 0.6) {
+        let solidTopRows71: number = 0;
+        for (let r: number = topRow71; r < topEnd71; r++) {
+          let inkInRow71: number = 0;
+          for (let c: number = 0; c < SIG_COLS; c++) {
+            if (sig[r * SIG_COLS + c] === 1) { inkInRow71++; }
+          }
+          if (inkInRow71 >= SIG_COLS * 0.5) { solidTopRows71++; }
+        }
+        if (solidTopRows71 >= 2 && score7 >= score1) {
+          return 7;
+        }
+        if (solidTopRows71 >= 2 && score1 > score7) {
+          g_lastPixelDiag = `7→1: solidTop=${solidTopRows71} but s1=${score1}>s7=${score7} topSpan=${topSpan71}`;
+          return 1;
+        }
+      }
+      // No solid top bar + score very close → might be 1 not 7
+      const botRow71: number = Math.floor(SIG_ROWS * 0.60);
+      const botEnd71: number = Math.floor(SIG_ROWS * 0.85);
+      let botMinC71: number = SIG_COLS;
+      let botMaxC71: number = 0;
+      for (let r: number = botRow71; r < botEnd71; r++) {
+        for (let c: number = 0; c < SIG_COLS; c++) {
+          if (sig[r * SIG_COLS + c] === 1) {
+            if (c < botMinC71) { botMinC71 = c; }
+            if (c > botMaxC71) { botMaxC71 = c; }
+          }
+        }
+      }
+      const botSpan71: number = botMaxC71 >= botMinC71 ? botMaxC71 - botMinC71 + 1 : 0;
+      if (botSpan71 <= 6 && topSpan71 < SIG_COLS * 0.6) {
+        // Narrow bottom + no solid top bar → likely 1, not 7
+        g_lastPixelDiag = `7→1: botSpan=${botSpan71} topSpan=${topSpan71} s7=${score7} s1=${score1}`;
+        return 1;
+      }
+    }
   }
 
   if (qHole >= 0 && bestScore >= MIN_DIGIT_SCORE && secondDigit > 0) {
@@ -2059,7 +3200,38 @@ export function recognizeDigit(sig: number[], inkCount: number): number {
     }
   }
 
-  return bestScore >= MIN_DIGIT_SCORE ? bestDigit : 0;
+  if (bestScore >= MIN_DIGIT_SCORE) {
+    if (bestDigit === 4 && isLikelyNot4(sig)) {
+      let best1Score3: number = -100000;
+      for (let ti: number = 0; ti < g_templates.length; ti++) {
+        if (g_templates[ti].digit !== 1) { continue; }
+        const t: DigitTemplate = g_templates[ti];
+        let match: number = 0;
+        for (let i: number = 0; i < SIG_LEN; i++) {
+          if (sig[i] === t.key[i]) { match++; }
+        }
+        const score: number = match - (SIG_LEN - match) * TEMPLATE_MISMATCH_PENALTY;
+        if (score > best1Score3) { best1Score3 = score; }
+      }
+      const geoGate2: number = Math.floor(SIG_LEN * 0.55);
+      if (best1Score3 >= geoGate2) {
+        g_lastPixelDiag = `not4→1: score1=${best1Score3} ink=${inkCount} sig=${sigToCompactStr(sig)}`;
+        g_lastConfidence = 0.55;
+        return 1;
+      }
+    }
+    if (bestDigit === 4 || bestDigit === 7) {
+      const stripResult: number = tryStripLeftEdgeAs1(sig, inkCount, bestDigit, bestScore);
+      const stripDiag: string = g_lastPixelDiag;
+      if (stripResult === 1) { return 1; }
+      g_lastPixelDiag = `best=${bestDigit} score=${bestScore.toFixed(0)} ink=${inkCount} [${stripDiag}] sig=${sigToCompactStr(sig)}`;
+    } else {
+      g_lastPixelDiag = `best=${bestDigit} score=${bestScore.toFixed(0)} ink=${inkCount}`;
+    }
+    return bestDigit;
+  }
+  g_lastPixelDiag = `bestDigit=${bestDigit} bestScore=${bestScore.toFixed(0)} second=${secondDigit}(${secondScore.toFixed(0)}) minGate=${MIN_DIGIT_SCORE} ink=${inkCount}`;
+  return 0;
 }
 
 export function getLastConfidence(): number {

@@ -875,6 +875,13 @@ struct SudokuSolverPage {
         .onClick(() => { this.takePhoto(); })
       }
       .width('100%')
+
+      Text('拍照识别数据技术不断完善中，如果遇到题目识别错误，请手动进行修改。')
+        .fontSize(11)
+        .fontColor($r('app.color.tertiary_text'))
+        .textAlign(TextAlign.Center)
+        .width('100%')
+        .margin({ top: 2 })
     }
     .width('100%')
     .padding({ left: 16, right: 16, top: 8, bottom: 4 })

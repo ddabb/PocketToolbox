@@ -1,0 +1,2340 @@
+I     AppSpawnChild id 7050 flags:0xc
+I     ResetParamSecurityLabel Fd:18
+I     FilterAppTrace com.ddabb.toolbox 6414
+W     errno:13 private mount to /mnt/sandbox/100/com.ddabb.toolbox/chip_prod/lib64/passthrough '524288' failed
+W     check dir /data/app/el1/public/aot_compiler/ark_cache/com.ddabb.toolbox failed,strerror:No such file or directory
+W     errno:2 bind mount /data/preload/app to /mnt/sandbox/100/com.ddabb.toolbox/data/preload/app
+E     [XpmIoctl]:Ioctl cmd 40087803 failed: Invalid argument (ignore)
+I     Hap type for com.ddabb.toolbox is changing from u:r:appspawn:s0 to o:r:debug_hap:s0:x111,x335,x512,x868,x1024
+I     Hap setcon finish for com.ddabb.toolbox
+I     [RegisterCheckCallback]Register secComp: sessionId=1258456509, seqNum=******818.
+W     ThreadHandler: proto:0 policy:1 name:OS_IPC_0_6535 invoker:2487292544
+W     ThreadHandler: proto:0 policy:0 name:OS_IPC_1_6536 invoker:2388646016
+I     hichecker param is empty.
+I     SelectWebcoreBeforeProcessRun: SelectWebcoreBeforeProcessRun for app com.ddabb.toolbox.
+I     [MTHRD3220]mainthread start, pid:6414
+I     init default task finished.
+I     [MTHRD431]attach
+I     [69]AceForwardCompatibility [com.ddabb.toolbox] force:1 newpipe:1
+I     [MTHRD1813]SmartGC: process is start. enable warm startup SmartGC: 0
+I     [ecmascript] asmint: 1, aot: 0, jit: 1, baseline jit: 0, bundle name: com.ddabb.toolbox, arkTSMode: dynamic
+I     [ecmascript] multi-thread check enabled: 0
+I     [pgo] reset pgo profiler, pgo profiler is disabled
+I     clean up handles in loop(1024)
+I     loop:(1024) closed in 0s
+I     close:1024, async_io_wfd:15
+I     close:1024, backend_fd:9
+I     init:4736
+I     init:4736, backend_fd:3
+I     open:4736, pipefd[0]:13
+I     [ecmascript] can not find aot file
+I     StartServer, componentName = <private>
+W     [CSM161]not Connected
+I     [ecmascript] JSNApi::NotifyDebugMode, tid = 6414, debugApp = 1, isDebugMode = 0, instanceId = 0
+I     [compiler] __jit_debug_register_code() is called.
+I     [compiler] success to register stub.an to debugger.
+E     GetTestRunner failed -n com.ddabb.toolbox -m entry_test error: 8519884
+E     [MTHRD4409]get testrunner failed: 8519884
+E     [MTHRD2592]query testrunner failed
+I     [DRH373]success to create /data/storage/el2/base/cache/rawheap
+I     [js_test_runner.cpp69]srcPath: entry_test/ets/testrunner/OpenHarmonyTestRunner.abc
+I     [ecmascript] can not find aot file
+I     [ecmascript] start to execute module buffer with secure memory: /data/storage/el1/bundle/entry_test/ets/testrunner/OpenHarmonyTestRunner.abc
+I     Add watcher keyPrefix persist.hdc.jdwp remoteWatcherId 7268 success
+I     AddWatchHdcdJdwp rc:0
+I     connect success cfd:28
+I     Send2Jdwp send pid:6414, pp:com.ddabb.toolbox, isDebug:1, msglen:29
+I     [pgo] will save profiler to file /data/storage/ark-profile/rt_entry_test.ap
+I     [js_ability_delegator_registry.cpp91]called
+I     [js_ability_delegator_registry.cpp114]called
+I     [JSENV299]timing: 13
+I     [iability_delegator.cpp75]Enter
+I     [ability_delegator.cpp245]Enter
+I     [js_test_runner.cpp150]Enter
+I     [js_test_runner.cpp164]callJsMethod(onPrepare)
+I     OpenHarmonyTestRunner OnPrepare
+W     update userId, currentUserId_= 0, userId= 100
+W     LoadFromDisk: The settingXml /***/el1/***/i18*** load failed.
+E     [calculateResourceType:81]deviceType is empty.
+I     [application_cleaner.cpp94]ClearTempData
+I     [ability_delegator.cpp270]Enter
+I     [js_test_runner.cpp157]Enter
+I     [js_test_runner.cpp164]callJsMethod(onRun)
+I     OpenHarmonyTestRunner onRun run
+I     [js_ability_delegator_registry.cpp76]called
+I     [js_ability_delegator_utils.cpp94]called
+I     [js_ability_delegator_utils.cpp74]called
+I     [js_ability_delegator_utils.cpp28]called
+I     [ability_delegator.cpp728]Enter
+I     [js_ability_delegator.cpp743]argc: 0
+I     [js_ability_delegator.cpp743]argc: 0
+I     MockList file exists
+I     mock-json value:{}
+I     [js_ability_delegator.cpp986]argc: 1
+I     [js_ability_delegator.cpp267]argc: 2
+I     [js_ability_delegator.cpp1186]called
+I     [js_ability_delegator.cpp1003]monitorRecord size: 0
+I     [js_ability_delegator.cpp684]argc: 1
+I     [js_ability_delegator.cpp1343]called
+I     [js_ability_delegator.cpp1285]called
+E     [NativeAsyncWork] Get traceStr fail
+I     [js_ability_delegator.cpp698]execute called
+I     [ability_delegator.cpp333]command : aa start -b com.ddabb.toolbox -a TestAbility -m entry_test, timeout : 0
+I     [test_observer_proxy.cpp23]created
+I     [test_observer_proxy.cpp94]start
+I     [js_ability_delegator.cpp277]complete called
+I     addAbilityMonitorCallback : null
+I     [test_observer_proxy.cpp28]destroyed
+I     [js_ability_delegator.cpp715]complete called
+I     [js_ability_delegator_utils.cpp117]called
+I     OpenHarmonyTestRunner onRun end
+I     [a92ab1a5e0e191b 2ba6d4f 345d3fb][MTHRD825]ScheduleLaunchAbility called, ability TestAbility, type is 1.
+I     [a92ab1a5e0e191b 16dfad8 2ba6d4f][MTHRD2688]NotifyApplicationPreAbilityCreate
+I     [a92ab1a5e0e191b 16dfad8 2ba6d4f][JAS193]LoadModule
+W     [a92ab1a5e0e191b 16dfad8 2ba6d4f][JAS966]null stage
+W     [a92ab1a5e0e191b 16dfad8 2ba6d4f][JAS236]Not found AbilityStage.js
+I     [a92ab1a5e0e191b 16dfad8 2ba6d4f][OH_APP424]OnAboutToCreateAbility
+W     [a92ab1a5e0e191b 16dfad8 2ba6d4f][JAS331]Not found AbilityStage.js
+I     [a92ab1a5e0e191b 16dfad8 2ba6d4f][ecmascript] start to execute module buffer with secure memory: /data/storage/el1/bundle/entry_test/ets/testability/TestAbility.abc
+W     [a92ab1a5e0e191b 16dfad8 2ba6d4f][NMM:1289] Name mismatch: ai.ocr.textRecognition != ai.ocr.textrecognition
+I     [a92ab1a5e0e191b 16dfad8 2ba6d4f][(TextRecognitionExport)]init TextRecognitionExport start.
+I     [a92ab1a5e0e191b 16dfad8 2ba6d4f][(TextRecognitionExport)]init text detect js success.
+I     [a92ab1a5e0e191b 16dfad8 2ba6d4f][JSENV299]timing: 111
+I     [a92ab1a5e0e191b 16dfad8 2ba6d4f]Callee constructor is OK string
+I     [a92ab1a5e0e191b 16dfad8 2ba6d4f]Ability::constructor callee is object [object Object]
+I     [a92ab1a5e0e191b 16dfad8 2ba6d4f][ui_ability_thread.cpp173]Lifecycle:Attach
+I     [a92ab1a5e0e191b 26e6563 749ead][MTHRD2864]called
+I     [a92ab1a5e0e191b 26e6563 749ead][gc] app is not inBackground
+I     [a92ab1a5e0e191b 19275ab 3baaa8f][ui_ability_thread.cpp321]name:TestAbility,targeState:5,isNewWant:0
+I     [a92ab1a5e0e191b 2318f84 19275ab][ui_ability_thread.cpp240]Lifecycle:name TestAbility
+I     [a92ab1a5e0e191b 2318f84 19275ab]AddDisplayIdFromAms: abilityToken and display[0] has been added.
+W     [a92ab1a5e0e191b 2318f84 19275ab]RegisterClientDeathListener: regis reverse death
+I     [a92ab1a5e0e191b 2318f84 19275ab]RegisterClientDeathListener: ENTER
+I     [a92ab1a5e0e191b 2318f84 19275ab][JUA2036]JsUIAbility call js, name: onCreate
+I     [a92ab1a5e0e191b 2318f84 19275ab]TestAbility onCreate
+I     [a92ab1a5e0e191b 2318f84 19275ab]want param:{"deviceId":"","bundleName":"com.ddabb.toolbox","abilityName":"TestAbility","moduleName":"entry_test","uri":"","type":"","flags":0,"action":"","parameters":{"component.startup.newRules":true,"isCallBySCB":false,"isShellCall":true,"moduleName":"entry_test","ohos.aafwk.param.callerAbilityName":"","ohos.aafwk.param.callerBundleName":"","ohos.aafwk.param.callerNativeName":"_hdcd","ohos.aafwk.param.callerPid":6569,"ohos.aafwk.param.callerToken":805761148,"ohos.aafwk.param.callerUid":2000,"ohos.aafwk.param.displayId":0,"ohos.dlp.params.sandbox":false,"ohos.param.callerAppCloneIndex":0},"fds":{},"entities":[]}
+I     [a92ab1a5e0e191b 2318f84 19275ab]launchParam:{"launchReason":1,"launchReasonMessage":"","lastExitReason":2,"lastExitMessage":"","lastExitDetailInfo":{"pid":-1,"processName":"","uid":-1,"exitSubReason":-1,"exitMsg":"","rss":0,"pss":0,"processState":0,"timestamp":0},"launchUptime":208160176,"launchUTCTime":1787274721019}
+I     [a92ab1a5e0e191b 2318f84 19275ab][js_ability_delegator_registry.cpp76]called
+I     [a92ab1a5e0e191b 2318f84 19275ab][js_ability_delegator_utils.cpp94]called
+I     [a92ab1a5e0e191b 2318f84 19275ab][js_ability_delegator_utils.cpp74]called
+I     [a92ab1a5e0e191b 2318f84 19275ab]start run testcase!!!
+I     [a92ab1a5e0e191b 2318f84 19275ab][Hypium]parameters:{"class":"SudokuOCR_pipeline_full#pipeline_01_standard_544","timeout":"120000"}
+I     [a92ab1a5e0e191b 2318f84 19275ab][Hypium]filter params:0
+I     [a92ab1a5e0e191b 2318f84 19275ab][Hypium]filter suite : ActsAbilityTest
+I     [a92ab1a5e0e191b 2318f84 19275ab][Hypium]stress length : 1
+I     [a92ab1a5e0e191b 2318f84 19275ab][Hypium]filter it :pipeline_02_small_300
+I     [a92ab1a5e0e191b 2318f84 19275ab][Hypium]filter it :pipeline_03_large_800
+I     [a92ab1a5e0e191b 2318f84 19275ab][Hypium]filter it :pipeline_04_blue_numbers
+I     [a92ab1a5e0e191b 2318f84 19275ab][Hypium]filter it :pipeline_05_red_theme
+I     [a92ab1a5e0e191b 2318f84 19275ab][Hypium]filter it :pipeline_06_green_theme
+I     [a92ab1a5e0e191b 2318f84 19275ab][Hypium]filter it :pipeline_07_light_gray_numbers
+I     [a92ab1a5e0e191b 2318f84 19275ab][Hypium]filter it :pipeline_08_gray_bg_dark_numbers
+I     [a92ab1a5e0e191b 2318f84 19275ab][Hypium]filter it :pipeline_09_serif_font
+I     [a92ab1a5e0e191b 2318f84 19275ab][Hypium]filter it :pipeline_10_italic_font
+I     [a92ab1a5e0e191b 2318f84 19275ab][Hypium]filter it :pipeline_11_thin_font
+I     [a92ab1a5e0e191b 2318f84 19275ab][Hypium]filter it :pipeline_12_all_thin_lines
+I     [a92ab1a5e0e191b 2318f84 19275ab][Hypium]filter it :pipeline_13_no_outer_border
+I     [a92ab1a5e0e191b 2318f84 19275ab][Hypium]filter it :pipeline_14_tiny_200
+I     [a92ab1a5e0e191b 2318f84 19275ab][Hypium]filter it :pipeline_15_huge_1000
+I     [a92ab1a5e0e191b 2318f84 19275ab][Hypium]filter it :pipeline_photos
+I     [a92ab1a5e0e191b 2318f84 19275ab][Hypium]filter suite : SudokuOCR_parseOCRToGrid
+I     [a92ab1a5e0e191b 2318f84 19275ab][Hypium]filter suite : SudokuOCR_pipeline_solve
+I     [a92ab1a5e0e191b 2318f84 19275ab][JUA2081]end, name: onCreate, time: 10
+I     [a92ab1a5e0e191b 2318f84 19275ab][ability_delegator.cpp372]called
+I     [a92ab1a5e0e191b 2318f84 19275ab][ability_delegator.cpp611]Enter
+W     [a92ab1a5e0e191b 2318f84 19275ab][ability_delegator.cpp619]ability property : name : TestAbility, state : 5
+I     [a92ab1a5e0e191b 2318f84 19275ab][ability_delegator.cpp652]Enter
+I     [a92ab1a5e0e191b 2318f84 19275ab][iability_monitor.cpp58]ability name : TestAbility, isNotify : true
+I     [a92ab1a5e0e191b 2318f84 19275ab][iability_monitor.cpp61]notify ability matched
+I     [a92ab1a5e0e191b 2318f84 19275ab][ability_monitor.cpp37]called
+I     [a92ab1a5e0e191b 2318f84 19275ab]onAbilityCreateCallback, data: ${}
+E     [a92ab1a5e0e191b 2318f84 19275ab][ui_ability_impl.cpp314]hasSaveData_: false
+W     [a92ab1a5e0e191b 2318f84 19275ab][JUA1223]formatRegex: []
+I     [a92ab1a5e0e191b 2318f84 19275ab]Init: WindowScene with window session!
+I     [a92ab1a5e0e191b 2318f84 19275ab]Init: set isModuleAbilityHookEnd
+I     [a92ab1a5e0e191b 2318f84 19275ab]RS multi-instance enabled: 1
+I     [a92ab1a5e0e191b 2318f84 19275ab]multi-instance, create RSUIContextManager, isMultiInstanceOpen_ 1
+I     Add watcher keyPrefix persist.sys.graphic.animationscale remoteWatcherId 7268 success
+I     [a92ab1a5e0e191b 2318f84 19275ab]InitRSUIDirector: Create RSUIDirector: RSUIDirector's RSUIContext [token: 27547920236545, tid: 6414], rsUIContext: RSUIContext is null
+W     [a92ab1a5e0e191b 2318f84 19275ab]redo Connect
+I     [a92ab1a5e0e191b 2318f84 19275ab]Start to ConnectService
+I     [a92ab1a5e0e191b 2318f84 19275ab]GetSystemAbilityManager success
+I     [a92ab1a5e0e191b 2318f84 19275ab]GetSystemAbility success
+I     [a92ab1a5e0e191b 2318f84 19275ab]RSLogManager init log flag: 0x0(0)
+I     [a92ab1a5e0e191b 2318f84 19275ab]RSFrameRateLinker::Create id: 27547920236544
+I     [a92ab1a5e0e191b 2318f84 19275ab]VsyncStation: id 27547920236546 created
+I     [a92ab1a5e0e191b 2318f84 19275ab]WindowSceneSessionImpl: [WMSCom] Constructor toolbox0
+E     [a92ab1a5e0e191b 2318f84 19275ab]SetWindowType: permission denied!
+I     [a92ab1a5e0e191b 2318f84 19275ab]Create: Window Create name:toolbox0, state:0, mode:0
+I     [a92ab1a5e0e191b 2318f84 19275ab]Create: SetIsAbilityHookOff 0
+W     [a92ab1a5e0e191b 2318f84 19275ab]IsWindowSessionInvalid: already destroyed or not created! id: 0 state_: 0
+W     [a92ab1a5e0e191b 2318f84 19275ab]AdjustWindowAnimationFlag: session invalid!
+I     [a92ab1a5e0e191b 2318f84 19275ab]Remove window flag WINDOW_FLAG_SHOW_WHEN_LOCKED
+I     [a92ab1a5e0e191b 2318f84 19275ab]Connect: in
+I     [a92ab1a5e0e191b 389a347 2a34dc1]NotifyAppHookWindowInfoUpdated: in
+I     [a92ab1a5e0e191b 389a347 2a34dc1]SetAppHookWindowInfo: Id:0, preHookWindowInfo:[enableHookWindow: false, widthHookRatio: 1.000000, notifyWindowChange: false], newHookWindowInfo:[enableHookWindow: false, widthHookRatio: 1.000000, notifyWindowChange: false]
+I     [a92ab1a5e0e191b 170cf2a 2a34dc1]UpdateRect: id:0 name:toolbox0 rect:[0 0 0 0]->[0 0 1260 2720] reason:0 displayId:0
+I     [a92ab1a5e0e191b 170cf2a 2a34dc1]NotifyFirstValidLayoutUpdate: Id:0, rect:[0 0 1260 2720]
+W     [a92ab1a5e0e191b 1c9cb08 2a34dc1]NotifySingleHandTransformChange: id:0, uiContent is nullptr
+I     [a92ab1a5e0e191b 2318f84 19275ab]Connect: updateRect when connect.preRect:[0,0,1260,2720]rect:[0,0,1260,2720]
+I     [a92ab1a5e0e191b 2318f84 19275ab]Connect: Window Connect [name:toolbox0, id:849, type:1], ret:0, oriDisplayId:0, curDisplayId:0
+I     [a92ab1a5e0e191b 2318f84 19275ab]SendCombinedCompatibleConfigToArkUI: bundleName: com.ddabb.toolbox, combinedCompatibleConfig size: 2
+I     [a92ab1a5e0e191b 2318f84 19275ab]SendCombinedCompatibleConfigToArkUI: bundleName:com.ddabb.toolbox, logicalDeviceConfig size:2, arkUIAndWebConfig size:58
+I     [a92ab1a5e0e191b 2318f84 19275ab][201]get angle info: {}
+I     [a92ab1a5e0e191b 2318f84 19275ab]SendCombinedCompatibleConfigToArkUI: Send null logical device config to arkui
+I     [a92ab1a5e0e191b 2318f84 19275ab]SendCombinedCompatibleConfigToArkUI: Send combined compatible config to arkui successfully!
+I     [a92ab1a5e0e191b 2318f84 19275ab]SetWindowMode: windowId: 849, windowModeSupportType: 63, mode: 1
+W     ThreadHandler: proto:0 policy:0 name:OS_IPC_2_6698 invoker:2404612480
+I     [a92ab1a5e0e191b 2318f84 19275ab]NotifyWindowStatusChange: id:849, windowMode:1, windowStatus:1, lastWindowStatus:0, skipRedundantWindowStatusNotifications:0
+I     [a92ab1a5e0e191b 2318f84 19275ab]SetConfigWindowLimitsVP: id:849, windowLimits:[0 0 0 0 0.000000 0.000000 1.000000 1]
+I     [a92ab1a5e0e191b 2318f84 19275ab]GetSystemSizeLimits: px[6240,6240,1040,780], vp[1920,1920,320,240], configMax:1920, vpr:3.250000, winType:1
+I     [a92ab1a5e0e191b 2318f84 19275ab]GetSupportedWindowModesConfiguration: winId: 849, windowModeSupportType: 15
+I     [a92ab1a5e0e191b 2318f84 19275ab]SetSupportedWindowModesForAncoInFreeWindow: is not anco app, need not update support window mode.
+I     [a92ab1a5e0e191b 2318f84 19275ab]GetConfigurationFromAbilityInfo: windowId: 849, windowModeSupportType: 15, isAncoSupportFreeWindow: 0
+I     [a92ab1a5e0e191b 2318f84 19275ab]RegisterSessionRecoverCallbackFunc: persistentId=849
+I     [a92ab1a5e0e191b 2318f84 19275ab]UpdateStatusBarColorByColorMode: win 849 type 1 hasDarkRes 1 colorMode dark
+I     [a92ab1a5e0e191b 2318f84 19275ab]IsMainHandlerAvailable: id:849, isAvailable:1
+I     [a92ab1a5e0e191b 2318f84 19275ab]IsMainHandlerAvailable: id:849, isAvailable:1
+I     [a92ab1a5e0e191b 2318f84 19275ab][][SetWindowInputEventConsumer:366] enter
+I     [a92ab1a5e0e191b 2318f84 19275ab][|267]Connection to server succeeded, fd:35
+I     [a92ab1a5e0e191b 2318f84 19275ab][|166]Server was listening
+I     [a92ab1a5e0e191b 2318f84 19275ab][|127]reuse current event handler, thread name:
+I     [a92ab1a5e0e191b 2318f84 19275ab][|130]File fd is in listening
+I     [a92ab1a5e0e191b 2318f84 19275ab][][SetWindowInputEventConsumer] leave
+I     [a92ab1a5e0e191b 2318f84 19275ab]AddInputWindow: SetWindowInputEventConsumer success, wid:849
+I     [a92ab1a5e0e191b 2318f84 19275ab]LoadGameController: in
+I     [a92ab1a5e0e191b 2318f84 19275ab][(RegisterEntryModule:24)]begin load gamecontroller_event
+I     [a92ab1a5e0e191b 2318f84 19275ab][(StartInputToTouch:61)]Begin StartInputToTouch
+I     [a92ab1a5e0e191b 2318f84 19275ab]LoadGameController: dlopen GameController success
+I     [a92ab1a5e0e191b 2318f84 19275ab]SubscribeEvent: Subscribe touch.events.touchpredict Event
+I     [(GetSelfBundleName:49)]The current bundleName [com.ddabb.toolbox]. version [1.0.4]
+I     [(IsCommonApp:94)]The [com.ddabb.toolbox] is a common app.
+W     [(ReadJsonFromFile:224)]realpath failed for [/data/service/el1/public/for-all-app/gamecontroller_server/game_support_key_mapping.json]
+I     [(SetSupportKeyMapping:73)]SetSupportKeyMapping. isSupportKeyMapping_ is [0]
+I     [(DoAsyncTask:76)]The app does not support input-to-touch feature.
+I     [a92ab1a5e0e191b 2318f84 19275ab]ConnectServer: start connect
+I     [a92ab1a5e0e191b 2318f84 19275ab]ConnectServer: end connect
+W     [a92ab1a5e0e191b 2318f84 19275ab]RegisterGetWMSWindowListCallback: callback has registered
+I     [a92ab1a5e0e191b 2318f84 19275ab]RegisterGetWMSWindowListCallback: winId: 849
+I     [a92ab1a5e0e191b 2318f84 19275ab]UpdateColorMode: winId: 849, colorMode: dark
+I     [a92ab1a5e0e191b 2318f84 19275ab]UpdateSidebarBlurStyleWhenColorModeChange: in, persistentId=849
+W     [a92ab1a5e0e191b 2318f84 19275ab]UpdateSidebarBlurStyleWhenColorModeChange: RSAnimatableProperty is null
+I     [a92ab1a5e0e191b 2318f84 19275ab]UpdateColorMode: winId: 849, colorMode: dark, hasDarkRes: 1
+I     [a92ab1a5e0e191b 2318f84 19275ab]SetPcAppInpadSpecificSystemBarInvisible: isPcAppInpadSpecificSystemBarInvisible: 0
+I     [a92ab1a5e0e191b 2318f84 19275ab]SetPcAppInpadOrientationLandscape: isPcAppInpadOrientationLandscape: 0
+I     [a92ab1a5e0e191b 2318f84 19275ab]Create: Window Create success [name:toolbox0, id:849], state:1, mode:1, enableDefaultDensity:0, displayId:0
+E     [a92ab1a5e0e191b 2318f84 19275ab]singleton_container.cpp GetSingleton: cant get OHOS::Rosen::WindowInfoReporter
+I     [a92ab1a5e0e191b 2318f84 19275ab][JUA2036]JsUIAbility call js, name: onWindowStageCreate
+I     [a92ab1a5e0e191b 2318f84 19275ab]TestAbility onWindowStageCreate
+I     [a92ab1a5e0e191b 2318f84 19275ab]LoadContent: [NAPI]
+I     [a92ab1a5e0e191b 2318f84 19275ab][JUA2081]end, name: onWindowStageCreate, time: 0
+I     [a92ab1a5e0e191b 2318f84 19275ab]NotifyWindowStageCreateFinished: id: 849
+I     [a92ab1a5e0e191b 2318f84 19275ab][ability_delegator.cpp421]called
+I     [a92ab1a5e0e191b 2318f84 19275ab][ability_delegator.cpp611]Enter
+W     [a92ab1a5e0e191b 2318f84 19275ab][ability_delegator.cpp619]ability property : name : TestAbility, state : 5
+I     [a92ab1a5e0e191b 2318f84 19275ab][ability_delegator.cpp652]Enter
+I     [a92ab1a5e0e191b 2318f84 19275ab][iability_monitor.cpp58]ability name : TestAbility, isNotify : true
+I     [a92ab1a5e0e191b 2318f84 19275ab][iability_monitor.cpp61]notify ability matched
+I     [a92ab1a5e0e191b 2318f84 19275ab][ability_monitor.cpp114]called
+I     [a92ab1a5e0e191b 2318f84 19275ab][JUA2036]JsUIAbility call js, name: onWillForeground
+I     [a92ab1a5e0e191b 2318f84 19275ab][JUA2081]end, name: onWillForeground, time: 0
+I     [a92ab1a5e0e191b 2318f84 19275ab]GoForeground: reason: 4
+I     [a92ab1a5e0e191b 2318f84 19275ab]Show: Window show [name: toolbox0, id: 849, type: 1], reason: 4, state:1, requestState:1
+I     [a92ab1a5e0e191b 2318f84 19275ab]GetSystemSizeLimits: px[6240,6240,1040,780], vp[1920,1920,320,240], configMax:1920, vpr:3.250000, winType:1
+I     [a92ab1a5e0e191b 2318f84 19275ab]UpdateNewSize: fullscreen or compatible mode could not update new size, Id: 849
+I     [a92ab1a5e0e191b 2318f84 19275ab]IsSystemDensityChanged: windowId: 849, lastDensity: -1.000000, currDensity: 3.250000
+W     [a92ab1a5e0e191b 2318f84 19275ab]UpdateViewportConfig: uiContent is null!
+I     [a92ab1a5e0e191b 2318f84 19275ab][ui_ability_impl.cpp439]wnd call, AfterForeground
+W     [a92ab1a5e0e191b 2318f84 19275ab]GetAttachStateSyncResult: lifecycleCallback is null
+I     [a92ab1a5e0e191b 2318f84 19275ab]RSFrameRateLinker::Create id: 27547920236545
+I     [a92ab1a5e0e191b 33a1851 3723ac1]UpdateFocusState: focus: 1, id: 849
+I     [a92ab1a5e0e191b 2318f84 19275ab]RsFrameReportExt:[LoadLibrary] load library success!
+I     [a92ab1a5e0e191b 2318f84 19275ab]RsFrameReportExt:[Init] dlopen libframe_ui_intf.so success!
+I     [a92ab1a5e0e191b 3eab482 3723ac1]NotifyHighlightChange: windowId: 849, isHighlight: 1,
+I     [a92ab1a5e0e191b 2318f84 19275ab][Init]:ret:1, inited:1
+I     [a92ab1a5e0e191b 2318f84 19275ab]InitWaterfallMode: winId: 849
+I     [a92ab1a5e0e191b 2318f84 19275ab]NotifyWaterfallModeChange: winId: 849, waterfall: 0, stat: 2
+I     [a92ab1a5e0e191b 2318f84 19275ab]NotifyAfterDidForeground: reason: 4
+I     [a92ab1a5e0e191b 2318f84 19275ab]NotifyFreeMultiWindowModeResume: IsPcMode 0, isColdStart 1
+I     [a92ab1a5e0e191b 2318f84 19275ab]Show: Window show success [name:toolbox0, id:849, type:1]
+I     [a92ab1a5e0e191b 2318f84 19275ab]NotifyWindowStatusChange: id:849, windowMode:1, windowStatus:1, lastWindowStatus:1, skipRedundantWindowStatusNotifications:0
+W     [a92ab1a5e0e191b 2318f84 19275ab]OnDisplayInfoChange: data is not changed.
+I     [a92ab1a5e0e191b 2318f84 19275ab][JUA2036]JsUIAbility call js, name: onForeground
+I     [a92ab1a5e0e191b 2318f84 19275ab]TestAbility onForeground
+I     [a92ab1a5e0e191b 2318f84 19275ab][JUA2081]end, name: onForeground, time: 0
+I     [a92ab1a5e0e191b 2318f84 19275ab][ability_delegator.cpp502]called
+I     [a92ab1a5e0e191b 2318f84 19275ab][ability_delegator.cpp611]Enter
+W     [a92ab1a5e0e191b 2318f84 19275ab][ability_delegator.cpp619]ability property : name : TestAbility, state : 6
+I     [a92ab1a5e0e191b 2318f84 19275ab][ability_delegator.cpp652]Enter
+I     [a92ab1a5e0e191b 2318f84 19275ab][iability_monitor.cpp58]ability name : TestAbility, isNotify : true
+I     [a92ab1a5e0e191b 2318f84 19275ab][iability_monitor.cpp61]notify ability matched
+I     [a92ab1a5e0e191b 2318f84 19275ab][ability_monitor.cpp56]called
+E     [a92ab1a5e0e191b 43a402 3723ac1]NotifyUIExtHostRectChangeInGlobalDisplayListeners: uiContent is null
+W     [a92ab1a5e0e191b 1bcf9ab 3723ac1]NotifySingleHandTransformChange: id:849, uiContent is nullptr
+W     ThreadHandler: proto:0 policy:0 name:OS_IPC_3_6710 invoker:2407416448
+I     [a92ab1a5e0e191b 2318f84 19275ab][page_config_manager.cpp49]configJson is empty
+I     [a92ab1a5e0e191b 1c6719c 2318f84]NotifyAfterDidForeground execute
+I     [a92ab1a5e0e191b 1c6719c 2318f84][JUA2036]JsUIAbility call js, name: onDidForeground
+I     [a92ab1a5e0e191b 1c6719c 2318f84][JUA2081]end, name: onDidForeground, time: 0
+I     [a92ab1a5e0e191b 1c6719c 2318f84]GoResume: in
+I     [a92ab1a5e0e191b 1c6719c 2318f84]Resume: in, isColdStart: 1, isDidForeground: 0
+I     [a92ab1a5e0e191b 1c6719c 2318f84]NotifyAfterLifecycleResumed: in
+I     [a92ab1a5e0e191b 56c02a 2318f84]SetUIContentInner: testability/pages/Index, state:2, persistentId: 849
+I     [a92ab1a5e0e191b 56c02a 2318f84]SetUIContentComplete: persistentId=849
+I     [a92ab1a5e0e191b 56c02a 2318f84][(-1:-1:undefined)] CreateUIContent.
+I     [a92ab1a5e0e191b 56c02a 2318f84][(-1:-1:undefined)] report ace loaded
+I     [a92ab1a5e0e191b 56c02a 2318f84]OnAceLoaded end
+I     [a92ab1a5e0e191b 56c02a 2318f84][(-2:-1:undefined)] Init RenderService UniRender Type:0
+I     [a92ab1a5e0e191b 56c02a 2318f84][(-2:-1:undefined)] [com.ddabb.toolbox][entry_test][-1]: UIContent: apiCompatibleVersion: 50100018, apiTargetVersion: 50100018, and apiReleaseType: Release, useNewPipe: 1, enableCustomComponentCrossAbility: 0
+I     Start init Async Stack.
+I     Add watcher keyPrefix persist.sys.arkui.animationscale remoteWatcherId 7268 success
+I     [a92ab1a5e0e191b 2ae08ee 56c02a][(-1:-1:undefined)] dlsym function ReportData success.
+I     [a92ab1a5e0e191b 2ae08ee 56c02a][(-1:-1:undefined)] dlsym function ReportSyncEvent success.
+E     [a92ab1a5e0e191b 56c02a 2318f84][(-2:-1:undefined)] ConfigParserBase read system UI correction config file failed
+W     [a92ab1a5e0e191b 56c02a 2318f84][(-2:-1:undefined)] ArkUiFeatureParamManager failed to load UI correction config file
+I     NotifyWindowStatusDidChange: Id:849, WindowMode:1, windowStatus:1, lastWindowStatus:0, listenerSize:0, rect:[0 0 1260 2720]
+I     [a92ab1a5e0e191b 56c02a 2318f84][(-2:-1:undefined)] SetLocale language tag: zh-CN, select language: zh-CN
+I     [a92ab1a5e0e191b 56c02a 2318f84][(-2:-1:undefined)] [com.ddabb.toolbox][entry_test][-1]: SetLanguage: zh, colorMode: dark, deviceAccess: 0
+I     [a92ab1a5e0e191b 56c02a 2318f84][(-2:-1:undefined)] [com.ddabb.toolbox][entry_test][-1]: Initialize UIContent isModelJson:true
+I     [a92ab1a5e0e191b 56c02a 2318f84][(-2:-1:undefined)] subscribe hsp Update successfully
+I     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] SetHapPath, Use hap path to load resource
+I     [a92ab1a5e0e191b 56c02a 2318f84]RegisterWaterfallModeChangeListener: winId: 849
+I     [a92ab1a5e0e191b 56c02a 2318f84]GetSurfaceNode: name:toolbox0, id:849
+I     [a92ab1a5e0e191b 56c02a 2318f84]GetSurfaceNode: name:toolbox0, id:849
+I     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] SetRSSurfaceNode 27547920236546 with rs multi
+I     [a92ab1a5e0e191b 56c02a 2318f84]RSUIContext::AttachFromUI. token: 27547920236545 uiPiplineNum: -1
+I     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] createManager, deviceType: 0
+W     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] Invalid config:zh_CN-long-notround-vertical-dark-phone-xxhdpi
+I     [a92ab1a5e0e191b 56c02a 2318f84]RSSurfaceNode::SetAbilityState, surfaceNodeId:[27547920236546], ability state: background
+I     Init async stack successfully.
+I     Finish init Async Stack.
+I     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] set translateManager to pipeline, instanceId:100000
+I     [a92ab1a5e0e191b 56c02a 2318f84]RegisterOrientationChangeListener: in
+I     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] AddPersistAfterLayoutTask size: 1
+I     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] Debug touch pass mode 0
+W     load absolute_path /system/lib64/libtransform_interaction_ext.z.so: check ns accessible failed namespace=ndk.
+W     load /system/lib64/libtransform_interaction_ext.z.so failed, namespace=ndk no inherits, errno=2
+W     load absolute_path /system/lib64/libtransform_interaction_ext.z.so: check ns accessible failed namespace=passthrough.
+W     load /system/lib64/libtransform_interaction_ext.z.so failed, namespace=passthrough no inherits, errno=2
+W     load absolute_path /system/lib64/libtransform_interaction_ext.z.so: check ns accessible failed namespace=passthrough_indirect.
+W     load /system/lib64/libtransform_interaction_ext.z.so failed, namespace=passthrough_indirect no inherits, errno=2
+W     load absolute_path /system/lib64/libtransform_interaction_ext.z.so: check ns accessible failed namespace=vendor.
+W     load /system/lib64/libtransform_interaction_ext.z.so failed, namespace=vendor no inherits, errno=2
+W     load /system/lib64/libtransform_interaction_ext.z.so failed, namespace=default, errno=2
+W     dlopen_impl load library header failed for /system/lib64/libtransform_interaction_ext.z.so
+E     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] AceTransform load failed: Error loading shared library /system/lib64/libtransform_interaction_ext.z.so: No such file or directory
+I     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] ResourceAdapter UpdateResConfig with colorMode dark
+W     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] not found systemTheme in HapModuleInfo, loading default OHOS_THEME
+I     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] Cannot Get File List from resources/styles/
+W     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] GetAsset failed: resources/styles/default.json
+I     [a92ab1a5e0e191b 56c02a 2318f84]RSTransactionHandler::Begin syncId:0, transactionHandler:13583234145423848345, remoteTransactionDataStack.size:0
+I     [a92ab1a5e0e191b 56c02a 2318f84]RSTransactionHandler::Commit transactionHandler:13583234145423848345
+W     [a92ab1a5e0e191b 56c02a 2318f84]RSNodeMap::UnregisterNode: node id 27547920236546 not found
+I     [a92ab1a5e0e191b 56c02a 2318f84]RSRootNode::Create, Node:27547920236547, Token:27547920236545
+I     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] root node OnAttachToFrameNode, id:0
+I     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] Rosenwindow set root, rsId:27547920236547
+I     [a92ab1a5e0e191b 56c02a 2318f84]RSRootNode::AttachRSSurfaceNode, SurfaceNode:27547920236546, Node:27547920236547
+I     [a92ab1a5e0e191b 56c02a 2318f84]RSTransactionHandler::Begin syncId:0, transactionHandler:14446311290177757127, remoteTransactionDataStack.size:0
+I     [a92ab1a5e0e191b 56c02a 2318f84]RSTransactionHandler::Commit transactionHandler:14446311290177757127
+W     [a92ab1a5e0e191b 56c02a 2318f84]RSNodeMap::UnregisterNode: node id 27547920236546 not found
+E     [a92ab1a5e0e191b 56c02a 2318f84][(AccessibilitySystemAbilityClientImpl:78)]accessibility service is ready.
+I     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] focusWindowId: 0, realHostWindowId: 0
+I     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] [com.ddabb.toolbox][entry_test][100000]: window focus
+I     Add watcher keyPrefix debug.graphic.frame remoteWatcherId 7268 success
+I     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] font path exist
+I     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] LoadThemeFont:hykaitij.ttf
+I     [a92ab1a5e0e191b 56c02a 2318f84]RSInterfaces: Register typeface with share memory, name: HYKaiTiJ hash: 3659894393
+I     [a92ab1a5e0e191b 56c02a 2318f84]RegisterTypeface: Succeed in registering typeface, family name: OhosThemeFont, hash: 3834975151
+I     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] ArkUIInvisibleFreeze: 0
+I     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] [com.ddabb.toolbox][entry_test][100000]: SetMinPlatformVersion is 50100018
+I     [a92ab1a5e0e191b 56c02a 2318f84]RegisterAvoidAreaChangeListener: win 849
+I     NotifyTransformChange: in
+E     [nodict][a92ab1a5e0e191b 56c02a 2318f84]Read result failed, code is: 4.
+E     [nodict][a92ab1a5e0e191b 56c02a 2318f84]Read result failed, code is: 4.
+I     [a92ab1a5e0e191b 56c02a 2318f84]InitSceneSessionManagerProxy: enter
+E     [a92ab1a5e0e191b 35d3028 16a5afb]NotifyUIExtHostRectChangeInGlobalDisplayListeners: uiContent is null
+I     [a92ab1a5e0e191b 125515b 16a5afb]UpdateRect: id:849 name:toolbox0 rect:[0 0 1260 2720]->[0 0 1260 2720] reason:23 displayId:0
+I     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] InitializeSafeArea systemInsets:SafeAreaInsets left_: [start: 0, end: 0], top_: [start: 0, end: 123], right_: [start: 0, end: 0], bottom_: [start: 0, end: 0], cutoutInsets:SafeAreaInsets left_: [start: 0, end: 0], top_: [start: 36, end: 108], right_: [start: 0, end: 0], bottom_: [start: 0, end: 0], navInsets:SafeAreaInsets left_: [start: 0, end: 0], top_: [start: 0, end: 0], right_: [start: 0, end: 0], bottom_: [start: 2629, end: 2720]
+I     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] Initialize displayId: 0, availableRect: [0, 0, 1260, 2720]
+I     [a92ab1a5e0e191b 56c02a 2318f84]GetProcessName[66]name is: com.ddabb.toolbox
+I     [a92ab1a5e0e191b 56c02a 2318f84][(-2:100000:singleton)] [com.ddabb.toolbox][entry_test][100000]: Initialize: testability/pages/Index
+I     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] RunPage:testability/pages/Index
+W     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] GetAsset failed: manifest.json
+I     [a92ab1a5e0e191b 56c02a 2318f84]InitUIContent: [0, 0]
+I     [a92ab1a5e0e191b 56c02a 2318f84]SetUIContentInner: single hand, id:849, posX:0, posY:0, scaleX:1.000000, scaleY:1.000000
+I     [a92ab1a5e0e191b fa49ec 56c02a][(-1:100000:singleton)] Subscribe touch.events.pass.through Event
+I     [a92ab1a5e0e191b 56c02a 2318f84]UpdateDecorEnable: decorVisible:1, id: 849
+I     [a92ab1a5e0e191b 56c02a 2318f84][(-2:100000:singleton)] [com.ddabb.toolbox][entry_test][100000]: UpdateWindowVisible: 1, hasDecor: 0
+I     [a92ab1a5e0e191b 56c02a 2318f84][(-2:100000:singleton)] [com.ddabb.toolbox][entry_test][100000]: NotifyWindowMode mode = 1
+I     [a92ab1a5e0e191b 56c02a 2318f84][(-2:100000:singleton)] [com.ddabb.toolbox][entry_test][100000]: window foreground
+I     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] Update application state , state: ON_SHOW
+I     [a92ab1a5e0e191b 56c02a 2318f84]RSSurfaceNode::SetAbilityState, surfaceNodeId:[27547920236546], ability state: foreground
+I     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] ArkUI requests first Vsync.
+I     [a92ab1a5e0e191b 56c02a 2318f84]RequestVsync: First vsync has requested, nodeId: 27547920236546
+I     [a92ab1a5e0e191b 56c02a 2318f84][(-2:100000:singleton)] [com.ddabb.toolbox][entry_test][100000]: UpdateViewportConfig Viewport config: size: (1260, 2720) orientation: 0 density: 3.250000 position: (0, 0) transformHint: 0 displayId: 0, windowSizeChangeReason 0, is rsTransaction nullptr 1, , keyboardInfo is null
+I     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] Update displayWindowRect in UpdateViewportConfig to : Rect (0.00, 0.00) - [0.00 x 0.00]
+I     [a92ab1a5e0e191b 56c02a 2318f84]UpdateViewportConfig: Id: 849, reason: 0, windowRect: [0 0 1260 2720], displayOrientation: 0, config[0, 0, 0, 3.250000]
+I     [a92ab1a5e0e191b 56c02a 2318f84][(-2:100000:singleton)] [com.ddabb.toolbox][entry_test][100000]: window focus
+I     [a92ab1a5e0e191b 56c02a 2318f84][(-2:100000:singleton)] [com.ddabb.toolbox][entry_test][100000]:window active
+I     [a92ab1a5e0e191b 56c02a 2318f84]NotifyAfterUIContentReady: Renotify transform, id:849, scaleX:1.000000, scaleY:1.000000
+W     [a92ab1a5e0e191b 56c02a 2318f84][source_map.cpp145]the stack without line info
+I     [a92ab1a5e0e191b 56c02a 2318f84]Succeeded in loading the content.
+I     [a92ab1a5e0e191b 56c02a 2318f84]Window [849, toolbox0] load content end, ret=0
+I     [a92ab1a5e0e191b 56c02a 2318f84]Application is in starting period.
+I     [a92ab1a5e0e191b 29ad1bc 170cf2a]NotifyAvoidAreaChange: win 849 api 18 type 0 area top [0 0 1260 123]
+I     [a92ab1a5e0e191b 29ad1bc 170cf2a]NotifyAvoidAreaChange: win 849 api 18 type 1 area top [494 36 273 72]
+I     [a92ab1a5e0e191b 29ad1bc 170cf2a]NotifyAvoidAreaChange: win 849 api 18 type 2 area empty
+I     [a92ab1a5e0e191b 29ad1bc 170cf2a]NotifyAvoidAreaChange: win 849 api 18 type 3 area empty
+I     [a92ab1a5e0e191b 29ad1bc 170cf2a]NotifyAvoidAreaChange: win 849 api 18 type 4 area bottom [409 2629 442 91]
+I     [a92ab1a5e0e191b 29ad1bc 170cf2a]UpdateViewportConfig: Id: 849, reason: 0, windowRect: [0 0 1260 2720], displayOrientation: 0, config[0, 0, 0, 3.250000]
+I     Add watcher keyPrefix persist.ace.trace.layout.enabled remoteWatcherId 7268 success
+I     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] Update application state , state: ON_ACTIVE
+I     [a92ab1a5e0e191b 56c02a 2318f84][(SubscribeStateObserver:652)]Observer has subscribed!
+I     [a92ab1a5e0e191b 56c02a 2318f84][(SubscribeStateObserver:652)]Observer has subscribed!
+I     [a92ab1a5e0e191b 56c02a 2318f84][(SubscribeStateObserver:652)]Observer has subscribed!
+I     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] Window: 849 get focus.
+W     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] Current focus view can not found!
+I     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] Request focus on rootFocusHub: root/0
+I     Add watcher keyPrefix persist.ace.trace.inputevent.enabled remoteWatcherId 7268 success
+I     [a92ab1a5e0e191b 27b707f 125515b]UpdateViewportConfig: Id: 849, reason: 23, windowRect: [0 0 1260 2720], displayOrientation: 0, config[0, 0, 0, 3.250000]
+I     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] Page router manager is creating page[1]: url: testability/pages/Index path: testability/pages/Index.js, recoverable: yes, namedRouter: no
+I     Add watcher keyPrefix const.security.developermode.state remoteWatcherId 7268 success
+I     Add watcher keyPrefix persist.ace.debug.statemgr.enabled remoteWatcherId 7268 success
+W     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] style text_pattern not contains linear_split_child_min_size!
+W     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] style text_pattern not contains menu_celia_ask_is_support!
+I     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] view: page/2 show
+I     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] can't find inner navigation
+I     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] StageManager FrameNode notNeedSoftKeyboard.
+I     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] Container not SceneBoardWindow.
+I     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] LoadPage Success
+I     [a92ab1a5e0e191b bb8ffb 56c02a][(-2:100000:singleton)] SetIsFullScreen 1
+I     [a92ab1a5e0e191b bb8ffb 56c02a][(-2:100000:singleton)] NotifyWindowMode aliveUIExtensions = 0
+I     Add watcher keyPrefix persist.ace.debug.boundary.enabled remoteWatcherId 7268 success
+I     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] Root node request first frame.
+I     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] Update application state , state: ON_ACTIVE
+I     [a92ab1a5e0e191b 56c02a 2318f84][(SubscribeStateObserver:652)]Observer has subscribed!
+I     [a92ab1a5e0e191b 56c02a 2318f84][(SubscribeStateObserver:652)]Observer has subscribed!
+I     [a92ab1a5e0e191b 56c02a 2318f84][(SubscribeStateObserver:652)]Observer has subscribed!
+I     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] Window: 849 get focus.
+I     [a92ab1a5e0e191b 56c02a 2318f84][(100000:100000:scope)] Update application state , state: ON_ACTIVE
+I     [a92ab1a5e0e191b 56c02a 2318f84][(SubscribeStateObserver:652)]Observer has subscribed!
+I     [a92ab1a5e0e191b 56c02a 2318f84][(SubscribeStateObserver:652)]Observer has subscribed!
+I     [a92ab1a5e0e191b 56c02a 2318f84][(SubscribeStateObserver:652)]Observer has subscribed!
+I     [Hypium] rootSuite:{"description":"","childSuites":[{"description":"SudokuOCR_pipeline_full","childSuites":[],"specs":[{"description":"pipeline_01_standard_544","fi":0,"duration":0,"startTime":0,"isExecuted":false,"isSkip":false,"skipReason":"","expectMsg":""}],"beforeAll":[null],"afterAll":[],"beforeItSpecified":{},"afterItSpecified":{},"beforeEach":[],"beforeEachIt":[],"afterEach":[],"afterEachIt":[],"duration":0,"hookError":null,"isSkip":false,"skipReason":""}],"specs":[],"beforeAll":[],"afterAll":[],"beforeItSpecified":{},"afterItSpecified":{},"beforeEach":[],"beforeEachIt":[],"afterEach":[],"afterEachIt":[],"duration":0,"hookError":null,"isSkip":false,"skipReason":""}
+I     [Hypium][start] start run suites
+I     [Hypium][suite start]SudokuOCR_pipeline_full
+I     OHOS_REPORT_SUM: 1
+      OHOS_REPORT_STATUS: class=SudokuOCR_pipeline_full
+I     [Hypium]printSync called ...
+I     [js_ability_delegator.cpp662]argc: 1
+I     [js_ability_delegator.cpp1320]enter
+I     [ability_delegator.cpp352]Enter
+I     [test_observer_proxy.cpp23]created
+I     [ability_delegator.cpp365]message:
+      OHOS_REPORT_SUM: 1
+      OHOS_REPORT_STATUS: class=SudokuOCR_pipeline_full
+I     [test_observer_proxy.cpp33]start
+I     [test_observer_proxy.cpp28]destroyed
+I     [Hypium]SudokuOCR_pipeline_full suiteStart print success
+I     Add watcher keyPrefix persist.ace.performance.monitor.enabled remoteWatcherId 7268 success
+I     [OCR_TEST] initDigitTemplates: true
+I     [Hypium]start running case 'pipeline_01_standard_544'
+I     OHOS_REPORT_STATUS: class=SudokuOCR_pipeline_full
+      OHOS_REPORT_STATUS: current=1
+      OHOS_REPORT_STATUS: id=JS
+      OHOS_REPORT_STATUS: numtests=1
+      OHOS_REPORT_STATUS: stream=
+      OHOS_REPORT_STATUS: test=pipeline_01_standard_544
+      OHOS_REPORT_STATUS_CODE: 1
+I     [Hypium]printSync called ...
+I     [js_ability_delegator.cpp662]argc: 1
+I     [js_ability_delegator.cpp1320]enter
+I     [ability_delegator.cpp352]Enter
+I     [test_observer_proxy.cpp23]created
+I     [ability_delegator.cpp365]message:
+      OHOS_REPORT_STATUS: class=SudokuOCR_pipeline_full
+      OHOS_REPORT_STATUS: current=1
+      OHOS_REPORT_STATUS: id=JS
+      OHOS_REPORT_STATUS: numtests=1
+      OHOS_REPORT_STATUS: stream=
+      OHOS_REPORT_STATUS: test=pipeline_01_standard_544
+      OHOS_REPORT_STATUS_CODE: 1
+I     [test_observer_proxy.cpp33]start
+I     [test_observer_proxy.cpp28]destroyed
+I     [Hypium]pipeline_01_standard_544 specStart start print success
+I     [OCR_TEST] === pipeline: 01_standard_544 buf=18788 ===
+I     Application is in starting period.
+I     [a92ab1a5e0e191b 35b91d7 be5882][(100000:100000:scope)] [@146][ID: 1] The modal UIExtension is created.
+I     [a92ab1a5e0e191b 35b91d7 be5882][(100000:100000:scope)] Create UIExtensionNode
+I     [a92ab1a5e0e191b 35b91d7 be5882][(100000:100000:scope)] [@1083][ID: 1] RegisterPipelineEvent
+I     [a92ab1a5e0e191b 35b91d7 be5882][(100000:100000:scope)] [@1035][ID: 1] OnAttachToFrameNode
+I     [a92ab1a5e0e191b 35b91d7 be5882][(100000:100000:scope)] [@552][ID: 1] The current state is 'NONE' when UpdateWant, needCheck: '0'.
+I     [a92ab1a5e0e191b 35b91d7 be5882][(100000:100000:scope)] [@579][ID: 1] The ability KeyAsync 0, uIExtensionUsage: 0.
+I     [a92ab1a5e0e191b 35b91d7 be5882][(100000:100000:scope)] [@656][ID: 1] The session is created with bundle=com.huawei.hmsapp.appgallery, ability=DisposeAlertAbility, componentId=8, sessionType=1.
+I     [a92ab1a5e0e191b 35b91d7 be5882]GetExtensionConfig: waterfall: 0, winId: 849
+I     [a92ab1a5e0e191b 35b91d7 be5882]GetGestureBackEnabled: win 849 enable 1
+I     [a92ab1a5e0e191b 35b91d7 be5882][(100000:100000:scope)] [@699][ID: 1] Want param isNotifyOccupiedAreaChange is 1, realHostWindowId: 849, parentWindowType: 1
+I     [a92ab1a5e0e191b 1e855e2 35b91d7]GeneratePersistentId: persistentId: 0, persistentId_: 1100013570
+I     [a92ab1a5e0e191b 1e855e2 35b91d7]persistentId: 1100013570, bundleName: com.huawei.hmsapp.appgallery, moduleName: , abilityName: DisposeAlertAbility, isDensityFollowHost_: 0, density_: 3.250000
+I     [a92ab1a5e0e191b 35b91d7 be5882][(100000:100000:scope)] [@972][ID: 1] The state is changing from 'NONE' to 'FOREGROUND'.
+I     [a92ab1a5e0e191b 35b91d7 be5882][(100000:100000:scope)] [@1034][ID: 1] NotifyForeground, persistentid = 1100013570, hostWindowId = 849, windowSceneId = -1, IsSceneBoardWindow: 0, componentId=8.
+I     [a92ab1a5e0e191b 35b91d7 be5882]GetExtensionConfig: waterfall: 0, winId: 849
+I     [a92ab1a5e0e191b 35b91d7 be5882]GetGestureBackEnabled: win 849 enable 1
+I     [a92ab1a5e0e191b 2209ee 35b91d7]Activate session, id=1100013570
+I     [a92ab1a5e0e191b 35b91d7 be5882][(100000:100000:scope)] [@308][ID: 1] OnAttachContext newInstanceId: 100000, oldInstanceId: 100000, isMoving: 0, detachContextHappened: 0.
+I     [a92ab1a5e0e191b 35b91d7 be5882][(100000:100000:scope)] [@270][ID: 1] OnAttachToMainTree, isMoving: 0
+I     [a92ab1a5e0e191b 35b91d7 be5882][(100000:100000:scope)] modalNode->GetParent() 0 mark IsProhibitedAddChildNode when sessionId -1100013570,prohibitedRemoveByRouter: 1, isAllowAddChildBelowModalUec: 0.
+I     [a92ab1a5e0e191b 35b91d7 be5882][(100000:100000:scope)] view: ModalPage/9 show
+I     [a92ab1a5e0e191b 35b91d7 be5882][(100000:100000:scope)] View: page/2 lost focus
+I     [a92ab1a5e0e191b 35b91d7 be5882][(100000:100000:scope)] can't find inner navigation
+I     [a92ab1a5e0e191b 35b91d7 be5882][(100000:100000:scope)] [com.ddabb.toolbox][entry_test][100000]: create modal page, sessionId=1100013570, isProhibitBack=1, isAsyncModalBinding=0, isAllowedBeCovered=0, prohibitedRemoveByRouter=1, isAllowAddChildBelowModalUec=0, prohibitedRemoveByNavigation=1
+I     VsyncCallbackInner: First vsync has come back, nodeId: 27547920236546
+W     [(100000:100000:scope)] FeatureParamManager feature is missing or invalid
+I     InitTextBundleConfig: Adapter text height enabled 0
+I     [a92ab1a5e0e191b 2209ee 35b91d7]Activate ret:0, persistentId:1100013570
+E     LoadFromTypeface: Drawing_Text [LoadFromTypeface] not variable font!
+I     RSInterfaces: Register typeface with share memory, name: HYKaiTiJ hash: 3659894393
+I     CreatePixelMap success, id:1787274721740577,dSize:(800,800),srcSize: (544,544),dHdr:1,sHdr:1,memType: 2,cost 9121 us
+E     RegisterTypeface: Failed to register typeface in service.
+E     RSInterfaces: Failed to register typeface, name: HYKaiTiJ hash: 3659894393
+I     [(100000:100000:scope)] [@1312][ID: 1] NotifyDisplayArea displayArea=RectT (0.00, 0.00) - [1260.00 x 2720.00], curWindow=Rect (0.00, 0.00) - [1260.00 x 2720.00], reason=0, duration=0, persistentId=1100013570, componentId=8.
+I     [(100000:100000:scope)] ArkUi flush first frame messages.
+I     [(100000:100000:scope)] Request focus on focusView: ModalPage/9.
+I     [(100000:100000:scope)] WinFocusMove end, root/secure_field onBlur, ModalPage/secure_field onFocus, start: 2, end: 1, update: 2
+I     [(100000:100000:scope)] current focus node: (ModalPage/9). isDynamic: 0
+I     [(100000:100000:scope)] Trigger Window Focus Callback
+I     [(100000:100000:scope)] need keyboard : 0.
+I     id: 849, isNeedKeyboard: 0, keepKeyboardFlag: 0
+I     RequestInputMethodCloseKeyboard: Notify InputMethod framework close keyboard start. id: 849, isUIEProc: 0, hostWindowId: 849
+I     [(100000:100000:scope)] hide menu ng exit, window not exist
+I     FlushLayoutSize: NotifyFrameLayoutFinishFromApp, id: 849, rect: [0 0 1260 2720], notifyListener: 0
+I     ProcessJank: JankFrameMonitor::ProcessJank jank >= threshold
+I     [a92ab1a5e26791e 0 0]RSSurfaceNode::Unmarshalling, Node: 28063316312066, Name: com.huawei.hmsapp.appgalleryDisposeAlertAbility
+I     [a92ab1a5e26791e 0 0]ConnectInner: [id: 1100013570] state: 0,isTerminating:0, callingPid:6534, disableDelegator:0
+I     [a92ab1a5e26791e 0 0]GetRSUIContext: : RSUIContext is null, sessionId: 1100013570, screenId:18446744073709551615
+E     [a92ab1a5e26791e 0 0]SetRSUIContext: RSUIContext is null, RSNode [id: 28063316312066], RSUIContext is null
+I     [a92ab1a5e26791e 0 0]InitSessionPropertyWhenConnect: [id: 1100013570] requestedOrientation: 0, defaultRequestedOrientation: 0, userRequestedOrientation: 0
+I     [a92ab1a5e26791e 0 0]SetCallingPid: id:1100013570, 6534
+I     [a92ab1a5e26791e 0 0]sessionStateChangeFunc is null
+I     [a92ab1a5e26791e 0 0]sessionStateChangeNotifyManagerFunc is null
+E     [a92ab1a5e26791e 0 0]GetScreenSession: Error found screen session with id: 18446744073709551615
+I     [a92ab1a5e26791e 0 0]ConnectInner: set session id 1100013570 disableDelegator 0
+E     [a92ab1a5e26791e 0 0]WriteCombinedCompatibleConfig: combinedSize: 0 fail to meet the conditions
+I     [a92ab1a5e26791e 0 0][(100000:100000:scope)] [@1563][ID: 1] PostBusinessDataConsumeAsync, businessCode=1002.
+I     [a92ab1a5e26791e 0 0]NotifyExtensionSecureLimitChange: windowId: 849, isLimite: 1
+I     [a92ab1a5e26791e 0 0]Foreground: [id: 1100013570] state:1, isTerminating:0
+I     [a92ab1a5e26791e 0 0]SetActive: new active:1, id:1100013570, state:2
+I     [a92ab1a5e26791e 0 0]sessionStateChangeFunc is null
+I     [a92ab1a5e26791e 0 0]sessionStateChangeNotifyManagerFunc is null
+I     [a92ab1a5e26791e 0 0]sessionStateChangeFunc is null
+I     [a92ab1a5e26791e 0 0]sessionStateChangeNotifyManagerFunc is null
+I     [gc] SmartGC: app cold start just finished
+I     [a92ab1a5e26791e 0 0][(100000:100000:scope)] [@1563][ID: 1] PostBusinessDataConsumeAsync, businessCode=3002.
+I     GetStatusBarHeight: in
+I     GetStatusBarHeight: in
+I     GetStatusBarHeight: in
+I     GetStatusBarHeight: in
+I     GetStatusBarHeight: in
+I     GetStatusBarHeight: in
+I     [(Init)]Init called
+I     [(Init)]call AnalyseTextFrame done.
+I     success to submit start trace
+I     MainThread TraceCollector Start result: 0, Duration Time: 4857 ms
+I     BlockMonitor event name: GetImageInfo, Duration Time: 4857 ms
+I     GetHiViewRemoteService: refresh remote service instance.
+I     [a92ab1a5e0e191b 106faf2 16dfad8][app_recovery.cpp489]fileDir: /data/storage/el2/base/files
+W     OnVsyncTimeOut: in
+I     [a92ab1a5e26791e 0 0][(-2:100000:singleton)] [@674][ID: 1] The session is connected and the current state is 'FOREGROUND'.
+I     [a92ab1a5e26791e 0 0][(100000:100000:scope)] [@1588][ID: 1] OnRemoteReady the current state is 'FOREGROUND'.
+I     [a92ab1a5e26791e 0 0][(100000:100000:scope)] UIExtensionComponent/secure_field RequestFocusImmediatelyFromModalUEC isOnMainTree:1
+I     [a92ab1a5e26791e 0 0][(100000:100000:scope)] [@922][ID: 1] focused state notified to uiextension, persistentid = 1100013570, componentId=8.
+I     [a92ab1a5e26791e 0 0][(100000:100000:scope)] FocusSwitch end, ModalPage/secure_field onBlur, UIExtensionComponent/secure_field onFocus, start: 2, end: 1, update: 2
+I     [a92ab1a5e26791e 0 0][(100000:100000:scope)] current focus node: (UIExtensionComponent/8). isDynamic: 0
+I     [a92ab1a5e26791e 0 0][(100000:100000:scope)] UIExtension(UIExtensionComponent/8) not need process.
+I     [a92ab1a5e26791e 0 0][(100000:100000:scope)] [@922][ID: 1] focused state notified to uiextension, persistentid = 1100013570, componentId=8.
+I     [a92ab1a5e26791e 0 0][(100000:100000:scope)] UIExtensionManager register listener
+I     [a92ab1a5e26791e 0 0]GetExtensionConfig: waterfall: 0, winId: 849
+I     [a92ab1a5e26791e 0 0]GetGestureBackEnabled: win 849 enable 1
+I     [a92ab1a5e26791e 0 0][(100000:100000:scope)] Create UIExtensionAccessibilityChildTreeCallback
+I     [a92ab1a5e26791e 0 0][(100000:100000:scope)] [@1863][ID: 1] UIExtension: 7 register child tree, realHostWindowId: 849
+I     [a92ab1a5e26791e 0 0][(100000:100000:scope)] [@2419][ID: 1] RegisterUIExtBusinessConsumeCallback businessCode=1002.
+I     [a92ab1a5e26791e 0 0][(100000:100000:scope)] [@2419][ID: 1] RegisterUIExtBusinessConsumeCallback businessCode=1001.
+I     [a92ab1a5e26791e 0 0][(100000:100000:scope)] [@2419][ID: 1] RegisterUIExtBusinessConsumeCallback businessCode=3002.
+I     [a92ab1a5e26791e 0 0][(100000:100000:scope)] [@2434][ID: 1] NotifyHostWindowMode: instanceId = 100000, followStrategy = 1, mode = 1
+I     [a92ab1a5e26791e 0 0][(100000:100000:scope)] [@1645][ID: 1] SendWindowModeToProvider: mode = 1
+I     [a92ab1a5e26791e 0 0][(100000:100000:scope)] DispatchExtensionDataToHostWindow code=10002, want={"abilityName":"","action":"","bundleName":"","deviceId":"","entities":null,"flags":0,"parameters":"{}","type":"","uri":""}, persistentId=1100013570.
+I     [a92ab1a5e26791e 0 0]HandleRegisterHostWindowRectChangeListener: businessCode: 10002
+I     [a92ab1a5e26791e 0 0]HandleRegisterHostWindowRectChangeListener: persistentId: 1100013570 register rect change listener
+I     [a92ab1a5e26791e 0 0][(100000:100000:scope)] [@2399][ID: 1] OnUIExtBusinessReceive businessCode=1002.
+I     [a92ab1a5e26791e 0 0][(100000:100000:scope)] [@2399][ID: 1] OnUIExtBusinessReceive businessCode=3002.
+I     [a92ab1a5e26791e 0 0][(100000:100000:scope)] UECPattern send avoidInfo: needAvoid: false, titleHeight: 0, rect: RectT (0.00, 0.00) - [0.00 x 0.00].
+E     [(-2:100000:singleton)] ArkUI request vsync,but no vsync received in 3 seconds
+W     PrintRequestTs: recv vsync timeout, from:WM_6414, now:208165797147403, fromRsTs:208160942207314, timeInterval:4854940089ns
+I     [(100000:100000:scope)] UIExtensionSurface: isDisappearing = 0, paintRect = RectT (0.00, 0.00) - [1260.00 x 2720.00].
+I     [(100000:100000:scope)] [@1312][ID: 1] NotifyDisplayArea displayArea=RectT (0.00, 0.00) - [1260.00 x 2720.00], curWindow=Rect (0.00, 0.00) - [1260.00 x 2720.00], reason=0, duration=0, persistentId=1100013570, componentId=8.
+E     GetScreenSession: Error found screen session with id: 18446744073709551615
+I     [(100000:100000:scope)] [@913][ID: 1] Notify uiextension, persistentid = 1100013570 to clear the focus state, componentId=8.
+I     RSNode::AddChild, Id: 27547920236553, SurfaceNode:[Id: 28063316312066, name: com.huawei.hmsapp.appgalleryDisposeAlertAbility]
+I     [(100000:100000:scope)] [@1991][ID: 1] HandleVisibleAreaChange visible: 1, curVisible: 0, ratio: 1.000000, displayArea: RectT (0.00, 0.00) - [1260.00 x 2720.00].
+I     [(100000:100000:scope)] [@1822][ID: 1] The component is changing from 'visible' to 'visible'.
+I     ProcessJank: JankFrameMonitor::ProcessJank jank >= threshold
+W     OnAddSystemAbility# recoverTimer count:0
+I     [(FixedThreadPool)]Creating dynamic thread pool with max 8 threads.
+I     [(CreateWorkerIfNeeded)]Created worker thread. Active threads: <private>
+I     [(WorkerThread)]Worker thread <private> started. Active threads: 1
+I     [(Init)]init text recognition start
+I     GetStatusBarHeight: in
+W     [(RequestAbilityRemote)]Connection Callback init fail
+I     [AMC612]name:com.huawei.hmsapp.hiai TextServiceAbility, userId:-1
+I     [(HiAICallerToDLLiteExtension)]Create Session Success!
+I     [(HiAICallerToDLLiteExtension)]INIT Create sessionId: 135
+I     Start to open trace result: 1203, interval: 269 ms
+I     [(OnAbilityConnectDone)]OnAbilityConnectDone, ability key is com.huawei.hmsapp.hiai_TextServiceAbility
+I     [ACCS144]connect end,TextServiceAbility
+I     [(InitInner)]init text recognition callbacked start
+I     [(InitInner)]send init OCR result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 0.000521**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SwitchByCode)]capabiliy code, code = 1
+I     [(OnResult)]parse result OnResult code 0
+I     [(OnResult)]Setting promise value.
+I     [(OnResult)]set init result value success!
+I     [(InitComplete)]InitComplete start
+I     [(InitComplete)]resolve with result
+W     invalid configName=
+I     succ to register application state callback
+I     succ to load module=/system/lib64/libha_app_event.z.so.
+W     IsConfigInvalidChanged:no bundleName
+E     IsSupportSilentFromService:GetRdbService failed, err is 27394049.
+I     [Logger] init
+I     [TimeHelper] init
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(InitComplete)]InitComplete end
+I     [(CreateWorkerIfNeeded)]Created worker thread. Active threads: <private>
+I     [(WorkerThread)]Worker thread <private> started. Active threads: 2
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     Create:code:0 app[:] area[el2] cfg[0,0,0,0,1,0,0]app***.db:<DB,0x28787e,4096,100660><DWR,0x287880,4096,100660><SHM,0x5cdcd,32768,100660><WAL,0x1f385,0,100660>, pathSize:61
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 755, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     HandleSchemaDDL:db:app***.db exe DDL schema<0->1>
+I     HandleSchemaDDL:db:app***.db exe DDL schema<1->2>
+I     HandleSchemaDDL:db:app***.db exe DDL schema<2->3>
+I     HandleSchemaDDL:db:app***.db exe DDL schema<3->4>
+I     HandleSchemaDDL:db:app***.db exe DDL schema<4->5>
+I     HandleSchemaDDL:db:app***.db exe DDL schema<5->6>
+I     create db store successfully
+I     the observer does not exist in database, name=ha_app_event, hash=1915457907267372477
+I     register processor=1 successfully
+I     get free size=88257896448
+I     init watchers
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 102.764062**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 755, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 104.389063**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 113.282812**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 86.274479**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 90.234896**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 755
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 126.373959**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 760
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 129.602604**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 755
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 154.526041**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [gc] SmartGC: app cold start finished
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 144.022917**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 105.368230**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 755
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 119.902084**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 755
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 62.563541**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 94.332292**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 61.590625**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 755, and width is 755
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 145.185416**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 755
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 91.603646**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 70.907812**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 755, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 89.251042**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 755, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     Detect collect trace task complete.
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 129.894271**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 856, and width is 856
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 91.513021**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 625, and width is 1325
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 148.023437**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 755, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 105.460417**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 755, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 103.857292**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 755, and width is 760
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 82.004166**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [js_ability_delegator.cpp765]finalizer called
+I     [js_ability_delegator.cpp765]finalizer called
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 91.431771**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 67.888542**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 71.078125**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 856, and width is 856
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 65.886459**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 625, and width is 1325
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(-2:100000:singleton)] [@1711][ID: 1] OnResult the state is changing from 'FOREGROUND' to 'DESTRUCTION'.
+E     [(100000:100000:scope)] [@1633][ID: 1] Modal is not destroyed after UEC is destroyed!
+I     Background: Background ExtensionSession, id: 1100013570, state: 3
+I     NotifyExtensionSecureLimitChange: windowId: 849, isLimite: 0
+I     sessionStateChangeFunc is null
+I     [(100000:100000:scope)] [@2556][ID: 1] UEC UpdateWMSUIExtProperty state=DESTRUCTION.
+I     sessionStateChangeNotifyManagerFunc is null
+I     sessionStateChangeFunc is null
+I     sessionStateChangeNotifyManagerFunc is null
+I     Disconnect: [id: 1100013570] Disconnect session, state: 5
+I     [(-2:100000:singleton)] [@894][ID: 1] The session is disconnected and the current state is 'DESTRUCTION'.
+I     sessionStateChangeFunc is null
+I     sessionStateChangeNotifyManagerFunc is null
+I     sessionStateChangeFunc is null
+I     sessionStateChangeNotifyManagerFunc is null
+I     [(-2:100000:singleton)] [@1651][ID: 1] OnRelease the state is changing from 'DESTRUCTION' to 'DESTRUCTION' and releaseCode = 0.
+I     [(-2:100000:singleton)] [com.ddabb.toolbox][entry_test][100000]: close modal page, sessionId=1100013570
+I     [(-2:100000:singleton)] [@1075][ID: 1] OnReleaseDone, persistentid = 1100013570, componentId=8.
+I     Destroy session done with persistentId: 1100013570
+I     [AMC493]name: DisposeAlertAbility com.huawei.hmsapp.appgallery, persistentId: 1100013570
+W     [(100000:100000:scope)] The sessionId 1100013570 does not exist
+I     [(100000:100000:scope)] ProcessModalPageScene
+I     [(100000:100000:scope)] across processes CloseKeyboard Successfully.
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 116.468749**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(100000:100000:scope)] can't find inner navigation
+I     [(100000:100000:scope)] can't find inner navigation
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(100000:100000:scope)] ModalPage node remove from parent node
+I     [(100000:100000:scope)] view: ModalPage/9 close
+I     [(100000:100000:scope)] View: ModalPage/9 lost focus
+I     [(100000:100000:scope)] UIExtensionComponent/secure_fieldtrigger onBlurInternal by 3
+I     [(100000:100000:scope)] Blur Internal.
+I     [(100000:100000:scope)] [@396][ID: 1] OnDetachContext instanceId: 100000, isMoving: 0, isOnDetachContext: 0.
+I     [(100000:100000:scope)] UIExtensionManager unregister listener
+I     [(100000:100000:scope)] [@438][ID: 1] UnRegisterUIExtensionManagerEvent
+I     [(100000:100000:scope)] [@1115][ID: 1] UnRegisterPipelineEvent
+I     [(100000:100000:scope)] [@1991][ID: 1] HandleVisibleAreaChange visible: 0, curVisible: 1, ratio: 0.000000, displayArea: RectT (0.00, 0.00) - [1260.00 x 2720.00].
+I     [(100000:100000:scope)] [@1822][ID: 1] The component is changing from 'visible' to 'invisible'.
+I     [(100000:100000:scope)] [@290][ID: 1] OnDetachFromMainTree, isMoving: 0
+I     [(100000:100000:scope)] ResetRootNode -1100013570.
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     end to take data from observer=ha_app_event, seq=1, size=30
+I     OnEvents, 30
+I     set app freq, *o*_*u*w*i*h*o*_*d*_*c*: quota: 50, minutes: 5
+I     consumeQueue_ = 0 0 0 0 0
+I     delete 30 records, observerSeq=1, ret=0
+I     delete 30 records, ret=0
+I     delete 0 params unused
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(100000:100000:scope)] DispatchExtensionDataToHostWindow code=10003, want={"abilityName":"","action":"","bundleName":"","deviceId":"","entities":null,"flags":0,"parameters":"{}","type":"","uri":""}, persistentId=0.
+I     HandleUnregisterHostWindowRectChangeListener: businessCode: 10003
+I     HandleUnregisterHostWindowRectChangeListener: persistentId: 0 unregister rect change listener
+I     [(100000:100000:scope)] DispatchExtensionDataToHostWindow code=10003, want={"abilityName":"","action":"","bundleName":"","deviceId":"","entities":null,"flags":0,"parameters":"{}","type":"","uri":""}, persistentId=0.
+I     HandleUnregisterHostWindowRectChangeListener: businessCode: 10003
+I     HandleUnregisterHostWindowRectChangeListener: persistentId: 0 unregister rect change listener
+I     [(100000:100000:scope)] Destory UIExtensionNode
+I     [(100000:100000:scope)] [@1115][ID: 1] UnRegisterPipelineEvent
+I     [(100000:100000:scope)] [@151][ID: 1] The modal UIExtension is destroyed.
+I     [(100000:100000:scope)] [@184][ID: 1] LogoutModalUIExtension sessionId 0.
+I     [(100000:100000:scope)] [@1606][ID: 1] ModalOnDestroy the current state is 'DESTRUCTION'.
+W     [(100000:100000:scope)] [@2042][ID: 1] UIExtension pattern instanceId 100000 not equal frame node instanceId -1
+I     [(100000:100000:scope)] UIExtensionSurface: OnDetachFromFrameNode
+I     RSSurfaceNode::~RSSurfaceNode, Node: 28063316312066, Name: com.huawei.hmsapp.appgalleryDisposeAlertAbility
+W     RSNodeMap::UnregisterNode: node id 28063316312066 not found
+I     [(100000:100000:scope)] Request focus on focusView: page/2.
+I     [(100000:100000:scope)] FocusSwitch end, NULL/secure_field onBlur, Row/secure_field onFocus, start: 2, end: 1, update: 2
+I     [(100000:100000:scope)] current focus node: (Row/5). isDynamic: 0
+I     [(100000:100000:scope)] FrameNode(Row/5) notNeedSoftKeyboard.
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     hd:27 ct:1 D:*.IWindowEventChannel
+I     ~ExtensionSession: id=1100013570
+I     ~Session: id:1100013570
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 79.856250**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 856, and width is 856
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 82.475000**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 625, and width is 1325
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 109.399479**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 91.906771**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 90.244792**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 760
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 71.087500**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 755
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 79.086458**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 141.910937**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 856, and width is 856
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 77.982812**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 625, and width is 1325
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 132.575521**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 102.484375**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 146.608854**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 135.794271**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 856, and width is 856
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 102.522917**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 625, and width is 1325
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 134.002605**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 760
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 61.606250**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 102.875000**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 100.559896**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 110.501562**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 134.471354**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 856, and width is 856
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 125.683333**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 625, and width is 1325
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 119.537500**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 94.064063**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 110.664062**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 91.805729**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 84.698958**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 66.052604**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 97.958854**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 856, and width is 856
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 76.144792**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 625, and width is 1325
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 81.273958**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     end to take data from observer=ha_app_event, seq=1, size=30
+I     OnEvents, 30
+I     delete 30 records, observerSeq=1, ret=0
+I     delete 30 records, ret=0
+I     delete 0 params unused
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 92.703646**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 760
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 97.906250**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 856, and width is 856
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 88.032292**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 625, and width is 1005
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 106.859375**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 116.620313**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 114.095833**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 90.427604**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 124.890625**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 856, and width is 856
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 88.322396**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 625, and width is 1325
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 138.393229**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 123.604167**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 132.605208**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+W     ThreadHandler: proto:0 policy:0 name:OS_IPC_4_7553 invoker:2407420928
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 95.827083**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 760
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 132.997917**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 856, and width is 856
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 91.005730**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 625, and width is 1005
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 100.538021**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 117.898958**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 856, and width is 856
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 120.766667**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 625, and width is 1325
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 118.904166**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 127.556771**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 92.090625**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 123.708854**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 94.342708**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 213.017708**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 250.547396**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 856, and width is 856
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 107.115625**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 625, and width is 1325
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 149.002604**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 760
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 138.688021**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 755
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 118.105729**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 127.480730**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     end to take data from observer=ha_app_event, seq=1, size=30
+I     OnEvents, 30
+I     delete 30 records, observerSeq=1, ret=0
+I     delete 30 records, ret=0
+I     delete 0 params unused
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 107.243230**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 856, and width is 856
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 109.056250**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 625, and width is 1325
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 125.434896**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 835, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 133.222395**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 856, and width is 856
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 121.411459**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 625, and width is 1325
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 187.433334**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 760, and width is 755
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 98.453125**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 760, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 85.891667**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 760, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 71.576563**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 760, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 97.813541**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 760, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 145.738542**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 856, and width is 856
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 97.096354**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 625, and width is 1325
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 110.027604**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 760, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 131.968229**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 760, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 130.580209**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 760, and width is 835
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 139.072917**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 856, and width is 856
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 130.228646**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 625, and width is 1325
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 192.228646**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 760, and width is 760
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 141.596875**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 856, and width is 856
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 102.815625**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [(ParsePixelMap)]start to parse PixelMap
+I     [(ParsePixelMap)]parse pixel success
+I     [(RecognizeText)]call SafeAnalyseTextFrame done.
+I     [(SafeAnalyseTextFrame)]SafeAnalyseTextFrame start
+I     [(IsVisionInfoValid)]PixelMap is valid, The height is 625, and width is 1005
+I     [(SafeRunCapabilityInner)]send result : 0
+I     [(OnRemoteRequest)]**AI_TIME TextRecognition plugin cost 121.098438**
+I     [(OnRemoteRequest)]capabiliy code, code = 0
+I     [(SplitBaseArray)]The OCR text recognition result is empty.
+I     [(OnSafeResult)]parse result success!
+I     [(OnSafeResult)]set safePromise_ value success!
+I     [(AnalyseTextFrameComplete)]AnalyseTextFrameComplete called
+I     [(AnalyseTextFrameComplete)]resolve with result
+I     [OCR_DBG] 01_standard_544:MIS pipeline=像素分析+修正
+I     [OCR_DBG] 01_standard_544:MIS resize=
+I     [OCR_DBG] 01_standard_544:MIS bbox=
+I     [OCR_DBG] 01_standard_544:MIS probe=
+I     [OCR_DBG] 01_standard_544:MIS bboxDiag=longRun(abs=195): MINRUN=80 hRuns=22 hPx=16456 vRuns=22 vPx=16456 n=32428 bbox=[26,26,773,773] 748x748 aspect=1.00 areaRatio=0.874
+        → areaRatio∉[0.02,0.85] null
+      longRun(abs=215): MINRUN=80 hRuns=22 hPx=16456 vRuns=22 vPx=16456 n=32428 bbox=[26,26,773,773] 748x748 aspect=1.00 areaRatio=0.874
+        → areaRatio∉[0.02,0.85] null
+      longRun(abs=230): MINRUN=80 hRuns=40 hPx=29920 vRuns=40 vPx=29920 n=58240 bbox=[26,26,773,773] 748x748 aspect=1.00 areaRatio=0.874
+        → areaRatio∉[0.02,0.85] null
+      longRun(abs=243): MINRUN=80 hRuns=40 hPx=29920 vRuns=40 vPx=29920 n=58240 bbox=[26,26,773,773] 748x748 aspect=1.00 areaRatio=0.874
+        → areaRatio∉[0.02,0.85] null
+      longRun → null, trying primary
+      路径=primary ✓ [26,26,773,773]
+      longRun(abs=195): MINRUN=80 hRuns=22 hPx=16456 vRuns=22 vPx=16456 n=32428 bbox=[26,26,773,773] 748x748 aspect=1.00 areaRatio=0.874
+        → areaRatio∉[0.02,0.85] null
+      longRun(abs=215): MINRUN=80 hRuns=22 hPx=16456 vRuns=22 vPx=16456 n=32428 bbox=[26,26,773,773] 748x748 aspect=1.00 areaRatio=0.874
+        → areaRatio∉[0.02,0.85] null
+      longRun(abs=230): MINRUN=80 hRuns=40 hPx=29920 vRuns=40 vPx=29920 n=58240 bbox=[26,26,773,773] 748x748 aspect=1.00 areaRatio=0.874
+        → areaRatio∉[0.02,0.85] null
+      longRun(abs=243): MINRUN=80 hRuns=40 hPx=29920 vRuns=40 vPx=29920 n=58240 bbox=[26,26,773,773] 748x748 aspect=1.00 areaRatio=0.874
+        → areaRatio∉[0.02,0.85] null
+I     [OCR_DBG] 01_standard_544:MIS rawDigits=0
+I     [OCR_DBG] 01_standard_544:MIS vkOcrSize=
+I     [OCR_DBG] 01_standard_544:MIS vkBlocks=0
+I     [OCR_DBG] 01_standard_544:MIS vkGrid=
+I     [OCR_DBG] 01_standard_544:MIS   5 3 . 1 . . 1 . .
+I     [OCR_DBG] 01_standard_544:MIS   6 . . . . 1 . . .
+I     [OCR_DBG] 01_standard_544:MIS   . 4 . 1 . . 1 . .
+I     [OCR_DBG] 01_standard_544:MIS   1 . . . . 7 . . 1
+I     [OCR_DBG] 01_standard_544:MIS   4 . . 1 . . 1 . .
+I     [OCR_DBG] 01_standard_544:MIS   4 . . . . . . . .
+I     [OCR_DBG] 01_standard_544:MIS   1 . . . . . . . .
+I     [OCR_DBG] 01_standard_544:MIS   . 6 . 1 . . 1 2 8
+I     [OCR_DBG] 01_standard_544:MIS   . . . . . . . . .
+I     [OCR_DBG] 01_standard_544:MIS
+I     [OCR_DBG] 01_standard_544:MIS finalGrid=
+I     [OCR_DBG] 01_standard_544:MIS   5 3 . 1 7 . 1 . .
+I     [OCR_DBG] 01_standard_544:MIS   6 . . . . 5 . . .
+I     [OCR_DBG] 01_standard_544:MIS   . 4 8 1 . . 1 6 .
+I     [OCR_DBG] 01_standard_544:MIS   8 . . . 6 7 . . 3
+I     [OCR_DBG] 01_standard_544:MIS   4 . . 8 . . 1 . .
+I     [OCR_DBG] 01_standard_544:MIS   7 . . . 2 . . . .
+I     [OCR_DBG] 01_standard_544:MIS   1 . . . . . . . .
+I     [OCR_DBG] 01_standard_544:MIS   . 6 . 4 . 9 1 2 8
+I     [OCR_DBG] 01_standard_544:MIS   . . . . . . . 7 .
+I     [OCR_DBG] 01_standard_544:MIS
+I     [OCR_DBG] 01_standard_544:MIS fd=【逐格VK诊断】尝试17次 成功7 裁剪失败0 无block6 无中心4
+I     [OCR_DBG] 01_standard_544:MIS fd=  样本: raw="7" blocks=1 | raw="1" blocks=1 | raw="
+I     [OCR_DBG] 01_standard_544:MIS fd=5" blocks=2
+I     [OCR_DBG] 01_standard_544:MIS fd=
+I     [OCR_DBG] 01_standard_544:MIS fd=不变(0,3)=1 P=- V=-  冲突交换失败 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000]
+I     [OCR_DBG] 01_standard_544:MIS fd=不变(0,6)=1 P=- V=-  冲突交换失败 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000]
+I     [OCR_DBG] 01_standard_544:MIS fd=修正(1,5) 1→5 P=5 V=- P_only(conf=0.65 c=14→13) pxDiag=[digit=5 ink=238 diag=[]]
+I     [OCR_DBG] 01_standard_544:MIS fd=不变(2,3)=1 P=- V=-  冲突交换失败 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000]
+I     [OCR_DBG] 01_standard_544:MIS fd=不变(2,6)=1 P=- V=-  冲突交换失败 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000]
+I     [OCR_DBG] 01_standard_544:MIS fd=修正(3,0) 1→8 P=8 V=- P_only(conf=0.72 c=13→11) pxDiag=[digit=8 ink=291 diag=[]]
+I     [OCR_DBG] 01_standard_544:MIS fd=修正(3,8) 1→3 P=3 V=- P_only(conf=0.73 c=11→10) pxDiag=[digit=3 ink=242 diag=[]]
+I     [OCR_DBG] 01_standard_544:MIS fd=不变(4,0)=4 P=4 V=- P_only(conf=0.80 c=10→10) pxDiag=[digit=4 ink=217 diag=[best=4 score=605 ink=217 [stripLeftSkip: col0=1] sig=....................|...........######...|...........######...|...........######...|..........#######...|.........########...|.........########...|.........########...|........###..####...|........###..####...|......####...####...|.....#####...####...|.....####....####...|.....####....####...|....................|...#####.....####...|..#####......####...|..######.....####...|..#######..########.|..#################.|..#################.|#.#################.|.............####...|.............####...|.............####...|.............####...|.............####...|...........######...]]
+I     [OCR_DBG] 01_standard_544:MIS fd=修正(4,3) 1→8 P=8 V=- P_only(conf=0.67 c=10→9) pxDiag=[digit=8 ink=278 diag=[]]
+I     [OCR_DBG] 01_standard_544:MIS fd=不变(4,6)=1 P=- V=-  冲突交换失败 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000]
+I     [OCR_DBG] 01_standard_544:MIS fd=修正(5,0) 4→7 P=7 V=- P_only(conf=0.83 c=9→7) pxDiag=[digit=7 ink=200 diag=[best=7 score=634 ink=200 [] sig=....................|..################..|.#################.#|.###################|.#################..|..............####..|..............####..|.............####...|...........######...|...........######...|...........######...|..........#####.....|..........#####.....|..........#####.....|........######......|........######......|........######......|.......######.......|........######......|.......######.......|.......######.......|.......######.......|.....#.######.......|.....######.........|.....######.........|.....######.........|.....######.........|.....######.........]]
+I     [OCR_DBG] 01_standard_544:MIS fd=不变(6,0)=1 P=- V=-  冲突交换失败 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000]
+I     [OCR_DBG] 01_standard_544:MIS fd=修正(7,3) 1→4 P=4 V=- P_only(conf=0.79 c=7→6) pxDiag=[digit=4 ink=218 diag=[best=4 score=603 ink=218 [stripLeftSkip: col0=1] sig=....................|...........######...|...........######...|...........######...|..........#######...|.........########...|.........########...|.........########...|........###..####...|........###..####...|......####...####...|.....#####...####...|.....#####...####...|.....####....####...|....................|...#####.....####...|..#####......####...|..######.....####...|..#######..########.|..#################.|..#################.|#.#################.|.............####...|.............####...|.............####...|.............####...|.............####...|...........######...]]
+I     [OCR_DBG] 01_standard_544:MIS fd=不变(7,6)=1 P=- V=-  冲突交换失败 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000]
+I     [OCR_DBG] 01_standard_544:MIS fd=不变(0,0)=5 P=5 V=5 P=V pxDiag=[digit=5 ink=241 diag=[]]
+I     [OCR_DBG] 01_standard_544:MIS fd=不变(1,0)=6 P=6 V=- P_only_keep(conf=0.66 c=6→6) pxDiag=[digit=6 ink=270 diag=[]]
+I     [OCR_DBG] 01_standard_544:MIS fd=不变(7,1)=6 P=- V=-  pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000]
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(0,2) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(77ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=填充(0,4) 空→7 Vwide(116ms) P=7 V=- crop=VK=null(98ms) Vretry=null(68ms) Vwide=7(116ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(0,5) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(82ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(0,7) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(73ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(0,8) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(52ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(1,1) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(62ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(1,2) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(58ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=冲突回填(1,3) Vwide(103ms)=1冲突→留空 P=1 crop=VK=null(57ms) Vretry=null(57ms) Vwide=1(103ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(1,4) V=- P=9 ink=1 rawInk=0.0729 pxDiag=[digit=9 ink=265 diag=[]] crop=VK=null(50ms) Vretry=null(73ms) Vwide=null(96ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(1,6) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(78ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(1,7) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(70ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(1,8) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(52ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(2,0) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(62ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=填充(2,2) 空→8 P(conf=0.78) P=8 V=- crop=VK=null(93ms) Vretry=null(60ms) Vwide=null(99ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(2,4) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(83ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(2,5) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(113ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=填充(2,7) 空→6 Vwide(110ms) P=6 V=- crop=VK=null(80ms) Vretry=null(83ms) Vwide=6(110ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(2,8) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(49ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(3,1) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(82ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(3,2) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(77ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(3,3) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(86ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=填充(3,4) 空→6 Vwide(89ms) P=6 V=- crop=VK=null(83ms) Vretry=null(102ms) Vwide=6(89ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(3,6) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(72ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(3,7) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(90ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(4,1) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(58ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(4,2) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(57ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(4,4) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(47ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(4,5) V=- P=3 ink=1 rawInk=0.0624 pxDiag=[digit=3 ink=238 diag=[]] crop=VK=null(60ms) Vretry=null(62ms) Vwide=null(52ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(4,7) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(66ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(4,8) V=- P=1 ink=1 rawInk=0.0453 pxDiag=[digit=1 ink=130 diag=[]] crop=VK=null(79ms) Vretry=null(77ms) Vwide=null(82ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(5,1) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(84ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(5,2) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(80ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(5,3) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(71ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=填充(5,4) 空→2 Vwide(103ms) P=2 V=- crop=VK=null(68ms) Vretry=null(67ms) Vwide=2(103ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(5,5) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(90ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(5,6) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(96ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(5,7) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(76ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(5,8) V=- P=6 ink=1 rawInk=0.0735 pxDiag=[digit=6 ink=273 diag=[]] crop=VK=null(90ms) Vretry=null(74ms) Vwide=null(73ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(6,1) V=- P=6 ink=1 rawInk=0.0739 pxDiag=[digit=6 ink=283 diag=[]] crop=VK=null(83ms) Vretry=null(96ms) Vwide=null(85ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(6,2) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(96ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(6,3) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(66ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(6,4) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(93ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(6,5) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(79ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=冲突回填(6,6) V=2冲突→留空 P=2 crop=VK=2(164ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(6,7) V=- P=8 ink=1 rawInk=0.0794 pxDiag=[digit=8 ink=287 diag=[]] crop=VK=null(200ms) Vretry=null(95ms) Vwide=null(121ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(6,8) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(115ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(7,0) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(87ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(7,2) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(93ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(7,4) V=- P=1 ink=1 rawInk=0.0461 pxDiag=[digit=1 ink=133 diag=[lowInk7→1: s1=369.5>s7=318.5+30 topSpan=14 solidTop=3]] crop=VK=null(79ms) Vretry=null(93ms) Vwide=null(108ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=填充(7,5) 空→9 Vwide(149ms) P=9 V=- crop=VK=null(91ms) Vretry=null(100ms) Vwide=9(149ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(8,0) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(75ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(8,1) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(69ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(8,2) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(57ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(8,3) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(79ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(8,4) V=- P=8 ink=1 rawInk=0.0796 pxDiag=[digit=8 ink=291 diag=[]] crop=VK=null(108ms) Vretry=null(78ms) Vwide=null(87ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(8,5) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(114ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(8,6) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.025] rawInk=0.0000] crop=VK=null(115ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=填充(8,7) 空→7 Vwide(157ms) P=7 V=- crop=VK=null(103ms) Vretry=null(111ms) Vwide=7(157ms)
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(8,8) V=- P=9 ink=1 rawInk=0.0751 pxDiag=[digit=9 ink=271 diag=[]] crop=VK=null(99ms) Vretry=null(90ms) Vwide=null(95ms)
+I     [OCR_TEST] 01_standard_544: FAIL given:57% full:72% fp:10 fn:13 diff=R1C4:got=1 want=empty; R1C7:got=1 want=empty; R2C4:got=0 want=1; R2C5:got=0 want=9; R3C2:got=4 want=9; R3C4:got=1 want=empty; R3C7:got=1 want=empty; R4C6:got=7 want=empty; R5C6:got=0 want=3; R5C7:got=1 want=empty; R5C9:got=0 want=1; R6C9:got=0 want=6; R7C1:got=1 want=empty; R7C2:got=0 want=6; R7C7:got=0 want=2; R7C8:got=0 want=8; R8C2:got=6 want=empty; R8C5:got=0 want=1; R8C7:got=1 want=empty; R8C8:got=2 want=empty; R8C9:got=8 want=5; R9C5:got=0 want=8; R9C9:got=0 want=9
+I     [Hypium][fail]pipeline_01_standard_544 ; consuming 18347ms
+I     [Hypium][failDetail]expect 0.5666666666666667 equals 1
+I     OHOS_REPORT_STATUS: class=SudokuOCR_pipeline_full
+      OHOS_REPORT_STATUS: current=1
+      OHOS_REPORT_STATUS: id=JS
+      OHOS_REPORT_STATUS: numtests=1
+I     OHOS_REPORT_STATUS: stack=    at AssertException @ohos/hypium (oh_modules/.ohpm/@ohos+hypium@1.0.25/oh_modules/@ohos/hypium/src/main/service.js:75:9)
+          at anonymous @ohos/hypium (oh_modules/.ohpm/@ohos+hypium@1.0.25/oh_modules/@ohos/hypium/src/main/service.js:1149:37)
+          at anonymous entry (entry/src/ohosTest/ets/test/SudokuOcr.test.ets:194:31)
+I     OHOS_REPORT_STATUS: stream=Error in pipeline_01_standard_544, expect 0.5666666666666667 equals 1
+      OHOS_REPORT_STATUS: test=pipeline_01_standard_544
+      OHOS_REPORT_STATUS_CODE: -2
+      OHOS_REPORT_STATUS: consuming=18347
+I     [Hypium]printSync called ...
+I     [js_ability_delegator.cpp662]argc: 1
+I     [js_ability_delegator.cpp1320]enter
+I     [ability_delegator.cpp352]Enter
+I     [test_observer_proxy.cpp23]created
+I     [ability_delegator.cpp365]message:
+      OHOS_REPORT_STATUS: class=SudokuOCR_pipeline_full
+      OHOS_REPORT_STATUS: current=1
+      OHOS_REPORT_STATUS: id=JS
+      OHOS_REPORT_STATUS: numtests=1
+I     [test_observer_proxy.cpp33]start
+I     [test_observer_proxy.cpp28]destroyed
+I     [Hypium]printSync called ...
+I     [js_ability_delegator.cpp662]argc: 1
+I     [js_ability_delegator.cpp1320]enter
+I     [ability_delegator.cpp352]Enter
+I     [test_observer_proxy.cpp23]created
+I     [ability_delegator.cpp365]message: OHOS_REPORT_STATUS: stack=    at AssertException @ohos/hypium (oh_modules/.ohpm/@ohos+hypium@1.0.25/oh_modules/@ohos/hypium/src/main/service.js:75:9)
+          at anonymous @ohos/hypium (oh_modules/.ohpm/@ohos+hypium@1.0.25/oh_modules/@ohos/hypium/src/main/service.js:1149:37)
+          at anonymous entry (entry/src/ohosTest/ets/test/SudokuOcr.test.ets:194:31)
+I     [test_observer_proxy.cpp33]start
+I     [test_observer_proxy.cpp28]destroyed
+I     [Hypium]printSync called ...
+I     [js_ability_delegator.cpp662]argc: 1
+I     [js_ability_delegator.cpp1320]enter
+I     [ability_delegator.cpp352]Enter
+I     [test_observer_proxy.cpp23]created
+I     [ability_delegator.cpp365]message: OHOS_REPORT_STATUS: stream=Error in pipeline_01_standard_544, expect 0.5666666666666667 equals 1
+      OHOS_REPORT_STATUS: test=pipeline_01_standard_544
+      OHOS_REPORT_STATUS_CODE: -2
+      OHOS_REPORT_STATUS: consuming=18347
+I     [test_observer_proxy.cpp33]start
+I     [test_observer_proxy.cpp28]destroyed
+I     [Hypium]pipeline_01_standard_544 specDone end print success
+I     [suite end] SudokuOCR_pipeline_full consuming 18347 ms
+I     OHOS_REPORT_STATUS: class=SudokuOCR_pipeline_full
+      OHOS_REPORT_STATUS: suiteconsuming=18347
+I     [Hypium]printSync called ...
+I     [js_ability_delegator.cpp662]argc: 1
+I     [js_ability_delegator.cpp1320]enter
+I     [ability_delegator.cpp352]Enter
+I     [test_observer_proxy.cpp23]created
+I     [ability_delegator.cpp365]message:
+      OHOS_REPORT_STATUS: class=SudokuOCR_pipeline_full
+      OHOS_REPORT_STATUS: suiteconsuming=18347
+I     [test_observer_proxy.cpp33]start
+I     [test_observer_proxy.cpp28]destroyed
+I     [Hypium]SudokuOCR_pipeline_full suiteDone print success
+I     [Hypium]total cases:1;failure 1,error 0,pass 0; consuming 18347ms
+I     [Hypium][end] run suites end
+I     OHOS_REPORT_RESULT: stream=Tests run: 1, Failure: 1, Error: 0, Pass: 0, Ignore: 0
+      OHOS_REPORT_CODE: -1
+      OHOS_REPORT_STATUS: taskconsuming=18347
+I     [Hypium]printSync called ...
+I     [js_ability_delegator.cpp662]argc: 1
+I     [js_ability_delegator.cpp1320]enter
+I     [ability_delegator.cpp352]Enter
+I     [test_observer_proxy.cpp23]created
+I     [ability_delegator.cpp365]message:
+      OHOS_REPORT_RESULT: stream=Tests run: 1, Failure: 1, Error: 0, Pass: 0, Ignore: 0
+      OHOS_REPORT_CODE: -1
+      OHOS_REPORT_STATUS: taskconsuming=18347
+I     [test_observer_proxy.cpp33]start
+I     [test_observer_proxy.cpp28]destroyed
+I     [Hypium]report print success
+I     [js_ability_delegator.cpp955]argc: 3
+I     [js_ability_delegator.cpp1409]called
+I     StartProfileMainThread durationTime: 323 ms, sampleInterval: 150.
+I     [js_ability_delegator.cpp967]complete called
+I     [ability_delegator.cpp700]msg: your test finished!!!, code: 0
+W     [JAS274]Not found AbilityStage.js
+W     [js_runtime.cpp1663]invalid nativeRef
+I     Create ThreadSampler.
+I     ThreadSampler has been successfully loaded.
+E     [MTHRD4126]null assertThread
