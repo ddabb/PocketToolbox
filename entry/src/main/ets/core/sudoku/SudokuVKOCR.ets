@@ -47,6 +47,7 @@ export async function recognizeDigitInWideRegion(
   centerCellX: number, centerCellY: number,
   centerCellW: number, centerCellH: number
 ): Promise<number | null> {
+  const diag: PerCellVkDiag = g_perCellVkDiag;
   try {
     const visionInfo: textRecognition.VisionInfo = { pixelMap: cellPm };
     const recogResult: textRecognition.TextRecognitionResult =
@@ -55,7 +56,6 @@ export async function recognizeDigitInWideRegion(
       });
 
     const rawText: string = recogResult.value || '';
-    const diag: PerCellVkDiag = g_perCellVkDiag;
     if (diag.samples.length < 3) {
       const blockArr: Array<textRecognition.TextBlock> = recogResult.blocks || [];
       diag.samples.push(`raw="${rawText.slice(0, 30)}" blocks=${blockArr.length}`);
@@ -130,7 +130,7 @@ export async function recognizeDigitInWideRegion(
     return null;
   } catch (_e) {
     hilog.error(DOMAIN, TAG, 'VisionKit宽域识异常: %{public}s', `${_e}`);
-    g_perCellVkDiag.noBlock++;
+    diag.noBlock++;
     return null;
   }
 }

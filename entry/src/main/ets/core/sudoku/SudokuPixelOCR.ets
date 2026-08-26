@@ -235,7 +235,7 @@ export function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, he
         }
       }
     }
-    g_lastDebugPixelCellStats = `warp路径: sigOK=${sigCount}/81 digits=${digitCount}/81`;
+    setLastDebugPixelCellStats(`warp路径: sigOK=${sigCount}/81 digits=${digitCount}/81`);
   } else {
     hilog.info(DOMAIN, TAG, '【像素透视/网格】角点检测失败 使用AABB');
     setLastDebugPixelWarpInfo('角点检测失败，使用AABB');
@@ -243,7 +243,7 @@ export function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, he
     const gridLines: GridLines | null = findPreciseGridLines(gray, width, height, bbox, bg);
     if (gridLines !== null) {
       hilog.info(DOMAIN, TAG, '【像素透视/网格】精确网格线OK');
-      g_lastDebugPixelWarpInfo += ' → 精确网格线OK';
+      setLastDebugPixelWarpInfo(g_lastDebugPixelWarpInfo + ' → 精确网格线OK');
       resetGridLineCrop();
       detectGridLineWidths(gray, width, bbox.left, bbox.top, bbox.right, bbox.bottom, isDark, bg);
       let sigCount2: number = 0;
@@ -305,9 +305,9 @@ export function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, he
           }
         }
       }
-      g_lastDebugPixelCellStats = `gridLines路径: sigOK=${sigCount2}/81 digits=${digitCount2}/81 vLines=${gridLines.vLines.length} hLines=${gridLines.hLines.length}`;
+      setLastDebugPixelCellStats(`gridLines路径: sigOK=${sigCount2}/81 digits=${digitCount2}/81 vLines=${gridLines.vLines.length} hLines=${gridLines.hLines.length}`);
     } else {
-      g_lastDebugPixelWarpInfo += ' → AABB均匀分格';
+      setLastDebugPixelWarpInfo(g_lastDebugPixelWarpInfo + ' → AABB均匀分格');
       resetGridLineCrop();
       detectGridLineWidths(gray, width, bbox.left, bbox.top, bbox.right, bbox.bottom, isDark, bg);
       let sigCount3: number = 0;
@@ -353,7 +353,7 @@ export function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, he
           }
         }
       }
-      g_lastDebugPixelCellStats = `AABB路径: sigOK=${sigCount3}/81 digits=${digitCount3}/81`;
+      setLastDebugPixelCellStats(`AABB路径: sigOK=${sigCount3}/81 digits=${digitCount3}/81`);
     }
   }
 
@@ -537,7 +537,7 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
         await yieldThread();
       }
     }
-    g_lastDebugPixelCellStats = `warp路径: sigOK=${sigCount}/81 digits=${digitCount}/81`;
+    setLastDebugPixelCellStats(`warp路径: sigOK=${sigCount}/81 digits=${digitCount}/81`);
   } else {
     hilog.info(DOMAIN, TAG, '【像素透视/网格】角点检测失败 使用AABB');
     setLastDebugPixelWarpInfo('角点检测失败，使用AABB');
@@ -546,7 +546,7 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
     const gridLines: GridLines | null = findPreciseGridLines(gray, width, height, bbox, bg);
     if (gridLines !== null) {
       hilog.info(DOMAIN, TAG, '【像素透视/网格】精确网格线OK');
-      g_lastDebugPixelWarpInfo += ' → 精确网格线OK';
+      setLastDebugPixelWarpInfo(g_lastDebugPixelWarpInfo + ' → 精确网格线OK');
       resetGridLineCrop();
       detectGridLineWidths(gray, width, bbox.left, bbox.top, bbox.right, bbox.bottom, isDark, bg);
       await yieldThread();
@@ -631,9 +631,9 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
           await yieldThread();
         }
       }
-      g_lastDebugPixelCellStats = `gridLines路径: sigOK=${sigCount2}/81 digits=${digitCount2}/81 vLines=${gridLines.vLines.length} hLines=${gridLines.hLines.length}`;
+      setLastDebugPixelCellStats(`gridLines路径: sigOK=${sigCount2}/81 digits=${digitCount2}/81 vLines=${gridLines.vLines.length} hLines=${gridLines.hLines.length}`);
     } else {
-      g_lastDebugPixelWarpInfo += ' → AABB均匀分格';
+      setLastDebugPixelWarpInfo(g_lastDebugPixelWarpInfo + ' → AABB均匀分格');
       resetGridLineCrop();
       detectGridLineWidths(gray, width, bbox.left, bbox.top, bbox.right, bbox.bottom, isDark, bg);
       await yieldThread();
@@ -695,7 +695,7 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
           await yieldThread();
         }
       }
-      g_lastDebugPixelCellStats = `AABB路径: sigOK=${sigCount3}/81 digits=${digitCount3}/81`;
+      setLastDebugPixelCellStats(`AABB路径: sigOK=${sigCount3}/81 digits=${digitCount3}/81`);
     }
   }
 
@@ -704,7 +704,7 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
     const ci: CellCoordInfo = g_lastCellCoords[idx];
     coordLines.push(`R${ci.row}C${ci.col}:d=${ci.digit} rect=[${ci.left},${ci.top},${ci.w}x${ci.h}] conf=${ci.conf.toFixed(2)} ink=${ci.rawInk.toFixed(4)} imgSize=${ci.imgW}x${ci.imgH} src=${ci.source}`);
   }
-  g_lastDebugPixelCellCoords = coordLines.join('\n');
+  setLastDebugPixelCellCoords(coordLines.join('\n'));
 
   let gridStr: string = '[SudokuOCR] 像素分析结果:\n';
   for (let r: number = 0; r < 9; r++) {
