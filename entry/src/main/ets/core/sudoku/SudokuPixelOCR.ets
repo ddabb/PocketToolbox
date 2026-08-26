@@ -464,7 +464,7 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
     if (warpGridLines !== null) {
       detectGridLineWidths(warpedGray, outSize, 0, 0, outSize, outSize, warpIsDark, warpBg);
     }
-    g_lastDebugPixelWarpInfo = `透视校正 outSize=${outSize} confidence=${corners.confidence.toFixed(2)} warpBg=${warpBg.toFixed(1)} warpIsDark=${warpIsDark ? 1 : 0} warpGridLines=${warpGridLines !== null ? 'OK' : 'null'} corners=[${corners.topLeftX.toFixed(0)},${corners.topLeftY.toFixed(0)}]-[${corners.topRightX.toFixed(0)},${corners.topRightY.toFixed(0)}]-[${corners.bottomRightX.toFixed(0)},${corners.bottomRightY.toFixed(0)}]-[${corners.bottomLeftX.toFixed(0)},${corners.bottomLeftY.toFixed(0)}]`;
+    setLastDebugPixelWarpInfo(`透视校正 outSize=${outSize} confidence=${corners.confidence.toFixed(2)} warpBg=${warpBg.toFixed(1)} warpIsDark=${warpIsDark ? 1 : 0} warpGridLines=${warpGridLines !== null ? 'OK' : 'null'} corners=[${corners.topLeftX.toFixed(0)},${corners.topLeftY.toFixed(0)}]-[${corners.topRightX.toFixed(0)},${corners.topRightY.toFixed(0)}]-[${corners.bottomRightX.toFixed(0)},${corners.bottomRightY.toFixed(0)}]-[${corners.bottomLeftX.toFixed(0)},${corners.bottomLeftY.toFixed(0)}]`);
     hilog.info(DOMAIN, TAG, '【像素透视/网格】outSize=%{public}d confidence=%{public}.2f warpBg=%{public}.1f gridLines=%{public}s', outSize, corners.confidence, warpBg, warpGridLines !== null ? 'OK' : 'null');
     await yieldThread();
 
