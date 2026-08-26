@@ -146,7 +146,7 @@ export function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, he
       bgHistCopy[topI] = 0;
     }
   }
-  setLastDebugPixelBgInfo( `size=${width}x${height} bg=${bg.toFixed(1)} isDark=${isDark ? 1 : 0} bgRange=[${bgMin2},${bgMax2}] bgHistTop3=[${bgHistTop3Str}] threshold=${BG_DARK_THRESHOLD}`;
+  setLastDebugPixelBgInfo(`size=${width}x${height} bg=${bg.toFixed(1)} isDark=${isDark ? 1 : 0} bgRange=[${bgMin2},${bgMax2}] bgHistTop3=[${bgHistTop3Str}] threshold=${BG_DARK_THRESHOLD}`);
 
   const bbox: BoardBBox = findBoardBBox(pixels, width, height, bg);
   const cellW: number = (bbox.right - bbox.left) / 9;
@@ -372,8 +372,8 @@ export function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, he
 
 export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width: number, height: number): Promise<number[]> {
   const grid: number[] = new Array<number>(81).fill(0);
-  g_lastPixelConfidence = new Array<number>(81).fill(0);
-  g_lastCellCoords = [];
+  setLastPixelConfidence(new Array<number>(81).fill(0));
+  setLastCellCoords([]);
 
   const bg: number = bgColor(pixels, width, height);
   const gray: Float32Array = toGrayArray(pixels, width, height);
@@ -409,7 +409,7 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
       bgHistCopy[topI] = 0;
     }
   }
-  g_lastDebugPixelBgInfo = `size=${width}x${height} bg=${bg.toFixed(1)} isDark=${isDark ? 1 : 0} bgRange=[${bgMin2},${bgMax2}] bgHistTop3=[${bgHistTop3Str}] threshold=${BG_DARK_THRESHOLD}`;
+  setLastDebugPixelBgInfo(`size=${width}x${height} bg=${bg.toFixed(1)} isDark=${isDark ? 1 : 0} bgRange=[${bgMin2},${bgMax2}] bgHistTop3=[${bgHistTop3Str}] threshold=${BG_DARK_THRESHOLD}`);
 
   const bbox: BoardBBox = findBoardBBox(pixels, width, height, bg);
   const cellW: number = (bbox.right - bbox.left) / 9;

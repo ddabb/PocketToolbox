@@ -172,7 +172,7 @@ function recognizeDigitPixel(
         }
       }
     }
-    g_lastRecognizeDiag = `sigNull diag=[${d}] rawInk=${ri.toFixed(4)}`;
+    setLastRecognizeDiag(`sigNull diag=[${d}] rawInk=${ri.toFixed(4)}`);
     return null;
   }
 
@@ -180,7 +180,7 @@ function recognizeDigitPixel(
   const digit: number = recognizeDigit(sig, inkCount);
   if (digit > 0) {
     const d: string = getLastPixelDiag();
-    g_lastRecognizeDiag = `digit=${digit} ink=${inkCount} diag=[${d}]`;
+    setLastRecognizeDiag(`digit=${digit} ink=${inkCount} diag=[${d}]`);
     return digit;
   }
 
@@ -193,7 +193,7 @@ function recognizeDigitPixel(
     const lowDigit: number = recognizeDigit(lowSig, lowInk);
     if (lowDigit > 0) {
       const lowD: string = getLastPixelDiag();
-      g_lastRecognizeDiag = `retryLowThresh: digit=${lowDigit} ink=${lowInk} diag=[${lowD}] rawInk=${ri2.toFixed(4)}`;
+      setLastRecognizeDiag(`retryLowThresh: digit=${lowDigit} ink=${lowInk} diag=[${lowD}] rawInk=${ri2.toFixed(4)}`);
       return lowDigit;
     }
   }
@@ -206,14 +206,14 @@ function recognizeDigitPixel(
       const thinDigit: number = recognizeDigit(thinSig, thinInk);
       if (thinDigit > 0) {
         const thinD: string = getLastPixelDiag();
-        g_lastRecognizeDiag = `retryThin: digit=${thinDigit} ink=${thinInk} diag=[${thinD}] rawInk=${ri2.toFixed(4)}`;
+        setLastRecognizeDiag(`retryThin: digit=${thinDigit} ink=${thinInk} diag=[${thinD}] rawInk=${ri2.toFixed(4)}`);
         return thinDigit;
       }
     }
   }
 
   const d: string = getLastPixelDiag();
-  g_lastRecognizeDiag = `digit=0 ink=${inkCount} diag=[${d}]`;
+  setLastRecognizeDiag(`digit=0 ink=${inkCount} diag=[${d}]`);
   return null;
 }
 
@@ -282,11 +282,11 @@ export async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, im
 
   if (allFixIndices.length === 0) {
     hilog.info(DOMAIN, TAG, '【实际修正】无冲突且无空格，直接采用结果');
-    g_lastDebugFixDetails = '';
-    g_lastDebugConflicts = conflictIndices;
-    g_lastDebugLowConf = lowConfIndices;
-    g_lastDebugEmpty = emptyIndices;
-    g_lastDebugFixCount = 0;
+    setLastDebugFixDetails('');
+    setLastDebugConflicts(conflictIndices);
+    setLastDebugLowConf(lowConfIndices);
+    setLastDebugEmpty(emptyIndices);
+    setLastDebugFixCount(0);
     return ocrResult;
   }
 
