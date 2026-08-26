@@ -159,7 +159,7 @@ export function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, he
   const longRunInfo: string = longRunResult !== null
     ? `OK [${longRunResult.left},${longRunResult.top},${longRunResult.right},${longRunResult.bottom}]`
     : '失败';
-  g_lastDebugPixelBboxLocator = `longRun=${longRunInfo} final=[${bbox.left},${bbox.top},${bbox.right},${bbox.bottom}] isFullImage=${isFullImage ? 1 : 0} areaRatio=${boardAreaRatio2.toFixed(3)} cell=${cellW.toFixed(1)}x${cellH.toFixed(1)}`;
+  setLastDebugPixelBboxLocator(`longRun=${longRunInfo} final=[${bbox.left},${bbox.top},${bbox.right},${bbox.bottom}] isFullImage=${isFullImage ? 1 : 0} areaRatio=${boardAreaRatio2.toFixed(3)} cell=${cellW.toFixed(1)}x${cellH.toFixed(1)}`);
 
   hilog.info(DOMAIN, TAG, '【图片与棋盘】%{public}dx%{public}d bg=%{public}.1f isDark=%{public}d 棋盘=[%{public}d,%{public}d,%{public}d,%{public}d] 每格=%{public}.1f',
     width, height, bg, isDark ? 1 : 0, bbox.left, bbox.top, bbox.right, bbox.bottom,
@@ -189,7 +189,7 @@ export function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, he
     const warpIsDark: boolean = warpBg < BG_DARK_THRESHOLD;
     resetGridLineCrop();
     detectGridLineWidths(warpedGray, outSize, 0, 0, outSize, outSize, warpIsDark, warpBg);
-    g_lastDebugPixelWarpInfo = `透视校正 outSize=${outSize} confidence=${corners.confidence.toFixed(2)} warpBg=${warpBg.toFixed(1)} warpIsDark=${warpIsDark ? 1 : 0} corners=[${corners.topLeftX.toFixed(0)},${corners.topLeftY.toFixed(0)}]-[${corners.topRightX.toFixed(0)},${corners.topRightY.toFixed(0)}]-[${corners.bottomRightX.toFixed(0)},${corners.bottomRightY.toFixed(0)}]-[${corners.bottomLeftX.toFixed(0)},${corners.bottomLeftY.toFixed(0)}]`;
+    setLastDebugPixelWarpInfo(`透视校正 outSize=${outSize} confidence=${corners.confidence.toFixed(2)} warpBg=${warpBg.toFixed(1)} warpIsDark=${warpIsDark ? 1 : 0} corners=[${corners.topLeftX.toFixed(0)},${corners.topLeftY.toFixed(0)}]-[${corners.topRightX.toFixed(0)},${corners.topRightY.toFixed(0)}]-[${corners.bottomRightX.toFixed(0)},${corners.bottomRightY.toFixed(0)}]-[${corners.bottomLeftX.toFixed(0)},${corners.bottomLeftY.toFixed(0)}]`);
     hilog.info(DOMAIN, TAG, '【像素透视/网格】outSize=%{public}d confidence=%{public}.2f', outSize, corners.confidence);
 
     let sigCount: number = 0;
@@ -238,7 +238,7 @@ export function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, he
     g_lastDebugPixelCellStats = `warp路径: sigOK=${sigCount}/81 digits=${digitCount}/81`;
   } else {
     hilog.info(DOMAIN, TAG, '【像素透视/网格】角点检测失败 使用AABB');
-    g_lastDebugPixelWarpInfo = '角点检测失败，使用AABB';
+    setLastDebugPixelWarpInfo('角点检测失败，使用AABB');
 
     const gridLines: GridLines | null = findPreciseGridLines(gray, width, height, bbox, bg);
     if (gridLines !== null) {
@@ -423,7 +423,7 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
   const longRunInfo: string = longRunResult !== null
     ? `OK [${longRunResult.left},${longRunResult.top},${longRunResult.right},${longRunResult.bottom}]`
     : '失败';
-  g_lastDebugPixelBboxLocator = `longRun=${longRunInfo} final=[${bbox.left},${bbox.top},${bbox.right},${bbox.bottom}] isFullImage=${isFullImage ? 1 : 0} areaRatio=${boardAreaRatio2.toFixed(3)} cell=${cellW.toFixed(1)}x${cellH.toFixed(1)}`;
+  setLastDebugPixelBboxLocator(`longRun=${longRunInfo} final=[${bbox.left},${bbox.top},${bbox.right},${bbox.bottom}] isFullImage=${isFullImage ? 1 : 0} areaRatio=${boardAreaRatio2.toFixed(3)} cell=${cellW.toFixed(1)}x${cellH.toFixed(1)}`);
 
   hilog.info(DOMAIN, TAG, '【图片与棋盘】%{public}dx%{public}d bg=%{public}.1f isDark=%{public}d 棋盘=[%{public}d,%{public}d,%{public}d,%{public}d] 每格=%{public}.1f',
     width, height, bg, isDark ? 1 : 0, bbox.left, bbox.top, bbox.right, bbox.bottom,
@@ -540,7 +540,7 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
     g_lastDebugPixelCellStats = `warp路径: sigOK=${sigCount}/81 digits=${digitCount}/81`;
   } else {
     hilog.info(DOMAIN, TAG, '【像素透视/网格】角点检测失败 使用AABB');
-    g_lastDebugPixelWarpInfo = '角点检测失败，使用AABB';
+    setLastDebugPixelWarpInfo('角点检测失败，使用AABB');
     await yieldThread();
 
     const gridLines: GridLines | null = findPreciseGridLines(gray, width, height, bbox, bg);

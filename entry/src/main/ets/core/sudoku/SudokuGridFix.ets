@@ -7,7 +7,7 @@ import {
   g_probeBbox, g_probeResizeW, g_probeResizeH,
   g_fittedBoardL, g_fittedBoardT, g_fittedBoardR, g_fittedBoardB,
   g_vkFailed, g_vkInited,
-  g_lastDebugRawDigits, g_perCellVkDiag,
+  g_lastDebugRawDigits, g_perCellVkDiag, g_lastRecognizeDiag,
   setLastRecognizeDiag, setLastDebugFixDetails, setLastDebugConflicts,
   setLastDebugLowConf, setLastDebugEmpty, setLastDebugFixCount, setPerPixelVkDiag
 } from './SudokuOCRTypes';
@@ -419,7 +419,7 @@ export async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, im
       vkMaxCalls, pixels.length, g_vkFailed ? 1 : 0);
   }
 
-  g_perCellVkDiag = { cropFail: 0, noBlock: 0, noCenter: 0, found: 0, samples: [] };
+  setPerPixelVkDiag({ cropFail: 0, noBlock: 0, noCenter: 0, found: 0, samples: [] });
   const fixDetailLines: string[] = [];
   const pixelConflictCandidates: PixelConflictCandidate[] = [];
 
@@ -888,7 +888,7 @@ export async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, im
     }
     fixDetailLines.unshift(diagLines.join('\n'), '');
   }
-  g_lastDebugFixDetails = fixDetailLines.join('\n');
+  setLastDebugFixDetails(fixDetailLines.join('\n'));
   for (let fi: number = 0; fi < fixDetailLines.length; fi += 10) {
     const chunkEnd: number = Math.min(fi + 10, fixDetailLines.length);
     hilog.info(DOMAIN, TAG, '【逐格修正详情】%{public}d-%{public}d/%{public}d %{public}s',
@@ -1069,10 +1069,10 @@ export async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, im
     pixelMap.release();
   }
 
-  g_lastDebugConflicts = conflictIndices;
-  g_lastDebugLowConf = lowConfIndices;
-  g_lastDebugEmpty = emptyIndices;
-  g_lastDebugFixCount = fixCount;
+  setLastDebugConflicts(conflictIndices);
+  setLastDebugLowConf(lowConfIndices);
+  setLastDebugEmpty(emptyIndices);
+  setLastDebugFixCount(fixCount);
 
   if (fixCount > 0) {
     hilog.info(DOMAIN, TAG, '【实际修正】修正了%{public}d个格子', fixCount);
