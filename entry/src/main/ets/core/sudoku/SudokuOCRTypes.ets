@@ -142,3 +142,40 @@ export function getOCRDebugInfo(): OCRDebugInfo | null {
 export function getLastPixelConfidence(): number[] {
   return g_lastPixelConfidence;
 }
+
+export function setLastDebugVkRawText(v: string): void { g_lastDebugVkRawText = v; }
+export function setLastDebugVkBlockCount(v: number): void { g_lastDebugVkBlockCount = v; }
+export function setLastDebugVkOcrSize(v: string): void { g_lastDebugVkOcrSize = v; }
+export function setLastDebugVkOcrError(v: string): void { g_lastDebugVkOcrError = v; }
+export function setLastDebugProbeInfo(v: string): void { g_lastDebugProbeInfo = v; }
+export function setVkInited(v: boolean): void { g_vkInited = v; }
+export function setVkFailed(v: boolean): void { g_vkFailed = v; }
+export function setCachedPixels(v: Uint8Array): void { g_cachedPixels = v; }
+export function setCachedImgW(v: number): void { g_cachedImgW = v; }
+export function setCachedImgH(v: number): void { g_cachedImgH = v; }
+export function setProbeBbox(v: BoardBBox | null): void { g_probeBbox = v; }
+export function setProbeResizeW(v: number): void { g_probeResizeW = v; }
+export function setProbeResizeH(v: number): void { g_probeResizeH = v; }
+export function setLastDebugBbox(v: string): void { g_lastDebugBbox = v; }
+export function setLastDebugResize(v: string): void { g_lastDebugResize = v; }
+export function setLastDebugRawDigits(v: number): void { g_lastDebugRawDigits = v; }
+export function setLastDebugRawDigitPositions(v: string): void { g_lastDebugRawDigitPositions = v; }
+export function setLastDebugVkBlockDetail(v: string): void { g_lastDebugVkBlockDetail = v; }
+export function setFittedBoardL(v: number): void { g_fittedBoardL = v; }
+export function setFittedBoardT(v: number): void { g_fittedBoardT = v; }
+export function setFittedBoardR(v: number): void { g_fittedBoardR = v; }
+export function setFittedBoardB(v: number): void { g_fittedBoardB = v; }
+export function setLastRecognizeDiag(v: string): void { g_lastRecognizeDiag = v; }
+export function setLastDebugFixDetails(v: string): void { g_lastDebugFixDetails = v; }
+export function setLastDebugConflicts(v: number[]): void { g_lastDebugConflicts = v; }
+export function setLastDebugLowConf(v: number[]): void { g_lastDebugLowConf = v; }
+export function setLastDebugEmpty(v: number[]): void { g_lastDebugEmpty = v; }
+export function setLastDebugFixCount(v: number): void { g_lastDebugFixCount = v; }
+export function setPerPixelVkDiag(v: PerCellVkDiag): void { g_perCellVkDiag = v; }
+export function setLastPixelConfidence(v: number[]): void { g_lastPixelConfidence = v; }
+export function setLastCellCoords(v: CellCoordInfo[]): void { g_lastCellCoords = v; }
+export function setLastDebugPixelBgInfo(v: string): void { g_lastDebugPixelBgInfo = v; }
+export function setLastDebugPixelBboxLocator(v: string): void { g_lastDebugPixelBboxLocator = v; }
+export function setLastDebugPixelWarpInfo(v: string): void { g_lastDebugPixelWarpInfo = v; }
+export function setLastDebugPixelCellStats(v: string): void { g_lastDebugPixelCellStats = v; }
+export function setLastDebugPixelCellCoords(v: string): void { g_lastDebugPixelCellCoords = v; }
