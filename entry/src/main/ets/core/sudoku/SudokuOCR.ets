@@ -2,7 +2,7 @@ import { image } from '@kit.ImageKit';
 import { textRecognition } from '@kit.CoreVisionKit';
 import { fileIo } from '@kit.CoreFileKit';
 import { parseOCRToGrid } from './SudokuEngine';
- import { BoardBBox, BoardCorners, GridLines, bgColor, cellSigFromGray, cellSigFromGrayLowThresh, countInk, detectBoardCorners, detectGridLineWidths, findBoardBBox, findBoxLongRun, getLastBboxDiag, getLastPixelDiag, getLastRawInkRatio, resetGridLineCrop, resetLastPixelDiag, isGridLineCropDetected, findPreciseGridLines, getLastConfidence, recognizeDigit, SIG_COLS, SIG_ROWS, toGrayArray, validateCellCentering, warpPerspectiveGray } from './SudokuPixel';
+ import { BoardBBox, BoardCorners, GridLines, bgColor, cellSigFromGray, cellSigFromGrayLowThresh, cellSigFromGrayThin, countInk, detectBoardCorners, detectGridLineWidths, findBoardBBox, findBoxLongRun, getLastBboxDiag, getLastPixelDiag, getLastRawInkRatio, MIN_CELL_INK_RATIO, resetChannelBgCache, resetGridLineCrop, resetLastPixelDiag, isGridLineCropDetected, findPreciseGridLines, getLastConfidence, recognizeDigit, SIG_COLS, SIG_ROWS, toGrayArray, validateCellCentering, warpPerspectiveGray, INK_THRESH } from './SudokuPixel';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 
 const DOMAIN: number = 0xA03D00;
@@ -85,8 +85,15 @@ const WIDE_CELL_UPSCALE_FACTOR: number = 5;
 // this many milliseconds, return a failure result instead of hanging forever.
 const OCR_PIPELINE_TOTAL_TIMEOUT_MS: number = 30000;
 
+function yieldThread(): Promise<void> {
+  return new Promise<void>((resolve: Function) => { setTimeout(() => { resolve(); }, 0); });
+}
+
 // Resize thresholds: images larger than these are downscaled to the
 // corresponding target to balance OCR quality and speed.
+// Small images (<RESIZE_SMALL_THRESHOLD) are upscaled to at most RESIZE_SMALL_TARGET
+// but with a cap of 2x to avoid destroying thin stroke signatures
+// (e.g. 200px 4x upscale → ink=36 vs native → ink=328).
 const RESIZE_LARGE_THRESHOLD: number = 2000;
 const RESIZE_LARGE_TARGET: number = 1600;
 const RESIZE_MEDIUM_THRESHOLD: number = 1280;
@@ -99,7 +106,7 @@ const LOW_CONFIDENCE_THRESHOLD: number = 0.5;
 
 // Digits that are frequently confused with each other by both VisionKit and
 // pixel recognition. These get extra scrutiny in fixAndFillGrid.
-const CONFUSABLE_DIGITS: number[] = [5, 6, 9];
+const CONFUSABLE_DIGITS: number[] = [2, 3, 4, 5, 6, 7, 8, 9];
 
 // Upper confidence bound: a confusable digit with VK/pixel confidence below
 // this is added to the fix set for VK re-recognition, even if it has no
@@ -148,6 +155,22 @@ const WARP_BG_SAMPLE_DIV: number = 20000;
 
 let g_lastPixelConfidence: number[] = new Array<number>(81).fill(0);
 
+interface CellCoordInfo {
+  row: number;
+  col: number;
+  digit: number;
+  left: number;
+  top: number;
+  w: number;
+  h: number;
+  conf: number;
+  rawInk: number;
+  imgW: number;
+  imgH: number;
+  source: string;
+}
+let g_lastCellCoords: CellCoordInfo[] = [];
+
 let g_debugInfo: OCRDebugInfo | null = null;
 
 let g_lastDebugBbox: string = '';
@@ -182,6 +205,7 @@ let g_lastDebugPixelBgInfo: string = '';
 let g_lastDebugPixelBboxLocator: string = '';
 let g_lastDebugPixelWarpInfo: string = '';
 let g_lastDebugPixelCellStats: string = '';
+let g_lastDebugPixelCellCoords: string = '';
 let g_lastDebugFixDetails: string = '';
 
 // 逐格VK诊断统计（供调试面板展示）
@@ -277,6 +301,7 @@ function buildDebugInfo(
     pixelBboxLocator: g_lastDebugPixelBboxLocator,
     pixelWarpInfo: g_lastDebugPixelWarpInfo,
     pixelCellStats: g_lastDebugPixelCellStats,
+    pixelCellCoords: g_lastDebugPixelCellCoords,
     fixDetails: g_lastDebugFixDetails,
     bboxDiag: getLastBboxDiag()
   };
@@ -317,6 +342,7 @@ export interface OCRDebugInfo {
   pixelBboxLocator: string;
   pixelWarpInfo: string;
   pixelCellStats: string;
+  pixelCellCoords: string;
   fixDetails: string;
   bboxDiag: string;
 }
@@ -357,6 +383,7 @@ function computeAdaptiveResize(origW: number, origH: number): AdaptiveResizePara
   let targetW: number = origW;
   let targetH: number = origH;
   let targetCellPx: number = TARGET_CELL_PX;
+  const MAX_UPSCALE: number = 2.0;
 
   if (maxDim > RESIZE_LARGE_THRESHOLD) {
     const scale: number = RESIZE_LARGE_TARGET / maxDim;
@@ -369,7 +396,7 @@ function computeAdaptiveResize(origW: number, origH: number): AdaptiveResizePara
       targetH = Math.round(origH * scale);
     }
   } else {
-    const scale: number = RESIZE_SMALL_TARGET / maxDim;
+    const scale: number = Math.min(MAX_UPSCALE, RESIZE_SMALL_TARGET / maxDim);
     targetW = Math.round(origW * scale);
     targetH = Math.round(origH * scale);
   }
@@ -387,7 +414,7 @@ function openImageSourceFromBuffer(buf: ArrayBuffer): image.ImageSource {
   return image.createImageSource(buf);
 }
 
-export async function recognizeSudokuFromBuffer(buf: ArrayBuffer): Promise<OCRResult> {
+export async function recognizeSudokuFromBuffer(buf: ArrayBuffer, pixelOnly: boolean = false): Promise<OCRResult> {
   g_debugInfo = null;
   g_fittedBoardL = -1;
   g_fittedBoardT = -1;
@@ -396,7 +423,8 @@ export async function recognizeSudokuFromBuffer(buf: ArrayBuffer): Promise<OCRRe
   g_cachedPixels = new Uint8Array(0);
   g_cachedImgW = 0;
   g_cachedImgH = 0;
-  g_vkFailed = false;
+  resetChannelBgCache();
+  g_vkFailed = pixelOnly;
   const steps: OCRDebugStep[] = [];
   const pipelineStart: number = Date.now();
   try {
@@ -416,7 +444,7 @@ export async function recognizeSudokuFromBuffer(buf: ArrayBuffer): Promise<OCRRe
       steps.push({ step: '2. 像素分析结果', detail: `成功, ${pixelDigits}个数字` });
       const pixelGrid: number[] = [...pixelResult.grid];
 
-      if (pixelDigits < 20) {
+      if (pixelDigits < 20 && !pixelOnly) {
         hilog.info(DOMAIN, TAG, 'pixelDigits=%{public}d < 20, trying VK full-page OCR', pixelDigits);
         hilog.info(DOMAIN, TAG, '【步骤详情】像素识别数不足%{public}d个，转VK全页识别', pixelDigits);
         const visionResult: OCRResult = await tryVisionKitRecognition('', buf);
@@ -472,29 +500,31 @@ export async function recognizeSudokuFromBuffer(buf: ArrayBuffer): Promise<OCRRe
     steps.push({ step: '2. 像素分析失败', detail: pixelResult.error });
       hilog.info(DOMAIN, TAG, '像素分析失败, 转VisionKit');
     hilog.info(DOMAIN, TAG, '【步骤详情】像素分析失败，转VisionKit识别');
-    hilog.info(DOMAIN, TAG, '>>> tryVisionKitRecognition 开始');
-    const visionResult: OCRResult = await tryVisionKitRecognition('', buf);
-    hilog.info(DOMAIN, TAG, '<<< tryVisionKitRecognition 返回 success=%{public}d', visionResult.success ? 1 : 0);
-    if (visionResult.success && visionResult.grid) {
-      const vkGrid: number[] = [...visionResult.grid];
-      steps.push({ step: '3. VisionKit结果', detail: `成功, ${visionResult.grid.filter((d: number) => d > 0).length}个数字` });
-      const corrected: OCRResult = await fixAndFillGrid(visionResult, '', buf);
-      g_debugInfo = buildDebugInfo(
-        'VisionKit+修正',
-        steps,
-        g_lastDebugBbox,
-        g_lastDebugResize,
-        g_lastDebugRawDigits,
-        vkGrid,
-        null,
-        corrected.grid,
-        g_lastDebugConflicts,
-        g_lastDebugLowConf,
-        g_lastDebugEmpty,
-        g_lastDebugFixCount,
-        corrected.confidence
-      );
-      return corrected;
+    if (!pixelOnly) {
+      hilog.info(DOMAIN, TAG, '>>> tryVisionKitRecognition 开始');
+      const visionResult: OCRResult = await tryVisionKitRecognition('', buf);
+      hilog.info(DOMAIN, TAG, '<<< tryVisionKitRecognition 返回 success=%{public}d', visionResult.success ? 1 : 0);
+      if (visionResult.success && visionResult.grid) {
+        const vkGrid: number[] = [...visionResult.grid];
+        steps.push({ step: '3. VisionKit结果', detail: `成功, ${visionResult.grid.filter((d: number) => d > 0).length}个数字` });
+        const corrected: OCRResult = await fixAndFillGrid(visionResult, '', buf);
+        g_debugInfo = buildDebugInfo(
+          'VisionKit+修正',
+          steps,
+          g_lastDebugBbox,
+          g_lastDebugResize,
+          g_lastDebugRawDigits,
+          vkGrid,
+          null,
+          corrected.grid,
+          g_lastDebugConflicts,
+          g_lastDebugLowConf,
+          g_lastDebugEmpty,
+          g_lastDebugFixCount,
+          corrected.confidence
+        );
+        return corrected;
+      }
     }
 
     return pixelResult;
@@ -511,6 +541,7 @@ export async function recognizeSudokuFromImage(imagePath: string): Promise<OCRRe
   g_fittedBoardT = -1;
   g_fittedBoardR = -1;
   g_fittedBoardB = -1;
+  resetChannelBgCache();
   const steps: OCRDebugStep[] = [];
   try {
     hilog.info(DOMAIN, TAG, '=== 识别调试信息 ===');
@@ -605,6 +636,16 @@ function isConfusablePair(a: number, b: number): boolean {
   if ((a === 7 && b === 9) || (a === 9 && b === 7)) { return true; }
   if ((a === 8 && b === 9) || (a === 9 && b === 8)) { return true; }
   if ((a === 1 && b === 7) || (a === 7 && b === 1)) { return true; }
+  if ((a === 3 && b === 8) || (a === 8 && b === 3)) { return true; }
+  if ((a === 2 && b === 8) || (a === 8 && b === 2)) { return true; }
+  if ((a === 4 && b === 9) || (a === 9 && b === 4)) { return true; }
+  if ((a === 3 && b === 5) || (a === 5 && b === 3)) { return true; }
+  if ((a === 1 && b === 4) || (a === 4 && b === 1)) { return true; }
+  if ((a === 1 && b === 8) || (a === 8 && b === 1)) { return true; }
+  if ((a === 1 && b === 6) || (a === 6 && b === 1)) { return true; }
+  if ((a === 5 && b === 8) || (a === 8 && b === 5)) { return true; }
+  if ((a === 2 && b === 4) || (a === 4 && b === 2)) { return true; }
+  if ((a === 3 && b === 7) || (a === 7 && b === 3)) { return true; }
   return false;
 }
 
@@ -836,24 +877,38 @@ function recognizeDigitPixel(
   gridCol: number = -1
 ): number | null {
   resetLastPixelDiag();
-  const sig: number[] | null = cellSigFromGray(
+  let sig: number[] | null = cellSigFromGray(
     gray, imgW,
     cellLeft, cellTop, cellW, cellH, isDark, bg, gridRow, gridCol
   );
   if (sig === null) {
     const d: string = getLastPixelDiag();
     const ri: number = getLastRawInkRatio();
-    if (ri > 0.10) {
-      const lowSig: number[] | null = cellSigFromGrayLowThresh(
+    const lowSig: number[] | null = cellSigFromGrayLowThresh(
+      gray, imgW, cellLeft, cellTop, cellW, cellH, isDark, bg, gridRow, gridCol
+    );
+    if (lowSig !== null) {
+      sig = lowSig;
+      const lowInk: number = countInk(lowSig);
+      const lowDigit: number = recognizeDigit(lowSig, lowInk);
+      if (lowDigit > 0) {
+        const lowD: string = getLastPixelDiag();
+        g_lastRecognizeDiag = `retryLowThresh: digit=${lowDigit} ink=${lowInk} diag=[${lowD}] rawInk=${ri.toFixed(4)}`;
+        return lowDigit;
+      }
+    }
+    if (ri < MIN_CELL_INK_RATIO) {
+      const thinSig: number[] | null = cellSigFromGrayThin(
         gray, imgW, cellLeft, cellTop, cellW, cellH, isDark, bg, gridRow, gridCol
       );
-      if (lowSig !== null) {
-        const lowInk: number = countInk(lowSig);
-        const lowDigit: number = recognizeDigit(lowSig, lowInk);
-        if (lowDigit > 0) {
-          const lowD: string = getLastPixelDiag();
-          g_lastRecognizeDiag = `retryLowThresh: digit=${lowDigit} ink=${lowInk} diag=[${lowD}] rawInk=${ri.toFixed(4)}`;
-          return lowDigit;
+      if (thinSig !== null) {
+        sig = thinSig;
+        const thinInk: number = countInk(thinSig);
+        const thinDigit: number = recognizeDigit(thinSig, thinInk);
+        if (thinDigit > 0) {
+          const thinD: string = getLastPixelDiag();
+          g_lastRecognizeDiag = `retryThin: digit=${thinDigit} ink=${thinInk} diag=[${thinD}] rawInk=${ri.toFixed(4)}`;
+          return thinDigit;
         }
       }
     }
@@ -869,21 +924,31 @@ function recognizeDigitPixel(
     return digit;
   }
 
-  const ri: number = getLastRawInkRatio();
-  if (ri > 0.10) {
-    const lowSig: number[] | null = cellSigFromGrayLowThresh(
+  const ri2: number = getLastRawInkRatio();
+  const lowSig: number[] | null = cellSigFromGrayLowThresh(
+    gray, imgW, cellLeft, cellTop, cellW, cellH, isDark, bg, gridRow, gridCol
+  );
+  if (lowSig !== null) {
+    const lowInk: number = countInk(lowSig);
+    const lowDigit: number = recognizeDigit(lowSig, lowInk);
+    if (lowDigit > 0) {
+      const lowD: string = getLastPixelDiag();
+      g_lastRecognizeDiag = `retryLowThresh: digit=${lowDigit} ink=${lowInk} diag=[${lowD}] rawInk=${ri2.toFixed(4)}`;
+      return lowDigit;
+    }
+  }
+  if (ri2 < MIN_CELL_INK_RATIO) {
+    const thinSig: number[] | null = cellSigFromGrayThin(
       gray, imgW, cellLeft, cellTop, cellW, cellH, isDark, bg, gridRow, gridCol
     );
-    if (lowSig !== null) {
-      const lowInk: number = countInk(lowSig);
-      const lowDigit: number = recognizeDigit(lowSig, lowInk);
-      if (lowDigit > 0) {
-        const lowD: string = getLastPixelDiag();
-        g_lastRecognizeDiag = `retryLowThresh: digit=${lowDigit} ink=${lowInk} diag=[${lowD}] rawInk=${ri.toFixed(4)}`;
-        return lowDigit;
+    if (thinSig !== null) {
+      const thinInk: number = countInk(thinSig);
+      const thinDigit: number = recognizeDigit(thinSig, thinInk);
+      if (thinDigit > 0) {
+        const thinD: string = getLastPixelDiag();
+        g_lastRecognizeDiag = `retryThin: digit=${thinDigit} ink=${thinInk} diag=[${thinD}] rawInk=${ri2.toFixed(4)}`;
+        return thinDigit;
       }
-      g_lastRecognizeDiag = `digit=0 ink=${inkCount} diag=[${getLastPixelDiag()}] retryInk=${lowInk}`;
-      return null;
     }
   }
 
@@ -1193,6 +1258,7 @@ async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, imageBuf:
     const pStr: string = pixelDigit !== null && pixelDigit > 0 ? `${pixelDigit}` : '-';
     const vStr: string = vkDigit !== null && vkDigit > 0 ? `${vkDigit}` : '-';
     const pixelConf: number = pixelDigit !== null && pixelDigit > 0 ? getLastConfidence() : 0;
+    const rawInkRatio: number = getLastRawInkRatio();
 
     if (origDigit === 0) {
       let fillDigit: number | null = null;
@@ -1203,7 +1269,6 @@ async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, imageBuf:
       // filters noise, so rawInkRatio > 0 indicates real digit ink. This recovers
       // faint/thin/colored digits that cellSigFromGray rejects, while still blocking
       // VK on truly empty cells (rawInkRatio == 0) to prevent hallucinated fills.
-      const rawInkRatio: number = getLastRawInkRatio();
       const pixelHasInk: boolean = pixelDigit !== null || rawInkRatio > 0;
       if (vkDigit !== null && vkDigit > 0 && pixelHasInk) {
         fillDigit = vkDigit;
@@ -1285,14 +1350,15 @@ async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, imageBuf:
       }
       if (fillDigit === null && pixelDigit !== null && pixelDigit > 0) {
         const emptyFillPixelConf: number = g_lastDebugRawDigits === 0 ? EMPTY_FILL_PIXEL_CONF_NO_RAW_DIGITS : EMPTY_FILL_PIXEL_CONF;
-        if (pixelConf >= emptyFillPixelConf) {
+        if (rawInkRatio > 0.75) {
+          fillDigit = null;
+        } else if (pixelConf >= emptyFillPixelConf) {
           fillDigit = pixelDigit;
           fillSource = `P(conf=${pixelConf.toFixed(2)})`;
         } else if (pixelDigit === 1 && pixelConf >= 0.10) {
-          const p1ink: number = getLastRawInkRatio();
-          if (p1ink > 0.10 && p1ink < 0.50) {
+          if (rawInkRatio > 0.015 && rawInkRatio < 0.50) {
             fillDigit = 1;
-            fillSource = `P_1_ink(ratio=${p1ink.toFixed(4)})`;
+            fillSource = `P_1_ink(ratio=${rawInkRatio.toFixed(4)})`;
           }
         }
       }
@@ -1316,7 +1382,7 @@ async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, imageBuf:
             }
           }
           if (fallbackDigit === null && fillDigit > 0) {
-            const confusableSwaps: number[][] = [[6, 9], [9, 6], [5, 9], [9, 5], [5, 6], [6, 5]];
+            const confusableSwaps: number[][] = [[6, 9], [9, 6], [5, 9], [9, 5], [5, 6], [6, 5], [5, 8], [8, 5], [1, 8], [8, 1], [1, 6], [6, 1], [7, 1], [1, 7], [2, 4], [4, 2], [3, 7], [7, 3]];
             for (const pair of confusableSwaps) {
               if (fillDigit === pair[0]) {
                 grid[idx] = pair[1];
@@ -1379,6 +1445,9 @@ async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, imageBuf:
         } else if (pConflicts < vConflicts || pixelConf >= EXISTING_PIXEL_ONLY_OVERRIDE_CONF) {
           finalDigit = pixelDigit;
           decision = `P≠V→P(pC=${pConflicts} vC=${vConflicts} conf=${pixelConf.toFixed(2)})`;
+        } else if (isConfusablePair(pixelDigit, vkDigit) && pixelConf < EXISTING_PIXEL_ONLY_OVERRIDE_CONF) {
+          finalDigit = vkDigit;
+          decision = `P≠V→V_confusable(pC=${pConflicts} vC=${vConflicts} conf=${pixelConf.toFixed(2)})`;
         } else {
           finalDigit = origDigit;
           decision = `P≠V→keep(pC=${pConflicts} vC=${vConflicts} conf=${pixelConf.toFixed(2)})`;
@@ -1392,10 +1461,12 @@ async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, imageBuf:
       const stableConfusableCorrection: boolean = beforeConflicts === 0 && g_lastDebugRawDigits > 0 &&
         ocrResult.confidence !== null && isConfusablePair(origDigit, pixelDigit) &&
         pixelConf >= STABLE_PIXEL_ONLY_OVERRIDE_CONF;
-      if ((reducesConflict || highConfidence || stableConfusableCorrection) && likelyCorrection) {
+      const hasInk: boolean = rawInkRatio >= MIN_CELL_INK_RATIO;
+      const allowLowInk: boolean = isConfusablePair(origDigit, pixelDigit);
+      if ((hasInk || (allowLowInk && pixelConf >= 0.40)) && (reducesConflict || highConfidence || stableConfusableCorrection) && likelyCorrection) {
         finalDigit = pixelDigit;
         decision = `P_only(conf=${pixelConf.toFixed(2)} c=${beforeConflicts}→${pConflicts})`;
-      } else if (likelyCorrection && beforeConflicts > 0 && pConflicts <= beforeConflicts + 1) {
+      } else if ((hasInk || (allowLowInk && pixelConf >= 0.40)) && likelyCorrection && beforeConflicts > 0 && pConflicts <= beforeConflicts + 1) {
         const candidate: PixelConflictCandidate = { idx: idx, digit: pixelDigit, confidence: pixelConf };
         pixelConflictCandidates.push(candidate);
         finalDigit = origDigit;
@@ -1467,10 +1538,31 @@ async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, imageBuf:
           swapNote += ` 5/6→${swapped}消除`;
         }
       }
+
+      if (stillConflict && (finalDigit === 7 || finalDigit === 9)) {
+        const swapped: number = finalDigit === 7 ? 9 : 7;
+        grid[idx] = swapped;
+        const afterSwap: number[] = findConflictCells(grid);
+        const swapConflict: boolean = afterSwap.some((ci: number) => ci === idx);
+        if (swapConflict) {
+          grid[idx] = finalDigit;
+          swapNote += ' 7/9交换仍冲突';
+        } else {
+          swapNote += ` 7/9→${swapped}消除`;
+        }
+      }
+
+
+
       fixDetailLines.push(`修正${cellLabel} ${origDigit}→${finalDigit} P=${pStr} V=${vStr} ${decision}${swapNote} pxDiag=[${pixelDiag}]`);
     } else if (finalDigit === null && (origDigit === 6 || origDigit === 9)) {
       const isConflict: boolean = conflictIndices.some((ci: number) => ci === idx);
-      if (isConflict) {
+      if (isConflict && rawInkRatio < MIN_CELL_INK_RATIO && pixelDigit === null) {
+        grid[idx] = 0;
+        fixCount++;
+        hilog.info(DOMAIN, TAG, '【逐格修正详情】冲突无墨清除 %{public}s %{public}d→0', cellLabel, origDigit);
+        fixDetailLines.push(`清除${cellLabel} ${origDigit}→0 P=${pStr} V=${vStr} 冲突无墨 pxDiag=[${pixelDiag}]`);
+      } else if (isConflict && rawInkRatio >= MIN_CELL_INK_RATIO) {
         const swapped: number = origDigit === 6 ? 9 : 6;
         grid[idx] = swapped;
         const afterSwap: number[] = findConflictCells(grid);
@@ -1488,10 +1580,15 @@ async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, imageBuf:
       }
     } else if (finalDigit === null && origDigit > 0) {
       const isConflict: boolean = conflictIndices.some((ci: number) => ci === idx);
-      if (isConflict) {
+      if (isConflict && rawInkRatio < MIN_CELL_INK_RATIO && pixelDigit === null) {
+        grid[idx] = 0;
+        fixCount++;
+        hilog.info(DOMAIN, TAG, '【逐格修正详情】冲突无墨清除 %{public}s %{public}d→0', cellLabel, origDigit);
+        fixDetailLines.push(`清除${cellLabel} ${origDigit}→0 P=${pStr} V=${vStr} 冲突无墨 pxDiag=[${pixelDiag}]`);
+      } else if (isConflict && rawInkRatio >= MIN_CELL_INK_RATIO) {
         let swappedOk: boolean = false;
         let swapDigit: number = origDigit;
-        const confusableSwaps: number[][] = [[5, 9], [9, 5], [5, 6], [6, 5]];
+        const confusableSwaps: number[][] = [[5, 9], [9, 5], [5, 6], [6, 5], [7, 9], [9, 7]];
         for (const pair of confusableSwaps) {
           if (origDigit === pair[0]) {
             grid[idx] = pair[1];
@@ -1517,12 +1614,49 @@ async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, imageBuf:
     } else {
       fixDetailLines.push(`不变${cellLabel}=${origDigit} P=${pStr} V=${vStr} ${decision} pxDiag=[${pixelDiag}]`);
     }
+    if (col === 8) { await yieldThread(); }
   }
 
   const pairFixDetail: string = applyBestPixelConflictPair(grid, pixelConflictCandidates);
   if (pairFixDetail.length > 0) {
     fixCount += 2;
     fixDetailLines.push(pairFixDetail);
+  }
+
+  // After pair fix resolved conflicts, apply remaining 6/9 pixel-conflict candidates
+  // that are conflict-free. These are cells where pixel detected 9 but grid has 6 (or
+  // vice versa) with moderate confidence, skipped earlier because they didn't reduce
+  // conflicts as a pair. With conflicts now resolved, a standalone 6/9 swap that
+  // introduces no new conflict is safe.
+  const remainingCandidates: PixelConflictCandidate[] = [];
+  for (const cand of pixelConflictCandidates) {
+    if (grid[cand.idx] === cand.digit) { continue; }
+    if (!isConfusablePair(grid[cand.idx], cand.digit)) { continue; }
+    const gv: number = grid[cand.idx];
+    const only69: boolean = (gv === 6 && cand.digit === 9) || (gv === 9 && cand.digit === 6);
+    if (!only69 && cand.confidence < EXISTING_PIXEL_ONLY_OVERRIDE_CONF) { continue; }
+    remainingCandidates.push(cand);
+  }
+  if (remainingCandidates.length > 0) {
+    remainingCandidates.sort((a: PixelConflictCandidate, b: PixelConflictCandidate): number => {
+      return b.confidence - a.confidence;
+    });
+    for (const rc of remainingCandidates) {
+      const origVal: number = grid[rc.idx];
+      grid[rc.idx] = rc.digit;
+      const afterConflicts: number[] = findConflictCells(grid);
+      const selfConflict: boolean = afterConflicts.some((ci: number) => ci === rc.idx);
+      if (!selfConflict) {
+        fixCount++;
+        const rcRow: number = Math.floor(rc.idx / 9);
+        const rcCol: number = rc.idx % 9;
+        hilog.info(DOMAIN, TAG, '【逐格修正详情】剩余6/9修正 (%{public}d,%{public}d) %{public}d→%{public}d conf=%{public}.2f',
+          rcRow, rcCol, origVal, rc.digit, rc.confidence);
+        fixDetailLines.push(`剩余6/9修正(${rcRow},${rcCol}) ${origVal}→${rc.digit} conf=${rc.confidence.toFixed(2)}`);
+      } else {
+        grid[rc.idx] = origVal;
+      }
+    }
   }
 
   // 加入逐格VK诊断摘要
@@ -1552,6 +1686,7 @@ async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, imageBuf:
     let pixelAdjFixCount: number = 0;
     for (let i: number = 0; i < 81; i++) {
       if (grid[i] === 0) { continue; }
+      await yieldThread();
       const row: number = Math.floor(i / 9);
       const col: number = i % 9;
       const cLeft: number = boardL + col * cellW;
@@ -1593,14 +1728,74 @@ async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, imageBuf:
   }
 
   let remainingConflicts: number[] = findConflictCells(grid);
+  const conflictGuessSwaps: number[][] = [
+    [6, 9], [9, 6], [5, 9], [9, 5], [5, 6], [6, 5],
+    [5, 8], [8, 5], [1, 8], [8, 1], [1, 6], [6, 1],
+    [7, 1], [1, 7], [2, 4], [4, 2], [3, 7], [7, 3],
+    [1, 4], [4, 1], [2, 8], [8, 2], [3, 8], [8, 3],
+    [7, 9], [9, 7], [4, 9], [9, 4], [3, 5], [5, 3],
+  ];
+  let guessFixCount: number = 0;
+  for (const ci of remainingConflicts) {
+    await yieldThread();
+    const origVal: number = grid[ci];
+    if (origVal === 0) { continue; }
+    const beforeConflicts: number = findConflictCells(grid).length;
+    for (const pair of conflictGuessSwaps) {
+      if (origVal === pair[0]) {
+        grid[ci] = pair[1];
+        const afterSwap: number[] = findConflictCells(grid);
+        if (afterSwap.length < beforeConflicts && !afterSwap.some((ac: number) => ac === ci)) {
+          guessFixCount++;
+          hilog.info(DOMAIN, TAG, 'fixAndFillGrid: 冲突猜测交换(%{public}d,%{public}d) %{public}d→%{public}d 冲突%{public}d→%{public}d',
+            Math.floor(ci / 9), ci % 9, origVal, pair[1], beforeConflicts, afterSwap.length);
+          break;
+        }
+        grid[ci] = origVal;
+      }
+    }
+  }
+  if (guessFixCount > 0) {
+    fixCount += guessFixCount;
+    hilog.info(DOMAIN, TAG, 'fixAndFillGrid: 冲突猜测交换修正%{public}d个', guessFixCount);
+  }
+
+  remainingConflicts = findConflictCells(grid);
+  const finalClearNoInk: number[] = [];
+  for (const ci of remainingConflicts) {
+    await yieldThread();
+    const ciRow: number = Math.floor(ci / 9);
+    const ciCol: number = ci % 9;
+    const ciLeft: number = boardL + ciCol * cellW;
+    const ciTop: number = boardT + ciRow * cellH;
+    const ciDigit: number | null = recognizeDigitPixel(gray, imgW, ciLeft, ciTop, cellW, cellH, bbox.isDark, bg, ciRow, ciCol);
+    const ciInk: number = getLastRawInkRatio();
+    if (ciDigit === null && ciInk < MIN_CELL_INK_RATIO) {
+      finalClearNoInk.push(ci);
+    } else if (ciInk > 0.75) {
+      finalClearNoInk.push(ci);
+    }
+  }
+  if (finalClearNoInk.length > 0) {
+    for (const ci of finalClearNoInk) {
+      const origVal: number = grid[ci];
+      grid[ci] = 0;
+      hilog.info(DOMAIN, TAG, 'fixAndFillGrid: 最终冲突无墨清除(%{public}d,%{public}d) %{public}d→0',
+        Math.floor(ci / 9), ci % 9, origVal);
+    }
+    fixCount += finalClearNoInk.length;
+    remainingConflicts = findConflictCells(grid);
+  }
+
   let conflictSwapRounds: number = 0;
   while (remainingConflicts.length > 0 && conflictSwapRounds < 3) {
     conflictSwapRounds++;
     let swappedAny: boolean = false;
     for (const ci of remainingConflicts) {
+      await yieldThread();
       const origVal: number = grid[ci];
       if (origVal === 0) { continue; }
-      const confusableSwaps: number[][] = [[6, 9], [9, 6], [5, 9], [9, 5], [5, 6], [6, 5]];
+      const confusableSwaps: number[][] = [[6, 9], [9, 6], [5, 9], [9, 5], [5, 6], [6, 5], [5, 8], [8, 5], [1, 8], [8, 1], [1, 6], [6, 1], [7, 1], [1, 7], [2, 4], [4, 2], [3, 7], [7, 3], [1, 4], [4, 1], [2, 8], [8, 2], [3, 8], [8, 3], [7, 9], [9, 7], [4, 9], [9, 4], [3, 5], [5, 3]];
       for (const pair of confusableSwaps) {
         if (origVal === pair[0]) {
           grid[ci] = pair[1];
@@ -1622,6 +1817,34 @@ async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, imageBuf:
     if (!swappedAny) { break; }
     remainingConflicts = findConflictCells(grid);
   }
+
+  if (remainingConflicts.length > 0 && gray.length > 0) {
+    const lowConfClear: number[] = [];
+    for (const ci of remainingConflicts) {
+      await yieldThread();
+      const ciRow: number = Math.floor(ci / 9);
+      const ciCol: number = ci % 9;
+      const ciLeft: number = boardL + ciCol * cellW;
+      const ciTop: number = boardT + ciRow * cellH;
+      const ciConf: number = g_lastPixelConfidence[ci];
+      recognizeDigitPixel(gray, imgW, ciLeft, ciTop, cellW, cellH, bbox.isDark, bg, ciRow, ciCol);
+      const ciRawInk: number = getLastRawInkRatio();
+      if (ciConf < 0.50 || ciRawInk > 0.75) {
+        lowConfClear.push(ci);
+      }
+    }
+    for (const ci of lowConfClear) {
+      const origVal: number = grid[ci];
+      grid[ci] = 0;
+      hilog.info(DOMAIN, TAG, 'fixAndFillGrid: 冲突低置信清除(%{public}d,%{public}d) %{public}d→0 conf=%{public}.2f',
+        Math.floor(ci / 9), ci % 9, origVal, g_lastPixelConfidence[ci]);
+    }
+    if (lowConfClear.length > 0) {
+      fixCount += lowConfClear.length;
+      remainingConflicts = findConflictCells(grid);
+    }
+  }
+
   if (remainingConflicts.length > 0) {
     hilog.info(DOMAIN, TAG, 'fixAndFillGrid: 最终冲突%{public}d个(无法交换)', remainingConflicts.length);
   }
@@ -2333,7 +2556,7 @@ async function tryPixelGridRecognition(imagePath: string, imageBuf: ArrayBuffer 
     g_probeResizeH = height;
 
     hilog.info(DOMAIN, TAG, 'Pixel: 开始 analyzePixelGrid');
-    const grid: number[] = analyzePixelGridFromBuffer(pixelBytes, width, height);
+    const grid: number[] = await analyzePixelGridFromBufferAsync(pixelBytes, width, height);
     const givenCount: number = grid.filter((d: number) => d > 0).length;
     hilog.info(DOMAIN, TAG, 'Pixel: analyzePixelGrid done digits=%{public}d', givenCount);
     hilog.info(DOMAIN, TAG, 'Pixel: analyzePixelGrid 完成 digits=%{public}d', givenCount);
@@ -2443,16 +2666,42 @@ export function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, he
     let digitCount: number = 0;
     for (let r: number = 0; r < 9; r++) {
       for (let c: number = 0; c < 9; c++) {
-        const sig: number[] | null = cellSigFromGray(
+        let sig: number[] | null = cellSigFromGray(
           warpedGray, outSize,
           c * warpCellW, r * warpCellH,
           warpCellW, warpCellH, warpIsDark, warpBg, r, c
         );
+        let digit: number = 0;
+        if (sig !== null) {
+          digit = recognizeDigit(sig, countInk(sig));
+        }
+        if (digit === 0) {
+          const lowSig: number[] | null = cellSigFromGrayLowThresh(
+            warpedGray, outSize,
+            c * warpCellW, r * warpCellH,
+            warpCellW, warpCellH, warpIsDark, warpBg, r, c
+          );
+          if (lowSig !== null) {
+            sig = lowSig;
+            digit = recognizeDigit(lowSig, countInk(lowSig));
+          }
+        }
+        if (digit === 0 && getLastRawInkRatio() < MIN_CELL_INK_RATIO * 0.5) {
+          const thinSig: number[] | null = cellSigFromGrayThin(
+            warpedGray, outSize,
+            c * warpCellW, r * warpCellH,
+            warpCellW, warpCellH, warpIsDark, warpBg, r, c
+          );
+          if (thinSig !== null) {
+            sig = thinSig;
+            digit = recognizeDigit(thinSig, countInk(thinSig));
+          }
+        }
         if (sig !== null) {
           sigCount++;
-          grid[r * 9 + c] = recognizeDigit(sig, countInk(sig));
+          grid[r * 9 + c] = digit;
           g_lastPixelConfidence[r * 9 + c] = getLastConfidence();
-          if (grid[r * 9 + c] > 0) { digitCount++; }
+          if (digit > 0) { digitCount++; }
         }
       }
     }
@@ -2475,13 +2724,33 @@ export function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, he
           const cTop: number = gridLines.hLines[r];
           const cW: number = gridLines.vLines[c + 1] - cLeft;
           const cH: number = gridLines.hLines[r + 1] - cTop;
-          const sig: number[] | null = cellSigFromGray(
+          let sig: number[] | null = cellSigFromGray(
             gray, width, cLeft, cTop, cW, cH, bbox.isDark, bg, r, c
           );
+          let digit: number = 0;
+          if (sig !== null) {
+            digit = recognizeDigit(sig, countInk(sig));
+          }
+          if (digit === 0) {
+            const lowSig: number[] | null = cellSigFromGrayLowThresh(
+              gray, width, cLeft, cTop, cW, cH, bbox.isDark, bg, r, c
+            );
+            if (lowSig !== null) {
+              sig = lowSig;
+              digit = recognizeDigit(lowSig, countInk(lowSig));
+            }
+          }
+          if (digit === 0 && getLastRawInkRatio() < MIN_CELL_INK_RATIO * 0.5) {
+            const thinSig: number[] | null = cellSigFromGrayThin(
+              gray, width, cLeft, cTop, cW, cH, bbox.isDark, bg, r, c
+            );
+            if (thinSig !== null) {
+              sig = thinSig;
+              digit = recognizeDigit(thinSig, countInk(thinSig));
+            }
+          }
           if (sig !== null) {
             sigCount2++;
-            const inkCount: number = countInk(sig);
-            const digit: number = recognizeDigit(sig, inkCount);
             g_lastPixelConfidence[r * 9 + c] = getLastConfidence();
             if (digit > 0 && !validateCellCentering(gray, width, height, cLeft, cTop, cW, cH, bbox.isDark, bg)) {
               const fallbackW: number = (bbox.right - bbox.left) / 9;
@@ -2515,22 +2784,380 @@ export function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, he
       let digitCount3: number = 0;
       for (let r: number = 0; r < 9; r++) {
         for (let c: number = 0; c < 9; c++) {
-          const sig: number[] | null = cellSigFromGray(
+          let sig: number[] | null = cellSigFromGray(
             gray, width,
             bbox.left + c * cellW, bbox.top + r * cellH,
             cellW, cellH, bbox.isDark, bg, r, c
           );
+          let digit: number = 0;
+          if (sig !== null) {
+            digit = recognizeDigit(sig, countInk(sig));
+          }
+          if (digit === 0) {
+            const lowSig: number[] | null = cellSigFromGrayLowThresh(
+              gray, width,
+              bbox.left + c * cellW, bbox.top + r * cellH,
+              cellW, cellH, bbox.isDark, bg, r, c
+            );
+            if (lowSig !== null) {
+              sig = lowSig;
+              digit = recognizeDigit(lowSig, countInk(lowSig));
+            }
+          }
+          if (digit === 0 && getLastRawInkRatio() < MIN_CELL_INK_RATIO * 0.5) {
+            const thinSig: number[] | null = cellSigFromGrayThin(
+              gray, width,
+              bbox.left + c * cellW, bbox.top + r * cellH,
+              cellW, cellH, bbox.isDark, bg, r, c
+            );
+            if (thinSig !== null) {
+              sig = thinSig;
+              digit = recognizeDigit(thinSig, countInk(thinSig));
+            }
+          }
           if (sig !== null) {
             sigCount3++;
-            grid[r * 9 + c] = recognizeDigit(sig, countInk(sig));
+            grid[r * 9 + c] = digit;
             g_lastPixelConfidence[r * 9 + c] = getLastConfidence();
-            if (grid[r * 9 + c] > 0) { digitCount3++; }
+            if (digit > 0) { digitCount3++; }
           }
         }
       }
       g_lastDebugPixelCellStats = `AABB路径: sigOK=${sigCount3}/81 digits=${digitCount3}/81`;
     }
   }
+
+  let gridStr: string = '[SudokuOCR] 像素分析结果:\n';
+  for (let r: number = 0; r < 9; r++) {
+    let line: string = '  ';
+    for (let c: number = 0; c < 9; c++) {
+      line += (grid[r * 9 + c] === 0 ? '.' : grid[r * 9 + c].toString()) + ' ';
+    }
+    gridStr += line + '\n';
+  }
+  hilog.info(DOMAIN, TAG, '【像素分析网格】\n%{public}s', gridStr);
+
+  return grid;
+}
+
+export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width: number, height: number): Promise<number[]> {
+  const grid: number[] = new Array<number>(81).fill(0);
+  g_lastPixelConfidence = new Array<number>(81).fill(0);
+  g_lastCellCoords = [];
+
+  const bg: number = bgColor(pixels, width, height);
+  const gray: Float32Array = toGrayArray(pixels, width, height);
+  const isDark: boolean = bg < BG_DARK_THRESHOLD;
+  await yieldThread();
+
+  const bgHist: number[] = new Array<number>(256).fill(0);
+  const bgSampleStep2: number = Math.max(1, Math.floor(width * height / 20000));
+  let bgMin2: number = 255;
+  let bgMax2: number = 0;
+  for (let i: number = 0; i < width * height; i += bgSampleStep2) {
+    const g: number = Math.floor(gray[i]);
+    if (g >= 0 && g <= 255) { bgHist[g]++; }
+    if (g < bgMin2) { bgMin2 = g; }
+    if (g > bgMax2) { bgMax2 = g; }
+  }
+  let bgHistTop3Str: string = '';
+  const bgHistCopy: number[] = [...bgHist];
+  for (let pass: number = 0; pass < 3; pass++) {
+    let topI: number = 0;
+    let topV: number = 0;
+    for (let i: number = 0; i < 256; i++) {
+      if (bgHistCopy[i] > topV) {
+        topV = bgHistCopy[i];
+        topI = i;
+      }
+    }
+    if (topV > 0) {
+      bgHistTop3Str += (bgHistTop3Str.length > 0 ? ', ' : '') + `${topI}(${topV})`;
+      bgHistCopy[topI] = 0;
+    }
+  }
+  g_lastDebugPixelBgInfo = `size=${width}x${height} bg=${bg.toFixed(1)} isDark=${isDark ? 1 : 0} bgRange=[${bgMin2},${bgMax2}] bgHistTop3=[${bgHistTop3Str}] threshold=${BG_DARK_THRESHOLD}`;
+
+  const bbox: BoardBBox = findBoardBBox(pixels, width, height, bg);
+  const cellW: number = (bbox.right - bbox.left) / 9;
+  const cellH: number = (bbox.bottom - bbox.top) / 9;
+  const isFullImage: boolean = bbox.left === 0 && bbox.top === 0 &&
+    bbox.right === width && bbox.bottom === height;
+  const boardAreaRatio2: number = (bbox.right - bbox.left) * (bbox.bottom - bbox.top) / (width * height);
+  await yieldThread();
+
+  const longRunResult: BoardBBox | null = findBoxLongRun(gray, width, height, isDark, bg);
+  const longRunInfo: string = longRunResult !== null
+    ? `OK [${longRunResult.left},${longRunResult.top},${longRunResult.right},${longRunResult.bottom}]`
+    : '失败';
+  g_lastDebugPixelBboxLocator = `longRun=${longRunInfo} final=[${bbox.left},${bbox.top},${bbox.right},${bbox.bottom}] isFullImage=${isFullImage ? 1 : 0} areaRatio=${boardAreaRatio2.toFixed(3)} cell=${cellW.toFixed(1)}x${cellH.toFixed(1)}`;
+
+  hilog.info(DOMAIN, TAG, '【图片与棋盘】%{public}dx%{public}d bg=%{public}.1f isDark=%{public}d 棋盘=[%{public}d,%{public}d,%{public}d,%{public}d] 每格=%{public}.1f',
+    width, height, bg, isDark ? 1 : 0, bbox.left, bbox.top, bbox.right, bbox.bottom,
+    Math.min(cellW, cellH));
+  hilog.info(DOMAIN, TAG, '【像素背景分析】%{public}s', g_lastDebugPixelBgInfo);
+  hilog.info(DOMAIN, TAG, '【像素棋盘定位】%{public}s', g_lastDebugPixelBboxLocator);
+
+  if (isFullImage) {
+    hilog.warn(DOMAIN, TAG, '像素分析: 警告 - findBoardBBox返回全图退化bbox，棋盘定位可能失败');
+  }
+  await yieldThread();
+
+  const corners: BoardCorners | null = detectBoardCorners(gray, width, height, isDark, bg);
+  if (corners !== null) {
+    const boardSize: number = Math.max(bbox.right - bbox.left, bbox.bottom - bbox.top);
+    const outSize: number = Math.round(boardSize * WARP_SIZE_MULTIPLIER);
+    const warpedGray: Float32Array = warpPerspectiveGray(gray, width, height, corners, outSize, bg);
+    const warpCellW: number = outSize / 9;
+    const warpCellH: number = outSize / 9;
+    const warpInkBg: number = isDark ? bg + INK_THRESH : bg - INK_THRESH;
+    let warpBgSum: number = 0;
+    let warpBgCnt: number = 0;
+    const warpSampleStep: number = Math.max(1, Math.floor(outSize * outSize / WARP_BG_SAMPLE_DIV));
+    for (let sy: number = 0; sy < outSize; sy += warpSampleStep) {
+      for (let sx: number = 0; sx < outSize; sx += warpSampleStep) {
+        const g: number = warpedGray[sy * outSize + sx];
+        if (isDark ? g < warpInkBg : g > warpInkBg) {
+          warpBgSum += g;
+          warpBgCnt++;
+        }
+      }
+    }
+    const warpBg: number = warpBgCnt > 0 ? warpBgSum / warpBgCnt : bg;
+    const warpIsDark: boolean = warpBg < BG_DARK_THRESHOLD;
+    resetGridLineCrop();
+    const warpBBox: BoardBBox = { left: 0, top: 0, right: outSize, bottom: outSize, isDark: warpIsDark };
+    const warpGridLines: GridLines | null = findPreciseGridLines(warpedGray, outSize, outSize, warpBBox, warpBg);
+    if (warpGridLines !== null) {
+      detectGridLineWidths(warpedGray, outSize, 0, 0, outSize, outSize, warpIsDark, warpBg);
+    }
+    g_lastDebugPixelWarpInfo = `透视校正 outSize=${outSize} confidence=${corners.confidence.toFixed(2)} warpBg=${warpBg.toFixed(1)} warpIsDark=${warpIsDark ? 1 : 0} warpGridLines=${warpGridLines !== null ? 'OK' : 'null'} corners=[${corners.topLeftX.toFixed(0)},${corners.topLeftY.toFixed(0)}]-[${corners.topRightX.toFixed(0)},${corners.topRightY.toFixed(0)}]-[${corners.bottomRightX.toFixed(0)},${corners.bottomRightY.toFixed(0)}]-[${corners.bottomLeftX.toFixed(0)},${corners.bottomLeftY.toFixed(0)}]`;
+    hilog.info(DOMAIN, TAG, '【像素透视/网格】outSize=%{public}d confidence=%{public}.2f warpBg=%{public}.1f gridLines=%{public}s', outSize, corners.confidence, warpBg, warpGridLines !== null ? 'OK' : 'null');
+    await yieldThread();
+
+    let sigCount: number = 0;
+    let digitCount: number = 0;
+    for (let r: number = 0; r < 9; r++) {
+      for (let c: number = 0; c < 9; c++) {
+        let cellL: number = 0;
+        let cellT: number = 0;
+        let cellW: number = warpCellW;
+        let cellH: number = warpCellH;
+        if (warpGridLines !== null) {
+          cellL = warpGridLines.vLines[c];
+          cellT = warpGridLines.hLines[r];
+          cellW = warpGridLines.vLines[c + 1] - cellL;
+          cellH = warpGridLines.hLines[r + 1] - cellT;
+        } else {
+          cellL = c * warpCellW;
+          cellT = r * warpCellH;
+        }
+        let sig: number[] | null = cellSigFromGray(
+          warpedGray, outSize,
+          cellL, cellT,
+          cellW, cellH, warpIsDark, warpBg, r, c
+        );
+        let digit: number = 0;
+        if (sig !== null) {
+          digit = recognizeDigit(sig, countInk(sig));
+        }
+        if (digit === 0) {
+          const lowSig: number[] | null = cellSigFromGrayLowThresh(
+            warpedGray, outSize,
+            cellL, cellT,
+            cellW, cellH, warpIsDark, warpBg, r, c
+          );
+          if (lowSig !== null) {
+            sig = lowSig;
+            digit = recognizeDigit(lowSig, countInk(lowSig));
+          }
+        }
+        if (digit === 0 && getLastRawInkRatio() < MIN_CELL_INK_RATIO * 0.5) {
+          const thinSig: number[] | null = cellSigFromGrayThin(
+            warpedGray, outSize,
+            cellL, cellT,
+            cellW, cellH, warpIsDark, warpBg, r, c
+          );
+          if (thinSig !== null) {
+            sig = thinSig;
+            digit = recognizeDigit(thinSig, countInk(thinSig));
+          }
+        }
+        if (sig !== null) {
+          sigCount++;
+          grid[r * 9 + c] = digit;
+          g_lastPixelConfidence[r * 9 + c] = getLastConfidence();
+          if (digit > 0) { digitCount++; }
+          g_lastCellCoords.push({
+            row: r, col: c, digit: digit,
+            left: Math.round(cellL), top: Math.round(cellT),
+            w: Math.round(cellW), h: Math.round(cellH),
+            conf: getLastConfidence(), rawInk: getLastRawInkRatio(),
+            imgW: outSize, imgH: outSize,
+            source: warpGridLines !== null ? 'warp+grid' : 'warp'
+          });
+        }
+        await yieldThread();
+      }
+    }
+    g_lastDebugPixelCellStats = `warp路径: sigOK=${sigCount}/81 digits=${digitCount}/81`;
+  } else {
+    hilog.info(DOMAIN, TAG, '【像素透视/网格】角点检测失败 使用AABB');
+    g_lastDebugPixelWarpInfo = '角点检测失败，使用AABB';
+    await yieldThread();
+
+    const gridLines: GridLines | null = findPreciseGridLines(gray, width, height, bbox, bg);
+    if (gridLines !== null) {
+      hilog.info(DOMAIN, TAG, '【像素透视/网格】精确网格线OK');
+      g_lastDebugPixelWarpInfo += ' → 精确网格线OK';
+      resetGridLineCrop();
+      detectGridLineWidths(gray, width, bbox.left, bbox.top, bbox.right, bbox.bottom, isDark, bg);
+      await yieldThread();
+      let sigCount2: number = 0;
+      let digitCount2: number = 0;
+      for (let r: number = 0; r < 9; r++) {
+        for (let c: number = 0; c < 9; c++) {
+          const cLeft: number = gridLines.vLines[c];
+          const cTop: number = gridLines.hLines[r];
+          const cW: number = gridLines.vLines[c + 1] - cLeft;
+          const cH: number = gridLines.hLines[r + 1] - cTop;
+          let sig: number[] | null = cellSigFromGray(
+            gray, width, cLeft, cTop, cW, cH, bbox.isDark, bg, r, c
+          );
+          let digit: number = 0;
+          if (sig !== null) {
+            digit = recognizeDigit(sig, countInk(sig));
+          }
+          if (digit === 0) {
+            const lowSig: number[] | null = cellSigFromGrayLowThresh(
+              gray, width, cLeft, cTop, cW, cH, bbox.isDark, bg, r, c
+            );
+            if (lowSig !== null) {
+              sig = lowSig;
+              digit = recognizeDigit(lowSig, countInk(lowSig));
+            }
+          }
+          if (digit === 0 && getLastRawInkRatio() < MIN_CELL_INK_RATIO * 0.5) {
+            const thinSig: number[] | null = cellSigFromGrayThin(
+              gray, width, cLeft, cTop, cW, cH, bbox.isDark, bg, r, c
+            );
+            if (thinSig !== null) {
+              sig = thinSig;
+              digit = recognizeDigit(thinSig, countInk(thinSig));
+            }
+          }
+          if (sig !== null) {
+            sigCount2++;
+            g_lastPixelConfidence[r * 9 + c] = getLastConfidence();
+            if (digit > 0 && !validateCellCentering(gray, width, height, cLeft, cTop, cW, cH, bbox.isDark, bg)) {
+              const fallbackW: number = (bbox.right - bbox.left) / 9;
+              const fallbackH: number = (bbox.bottom - bbox.top) / 9;
+              const fallbackLeft: number = bbox.left + c * fallbackW;
+              const fallbackTop: number = bbox.top + r * fallbackH;
+              const fallbackSig: number[] | null = cellSigFromGray(
+                gray, width, fallbackLeft, fallbackTop, fallbackW, fallbackH, bbox.isDark, bg, r, c
+              );
+              if (fallbackSig !== null) {
+                const fbDigit: number = recognizeDigit(fallbackSig, countInk(fallbackSig));
+                g_lastPixelConfidence[r * 9 + c] = getLastConfidence();
+                if (fbDigit > 0) {
+                  grid[r * 9 + c] = fbDigit;
+                  digitCount2++;
+                  g_lastCellCoords.push({
+                    row: r, col: c, digit: fbDigit,
+                    left: Math.round(fallbackLeft), top: Math.round(fallbackTop),
+                    w: Math.round(fallbackW), h: Math.round(fallbackH),
+                    conf: getLastConfidence(), rawInk: getLastRawInkRatio(),
+                    imgW: width, imgH: height,
+                    source: 'gridLines_fallback'
+                  });
+                  continue;
+                }
+              }
+            }
+            grid[r * 9 + c] = digit;
+            if (digit > 0) { digitCount2++; }
+            g_lastCellCoords.push({
+              row: r, col: c, digit: digit,
+              left: Math.round(cLeft), top: Math.round(cTop),
+              w: Math.round(cW), h: Math.round(cH),
+              conf: getLastConfidence(), rawInk: getLastRawInkRatio(),
+              imgW: width, imgH: height,
+              source: 'gridLines'
+            });
+          }
+          await yieldThread();
+        }
+      }
+      g_lastDebugPixelCellStats = `gridLines路径: sigOK=${sigCount2}/81 digits=${digitCount2}/81 vLines=${gridLines.vLines.length} hLines=${gridLines.hLines.length}`;
+    } else {
+      g_lastDebugPixelWarpInfo += ' → AABB均匀分格';
+      resetGridLineCrop();
+      detectGridLineWidths(gray, width, bbox.left, bbox.top, bbox.right, bbox.bottom, isDark, bg);
+      await yieldThread();
+      let sigCount3: number = 0;
+      let digitCount3: number = 0;
+      for (let r: number = 0; r < 9; r++) {
+        for (let c: number = 0; c < 9; c++) {
+          let sig: number[] | null = cellSigFromGray(
+            gray, width,
+            bbox.left + c * cellW, bbox.top + r * cellH,
+            cellW, cellH, bbox.isDark, bg, r, c
+          );
+          let digit: number = 0;
+          if (sig !== null) {
+            digit = recognizeDigit(sig, countInk(sig));
+          }
+          if (digit === 0) {
+            const lowSig: number[] | null = cellSigFromGrayLowThresh(
+              gray, width,
+              bbox.left + c * cellW, bbox.top + r * cellH,
+              cellW, cellH, bbox.isDark, bg, r, c
+            );
+            if (lowSig !== null) {
+              sig = lowSig;
+              digit = recognizeDigit(lowSig, countInk(lowSig));
+            }
+          }
+          if (digit === 0 && getLastRawInkRatio() < MIN_CELL_INK_RATIO * 0.5) {
+            const thinSig: number[] | null = cellSigFromGrayThin(
+              gray, width,
+              bbox.left + c * cellW, bbox.top + r * cellH,
+              cellW, cellH, bbox.isDark, bg, r, c
+            );
+            if (thinSig !== null) {
+              sig = thinSig;
+              digit = recognizeDigit(thinSig, countInk(thinSig));
+            }
+          }
+          if (sig !== null) {
+            sigCount3++;
+            grid[r * 9 + c] = digit;
+            g_lastPixelConfidence[r * 9 + c] = getLastConfidence();
+            if (digit > 0) { digitCount3++; }
+            const aabbLeft: number = bbox.left + c * cellW;
+            const aabbTop: number = bbox.top + r * cellH;
+            g_lastCellCoords.push({
+              row: r, col: c, digit: digit,
+              left: Math.round(aabbLeft), top: Math.round(aabbTop),
+              w: Math.round(cellW), h: Math.round(cellH),
+              conf: getLastConfidence(), rawInk: getLastRawInkRatio(),
+              imgW: width, imgH: height,
+              source: 'AABB'
+            });
+          }
+          await yieldThread();
+        }
+      }
+      g_lastDebugPixelCellStats = `AABB路径: sigOK=${sigCount3}/81 digits=${digitCount3}/81`;
+    }
+  }
+
+  let coordLines: string[] = [];
+  for (const ci of g_lastCellCoords) {
+    coordLines.push(`R${ci.row}C${ci.col}:d=${ci.digit} rect=[${ci.left},${ci.top},${ci.w}x${ci.h}] conf=${ci.conf.toFixed(2)} ink=${ci.rawInk.toFixed(4)} imgSize=${ci.imgW}x${ci.imgH} src=${ci.source}`);
+  }
+  g_lastDebugPixelCellCoords = coordLines.join('\n');
 
   let gridStr: string = '[SudokuOCR] 像素分析结果:\n';
   for (let r: number = 0; r < 9; r++) {

@@ -8,6 +8,8 @@ const TAG: string = 'SudokuPixel';
 export interface DigitTemplate {
   digit: number;
   key: number[];
+  keyBytes: Int8Array;
+  inkCount: number;
 }
 
 export interface BoardBBox {
@@ -86,7 +88,7 @@ const LOW_INK_FALLBACK_MIN_RECALL: number = 0.35;
 // Ink detection threshold: a pixel is "ink" if its gray value differs from
 // the background by at least INK_THRESH. Lower = more sensitive to faint ink;
 // higher = more selective, avoids noise.
-const INK_THRESH: number = 50;
+export const INK_THRESH: number = 50;
 const GRID_LINE_GRAY_DIFF: number = INK_THRESH * 0.6;
 
 // Sauvola adaptive thresholding parameters:
@@ -103,7 +105,7 @@ const CELL_MARGIN_RATIO: number = 0.08;
 // occupied. Cells with ink ratio below this (2.5%) are treated as empty. This
 // stays sensitive enough for very thin "1" digits while later recognition gates
 // still reject noise and no-border false positives.
-const MIN_CELL_INK_RATIO: number = 0.025;
+export const MIN_CELL_INK_RATIO: number = 0.025;
 
 // Otsu fallback: reject the Otsu threshold if it is too close to the
 // background value (within OTSU_BG_MIN_DIFF gray levels).
@@ -285,7 +287,7 @@ const DISAMBIG_SCORE_GAP_SKIP: number = 80;
 const TEMPLATE_MISMATCH_PENALTY: number = 0.5;
 
 // Recognize digit: F1 score weight in template scoring formula.
-const TEMPLATE_F1_WEIGHT: number = 200;
+const TEMPLATE_F1_WEIGHT: number = 500;
 
 // findBoardBBox: projection ink-fraction thresholds for primary detection.
 const BBOX_PRIMARY_THRESH: number = 0.3;
@@ -346,6 +348,10 @@ interface ChannelBg {
 }
 let g_cachedChannelBg: ChannelBg | null = null;
 
+export function resetChannelBgCache(): void {
+  g_cachedChannelBg = null;
+}
+
 interface DigitTemplateEntry {
   digit: number;
   font: string;
@@ -359,6 +365,7 @@ interface DigitTemplateFile {
 }
 
 let g_templates: DigitTemplate[] = [];
+let g_templatesByDigit: DigitTemplate[][] = [];
 let g_holeRows: number[] = [];
 let g_loaded: boolean = false;
 let g_gridLineCropTop: number[] = new Array<number>(81).fill(0);
@@ -419,24 +426,43 @@ export function detectGridLineWidths(
   const vLineInkRight: number[] = new Array<number>(10).fill(0);
   const vLineInkLeft: number[] = new Array<number>(10).fill(0);
 
+  const innerX0: number = Math.floor(boardL + cellW * CENTERING_MARGIN);
+  const innerX1: number = Math.floor(boardR - cellW * CENTERING_MARGIN);
+  const innerY0: number = Math.floor(boardT + cellH * CENTERING_MARGIN);
+  const innerY1: number = Math.floor(boardB - cellH * CENTERING_MARGIN);
+  const hSpanLen: number = innerX1 - innerX0 + 1;
+  const vSpanLen: number = innerY1 - innerY0 + 1;
+
+  const scanBandH: number = Math.max(3, Math.floor(cellH * CENTERING_MARGIN));
+  const scanBandW: number = Math.max(3, Math.floor(cellW * CENTERING_MARGIN));
+
+  const inkBg: number = isDark ? bg + INK_THRESH : bg - INK_THRESH;
+  const ink: Uint8Array = new Uint8Array(gray.length);
+  if (isDark) {
+    for (let k: number = 0; k < gray.length; k++) {
+      ink[k] = gray[k] > inkBg ? 1 : 0;
+    }
+  } else {
+    for (let k: number = 0; k < gray.length; k++) {
+      ink[k] = gray[k] < inkBg ? 1 : 0;
+    }
+  }
+
   for (let i: number = 0; i < 10; i++) {
     const lineY: number = Math.round(boardT + i * cellH);
     if (lineY < 0 || lineY >= imgH) { continue; }
-    const bandHalf: number = Math.max(3, Math.floor(cellH * CENTERING_MARGIN));
-    const yStart: number = Math.max(0, lineY - bandHalf);
-    const yEnd: number = Math.min(imgH - 1, lineY + bandHalf);
-    const innerX0: number = Math.floor(boardL + cellW * CENTERING_MARGIN);
-    const innerX1: number = Math.floor(boardR - cellW * CENTERING_MARGIN);
-    const spanLen: number = innerX1 - innerX0 + 1;
-    if (spanLen < 5) { continue; }
+    const yStart: number = Math.max(0, lineY - scanBandH);
+    const yEnd: number = Math.min(imgH - 1, lineY + scanBandH);
+    if (hSpanLen < 5) { continue; }
     let maxInkPct: number = 0;
     let bestY: number = lineY;
     for (let y: number = yStart; y <= yEnd; y++) {
+      const rowOff: number = y * imgW;
       let inkCount: number = 0;
       for (let x: number = innerX0; x <= innerX1; x++) {
-        if (grayInkPixel(gray[y * imgW + x], bg, isDark, INK_THRESH)) { inkCount++; }
+        inkCount += ink[rowOff + x];
       }
-      const pct: number = inkCount / spanLen;
+      const pct: number = inkCount / hSpanLen;
       if (pct > maxInkPct) { maxInkPct = pct; bestY = y; }
     }
     if (maxInkPct < GRID_LINE_INK_EXIST_THRESH) { continue; }
@@ -444,19 +470,21 @@ export function detectGridLineWidths(
     let topInkY: number = bestY;
     let botInkY: number = bestY;
     for (let y: number = bestY - 1; y >= yStart; y--) {
+      const rowOff: number = y * imgW;
       let inkCount: number = 0;
       for (let x: number = innerX0; x <= innerX1; x++) {
-        if (grayInkPixel(gray[y * imgW + x], bg, isDark, INK_THRESH)) { inkCount++; }
+        inkCount += ink[rowOff + x];
       }
-      if (inkCount / spanLen < threshPct) { break; }
+      if (inkCount / hSpanLen < threshPct) { break; }
       topInkY = y;
     }
     for (let y: number = bestY + 1; y <= yEnd; y++) {
+      const rowOff: number = y * imgW;
       let inkCount: number = 0;
       for (let x: number = innerX0; x <= innerX1; x++) {
-        if (grayInkPixel(gray[y * imgW + x], bg, isDark, INK_THRESH)) { inkCount++; }
+        inkCount += ink[rowOff + x];
       }
-      if (inkCount / spanLen < threshPct) { break; }
+      if (inkCount / hSpanLen < threshPct) { break; }
       botInkY = y;
     }
     hLineInkUp[i] = Math.max(0, lineY - topInkY);
@@ -466,21 +494,17 @@ export function detectGridLineWidths(
   for (let j: number = 0; j < 10; j++) {
     const lineX: number = Math.round(boardL + j * cellW);
     if (lineX < 0 || lineX >= imgW) { continue; }
-    const bandHalf: number = Math.max(3, Math.floor(cellW * CENTERING_MARGIN));
-    const xStart: number = Math.max(0, lineX - bandHalf);
-    const xEnd: number = Math.min(imgW - 1, lineX + bandHalf);
-    const innerY0: number = Math.floor(boardT + cellH * CENTERING_MARGIN);
-    const innerY1: number = Math.floor(boardB - cellH * CENTERING_MARGIN);
-    const spanLen: number = innerY1 - innerY0 + 1;
-    if (spanLen < 5) { continue; }
+    const xStart: number = Math.max(0, lineX - scanBandW);
+    const xEnd: number = Math.min(imgW - 1, lineX + scanBandW);
+    if (vSpanLen < 5) { continue; }
     let maxInkPct: number = 0;
     let bestX: number = lineX;
     for (let x: number = xStart; x <= xEnd; x++) {
       let inkCount: number = 0;
       for (let y: number = innerY0; y <= innerY1; y++) {
-        if (grayInkPixel(gray[y * imgW + x], bg, isDark, INK_THRESH)) { inkCount++; }
+        inkCount += ink[y * imgW + x];
       }
-      const pct: number = inkCount / spanLen;
+      const pct: number = inkCount / vSpanLen;
       if (pct > maxInkPct) { maxInkPct = pct; bestX = x; }
     }
     if (maxInkPct < GRID_LINE_INK_EXIST_THRESH) { continue; }
@@ -490,17 +514,17 @@ export function detectGridLineWidths(
     for (let x: number = bestX - 1; x >= xStart; x--) {
       let inkCount: number = 0;
       for (let y: number = innerY0; y <= innerY1; y++) {
-        if (grayInkPixel(gray[y * imgW + x], bg, isDark, INK_THRESH)) { inkCount++; }
+        inkCount += ink[y * imgW + x];
       }
-      if (inkCount / spanLen < threshPct) { break; }
+      if (inkCount / vSpanLen < threshPct) { break; }
       leftInkX = x;
     }
     for (let x: number = bestX + 1; x <= xEnd; x++) {
       let inkCount: number = 0;
       for (let y: number = innerY0; y <= innerY1; y++) {
-        if (grayInkPixel(gray[y * imgW + x], bg, isDark, INK_THRESH)) { inkCount++; }
+        inkCount += ink[y * imgW + x];
       }
-      if (inkCount / spanLen < threshPct) { break; }
+      if (inkCount / vSpanLen < threshPct) { break; }
       rightInkX = x;
     }
     vLineInkLeft[j] = Math.max(0, lineX - leftInkX);
@@ -628,14 +652,31 @@ function sigToAscii(sig: number[]): string {
 export function initDigitTemplates(context: Context): boolean {
   if (g_loaded) { return true; }
   try {
-    const file: DigitTemplateFile = RawFileUtil.readJson<DigitTemplateFile>(context, 'digit_templates.json');
+    let file: DigitTemplateFile = RawFileUtil.readJson<DigitTemplateFile>(context, 'digit_templates_extended.json');
+    if (!file || !file.templates || file.templates.length === 0) {
+      file = RawFileUtil.readJson<DigitTemplateFile>(context, 'digit_templates.json');
+    }
     if (!file || !file.templates || file.templates.length === 0) {
       return false;
     }
     g_templates = [];
+    g_templatesByDigit = new Array<DigitTemplate[]>(10);
+    for (let d: number = 0; d < 10; d++) {
+      g_templatesByDigit[d] = [];
+    }
     for (let i: number = 0; i < file.templates.length; i++) {
       const e: DigitTemplateEntry = file.templates[i];
-      g_templates.push({ digit: e.digit, key: e.key });
+      const kb: Int8Array = new Int8Array(e.key.length);
+      let inkC: number = 0;
+      for (let j: number = 0; j < e.key.length; j++) {
+        kb[j] = e.key[j];
+        if (e.key[j] === 1) { inkC++; }
+      }
+      const tpl: DigitTemplate = { digit: e.digit, key: e.key, keyBytes: kb, inkCount: inkC };
+      g_templates.push(tpl);
+      if (e.digit >= 0 && e.digit <= 9) {
+        g_templatesByDigit[e.digit].push(tpl);
+      }
     }
     g_holeRows = g_templates.map((t: DigitTemplate) => holeCenterRow(t.key));
     g_loaded = true;
@@ -676,21 +717,23 @@ export function sauvolaThreshold(
   const h: number = y1 - y0;
   if (w < SAUVOLA_MIN_DIM || h < SAUVOLA_MIN_DIM) { return null; }
 
-  const sumBuf: Float32Array = new Float32Array(w * h);
-  const sqBuf: Float32Array = new Float32Array(w * h);
+  const intSum: Float32Array = new Float32Array((w + 1) * (h + 1));
+  const intSq: Float32Array = new Float32Array((w + 1) * (h + 1));
+  const stride: number = w + 1;
   for (let ly: number = 0; ly < h; ly++) {
     const sy: number = y0 + ly;
-    if (sy < 0 || sy >= height) { continue; }
-    let rowSum: number = 0;
-    let rowSq: number = 0;
+    let rSum: number = 0;
+    let rSq: number = 0;
     for (let lx: number = 0; lx < w; lx++) {
       const sx: number = x0 + lx;
-      if (sx < 0 || sx >= width) { continue; }
-      const v: number = gray[sy * width + sx];
-      rowSum += v;
-      rowSq += v * v;
-      sumBuf[ly * w + lx] = rowSum;
-      sqBuf[ly * w + lx] = rowSq;
+      let v: number = 0;
+      if (sy >= 0 && sy < height && sx >= 0 && sx < width) {
+        v = gray[sy * width + sx];
+      }
+      rSum += v;
+      rSq += v * v;
+      intSum[(ly + 1) * stride + lx + 1] = rSum + intSum[ly * stride + lx + 1];
+      intSq[(ly + 1) * stride + lx + 1] = rSq + intSq[ly * stride + lx + 1];
     }
   }
 
@@ -702,14 +745,14 @@ export function sauvolaThreshold(
       const left: number = Math.max(0, lx - halfWin);
       const right: number = Math.min(w - 1, lx + halfWin);
       const cnt: number = (bot - top + 1) * (right - left + 1);
-      let s: number = 0;
-      let sq: number = 0;
-      for (let ry: number = top; ry <= bot; ry++) {
-        const prevLeft: number = left > 0 ? sumBuf[ry * w + left - 1] : 0;
-        const prevSqLeft: number = left > 0 ? sqBuf[ry * w + left - 1] : 0;
-        s += sumBuf[ry * w + right] - prevLeft;
-        sq += sqBuf[ry * w + right] - prevSqLeft;
-      }
+      const tR: number = top;
+      const tC: number = left;
+      const bR: number = bot + 1;
+      const bC: number = right + 1;
+      const s: number = intSum[bR * stride + bC] - intSum[tR * stride + bC]
+        - intSum[bR * stride + tC] + intSum[tR * stride + tC];
+      const sq: number = intSq[bR * stride + bC] - intSq[tR * stride + bC]
+        - intSq[bR * stride + tC] + intSq[tR * stride + tC];
       const mean: number = s / cnt;
       const variance: number = sq / cnt - mean * mean;
       const std: number = Math.sqrt(Math.max(0, variance));
@@ -795,23 +838,28 @@ export function bgColor(pixels: Uint8Array, width: number, height: number): numb
 }
 
 export function toGrayArray(pixels: Uint8Array, width: number, height: number): Float32Array {
-  // 如果已有缓存的通道背景色，使用颜色对比度方案；
-  // 否则回退到标准亮度转换。
   let bgR: number = 128; let bgG: number = 128; let bgB: number = 128;
   if (g_cachedChannelBg !== null) {
     bgR = g_cachedChannelBg.bgR;
     bgG = g_cachedChannelBg.bgG;
     bgB = g_cachedChannelBg.bgB;
   }
-  const gray: Float32Array = new Float32Array(width * height);
-  for (let i: number = 0; i < width * height; i++) {
+  const len: number = width * height;
+  const gray: Float32Array = new Float32Array(len);
+  for (let i: number = 0; i < len; i++) {
     const off: number = i * 4;
-    const dr: number = pixels[off] - bgR;
-    const dg: number = pixels[off + 1] - bgG;
-    const db: number = pixels[off + 2] - bgB;
-    // 取最大通道偏差作为颜色对比度，反转后得到：背景≈255，墨水≈0~200
-    const contrast: number = Math.max(Math.abs(dr), Math.abs(dg), Math.abs(db));
-    gray[i] = clamp255(255 - contrast);
+    let dr: number = pixels[off] - bgR;
+    let dg: number = pixels[off + 1] - bgG;
+    let db: number = pixels[off + 2] - bgB;
+    if (dr < 0) { dr = -dr; }
+    if (dg < 0) { dg = -dg; }
+    if (db < 0) { db = -db; }
+    let contrast: number = dr;
+    if (dg > contrast) { contrast = dg; }
+    if (db > contrast) { contrast = db; }
+    let v: number = 255 - contrast;
+    if (v < 0) { v = 0; } else if (v > 255) { v = 255; }
+    gray[i] = v;
   }
   return gray;
 }
@@ -911,11 +959,12 @@ function computeProjectionsGray(
   const rh: number = ry1 - ry0;
   const colInk: number[] = new Array<number>(rw).fill(0);
   const rowInk: number[] = new Array<number>(rh).fill(0);
+  const inkBg: number = isDark ? bg + thresh : bg - thresh;
   for (let x: number = 0; x < rw; x++) {
     let c: number = 0;
     for (let y: number = 0; y < rh; y += step) {
       const g: number = gray[(y + ry0) * W + (x + rx0)];
-      if (grayInkPixel(g, bg, isDark, thresh)) { c++; }
+      if (isDark ? g > inkBg : g < inkBg) { c++; }
     }
     colInk[x] = c;
   }
@@ -923,7 +972,7 @@ function computeProjectionsGray(
     let c: number = 0;
     for (let x: number = 0; x < rw; x += step) {
       const g: number = gray[(y + ry0) * W + (x + rx0)];
-      if (grayInkPixel(g, bg, isDark, thresh)) { c++; }
+      if (isDark ? g > inkBg : g < inkBg) { c++; }
     }
     rowInk[y] = c;
   }
@@ -1092,56 +1141,83 @@ function findPeriodicPeaks(frac: number[], threshold: number): number[] {
   return peaks;
 }
 
-function findBBoxAdaptive(gray: Float32Array, W: number, H: number, isDark: boolean): BoardBBox | null {
-  const winR: number = Math.max(5, Math.floor(Math.min(W, H) / 25));
-  const blurred: Float32Array = boxBlur(gray, W, H, winR);
+const ADAPTIVE_MAX_DIM: number = 400;
 
-  for (const C of ADAPTIVE_CONTRASTS) {
-    let binary: Uint8Array = new Uint8Array(W * H);
-    for (let i: number = 0; i < W * H; i++) {
-      if (isDark) {
-        binary[i] = (gray[i] > blurred[i] + C) ? 1 : 0;
-      } else {
-        binary[i] = (gray[i] < blurred[i] - C) ? 1 : 0;
+function findBBoxAdaptive(gray: Float32Array, W: number, H: number, isDark: boolean): BoardBBox | null {
+  let workGray: Float32Array = gray;
+  let workW: number = W;
+  let workH: number = H;
+  let scale: number = 1;
+  const maxDim: number = Math.max(W, H);
+  if (maxDim > ADAPTIVE_MAX_DIM) {
+    scale = ADAPTIVE_MAX_DIM / maxDim;
+    workW = Math.max(1, Math.round(W * scale));
+    workH = Math.max(1, Math.round(H * scale));
+    workGray = new Float32Array(workW * workH);
+    for (let y: number = 0; y < workH; y++) {
+      const srcY: number = Math.min(Math.floor(y / scale), H - 1);
+      for (let x: number = 0; x < workW; x++) {
+        const srcX: number = Math.min(Math.floor(x / scale), W - 1);
+        workGray[y * workW + x] = gray[srcY * W + srcX];
       }
     }
-    binary = morphOpen3x3(binary, W, H);
-    binary = dilate3x3(dilate3x3(binary, W, H), W, H);
+  }
+  const invScale: number = 1 / scale;
+  const winR: number = Math.max(5, Math.floor(Math.min(workW, workH) / 25));
+  const blurred: Float32Array = boxBlur(workGray, workW, workH, winR);
 
-    const colInk: number[] = new Array<number>(W).fill(0);
-    const rowInk: number[] = new Array<number>(H).fill(0);
-    for (let x: number = 0; x < W; x++) {
+  for (const C of ADAPTIVE_CONTRASTS) {
+    let binary: Uint8Array = new Uint8Array(workW * workH);
+    for (let i: number = 0; i < workW * workH; i++) {
+      if (isDark) {
+        binary[i] = (workGray[i] > blurred[i] + C) ? 1 : 0;
+      } else {
+        binary[i] = (workGray[i] < blurred[i] - C) ? 1 : 0;
+      }
+    }
+    binary = morphOpen3x3(binary, workW, workH);
+    binary = dilate3x3(dilate3x3(binary, workW, workH), workW, workH);
+
+    const colInk: number[] = new Array<number>(workW).fill(0);
+    const rowInk: number[] = new Array<number>(workH).fill(0);
+    for (let x: number = 0; x < workW; x++) {
       let c: number = 0;
-      for (let y: number = 0; y < H; y += 2) {
-        if (binary[y * W + x] === 1) { c++; }
+      for (let y: number = 0; y < workH; y += 2) {
+        if (binary[y * workW + x] === 1) { c++; }
       }
       colInk[x] = c;
     }
-    for (let y: number = 0; y < H; y++) {
+    for (let y: number = 0; y < workH; y++) {
       let c: number = 0;
-      for (let x: number = 0; x < W; x += 2) {
-        if (binary[y * W + x] === 1) { c++; }
+      for (let x: number = 0; x < workW; x += 2) {
+        if (binary[y * workW + x] === 1) { c++; }
       }
       rowInk[y] = c;
     }
-    const colFrac: number[] = colInk.map((c: number) => c / (H / 2));
-    const rowFrac: number[] = rowInk.map((c: number) => c / (W / 2));
+    const colFrac: number[] = colInk.map((c: number) => c / (workH / 2));
+    const rowFrac: number[] = rowInk.map((c: number) => c / (workW / 2));
 
     for (const thresh of ADAPTIVE_THRESHOLDS) {
-      let minX: number = W;
+      let minX: number = workW;
       let maxX: number = 0;
-      let minY: number = H;
+      let minY: number = workH;
       let maxY: number = 0;
       let found: boolean = false;
-      for (let x: number = 0; x < W; x++) {
+      for (let x: number = 0; x < workW; x++) {
         if (colFrac[x] > thresh) { if (x < minX) { minX = x; } if (x > maxX) { maxX = x; } found = true; }
       }
-      for (let y: number = 0; y < H; y++) {
+      for (let y: number = 0; y < workH; y++) {
         if (rowFrac[y] > thresh) { if (y < minY) { minY = y; } if (y > maxY) { maxY = y; } found = true; }
       }
       if (found) {
-        const bbox: BoardBBox = { left: minX, top: minY, right: maxX, bottom: maxY, isDark };
-        if (isValidBoardAspect(bbox, W, H) && maxX - minX >= W * MIN_BOARD_SIZE_FRAC && maxY - minY >= H * MIN_BOARD_SIZE_FRAC) {
+        const bbox: BoardBBox = {
+          left: Math.round(minX * invScale),
+          top: Math.round(minY * invScale),
+          right: Math.round(maxX * invScale),
+          bottom: Math.round(maxY * invScale),
+          isDark
+        };
+        if (isValidBoardAspect(bbox, W, H) && bbox.right - bbox.left >= W * MIN_BOARD_SIZE_FRAC && bbox.bottom - bbox.top >= H * MIN_BOARD_SIZE_FRAC) {
           return bbox;
         }
       }
@@ -1151,8 +1227,11 @@ function findBBoxAdaptive(gray: Float32Array, W: number, H: number, isDark: bool
     const rowPeaks: number[] = findPeriodicPeaks(rowFrac, ADAPTIVE_PEAK_THRESH);
     if (colPeaks.length >= PERIODIC_MIN_PEAKS && rowPeaks.length >= PERIODIC_MIN_PEAKS) {
       const bbox: BoardBBox = {
-        left: colPeaks[0], top: rowPeaks[0],
-        right: colPeaks[colPeaks.length - 1], bottom: rowPeaks[rowPeaks.length - 1], isDark
+        left: Math.round(colPeaks[0] * invScale),
+        top: Math.round(rowPeaks[0] * invScale),
+        right: Math.round(colPeaks[colPeaks.length - 1] * invScale),
+        bottom: Math.round(rowPeaks[rowPeaks.length - 1] * invScale),
+        isDark
       };
       if (isValidBoardAspect(bbox, W, H)) {
         return bbox;
@@ -1165,45 +1244,61 @@ function findBBoxAdaptive(gray: Float32Array, W: number, H: number, isDark: bool
 function findBBoxConservative(
   gray: Float32Array, W: number, H: number, isDark: boolean, bg: number
 ): BoardBBox | null {
-  // 全局阈值策略：直接用 bg 值做全局二值化，保留细网格线（不使用形态学开运算，
-  // 因为开运算会擦除 1-2px 宽的网格线）。然后通过周期性峰检测定位棋盘。
-  // 从大 delta 开始（严格阈值→干净二值图），逐步放宽。
+  let workGray: Float32Array = gray;
+  let workW: number = W;
+  let workH: number = H;
+  let scale: number = 1;
+  const maxDim: number = Math.max(W, H);
+  if (maxDim > ADAPTIVE_MAX_DIM) {
+    scale = ADAPTIVE_MAX_DIM / maxDim;
+    workW = Math.max(1, Math.round(W * scale));
+    workH = Math.max(1, Math.round(H * scale));
+    workGray = new Float32Array(workW * workH);
+    for (let y: number = 0; y < workH; y++) {
+      const srcY: number = Math.min(Math.floor(y / scale), H - 1);
+      for (let x: number = 0; x < workW; x++) {
+        const srcX: number = Math.min(Math.floor(x / scale), W - 1);
+        workGray[y * workW + x] = gray[srcY * W + srcX];
+      }
+    }
+  }
+  const invScale: number = 1 / scale;
   for (const delta of CONSERVATIVE_DELTAS) {
     const thr: number = isDark ? bg + delta : bg - delta;
-    const binary: Uint8Array = new Uint8Array(W * H);
-    for (let i: number = 0; i < W * H; i++) {
-      binary[i] = isDark ? (gray[i] > thr ? 1 : 0)
-        : (gray[i] < thr ? 1 : 0);
+    const binary: Uint8Array = new Uint8Array(workW * workH);
+    for (let i: number = 0; i < workW * workH; i++) {
+      binary[i] = isDark ? (workGray[i] > thr ? 1 : 0)
+        : (workGray[i] < thr ? 1 : 0);
     }
 
-    // 列投影和行投影
-    const colInk: number[] = new Array(W).fill(0);
-    const rowInk: number[] = new Array(H).fill(0);
-    for (let x: number = 0; x < W; x++) {
+    const colInk: number[] = new Array(workW).fill(0);
+    const rowInk: number[] = new Array(workH).fill(0);
+    for (let x: number = 0; x < workW; x++) {
       let c: number = 0;
-      for (let y: number = 0; y < H; y += 2) {
-        if (binary[y * W + x] === 1) { c++; }
+      for (let y: number = 0; y < workH; y += 2) {
+        if (binary[y * workW + x] === 1) { c++; }
       }
       colInk[x] = c;
     }
-    for (let y: number = 0; y < H; y++) {
+    for (let y: number = 0; y < workH; y++) {
       let c: number = 0;
-      for (let x: number = 0; x < W; x += 2) {
-        if (binary[y * W + x] === 1) { c++; }
+      for (let x: number = 0; x < workW; x += 2) {
+        if (binary[y * workW + x] === 1) { c++; }
       }
       rowInk[y] = c;
     }
-    const colFrac: number[] = colInk.map((c: number) => c / (H / 2));
-    const rowFrac: number[] = rowInk.map((c: number) => c / (W / 2));
+    const colFrac: number[] = colInk.map((c: number) => c / (workH / 2));
+    const rowFrac: number[] = rowInk.map((c: number) => c / (workW / 2));
 
-    // 周期性峰检测：数独棋盘有 9 个等间距格子 → 10 条网格线 → 投影上出现周期性峰
     const colPeaks: number[] = findPeriodicPeaks(colFrac, CONSERVATIVE_PEAK_THRESH);
     const rowPeaks: number[] = findPeriodicPeaks(rowFrac, CONSERVATIVE_PEAK_THRESH);
 
     if (colPeaks.length >= CONSERVATIVE_MIN_PEAKS && rowPeaks.length >= CONSERVATIVE_MIN_PEAKS) {
       const bbox: BoardBBox = {
-        left: colPeaks[0], top: rowPeaks[0],
-        right: colPeaks[colPeaks.length - 1], bottom: rowPeaks[rowPeaks.length - 1],
+        left: Math.round(colPeaks[0] * invScale),
+        top: Math.round(rowPeaks[0] * invScale),
+        right: Math.round(colPeaks[colPeaks.length - 1] * invScale),
+        bottom: Math.round(rowPeaks[rowPeaks.length - 1] * invScale),
         isDark
       };
       const bw: number = bbox.right - bbox.left + 1;
@@ -1228,24 +1323,43 @@ function findBBoxConservative(
 function findBoxLongRunWithThresh(
   gray: Float32Array, W: number, H: number, isDark: boolean, absThresh: number
 ): BoardBBox | null {
-  const ink: Uint8Array = new Uint8Array(W * H);
-  for (let i: number = 0; i < W * H; i++) {
-    ink[i] = isDark ? (gray[i] > absThresh ? 1 : 0) : (gray[i] < absThresh ? 1 : 0);
+  let workGray: Float32Array = gray;
+  let workW: number = W;
+  let workH: number = H;
+  let scale: number = 1;
+  const maxDim: number = Math.max(W, H);
+  if (maxDim > ADAPTIVE_MAX_DIM) {
+    scale = ADAPTIVE_MAX_DIM / maxDim;
+    workW = Math.max(1, Math.round(W * scale));
+    workH = Math.max(1, Math.round(H * scale));
+    workGray = new Float32Array(workW * workH);
+    for (let y: number = 0; y < workH; y++) {
+      const srcY: number = Math.min(Math.floor(y / scale), H - 1);
+      for (let x: number = 0; x < workW; x++) {
+        const srcX: number = Math.min(Math.floor(x / scale), W - 1);
+        workGray[y * workW + x] = gray[srcY * W + srcX];
+      }
+    }
   }
-  const keep: Uint8Array = new Uint8Array(W * H);
-  const MINRUN: number = Math.max(MINRUN_ABS_MIN, Math.floor(Math.min(W, H) * MINRUN_FRAC));
+  const invScale: number = 1 / scale;
+  const ink: Uint8Array = new Uint8Array(workW * workH);
+  for (let i: number = 0; i < workW * workH; i++) {
+    ink[i] = isDark ? (workGray[i] > absThresh ? 1 : 0) : (workGray[i] < absThresh ? 1 : 0);
+  }
+  const keep: Uint8Array = new Uint8Array(workW * workH);
+  const MINRUN: number = Math.max(MINRUN_ABS_MIN, Math.floor(Math.min(workW, workH) * MINRUN_FRAC));
   let hRunCount: number = 0;
   let hKeepCount: number = 0;
-  for (let y: number = 0; y < H; y++) {
+  for (let y: number = 0; y < workH; y++) {
     let run: number = 0;
     let start: number = 0;
-    for (let x: number = 0; x <= W; x++) {
-      if (x < W && ink[y * W + x] === 1) {
+    for (let x: number = 0; x <= workW; x++) {
+      if (x < workW && ink[y * workW + x] === 1) {
         if (run === 0) { start = x; }
         run++;
       } else {
-        if (run >= MINRUN && start > 0 && x < W) {
-          for (let xx: number = start; xx < x; xx++) { keep[y * W + xx] = 1; }
+        if (run >= MINRUN && start > 0 && x < workW) {
+          for (let xx: number = start; xx < x; xx++) { keep[y * workW + xx] = 1; }
           hRunCount++;
           hKeepCount += run;
         }
@@ -1255,16 +1369,16 @@ function findBoxLongRunWithThresh(
   }
   let vRunCount: number = 0;
   let vKeepCount: number = 0;
-  for (let x: number = 0; x < W; x++) {
+  for (let x: number = 0; x < workW; x++) {
     let run: number = 0;
     let start: number = 0;
-    for (let y: number = 0; y < H; y++) {
-      if (ink[y * W + x] === 1) {
+    for (let y: number = 0; y < workH; y++) {
+      if (ink[y * workW + x] === 1) {
         if (run === 0) { start = y; }
         run++;
       } else {
-        if (run >= MINRUN && start > 0 && y < H) {
-          for (let yy: number = start; yy < y; yy++) { keep[yy * W + x] = 1; }
+        if (run >= MINRUN && start > 0 && y < workH) {
+          for (let yy: number = start; yy < y; yy++) { keep[yy * workW + x] = 1; }
           vRunCount++;
           vKeepCount += run;
         }
@@ -1272,10 +1386,10 @@ function findBoxLongRunWithThresh(
       }
     }
   }
-  let minX: number = W, maxX: number = 0, minY: number = H, maxY: number = 0, n: number = 0;
-  for (let y: number = 0; y < H; y++) {
-    for (let x: number = 0; x < W; x++) {
-      if (keep[y * W + x] === 1) {
+  let minX: number = workW, maxX: number = 0, minY: number = workH, maxY: number = 0, n: number = 0;
+  for (let y: number = 0; y < workH; y++) {
+    for (let x: number = 0; x < workW; x++) {
+      if (keep[y * workW + x] === 1) {
         n++;
         if (x < minX) { minX = x; }
         if (x > maxX) { maxX = x; }
@@ -1284,6 +1398,10 @@ function findBoxLongRunWithThresh(
       }
     }
   }
+  minX = Math.round(minX * invScale);
+  maxX = Math.round(maxX * invScale);
+  minY = Math.round(minY * invScale);
+  maxY = Math.round(maxY * invScale);
   const bw: number = maxX - minX + 1;
   const bh: number = maxY - minY + 1;
   const aspect: number = bh > 0 ? bw / bh : 0;
@@ -1294,7 +1412,7 @@ function findBoxLongRunWithThresh(
     g_lastBboxDiag += `\n  → n<MIN(${LONGRUN_MIN_PIXELS}) null`;
     return null;
   }
-  if (hRunCount > H * LONGRUN_MAX_RUN_COUNT_FRAC || vRunCount > W * LONGRUN_MAX_RUN_COUNT_FRAC) {
+  if (hRunCount > workH * LONGRUN_MAX_RUN_COUNT_FRAC || vRunCount > workW * LONGRUN_MAX_RUN_COUNT_FRAC) {
     g_lastBboxDiag += `\n  → runs>${LONGRUN_MAX_RUN_COUNT_FRAC.toFixed(2)}dim null`;
     return null;
   }
@@ -1306,8 +1424,8 @@ function findBoxLongRunWithThresh(
     g_lastBboxDiag += `\n  → aspect∉[${LONGRUN_MIN_ASPECT},${LONGRUN_MAX_ASPECT}] null`;
     return null;
   }
-  if (areaRatio < MIN_BOARD_AREA_RATIO || areaRatio > MAX_BOARD_AREA_RATIO - 0.03) {
-    g_lastBboxDiag += `\n  → areaRatio∉[${MIN_BOARD_AREA_RATIO},${(MAX_BOARD_AREA_RATIO - 0.03).toFixed(2)}] null`;
+  if (areaRatio < MIN_BOARD_AREA_RATIO || areaRatio > MAX_BOARD_AREA_RATIO) {
+    g_lastBboxDiag += `\n  → areaRatio∉[${MIN_BOARD_AREA_RATIO},${MAX_BOARD_AREA_RATIO.toFixed(2)}] null`;
     return null;
   }
   g_lastBboxDiag += `\n  → ✓`;
@@ -1791,6 +1909,26 @@ export function findBoardBBox(pixels: Uint8Array, width: number, height: number,
     addDiag(`region[${bestRegionIdx}] bestBox [${bestBox.left},${bestBox.top},${bestBox.right},${bestBox.bottom}] area=${bestArea}`);
   }
 
+  // Adaptive check BEFORE conservative/bestBox: when the image has no padding
+  // around the board, adaptive often finds a bbox covering >=85% of the image.
+  // If that bbox is >1.5x the bestBox area, it's likely a better result for
+  // no-padding images where region search only finds a sub-region.
+  const adaptive: BoardBBox | null = findBBoxAdaptive(gray, width, height, isDark);
+  if (adaptive !== null) {
+    const aArea: number = (adaptive.right - adaptive.left) * (adaptive.bottom - adaptive.top);
+    if (aArea < imgArea * MAX_BOARD_AREA_RATIO) {
+      addDiag(`路径=adaptive ✓ [${adaptive.left},${adaptive.top},${adaptive.right},${adaptive.bottom}]`);
+      return adaptive;
+    }
+    if (aArea >= imgArea * 0.85 && isValidBoardAspect(adaptive, width, height)) {
+      if (bestBox === null || aArea > bestArea * 1.5) {
+        addDiag(`路径=adaptive(large-no-pad) ✓ [${adaptive.left},${adaptive.top},${adaptive.right},${adaptive.bottom}] aArea=${aArea} bestArea=${bestArea}`);
+        return adaptive;
+      }
+    }
+  }
+  addDiag('adaptive → null or no fallback');
+
   const conservative: BoardBBox | null = findBBoxConservative(gray, width, height, isDark, bg);
   if (conservative !== null) {
     addDiag(`路径=conservative ✓ [${conservative.left},${conservative.top},${conservative.right},${conservative.bottom}]`);
@@ -1801,15 +1939,6 @@ export function findBoardBBox(pixels: Uint8Array, width: number, height: number,
   if (bestBox !== null) {
     addDiag(`路径=region(bestBox) [${bestBox.left},${bestBox.top},${bestBox.right},${bestBox.bottom}]`);
     return bestBox;
-  }
-
-  const adaptive: BoardBBox | null = findBBoxAdaptive(gray, width, height, isDark);
-  if (adaptive !== null) {
-    const aArea: number = (adaptive.right - adaptive.left) * (adaptive.bottom - adaptive.top);
-    if (aArea < width * height * MAX_BOARD_AREA_RATIO) {
-      addDiag(`路径=adaptive ✓ [${adaptive.left},${adaptive.top},${adaptive.right},${adaptive.bottom}]`);
-      return adaptive;
-    }
   }
 
   addDiag('全部失败 → 全图退化bbox');
@@ -1825,7 +1954,7 @@ export function findBoardBBox(pixels: Uint8Array, width: number, height: number,
 const GRID_LINE_RATIO: number = 0.80;
 
 function stripEdgeGridLines(sig: number[]): void {
-  const minCount: number = Math.floor(Math.max(SIG_ROWS, SIG_COLS) * GRID_LINE_RATIO);
+  const minCount: number = Math.floor(Math.min(SIG_ROWS, SIG_COLS) * GRID_LINE_RATIO);
 
   // Top edge rows (row 0, row 1)
   for (let row: number = 0; row <= 1 && row < SIG_ROWS; row++) {
@@ -1876,6 +2005,40 @@ function stripEdgeGridLines(sig: number[]): void {
       for (let r: number = 0; r < SIG_ROWS; r++) {
         sig[r * SIG_COLS + col] = 0;
       }
+    }
+  }
+}
+
+function stripFullHeightVerticalStrokes(sig: number[]): void {
+  const FULL_HEIGHT_THRESH: number = SIG_ROWS * 0.70;
+  const colInk: number[] = new Array<number>(SIG_COLS).fill(0);
+  for (let c: number = 0; c < SIG_COLS; c++) {
+    for (let r: number = 0; r < SIG_ROWS; r++) {
+      if (sig[r * SIG_COLS + c] === 1) { colInk[c]++; }
+    }
+  }
+  let rightMostHigh: number = -1;
+  for (let c: number = SIG_COLS - 1; c >= 0; c--) {
+    if (colInk[c] >= FULL_HEIGHT_THRESH) { rightMostHigh = c; break; }
+  }
+  let c: number = 0;
+  while (c < SIG_COLS) {
+    if (colInk[c] >= FULL_HEIGHT_THRESH) {
+      let clusterEnd: number = c;
+      while (clusterEnd + 1 < SIG_COLS && colInk[clusterEnd + 1] >= FULL_HEIGHT_THRESH * 0.5) {
+        clusterEnd++;
+      }
+      const clusterW: number = clusterEnd - c + 1;
+      if (clusterW <= 4 && c < rightMostHigh - 2) {
+        for (let cc: number = c; cc <= clusterEnd; cc++) {
+          for (let r: number = 0; r < SIG_ROWS; r++) {
+            sig[r * SIG_COLS + cc] = 0;
+          }
+        }
+      }
+      c = clusterEnd + 1;
+    } else {
+      c++;
     }
   }
 }
@@ -2007,12 +2170,13 @@ export function cellSigFromGray(
   let bmaxX: number = -1;
   let bminY: number = 1000000;
   let bmaxY: number = -1;
+  const inkBg: number = isDark ? bg + INK_THRESH : bg - INK_THRESH;
 
   for (let y: number = y0; y < y1; y++) {
     for (let x: number = x0; x < x1; x++) {
       area++;
       const g: number = gray[y * width + x];
-      if (grayInkPixel(g, bg, isDark, INK_THRESH)) {
+      if (isDark ? g > inkBg : g < inkBg) {
         ink++;
         if (x < bminX) { bminX = x; }
         if (x > bmaxX) { bmaxX = x; }
@@ -2029,58 +2193,80 @@ export function cellSigFromGray(
     const bw: number = bmaxX - bminX + 1;
     const bh: number = bmaxY - bminY + 1;
 
-    const sauvBinary: Float32Array | null = sauvolaThreshold(gray, width, H, bminX, bminY, bw, bh, isDark);
-    if (sauvBinary !== null) {
-      const sauvSig: number[] = new Array<number>(SIG_LEN).fill(0);
-      for (let r: number = 0; r < SIG_ROWS; r++) {
-        for (let c: number = 0; c < SIG_COLS; c++) {
-          const sx0: number = Math.floor(bw * c / SIG_COLS);
-          const sx1: number = Math.floor(bw * (c + 1) / SIG_COLS);
-          const sy0: number = Math.floor(bh * r / SIG_ROWS);
-          const sy1: number = Math.floor(bh * (r + 1) / SIG_ROWS);
-          let s: number = 0;
-          let n: number = 0;
-          for (let ly: number = sy0; ly < sy1; ly++) {
-            for (let lx: number = sx0; lx < sx1; lx++) {
-              s += sauvBinary[ly * bw + lx];
-              n++;
-            }
+    if (bw >= SAUVOLA_MIN_DIM * 3 && bh >= SAUVOLA_MIN_DIM * 3) {
+      const sauvBinary: Float32Array | null = sauvolaThreshold(gray, width, H, bminX, bminY, bw, bh, isDark);
+      if (sauvBinary !== null) {
+        const scale: number = Math.max(1, Math.ceil(SIG_COLS / bw), Math.ceil(SIG_ROWS / bh));
+        const sbw: number = bw * scale;
+        const sbh: number = bh * scale;
+        const scaledBinary: Float32Array = new Float32Array(sbw * sbh);
+        for (let r: number = 0; r < sbh; r++) {
+          for (let c: number = 0; c < sbw; c++) {
+            scaledBinary[r * sbw + c] = sauvBinary[Math.floor(r / scale) * bw + Math.floor(c / scale)];
           }
-          sauvSig[r * SIG_COLS + c] = (n > 0 && s / n > 0.5) ? 1 : 0;
         }
-      }
-      const sauvInk: number = countInk(sauvSig);
-      stripEdgeGridLines(sauvSig);
-      const sauvInkStripped: number = countInk(sauvSig);
-      if (sauvInkStripped >= THIN1_MIN_INK_COUNT && sauvInkStripped <= MAX_INK_COUNT) {
-        result = sauvSig;
+        const sauvSig: number[] = new Array<number>(SIG_LEN).fill(0);
+        for (let r: number = 0; r < SIG_ROWS; r++) {
+          for (let c: number = 0; c < SIG_COLS; c++) {
+            const sx0: number = Math.floor(sbw * c / SIG_COLS);
+            const sx1: number = Math.floor(sbw * (c + 1) / SIG_COLS);
+            const sy0: number = Math.floor(sbh * r / SIG_ROWS);
+            const sy1: number = Math.floor(sbh * (r + 1) / SIG_ROWS);
+            let s: number = 0;
+            let n: number = 0;
+            for (let ly: number = sy0; ly < sy1; ly++) {
+              for (let lx: number = sx0; lx < sx1; lx++) {
+                s += scaledBinary[ly * sbw + lx];
+                n++;
+              }
+            }
+            sauvSig[r * SIG_COLS + c] = (n > 0 && s / n > 0.5) ? 1 : 0;
+          }
+        }
+        const sauvInk: number = countInk(sauvSig);
+        stripEdgeGridLines(sauvSig);
+        stripFullHeightVerticalStrokes(sauvSig);
+        const sauvInkStripped: number = countInk(sauvSig);
+        if (sauvInkStripped >= THIN1_MIN_INK_COUNT && sauvInkStripped <= MAX_INK_COUNT) {
+          result = sauvSig;
+        }
       }
     }
 
     if (result === null) {
       const sig: number[] = new Array<number>(SIG_LEN).fill(0);
+      const scale2: number = Math.max(1, Math.ceil(SIG_COLS / bw), Math.ceil(SIG_ROWS / bh));
+      const sbw2: number = bw * scale2;
+      const sbh2: number = bh * scale2;
+      const scaledGray: Float32Array = new Float32Array(sbw2 * sbh2);
+      for (let r: number = 0; r < sbh2; r++) {
+        for (let c: number = 0; c < sbw2; c++) {
+          const sy: number = bminY + Math.floor(r / scale2);
+          const sx: number = bminX + Math.floor(c / scale2);
+          scaledGray[r * sbw2 + c] = (sy >= 0 && sy < H && sx >= 0 && sx < width) ? gray[sy * width + sx] : bg;
+        }
+      }
       for (let r: number = 0; r < SIG_ROWS; r++) {
         for (let c: number = 0; c < SIG_COLS; c++) {
-          const sx0: number = bminX + Math.floor(bw * c / SIG_COLS);
-          const sx1: number = bminX + Math.floor(bw * (c + 1) / SIG_COLS);
-          const sy0: number = bminY + Math.floor(bh * r / SIG_ROWS);
-          const sy1: number = bminY + Math.floor(bh * (r + 1) / SIG_ROWS);
+          const sx0: number = Math.floor(sbw2 * c / SIG_COLS);
+          const sx1: number = Math.floor(sbw2 * (c + 1) / SIG_COLS);
+          const sy0: number = Math.floor(sbh2 * r / SIG_ROWS);
+          const sy1: number = Math.floor(sbh2 * (r + 1) / SIG_ROWS);
           let s: number = 0;
           let n: number = 0;
-          for (let y: number = sy0; y < sy1; y++) {
-            for (let x: number = sx0; x < sx1; x++) {
-              if (y >= 0 && y < H && x >= 0 && x < width) {
-                s += gray[y * width + x];
-                n++;
-              }
+          for (let ly: number = sy0; ly < sy1; ly++) {
+            for (let lx: number = sx0; lx < sx1; lx++) {
+              s += scaledGray[ly * sbw2 + lx];
+              n++;
             }
           }
           const avg: number = n > 0 ? s / n : bg;
-          sig[r * SIG_COLS + c] = grayInkPixel(avg, bg, isDark, INK_THRESH) ? 1 : 0;
+          sig[r * SIG_COLS + c] = (isDark ? avg > inkBg : avg < inkBg) ? 1 : 0;
         }
       }
       const inkCount: number = countInk(sig);
-      stripEdgeGridLines(sig);
+       stripEdgeGridLines(sig);
+      stripFullHeightVerticalStrokes(sig);
       const inkCountStripped: number = countInk(sig);
       if (inkCountStripped >= THIN1_MIN_INK_COUNT && inkCountStripped <= MAX_INK_COUNT) {
         result = sig;
@@ -2215,11 +2401,12 @@ export function cellSigFromGrayLowThresh(
   let bminY: number = 1000000;
   let bmaxY: number = -1;
   let inkCount: number = 0;
+  const lowInkBg: number = isDark ? bg + LOW_INK_THRESH_RETRY : bg - LOW_INK_THRESH_RETRY;
 
   for (let y: number = y0; y < y1; y++) {
     for (let x: number = x0; x < x1; x++) {
       const g: number = gray[y * width + x];
-      if (grayInkPixel(g, bg, isDark, LOW_INK_THRESH_RETRY)) {
+      if (isDark ? g > lowInkBg : g < lowInkBg) {
         inkCount++;
         if (x < bminX) { bminX = x; }
         if (x > bmaxX) { bmaxX = x; }
@@ -2252,15 +2439,196 @@ export function cellSigFromGrayLowThresh(
           }
         }
         const avg: number = n > 0 ? s / n : bg;
-        sig[r * SIG_COLS + c] = grayInkPixel(avg, bg, isDark, LOW_INK_THRESH_RETRY) ? 1 : 0;
+        sig[r * SIG_COLS + c] = (isDark ? avg > lowInkBg : avg < lowInkBg) ? 1 : 0;
       }
     }
 
     const sigInk: number = countInk(sig);
     stripEdgeGridLines(sig);
+    stripFullHeightVerticalStrokes(sig);
     const sigInkStripped: number = countInk(sig);
     if (sigInkStripped >= THIN1_MIN_INK_COUNT && sigInkStripped <= MAX_INK_COUNT) {
       result = sig;
+    }
+  }
+
+  for (let i: number = 0; i < savedPositions.length; i++) {
+    gray[savedPositions[i]] = savedPixels[i];
+  }
+  return result;
+}
+
+export function cellSigFromGrayThin(
+  gray: Float32Array,
+  width: number,
+  cellLeft: number,
+  cellTop: number,
+  cellW: number,
+  cellH: number,
+  isDark: boolean,
+  bg: number,
+  gridRow: number = -1,
+  gridCol: number = -1
+): number[] | null {
+  const THIN_MARGIN: number = 0.02;
+  const LOW_GRID_DIFF: number = LOW_INK_THRESH_RETRY * 0.4;
+  let mxLeft: number = cellW * THIN_MARGIN;
+  let mxRight: number = cellW * THIN_MARGIN;
+  let myTop: number = cellH * THIN_MARGIN;
+  let myBot: number = cellH * THIN_MARGIN;
+  if (g_gridLineDetected && gridRow >= 0 && gridRow < 9 && gridCol >= 0 && gridCol < 9) {
+    const idx: number = gridRow * 9 + gridCol;
+    const maxMarginW: number = Math.floor(cellW * 0.45);
+    const maxMarginH: number = Math.floor(cellH * 0.45);
+    mxLeft = Math.max(mxLeft, Math.min(g_gridLineCropLeft[idx], maxMarginW));
+    mxRight = Math.max(mxRight, Math.min(g_gridLineCropRight[idx], maxMarginW));
+    myTop = Math.max(myTop, Math.min(g_gridLineCropTop[idx], maxMarginH));
+    myBot = Math.max(myBot, Math.min(g_gridLineCropBot[idx], maxMarginH));
+  }
+  const x0: number = Math.floor(cellLeft + mxLeft);
+  const y0: number = Math.floor(cellTop + myTop);
+  const x1: number = Math.floor(cellLeft + cellW - mxRight);
+  const y1: number = Math.floor(cellTop + cellH - myBot);
+  const H: number = Math.floor(gray.length / width);
+  const cellWInner: number = x1 - x0;
+  const cellHInner: number = y1 - y0;
+
+  const rowAvg: number[] = new Array<number>(cellHInner).fill(0);
+  for (let dy: number = 0; dy < cellHInner; dy++) {
+    let s: number = 0;
+    for (let dx: number = 0; dx < cellWInner; dx++) {
+      s += gray[(y0 + dy) * width + x0 + dx];
+    }
+    rowAvg[dy] = s / cellWInner;
+  }
+  const isGridRow: boolean[] = new Array<boolean>(cellHInner).fill(false);
+  let gridRowCount: number = 0;
+  for (let dy: number = 0; dy < cellHInner; dy++) {
+    const diff: number = isDark ? (rowAvg[dy] - bg) : (bg - rowAvg[dy]);
+    if (diff > LOW_GRID_DIFF) {
+      let variance: number = 0;
+      const y: number = y0 + dy;
+      for (let dx: number = 0; dx < cellWInner; dx++) {
+        const g: number = gray[y * width + x0 + dx];
+        const d: number = g - rowAvg[dy];
+        variance += d * d;
+      }
+      variance = Math.sqrt(variance / cellWInner);
+      if (variance < LOW_GRID_DIFF * 3) {
+        isGridRow[dy] = true;
+        gridRowCount++;
+      }
+    }
+  }
+  if (gridRowCount > Math.floor(cellHInner * 0.3)) {
+    for (let dy: number = 0; dy < cellHInner; dy++) { isGridRow[dy] = false; }
+  }
+  const colAvg: number[] = new Array<number>(cellWInner).fill(0);
+  for (let dx: number = 0; dx < cellWInner; dx++) {
+    let s: number = 0;
+    for (let dy: number = 0; dy < cellHInner; dy++) {
+      s += gray[(y0 + dy) * width + x0 + dx];
+    }
+    colAvg[dx] = s / cellHInner;
+  }
+  const isGridCol: boolean[] = new Array<boolean>(cellWInner).fill(false);
+  let gridColCount: number = 0;
+  for (let dx: number = 0; dx < cellWInner; dx++) {
+    const diff: number = isDark ? (colAvg[dx] - bg) : (bg - colAvg[dx]);
+    if (diff > LOW_GRID_DIFF) {
+      let variance: number = 0;
+      const x: number = x0 + dx;
+      for (let dy: number = 0; dy < cellHInner; dy++) {
+        const g: number = gray[(y0 + dy) * width + x];
+        const d: number = g - colAvg[dx];
+        variance += d * d;
+      }
+      variance = Math.sqrt(variance / cellHInner);
+      if (variance < LOW_GRID_DIFF * 3) {
+        isGridCol[dx] = true;
+        gridColCount++;
+      }
+    }
+  }
+  if (gridColCount > Math.floor(cellWInner * 0.3)) {
+    for (let dx: number = 0; dx < cellWInner; dx++) { isGridCol[dx] = false; }
+  }
+
+  const savedPixels: number[] = [];
+  const savedPositions: number[] = [];
+  for (let dy: number = 0; dy < cellHInner; dy++) {
+    if (!isGridRow[dy]) { continue; }
+    const y: number = y0 + dy;
+    for (let dx: number = 0; dx < cellWInner; dx++) {
+      const pos: number = y * width + x0 + dx;
+      savedPixels.push(gray[pos]);
+      savedPositions.push(pos);
+      gray[pos] = bg;
+    }
+  }
+  for (let dx: number = 0; dx < cellWInner; dx++) {
+    if (!isGridCol[dx]) { continue; }
+    const x: number = x0 + dx;
+    for (let dy: number = 0; dy < cellHInner; dy++) {
+      const pos: number = (y0 + dy) * width + x;
+      savedPixels.push(gray[pos]);
+      savedPositions.push(pos);
+      gray[pos] = bg;
+    }
+  }
+
+  let bminX: number = 1000000;
+  let bmaxX: number = -1;
+  let bminY: number = 1000000;
+  let bmaxY: number = -1;
+  let inkCount: number = 0;
+  const lowInkBg: number = isDark ? bg + LOW_INK_THRESH_RETRY : bg - LOW_INK_THRESH_RETRY;
+  for (let y: number = y0; y < y1; y++) {
+    for (let x: number = x0; x < x1; x++) {
+      const g: number = gray[y * width + x];
+      if (isDark ? g > lowInkBg : g < lowInkBg) {
+        inkCount++;
+        if (x < bminX) { bminX = x; }
+        if (x > bmaxX) { bmaxX = x; }
+        if (y < bminY) { bminY = y; }
+        if (y > bmaxY) { bmaxY = y; }
+      }
+    }
+  }
+
+  let result: number[] | null = null;
+  if (bmaxX >= 0) {
+    const bw: number = bmaxX - bminX + 1;
+    const bh: number = bmaxY - bminY + 1;
+    if (bw >= 3 && bh >= 3) {
+      const sig: number[] = new Array<number>(SIG_LEN).fill(0);
+      for (let r: number = 0; r < SIG_ROWS; r++) {
+        for (let c: number = 0; c < SIG_COLS; c++) {
+          const sx0: number = bminX + Math.floor(bw * c / SIG_COLS);
+          const sx1: number = bminX + Math.floor(bw * (c + 1) / SIG_COLS);
+          const sy0: number = bminY + Math.floor(bh * r / SIG_ROWS);
+          const sy1: number = bminY + Math.floor(bh * (r + 1) / SIG_ROWS);
+          let s: number = 0;
+          let n: number = 0;
+          for (let y: number = sy0; y < sy1; y++) {
+            for (let x: number = sx0; x < sx1; x++) {
+              if (y >= 0 && y < H && x >= 0 && x < width) {
+                s += gray[y * width + x];
+                n++;
+              }
+            }
+          }
+          const avg: number = n > 0 ? s / n : bg;
+          sig[r * SIG_COLS + c] = (isDark ? avg > lowInkBg : avg < lowInkBg) ? 1 : 0;
+        }
+      }
+      const sigInk: number = countInk(sig);
+      stripEdgeGridLines(sig);
+      stripFullHeightVerticalStrokes(sig);
+      const sigInkStripped: number = countInk(sig);
+      if (sigInkStripped >= THIN1_MIN_INK_COUNT && sigInkStripped <= MAX_INK_COUNT) {
+        result = sig;
+      }
     }
   }
 
@@ -2616,15 +2984,17 @@ function tryStripLeftEdgeAs1(sig: number[], inkCount: number, origBestDigit: num
 
   const cleaned: number[] = new Array<number>(SIG_LEN).fill(0);
   let cleanInk: number = 0;
+  const cleanedInkPos: number[] = [];
   for (let r: number = 0; r < SIG_ROWS; r++) {
     for (let c: number = 0; c < SIG_COLS; c++) {
       const idx: number = r * SIG_COLS + c;
       if (c >= 2) {
         cleaned[idx] = sig[idx];
-        if (sig[idx] === 1) { cleanInk++; }
+        if (sig[idx] === 1) { cleanInk++; cleanedInkPos.push(idx); }
       }
     }
   }
+  const cleanedInkLen: number = cleanedInkPos.length;
   if (cleanInk < THIN1_MIN_INK_COUNT) {
     g_lastPixelDiag = `stripLeftCleanInkLow: cleanInk=${cleanInk}`;
     return 0;
@@ -2632,22 +3002,21 @@ function tryStripLeftEdgeAs1(sig: number[], inkCount: number, origBestDigit: num
 
   const digitBestScore: number[] = new Array<number>(10).fill(-100000);
   const digitBestRecall: number[] = new Array<number>(10).fill(0);
-  for (let ti: number = 0; ti < g_templates.length; ti++) {
-    const t: DigitTemplate = g_templates[ti];
-    let match: number = 0;
-    let tplInk: number = 0;
-    let tp: number = 0;
-    for (let i: number = 0; i < SIG_LEN; i++) {
-      if (cleaned[i] === t.key[i]) { match++; }
-      if (t.key[i] === 1) {
-        tplInk++;
-        if (cleaned[i] === 1) { tp++; }
+  for (let d: number = 1; d <= 9; d++) {
+    const tplsD: DigitTemplate[] = g_templatesByDigit[d];
+    for (let ti: number = 0; ti < tplsD.length; ti++) {
+      const t: DigitTemplate = tplsD[ti];
+      const kb: Int8Array = t.keyBytes;
+      let tp: number = 0;
+      for (let j: number = 0; j < cleanedInkLen; j++) {
+        if (kb[cleanedInkPos[j]] === 1) { tp++; }
       }
-    }
-    const score: number = match - (SIG_LEN - match) * TEMPLATE_MISMATCH_PENALTY;
-    if (score > digitBestScore[t.digit]) {
-      digitBestScore[t.digit] = score;
-      digitBestRecall[t.digit] = tplInk > 0 ? tp / tplInk : 0;
+      const match: number = SIG_LEN - cleanedInkLen - t.inkCount + 2 * tp;
+      const score: number = match - (SIG_LEN - match) * TEMPLATE_MISMATCH_PENALTY;
+      if (score > digitBestScore[t.digit]) {
+        digitBestScore[t.digit] = score;
+        digitBestRecall[t.digit] = t.inkCount > 0 ? tp / t.inkCount : 0;
+      }
     }
   }
 
@@ -2736,36 +3105,43 @@ function isLikelyNot4(sig: number[]): boolean {
 export function recognizeDigit(sig: number[], inkCount: number): number {
   if (inkCount < THIN1_MIN_INK_COUNT) { return 0; }
   if (g_templates.length === 0) { return 0; }
+  const sigInkPos: number[] = [];
+  for (let i: number = 0; i < SIG_LEN; i++) {
+    if (sig[i] === 1) { sigInkPos.push(i); }
+  }
+  const sigInkLen: number = sigInkPos.length;
   const lowInk: boolean = inkCount < MIN_INK_COUNT;
   if (lowInk) {
     let best1Score: number = -100000;
-    let best1Key: number[] | null = null;
-    for (let ti: number = 0; ti < g_templates.length; ti++) {
-      if (g_templates[ti].digit !== 1) { continue; }
-      const t: DigitTemplate = g_templates[ti];
-      let match: number = 0;
-      for (let i: number = 0; i < SIG_LEN; i++) {
-        if (sig[i] === t.key[i]) { match++; }
+    let best1Key: Int8Array | null = null;
+    const tpls1: DigitTemplate[] = g_templatesByDigit[1];
+    for (let ti: number = 0; ti < tpls1.length; ti++) {
+      const t: DigitTemplate = tpls1[ti];
+      const kb: Int8Array = t.keyBytes;
+      let tp: number = 0;
+      for (let j: number = 0; j < sigInkLen; j++) {
+        if (kb[sigInkPos[j]] === 1) { tp++; }
       }
+      const match: number = SIG_LEN - sigInkLen - t.inkCount + 2 * tp;
       const score: number = match - (SIG_LEN - match) * TEMPLATE_MISMATCH_PENALTY;
-      if (score > best1Score) { best1Score = score; best1Key = t.key; }
+      if (score > best1Score) { best1Score = score; best1Key = kb; }
     }
     const lowInkMinScore: number = Math.floor(SIG_LEN * 0.57);
     const geoMinScore: number = Math.floor(SIG_LEN * 0.55);
     const veryThinInk: boolean = inkCount < MIN_INK_COUNT_DIGIT1;
     if (veryThinInk) {
       if (best1Key !== null) {
-        let tplInk: number = 0;
         let tp: number = 0;
+        let tplInkC: number = 0;
         for (let i: number = 0; i < SIG_LEN; i++) {
           if (best1Key[i] === 1) {
-            tplInk++;
+            tplInkC++;
             if (sig[i] === 1) { tp++; }
           }
         }
-        const recall: number = tplInk > 0 ? tp / tplInk : 0;
+        const recall: number = tplInkC > 0 ? tp / tplInkC : 0;
         const thinOk: boolean = detectThinOne(sig, inkCount);
-        g_lastPixelDiag = `ink=${inkCount} score=${best1Score} recall=${recall.toFixed(2)} thinOk=${thinOk ? 1 : 0} tp=${tp}/${tplInk}`;
+        g_lastPixelDiag = `ink=${inkCount} score=${best1Score} recall=${recall.toFixed(2)} thinOk=${thinOk ? 1 : 0} tp=${tp}/${tplInkC}`;
         if (best1Score >= lowInkMinScore && recall >= 0.25 && thinOk) {
           g_lastConfidence = 0.50;
           return 1;
@@ -2776,7 +3152,14 @@ export function recognizeDigit(sig: number[], inkCount: number): number {
     }
     if (best1Score >= lowInkMinScore && best1Key !== null) {
       const inkCentroid: number = inkCentroidRow(sig);
-      const tplCentroid: number = inkCentroidRow(best1Key);
+      let tSumR: number = 0;
+      let tCnt: number = 0;
+      for (let r: number = 0; r < SIG_ROWS; r++) {
+        for (let c: number = 0; c < SIG_COLS; c++) {
+          if (best1Key[r * SIG_COLS + c] === 1) { tSumR += r; tCnt++; }
+        }
+      }
+      const tplCentroid: number = tCnt > 0 ? tSumR / tCnt : -1;
       if (Math.abs(inkCentroid - tplCentroid) <= SIG_ROWS * 0.4) {
         // Check if this might be 7 not 1: 7 has wide top bar with solid rows
         const topRow: number = Math.floor(SIG_ROWS * 0.10);
@@ -2803,13 +3186,15 @@ export function recognizeDigit(sig: number[], inkCount: number): number {
           }
           if (solidTopRows >= 2) {
             let best7Score: number = -100000;
-            for (let ti2: number = 0; ti2 < g_templates.length; ti2++) {
-              if (g_templates[ti2].digit !== 7) { continue; }
-              const t7: DigitTemplate = g_templates[ti2];
-              let m7: number = 0;
-              for (let i: number = 0; i < SIG_LEN; i++) {
-                if (sig[i] === t7.key[i]) { m7++; }
+            const tpls7: DigitTemplate[] = g_templatesByDigit[7];
+            for (let ti2: number = 0; ti2 < tpls7.length; ti2++) {
+              const t7: DigitTemplate = tpls7[ti2];
+              const kb7: Int8Array = t7.keyBytes;
+              let tp7: number = 0;
+              for (let j: number = 0; j < sigInkLen; j++) {
+                if (kb7[sigInkPos[j]] === 1) { tp7++; }
               }
+              const m7: number = SIG_LEN - sigInkLen - t7.inkCount + 2 * tp7;
               const s7: number = m7 - (SIG_LEN - m7) * TEMPLATE_MISMATCH_PENALTY;
               if (s7 > best7Score) { best7Score = s7; }
             }
@@ -2839,27 +3224,25 @@ export function recognizeDigit(sig: number[], inkCount: number): number {
     const digitBestScore: number[] = new Array<number>(10).fill(-100000);
     const digitBestIdx: number[] = new Array<number>(10).fill(-1);
     const digitBestRecall: number[] = new Array<number>(10).fill(0);
-    for (let ti: number = 0; ti < g_templates.length; ti++) {
-      const t: DigitTemplate = g_templates[ti];
-      if (t.digit === 1) { continue; }
-      let match: number = 0;
-      let tplInk: number = 0;
-      let tp: number = 0;
-      for (let i: number = 0; i < SIG_LEN; i++) {
-        if (t.key[i] === 1) {
-          tplInk++;
-          if (sig[i] === 1) { tp++; }
+    for (let d: number = 2; d <= 9; d++) {
+      const tplsD: DigitTemplate[] = g_templatesByDigit[d];
+      for (let ti: number = 0; ti < tplsD.length; ti++) {
+        const t: DigitTemplate = tplsD[ti];
+        const kb: Int8Array = t.keyBytes;
+        let tp: number = 0;
+        for (let j: number = 0; j < sigInkLen; j++) {
+          if (kb[sigInkPos[j]] === 1) { tp++; }
         }
-        if (sig[i] === t.key[i]) { match++; }
-      }
-      const recall: number = tplInk > 0 ? tp / tplInk : 0;
-      const prec: number = inkCount > 0 ? tp / inkCount : 0;
-      const f1: number = (recall + prec) > 0 ? (2 * recall * prec) / (recall + prec) : 0;
-      const score: number = match - (SIG_LEN - match) * TEMPLATE_MISMATCH_PENALTY + f1 * TEMPLATE_F1_WEIGHT;
-      if (score > digitBestScore[t.digit]) {
-        digitBestScore[t.digit] = score;
-        digitBestIdx[t.digit] = ti;
-        digitBestRecall[t.digit] = recall;
+        const match: number = SIG_LEN - sigInkLen - t.inkCount + 2 * tp;
+        const recall: number = t.inkCount > 0 ? tp / t.inkCount : 0;
+        const prec: number = inkCount > 0 ? tp / inkCount : 0;
+        const f1: number = (recall + prec) > 0 ? (2 * recall * prec) / (recall + prec) : 0;
+        const score: number = match - (SIG_LEN - match) * TEMPLATE_MISMATCH_PENALTY + f1 * TEMPLATE_F1_WEIGHT;
+        if (score > digitBestScore[t.digit]) {
+          digitBestScore[t.digit] = score;
+          digitBestIdx[t.digit] = ti;
+          digitBestRecall[t.digit] = recall;
+        }
       }
     }
     let lowBestDigit: number = 0;
@@ -2876,14 +3259,16 @@ export function recognizeDigit(sig: number[], inkCount: number): number {
     if (lowBestDigit > 0 && lowBestScore >= lowMinScore && lowBestRecall >= LOW_INK_FALLBACK_MIN_RECALL) {
       if (lowBestDigit === 4 && isLikelyNot4(sig)) {
         let best1Score2: number = -100000;
-        for (let ti: number = 0; ti < g_templates.length; ti++) {
-          if (g_templates[ti].digit !== 1) { continue; }
-          const t: DigitTemplate = g_templates[ti];
-          let match: number = 0;
-          for (let i: number = 0; i < SIG_LEN; i++) {
-            if (sig[i] === t.key[i]) { match++; }
+        const tpls1b: DigitTemplate[] = g_templatesByDigit[1];
+        for (let ti: number = 0; ti < tpls1b.length; ti++) {
+          const t: DigitTemplate = tpls1b[ti];
+          const kb: Int8Array = t.keyBytes;
+          let tp2: number = 0;
+          for (let j: number = 0; j < sigInkLen; j++) {
+            if (kb[sigInkPos[j]] === 1) { tp2++; }
           }
-          const score: number = match - (SIG_LEN - match) * TEMPLATE_MISMATCH_PENALTY;
+          const match2: number = SIG_LEN - sigInkLen - t.inkCount + 2 * tp2;
+          const score: number = match2 - (SIG_LEN - match2) * TEMPLATE_MISMATCH_PENALTY;
           if (score > best1Score2) { best1Score2 = score; }
         }
         const geoGate1: number = Math.floor(SIG_LEN * 0.55);
@@ -2936,14 +3321,16 @@ export function recognizeDigit(sig: number[], inkCount: number): number {
     g_lastPixelDiag = `lowInk no1: best=${lowBestDigit} score=${lowBestScore.toFixed(0)} recall=${lowBestRecall.toFixed(2)} gate=${lowMinScore} ink=${inkCount}`;
     if (lowBestDigit === 4 && isLikelyNot4(sig)) {
       let best1Score4: number = -100000;
-      for (let ti: number = 0; ti < g_templates.length; ti++) {
-        if (g_templates[ti].digit !== 1) { continue; }
-        const t: DigitTemplate = g_templates[ti];
-        let match: number = 0;
-        for (let i: number = 0; i < SIG_LEN; i++) {
-          if (sig[i] === t.key[i]) { match++; }
+      const tpls1c: DigitTemplate[] = g_templatesByDigit[1];
+      for (let ti: number = 0; ti < tpls1c.length; ti++) {
+        const t: DigitTemplate = tpls1c[ti];
+        const kb: Int8Array = t.keyBytes;
+        let tp4: number = 0;
+        for (let j: number = 0; j < sigInkLen; j++) {
+          if (kb[sigInkPos[j]] === 1) { tp4++; }
         }
-        const score: number = match - (SIG_LEN - match) * TEMPLATE_MISMATCH_PENALTY;
+        const match4: number = SIG_LEN - sigInkLen - t.inkCount + 2 * tp4;
+        const score: number = match4 - (SIG_LEN - match4) * TEMPLATE_MISMATCH_PENALTY;
         if (score > best1Score4) { best1Score4 = score; }
       }
       const geoGate3: number = Math.floor(SIG_LEN * 0.50);
@@ -2960,25 +3347,24 @@ export function recognizeDigit(sig: number[], inkCount: number): number {
 
   const digitBestScore: number[] = new Array<number>(10).fill(-100000);
   const digitBestIdx: number[] = new Array<number>(10).fill(-1);
-  for (let ti: number = 0; ti < g_templates.length; ti++) {
-    const t: DigitTemplate = g_templates[ti];
-    let match: number = 0;
-    let tplInk: number = 0;
-    let tp: number = 0;
-    for (let i: number = 0; i < SIG_LEN; i++) {
-      if (t.key[i] === 1) {
-        tplInk++;
-        if (sig[i] === 1) { tp++; }
+  for (let d: number = 1; d <= 9; d++) {
+    const tplsD: DigitTemplate[] = g_templatesByDigit[d];
+    for (let ti: number = 0; ti < tplsD.length; ti++) {
+      const t: DigitTemplate = tplsD[ti];
+      const kb: Int8Array = t.keyBytes;
+      let tp: number = 0;
+      for (let j: number = 0; j < sigInkLen; j++) {
+        if (kb[sigInkPos[j]] === 1) { tp++; }
       }
-      if (sig[i] === t.key[i]) { match++; }
-    }
-    const recall: number = tplInk > 0 ? tp / tplInk : 0;
-    const prec: number = inkCount > 0 ? tp / inkCount : 0;
-    const f1: number = (recall + prec) > 0 ? (2 * recall * prec) / (recall + prec) : 0;
-    const score: number = match - (SIG_LEN - match) * TEMPLATE_MISMATCH_PENALTY + f1 * TEMPLATE_F1_WEIGHT;
-    if (score > digitBestScore[t.digit]) {
-      digitBestScore[t.digit] = score;
-      digitBestIdx[t.digit] = ti;
+      const match: number = SIG_LEN - sigInkLen - t.inkCount + 2 * tp;
+      const recall: number = t.inkCount > 0 ? tp / t.inkCount : 0;
+      const prec: number = inkCount > 0 ? tp / inkCount : 0;
+      const f1: number = (recall + prec) > 0 ? (2 * recall * prec) / (recall + prec) : 0;
+      const score: number = match - (SIG_LEN - match) * TEMPLATE_MISMATCH_PENALTY + f1 * TEMPLATE_F1_WEIGHT;
+      if (score > digitBestScore[t.digit]) {
+        digitBestScore[t.digit] = score;
+        digitBestIdx[t.digit] = ti;
+      }
     }
   }
 
@@ -2995,6 +3381,55 @@ export function recognizeDigit(sig: number[], inkCount: number): number {
     }
   }
 
+  if (bestDigit === 1 && inkCount > 0) {
+    const leftCol: number = Math.floor(SIG_COLS * 0.4);
+    const midRow: number = Math.floor(SIG_ROWS * 0.35);
+    let leftLowerInk: number = 0;
+    for (let r2: number = midRow; r2 < SIG_ROWS; r2++) {
+      for (let c2: number = 0; c2 < leftCol; c2++) {
+        if (sig[r2 * SIG_COLS + c2] === 1) { leftLowerInk++; }
+      }
+    }
+    if (leftLowerInk > inkCount * 0.18) {
+      let bestNon1: number = 0;
+      let bestNon1Score: number = -100000;
+      for (let d: number = 2; d <= 9; d++) {
+        if (digitBestScore[d] > bestNon1Score) { bestNon1Score = digitBestScore[d]; bestNon1 = d; }
+      }
+      if (bestNon1 > 0) {
+        hilog.info(DOMAIN, TAG, 'digit1 left-lower-ink reject: lowerLeftInk=%{public}d/%{public}d(%.0f%%) => %{public}d',
+          leftLowerInk, inkCount, leftLowerInk / inkCount * 100, bestNon1);
+        bestDigit = bestNon1;
+        bestScore = bestNon1Score;
+        if (bestNon1 !== 7) { secondDigit = 7; secondScore = digitBestScore[7]; }
+      }
+    }
+  }
+
+  if (bestDigit === 1 && secondDigit === 7) {
+    const topRow17: number = Math.floor(SIG_ROWS * 0.05);
+    const topEnd17: number = Math.floor(SIG_ROWS * 0.30);
+    let topMinC17: number = SIG_COLS;
+    let topMaxC17: number = 0;
+    let solidTopRows17: number = 0;
+    for (let r: number = topRow17; r < topEnd17; r++) {
+      let inkInRow17: number = 0;
+      for (let c: number = 0; c < SIG_COLS; c++) {
+        if (sig[r * SIG_COLS + c] === 1) {
+          inkInRow17++;
+          if (c < topMinC17) { topMinC17 = c; }
+          if (c > topMaxC17) { topMaxC17 = c; }
+        }
+      }
+      if (inkInRow17 >= SIG_COLS * 0.4) { solidTopRows17++; }
+    }
+    const topSpan17: number = topMaxC17 >= topMinC17 ? topMaxC17 - topMinC17 + 1 : 0;
+    if (topSpan17 >= SIG_COLS * 0.55 && solidTopRows17 >= 1) {
+      bestDigit = 7;
+      bestScore = digitBestScore[7];
+    }
+  }
+
   const rawConf: number = bestScore / (SIG_LEN + 200);
   g_lastConfidence = rawConf > 1 ? 1 : (rawConf < 0 ? 0 : rawConf);
 
@@ -3004,7 +3439,9 @@ export function recognizeDigit(sig: number[], inkCount: number): number {
     const scoreGap: number = Math.abs(score6 - score9);
 
     if (scoreGap >= DISAMBIG_SCORE_GAP_SKIP) {
-      return score6 > score9 ? 6 : 9;
+      const r69skip: number = score6 > score9 ? 6 : 9;
+      g_lastPixelDiag = `69skip: s6=${score6.toFixed(0)} s9=${score9.toFixed(0)} gap=${scoreGap.toFixed(0)}>=${DISAMBIG_SCORE_GAP_SKIP} =>${r69skip}`;
+      return r69skip;
     }
 
     const qHole: number = holeCenterRow(sig);
@@ -3033,7 +3470,9 @@ export function recognizeDigit(sig: number[], inkCount: number): number {
     else if (score6 > score9) { vote6 += 1; }
     else { vote9 += 1; }
 
-    hilog.info(DOMAIN, TAG, 'vote6=%{public}d vote9=%{public}d => %{public}d', vote6, vote9, vote6 > vote9 ? 6 : 9);
+    const result69: number = vote6 === vote9 ? (score6 >= score9 ? 6 : 9) : (vote6 > vote9 ? 6 : 9);
+    g_lastPixelDiag = `69disambig: s6=${score6.toFixed(0)} s9=${score9.toFixed(0)} gap=${scoreGap.toFixed(0)} hole=${qHole.toFixed(1)} cent=${iCentroid.toFixed(1)} ratio=${ratio.toFixed(2)} hog=${hogGrad.toFixed(2)} sw=${swRatio.toFixed(2)} v6=${vote6} v9=${vote9} =>${result69}`;
+    hilog.info(DOMAIN, TAG, 'vote6=%{public}d vote9=%{public}d => %{public}d', vote6, vote9, result69);
     if (vote6 === vote9) { return score6 >= score9 ? 6 : 9; }
     return vote6 > vote9 ? 6 : 9;
   }
@@ -3131,12 +3570,101 @@ export function recognizeDigit(sig: number[], inkCount: number): number {
     return score3 >= score8 ? 3 : 8;
   }
 
+  if (bestDigit === 2 || bestDigit === 8) {
+    const score2: number = digitBestScore[2];
+    const score8b: number = digitBestScore[8];
+    const gap28: number = Math.abs(score2 - score8b);
+    if (gap28 >= 80) {
+      return score2 > score8b ? 2 : 8;
+    }
+    const midTop28: number = Math.floor(SIG_ROWS * 0.3);
+    const midBot28: number = Math.floor(SIG_ROWS * 0.7);
+    let leftInk28: number = 0;
+    let rightInk28: number = 0;
+    for (let r: number = midTop28; r < midBot28; r++) {
+      for (let c: number = 0; c < SIG_COLS / 2; c++) {
+        if (sig[r * SIG_COLS + c] === 1) { leftInk28++; }
+      }
+      for (let c2: number = Math.floor(SIG_COLS / 2); c2 < SIG_COLS; c2++) {
+        if (sig[r * SIG_COLS + c2] === 1) { rightInk28++; }
+      }
+    }
+    const leftRatio28: number = (leftInk28 + rightInk28) > 0 ? leftInk28 / (leftInk28 + rightInk28) : 0.5;
+    if (leftRatio28 > 0.28) {
+      return 8;
+    }
+    return score2 >= score8b ? 2 : 8;
+  }
+
+  if (bestDigit === 4 || bestDigit === 5) {
+    const score4: number = digitBestScore[4];
+    const score5: number = digitBestScore[5];
+    const gap45: number = Math.abs(score4 - score5);
+    if (gap45 >= 80) {
+      return score4 > score5 ? 4 : 5;
+    }
+    const topRow45: number = Math.floor(SIG_ROWS * 0.05);
+    const topEnd45: number = Math.floor(SIG_ROWS * 0.25);
+    let topLeftInk45: number = 0;
+    let topRightInk45: number = 0;
+    for (let r: number = topRow45; r < topEnd45; r++) {
+      for (let c: number = 0; c < SIG_COLS / 2; c++) {
+        if (sig[r * SIG_COLS + c] === 1) { topLeftInk45++; }
+      }
+      for (let c2: number = Math.floor(SIG_COLS / 2); c2 < SIG_COLS; c2++) {
+        if (sig[r * SIG_COLS + c2] === 1) { topRightInk45++; }
+      }
+    }
+    const botRow45: number = Math.floor(SIG_ROWS * 0.7);
+    const botEnd45: number = Math.floor(SIG_ROWS * 0.95);
+    let botLeftInk45: number = 0;
+    let botRightInk45: number = 0;
+    for (let r: number = botRow45; r < botEnd45; r++) {
+      for (let c: number = 0; c < SIG_COLS / 2; c++) {
+        if (sig[r * SIG_COLS + c] === 1) { botLeftInk45++; }
+      }
+      for (let c2: number = Math.floor(SIG_COLS / 2); c2 < SIG_COLS; c2++) {
+        if (sig[r * SIG_COLS + c2] === 1) { botRightInk45++; }
+      }
+    }
+    if (topLeftInk45 > 0 && botRightInk45 > botLeftInk45 && score5 >= score4 - 20) {
+      return 5;
+    }
+    if (topLeftInk45 === 0 && topRightInk45 > 0 && score4 >= score5 - 20) {
+      return 4;
+    }
+    return score4 >= score5 ? 4 : 5;
+  }
+
   // 7/1 disambiguation: only check if 7 might actually be 1 (never flip 1→7)
   if (bestDigit === 7) {
     const score7: number = digitBestScore[7];
     const score1: number = digitBestScore[1];
     const gap71: number = score7 - score1;
-    if (gap71 < 20) {
+    if (gap71 < 100 && score1 > 0) {
+      const midTop71: number = Math.floor(SIG_ROWS * 0.30);
+      const midBot71: number = Math.floor(SIG_ROWS * 0.70);
+      let totalRowWidth71: number = 0;
+      let rowCount71: number = 0;
+      for (let r: number = midTop71; r < midBot71; r++) {
+        let minC: number = SIG_COLS;
+        let maxC: number = -1;
+        for (let c: number = 0; c < SIG_COLS; c++) {
+          if (sig[r * SIG_COLS + c] === 1) {
+            if (c < minC) { minC = c; }
+            if (c > maxC) { maxC = c; }
+          }
+        }
+        if (maxC >= minC) { totalRowWidth71 += maxC - minC + 1; rowCount71++; }
+      }
+      const avgRowWidth71: number = rowCount71 > 0 ? totalRowWidth71 / rowCount71 : 0;
+      if (avgRowWidth71 > 8 && inkCount > 200) {
+        g_lastPixelDiag = `7→1: avgRowW=${avgRowWidth71.toFixed(1)} ink=${inkCount} s7=${score7} s1=${score1}`;
+        bestDigit = 1;
+        bestScore = score1;
+      }
+    }
+    if (bestDigit === 7 && gap71 < 100) {
       const topRow71: number = Math.floor(SIG_ROWS * 0.10);
       const topEnd71: number = Math.floor(SIG_ROWS * 0.30);
       let topMinC71: number = SIG_COLS;
@@ -3182,12 +3710,12 @@ export function recognizeDigit(sig: number[], inkCount: number): number {
       }
       const botSpan71: number = botMaxC71 >= botMinC71 ? botMaxC71 - botMinC71 + 1 : 0;
       if (botSpan71 <= 6 && topSpan71 < SIG_COLS * 0.6) {
-        // Narrow bottom + no solid top bar → likely 1, not 7
         g_lastPixelDiag = `7→1: botSpan=${botSpan71} topSpan=${topSpan71} s7=${score7} s1=${score1}`;
         return 1;
       }
     }
-  }
+    }
+
 
   if (qHole >= 0 && bestScore >= MIN_DIGIT_SCORE && secondDigit > 0) {
     const halfRow: number = SIG_ROWS / 2;
@@ -3203,14 +3731,16 @@ export function recognizeDigit(sig: number[], inkCount: number): number {
   if (bestScore >= MIN_DIGIT_SCORE) {
     if (bestDigit === 4 && isLikelyNot4(sig)) {
       let best1Score3: number = -100000;
-      for (let ti: number = 0; ti < g_templates.length; ti++) {
-        if (g_templates[ti].digit !== 1) { continue; }
-        const t: DigitTemplate = g_templates[ti];
-        let match: number = 0;
-        for (let i: number = 0; i < SIG_LEN; i++) {
-          if (sig[i] === t.key[i]) { match++; }
+      const tpls1d: DigitTemplate[] = g_templatesByDigit[1];
+      for (let ti: number = 0; ti < tpls1d.length; ti++) {
+        const t: DigitTemplate = tpls1d[ti];
+        const kb: Int8Array = t.keyBytes;
+        let tp3: number = 0;
+        for (let j: number = 0; j < sigInkLen; j++) {
+          if (kb[sigInkPos[j]] === 1) { tp3++; }
         }
-        const score: number = match - (SIG_LEN - match) * TEMPLATE_MISMATCH_PENALTY;
+        const match3: number = SIG_LEN - sigInkLen - t.inkCount + 2 * tp3;
+        const score: number = match3 - (SIG_LEN - match3) * TEMPLATE_MISMATCH_PENALTY;
         if (score > best1Score3) { best1Score3 = score; }
       }
       const geoGate2: number = Math.floor(SIG_LEN * 0.55);
@@ -3262,6 +3792,7 @@ export function findPreciseGridLines(
   if (boardW < CONSERVATIVE_MIN_DIM || boardH < CONSERVATIVE_MIN_DIM) { return null; }
 
   const hInkProfile: number[] = new Array<number>(boardH).fill(0);
+  const inkBg: number = isDark ? bg + INK_THRESH : bg - INK_THRESH;
   for (let dy: number = 0; dy < boardH; dy++) {
     const y: number = boardTop + dy;
     if (y < 0 || y >= height) { continue; }
@@ -3271,7 +3802,7 @@ export function findPreciseGridLines(
       const x: number = boardLeft + dx;
       if (x < 0 || x >= width) { continue; }
       const g: number = gray[y * width + x];
-      if (grayInkPixel(g, bg, isDark, INK_THRESH)) { inkCount++; }
+      if (isDark ? g > inkBg : g < inkBg) { inkCount++; }
     }
     hInkProfile[dy] = inkCount / Math.floor(boardW / step);
   }
@@ -3287,7 +3818,7 @@ export function findPreciseGridLines(
       const y: number = boardTop + dy;
       if (y < 0 || y >= height) { continue; }
       const g: number = gray[y * width + x];
-      if (grayInkPixel(g, bg, isDark, INK_THRESH)) { inkCount++; }
+      if (isDark ? g > inkBg : g < inkBg) { inkCount++; }
     }
     vInkProfile[dx] = inkCount / Math.floor(boardH / step);
   }
@@ -3394,12 +3925,13 @@ export function validateCellCentering(
   let inkSumX: number = 0;
   let inkSumY: number = 0;
   let inkTotal: number = 0;
+  const inkBg: number = isDark ? bg + INK_THRESH : bg - INK_THRESH;
 
   for (let y: number = y0; y < y1; y++) {
     for (let x: number = x0; x < x1; x++) {
       if (y < 0 || y >= height || x < 0 || x >= width) { continue; }
       const g: number = gray[y * width + x];
-      if (grayInkPixel(g, bg, isDark, INK_THRESH)) {
+      if (isDark ? g > inkBg : g < inkBg) {
         inkSumX += x;
         inkSumY += y;
         inkTotal++;

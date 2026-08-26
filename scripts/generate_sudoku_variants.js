@@ -181,6 +181,203 @@ const variants = [
     font: 'bold 48px "Segoe UI", Arial, sans-serif',
     numberColor: '#111111',
   },
+
+  // --- 深色主题 ---
+  {
+    name: '16_dark_bg_light_numbers',
+    cell: 56, pad: 20,
+    thinColor: '#4a4a4a', thinWidth: 1,
+    thickColor: '#888888', thickWidth: 3,
+    outerColor: '#aaaaaa', outerWidth: 4,
+    bgColor: '#1a1a2e',
+    font: 'bold 26px "Segoe UI", Arial, sans-serif',
+    numberColor: '#e0e0e0',
+  },
+  {
+    name: '17_pure_black_white',
+    cell: 56, pad: 20,
+    thinColor: '#444444', thinWidth: 1,
+    thickColor: '#888888', thickWidth: 3,
+    outerColor: '#ffffff', outerWidth: 4,
+    bgColor: '#000000',
+    font: 'bold 26px "Segoe UI", Arial, sans-serif',
+    numberColor: '#ffffff',
+  },
+
+  // --- 字体大小/粗细变体 ---
+  {
+    name: '18_small_font_in_cell',
+    cell: 56, pad: 20,
+    thinColor: '#bfbfbf', thinWidth: 1,
+    thickColor: '#333333', thickWidth: 3,
+    outerColor: '#000000', outerWidth: 4,
+    bgColor: '#ffffff',
+    font: 'bold 18px "Segoe UI", Arial, sans-serif',
+    numberColor: '#1a1a1a',
+  },
+  {
+    name: '19_large_font_in_cell',
+    cell: 56, pad: 20,
+    thinColor: '#bfbfbf', thinWidth: 1,
+    thickColor: '#333333', thickWidth: 3,
+    outerColor: '#000000', outerWidth: 4,
+    bgColor: '#ffffff',
+    font: 'bold 36px "Segoe UI", Arial, sans-serif',
+    numberColor: '#1a1a1a',
+  },
+
+  // --- 单元格边框变体 ---
+  {
+    name: '20_dashed_lines',
+    cell: 56, pad: 20,
+    thinColor: '#bfbfbf', thinWidth: 1,
+    thickColor: '#333333', thickWidth: 3,
+    outerColor: '#000000', outerWidth: 4,
+    bgColor: '#ffffff',
+    font: 'bold 26px "Segoe UI", Arial, sans-serif',
+    numberColor: '#1a1a1a',
+    dashed: true,
+  },
+  {
+    name: '21_thick_all_lines',
+    cell: 56, pad: 20,
+    thinColor: '#333333', thinWidth: 3,
+    thickColor: '#000000', thickWidth: 5,
+    outerColor: '#000000', outerWidth: 6,
+    bgColor: '#ffffff',
+    font: 'bold 26px "Segoe UI", Arial, sans-serif',
+    numberColor: '#1a1a1a',
+  },
+
+  // --- 彩色场景 ---
+  {
+    name: '22_yellow_highlight',
+    cell: 56, pad: 20,
+    thinColor: '#d4a017', thinWidth: 1,
+    thickColor: '#8b6914', thickWidth: 3,
+    outerColor: '#5c4609', outerWidth: 4,
+    bgColor: '#fffde7',
+    font: 'bold 26px "Segoe UI", Arial, sans-serif',
+    numberColor: '#4e342e',
+  },
+  {
+    name: '23_orange_numbers',
+    cell: 56, pad: 20,
+    thinColor: '#bfbfbf', thinWidth: 1,
+    thickColor: '#333333', thickWidth: 3,
+    outerColor: '#000000', outerWidth: 4,
+    bgColor: '#ffffff',
+    font: 'bold 26px "Segoe UI", Arial, sans-serif',
+    numberColor: '#e65100',
+  },
+
+  // --- 对比度变体 ---
+  {
+    name: '24_medium_gray_numbers',
+    cell: 56, pad: 20,
+    thinColor: '#cccccc', thinWidth: 1,
+    thickColor: '#555555', thickWidth: 3,
+    outerColor: '#333333', outerWidth: 4,
+    bgColor: '#ffffff',
+    font: 'bold 26px "Segoe UI", Arial, sans-serif',
+    numberColor: '#666666',
+  },
+  {
+    name: '25_very_faint_numbers',
+    cell: 56, pad: 20,
+    thinColor: '#e0e0e0', thinWidth: 1,
+    thickColor: '#999999', thickWidth: 3,
+    outerColor: '#666666', outerWidth: 4,
+    bgColor: '#ffffff',
+    font: 'bold 26px "Segoe UI", Arial, sans-serif',
+    numberColor: '#aaaaaa',
+  },
+
+  // --- 字体变体 ---
+  {
+    name: '26_mono_font',
+    cell: 56, pad: 20,
+    thinColor: '#bfbfbf', thinWidth: 1,
+    thickColor: '#333333', thickWidth: 3,
+    outerColor: '#000000', outerWidth: 4,
+    bgColor: '#ffffff',
+    font: 'bold 26px "Courier New", Courier, monospace',
+    numberColor: '#1a1a1a',
+  },
+  {
+    name: '27_cursive_font',
+    cell: 56, pad: 20,
+    thinColor: '#bfbfbf', thinWidth: 1,
+    thickColor: '#333333', thickWidth: 3,
+    outerColor: '#000000', outerWidth: 4,
+    bgColor: '#ffffff',
+    font: '26px "Brush Script MT", "Segoe Script", cursive',
+    numberColor: '#1a1a1a',
+  },
+
+  // --- 尺寸极端 ---
+  {
+    name: '28_medium_400',
+    cell: 40, pad: 16,
+    thinColor: '#cccccc', thinWidth: 1,
+    thickColor: '#333333', thickWidth: 2,
+    outerColor: '#000000', outerWidth: 3,
+    bgColor: '#ffffff',
+    font: 'bold 20px "Segoe UI", Arial, sans-serif',
+    numberColor: '#1a1a1a',
+  },
+  {
+    name: '29_wide_padding',
+    cell: 56, pad: 60,
+    thinColor: '#bfbfbf', thinWidth: 1,
+    thickColor: '#333333', thickWidth: 3,
+    outerColor: '#000000', outerWidth: 4,
+    bgColor: '#ffffff',
+    font: 'bold 26px "Segoe UI", Arial, sans-serif',
+    numberColor: '#1a1a1a',
+  },
+  {
+    name: '30_no_padding',
+    cell: 56, pad: 0,
+    thinColor: '#bfbfbf', thinWidth: 1,
+    thickColor: '#333333', thickWidth: 3,
+    outerColor: '#000000', outerWidth: 4,
+    bgColor: '#ffffff',
+    font: 'bold 26px "Segoe UI", Arial, sans-serif',
+    numberColor: '#1a1a1a',
+  },
+
+  // --- 不同谜题 ---
+  {
+    name: '31_puzzle2_standard',
+    cell: 56, pad: 20,
+    thinColor: '#bfbfbf', thinWidth: 1,
+    thickColor: '#333333', thickWidth: 3,
+    outerColor: '#000000', outerWidth: 4,
+    bgColor: '#ffffff',
+    font: 'bold 26px "Segoe UI", Arial, sans-serif',
+    numberColor: '#1a1a1a',
+  },
+  {
+    name: '32_puzzle2_tiny',
+    cell: 20, pad: 10,
+    thinColor: '#cccccc', thinWidth: 1,
+    thickColor: '#555555', thickWidth: 2,
+    outerColor: '#000000', outerWidth: 2,
+    bgColor: '#ffffff',
+    font: 'bold 10px "Segoe UI", Arial, sans-serif',
+    numberColor: '#000000',
+  },
+  {
+    name: '33_puzzle3_hard',
+    cell: 56, pad: 20,
+    thinColor: '#bfbfbf', thinWidth: 1,
+    thickColor: '#333333', thickWidth: 3,
+    outerColor: '#000000', outerWidth: 4,
+    bgColor: '#ffffff',
+    font: 'bold 26px "Segoe UI", Arial, sans-serif',
+    numberColor: '#1a1a1a',
+  },
 ];
 
 if (!fs.existsSync(OUT_DIR)) {
@@ -188,6 +385,7 @@ if (!fs.existsSync(OUT_DIR)) {
 }
 
 function generateVariant(v) {
+  const p = v.puzzle || puzzle;
   const board = SIZE * v.cell;
   const total = board + 2 * v.pad;
 
@@ -202,6 +400,7 @@ function generateVariant(v) {
   if (v.thinWidth > 0) {
     ctx.strokeStyle = v.thinColor;
     ctx.lineWidth = v.thinWidth;
+    if (v.dashed) { ctx.setLineDash([4, 3]); } else { ctx.setLineDash([]); }
     for (let i = 0; i <= SIZE; i++) {
       ctx.beginPath();
       ctx.moveTo(v.pad + i * v.cell, v.pad);
@@ -212,12 +411,14 @@ function generateVariant(v) {
       ctx.lineTo(v.pad + board, v.pad + i * v.cell);
       ctx.stroke();
     }
+    ctx.setLineDash([]);
   }
 
   // --- 3x3 粗线 ---
   if (v.thickWidth > 0) {
     ctx.strokeStyle = v.thickColor;
     ctx.lineWidth = v.thickWidth;
+    if (v.dashed) { ctx.setLineDash([8, 4]); } else { ctx.setLineDash([]); }
     for (let i = 0; i <= SIZE; i += 3) {
       ctx.beginPath();
       ctx.moveTo(v.pad + i * v.cell, v.pad);
@@ -228,6 +429,7 @@ function generateVariant(v) {
       ctx.lineTo(v.pad + board, v.pad + i * v.cell);
       ctx.stroke();
     }
+    ctx.setLineDash([]);
   }
 
   // --- 外框 ---
@@ -247,7 +449,7 @@ function generateVariant(v) {
 
   for (let r = 0; r < SIZE; r++) {
     for (let c = 0; c < SIZE; c++) {
-      const val = puzzle[r * SIZE + c];
+      const val = p[r * SIZE + c];
       if (val !== 0) {
         const x = v.pad + c * v.cell + v.cell / 2;
         const y = v.pad + r * v.cell + v.cell / 2;
@@ -258,7 +460,8 @@ function generateVariant(v) {
 
   const outPath = path.join(OUT_DIR, `${v.name}.png`);
   fs.writeFileSync(outPath, canvas.toBuffer('image/png'));
-  console.log(`  [OK] ${v.name}.png  (${total}x${total}px)`);
+  const p2 = v.puzzle || puzzle;
+  console.log(`  [OK] ${v.name}.png  (${total}x${total}px) puzzle=[${p2.join(',')}]`);
 }
 
 console.log('Generating Sudoku test images...\n');
