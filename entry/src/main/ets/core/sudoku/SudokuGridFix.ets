@@ -127,7 +127,7 @@ function applyBestPixelConflictPair(grid: number[], candidates: PixelConflictCan
   return `像素成对解冲突 [${a.idx}]${oldA}→${a.digit}(conf=${a.confidence.toFixed(2)}) [${b.idx}]${oldB}→${b.digit}(conf=${b.confidence.toFixed(2)}) c=${beforeConflicts}→${bestConflicts}`;
 }
 
-function recognizeDigitPixel(
+async function recognizeDigitPixel(
   gray: Float32Array,
   imgW: number,
   cellLeft: number, cellTop: number,
@@ -135,16 +135,16 @@ function recognizeDigitPixel(
   isDark: boolean, bg: number,
   gridRow: number = -1,
   gridCol: number = -1
-): number | null {
+): Promise<number | null> {
   resetLastPixelDiag();
-  let sig: number[] | null = cellSigFromGray(
+  let sig: number[] | null = await cellSigFromGray(
     gray, imgW,
     cellLeft, cellTop, cellW, cellH, isDark, bg, gridRow, gridCol
   );
   if (sig === null) {
     const d: string = getLastPixelDiag();
     const ri: number = getLastRawInkRatio();
-    const lowSig: number[] | null = cellSigFromGrayLowThresh(
+    const lowSig: number[] | null = await cellSigFromGrayLowThresh(
       gray, imgW, cellLeft, cellTop, cellW, cellH, isDark, bg, gridRow, gridCol
     );
     if (lowSig !== null) {
@@ -158,7 +158,7 @@ function recognizeDigitPixel(
       }
     }
     if (ri < MIN_CELL_INK_RATIO) {
-      const thinSig: number[] | null = cellSigFromGrayThin(
+      const thinSig: number[] | null = await cellSigFromGrayThin(
         gray, imgW, cellLeft, cellTop, cellW, cellH, isDark, bg, gridRow, gridCol
       );
       if (thinSig !== null) {
@@ -185,7 +185,7 @@ function recognizeDigitPixel(
   }
 
   const ri2: number = getLastRawInkRatio();
-  const lowSig: number[] | null = cellSigFromGrayLowThresh(
+  const lowSig: number[] | null = await cellSigFromGrayLowThresh(
     gray, imgW, cellLeft, cellTop, cellW, cellH, isDark, bg, gridRow, gridCol
   );
   if (lowSig !== null) {
@@ -198,7 +198,7 @@ function recognizeDigitPixel(
     }
   }
   if (ri2 < MIN_CELL_INK_RATIO) {
-    const thinSig: number[] | null = cellSigFromGrayThin(
+    const thinSig: number[] | null = await cellSigFromGrayThin(
       gray, imgW, cellLeft, cellTop, cellW, cellH, isDark, bg, gridRow, gridCol
     );
     if (thinSig !== null) {
@@ -433,7 +433,7 @@ export async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, im
 
     let pixelDigit: number | null = null;
     if (gray.length > 0) {
-      pixelDigit = recognizeDigitPixel(gray, imgW, cellLeft, cellTop, cellW, cellH, bbox.isDark, bg, row, col);
+      pixelDigit = await recognizeDigitPixel(gray, imgW, cellLeft, cellTop, cellW, cellH, bbox.isDark, bg, row, col);
     }
     const pixelDiag: string = g_lastRecognizeDiag;
 
@@ -907,7 +907,7 @@ export async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, im
       const col: number = i % 9;
       const cLeft: number = boardL + col * cellW;
       const cTop: number = boardT + row * cellH;
-      const pxlDigit: number | null = recognizeDigitPixel(gray, imgW, cLeft, cTop, cellW, cellH, bbox.isDark, bg, row, col);
+      const pxlDigit: number | null = await recognizeDigitPixel(gray, imgW, cLeft, cTop, cellW, cellH, bbox.isDark, bg, row, col);
       if (pxlDigit === null || pxlDigit === grid[i]) { continue; }
       if (!isConfusablePair(grid[i], pxlDigit)) { continue; }
       const pxlConf: number = getLastConfidence();
@@ -984,7 +984,7 @@ export async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, im
     const ciCol: number = ci % 9;
     const ciLeft: number = boardL + ciCol * cellW;
     const ciTop: number = boardT + ciRow * cellH;
-    const ciDigit: number | null = recognizeDigitPixel(gray, imgW, ciLeft, ciTop, cellW, cellH, bbox.isDark, bg, ciRow, ciCol);
+    const ciDigit: number | null = await recognizeDigitPixel(gray, imgW, ciLeft, ciTop, cellW, cellH, bbox.isDark, bg, ciRow, ciCol);
     const ciInk: number = getLastRawInkRatio();
     if (ciDigit === null && ciInk < MIN_CELL_INK_RATIO) {
       finalClearNoInk.push(ci);
@@ -1043,7 +1043,7 @@ export async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, im
       const ciLeft: number = boardL + ciCol * cellW;
       const ciTop: number = boardT + ciRow * cellH;
       const ciConf: number = g_lastPixelConfidence[ci];
-      recognizeDigitPixel(gray, imgW, ciLeft, ciTop, cellW, cellH, bbox.isDark, bg, ciRow, ciCol);
+      await recognizeDigitPixel(gray, imgW, ciLeft, ciTop, cellW, cellH, bbox.isDark, bg, ciRow, ciCol);
       const ciRawInk: number = getLastRawInkRatio();
       if (ciConf < 0.50 || ciRawInk > 0.75) {
         lowConfClear.push(ci);

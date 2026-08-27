@@ -1,6 +1,7 @@
 import { Context } from '@kit.AbilityKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { RawFileUtil } from '../../common/utils/RawFileUtil';
+import { yieldThread } from './SudokuOCRUtils';
 
 const DOMAIN: number = 0xA03D00;
 const TAG: string = 'SudokuPixel';
@@ -701,11 +702,11 @@ export function isInkPixel(g: number, bg: number, isDark: boolean): boolean {
   return g < bg - INK_THRESH;
 }
 
-export function sauvolaThreshold(
+export async function sauvolaThreshold(
   gray: Float32Array, width: number, height: number,
   cx0: number, cy0: number, cw: number, ch: number,
   isDark: boolean
-): Float32Array | null {
+): Promise<Float32Array | null> {
   const k: number = SAUVOLA_K;
   const R: number = SAUVOLA_R;
   const halfWin: number = Math.max(2, Math.floor(Math.min(cw, ch) / 4));
@@ -735,6 +736,7 @@ export function sauvolaThreshold(
       intSum[(ly + 1) * stride + lx + 1] = rSum + intSum[ly * stride + lx + 1];
       intSq[(ly + 1) * stride + lx + 1] = rSq + intSq[ly * stride + lx + 1];
     }
+    if (ly % 16 === 15) { await yieldThread(); }
   }
 
   const out: Float32Array = new Float32Array(w * h);
@@ -760,6 +762,7 @@ export function sauvolaThreshold(
       const pixelVal: number = gray[(y0 + ly) * width + (x0 + lx)];
       out[ly * w + lx] = isDark ? (pixelVal > t ? 1 : 0) : (pixelVal < t ? 1 : 0);
     }
+    if (ly % 16 === 15) { await yieldThread(); }
   }
   return out;
 }
@@ -2043,7 +2046,7 @@ function stripFullHeightVerticalStrokes(sig: number[]): void {
   }
 }
 
-export function cellSigFromGray(
+export async function cellSigFromGray(
   gray: Float32Array,
   width: number,
   cellLeft: number,
@@ -2054,7 +2057,7 @@ export function cellSigFromGray(
   bg: number,
   gridRow: number = -1,
   gridCol: number = -1
-): number[] | null {
+): Promise<number[] | null> {
   let mxLeft: number = cellW * CELL_MARGIN_RATIO;
   let mxRight: number = cellW * CELL_MARGIN_RATIO;
   let myTop: number = cellH * CELL_MARGIN_RATIO;
@@ -2194,7 +2197,7 @@ export function cellSigFromGray(
     const bh: number = bmaxY - bminY + 1;
 
     if (bw >= SAUVOLA_MIN_DIM * 3 && bh >= SAUVOLA_MIN_DIM * 3) {
-      const sauvBinary: Float32Array | null = sauvolaThreshold(gray, width, H, bminX, bminY, bw, bh, isDark);
+      const sauvBinary: Float32Array | null = await sauvolaThreshold(gray, width, H, bminX, bminY, bw, bh, isDark);
       if (sauvBinary !== null) {
         const scale: number = Math.max(1, Math.ceil(SIG_COLS / bw), Math.ceil(SIG_ROWS / bh));
         const sbw: number = bw * scale;
@@ -2289,7 +2292,7 @@ export function cellSigFromGray(
 // Half of INK_THRESH, used to recover faint strokes in small cells.
 const LOW_INK_THRESH_RETRY: number = Math.floor(INK_THRESH / 2);
 
-export function cellSigFromGrayLowThresh(
+export async function cellSigFromGrayLowThresh(
   gray: Float32Array,
   width: number,
   cellLeft: number,
@@ -2300,7 +2303,7 @@ export function cellSigFromGrayLowThresh(
   bg: number,
   gridRow: number = -1,
   gridCol: number = -1
-): number[] | null {
+): Promise<number[] | null> {
   let mxLeft: number = cellW * CELL_MARGIN_RATIO;
   let mxRight: number = cellW * CELL_MARGIN_RATIO;
   let myTop: number = cellH * CELL_MARGIN_RATIO;
@@ -2458,7 +2461,7 @@ export function cellSigFromGrayLowThresh(
   return result;
 }
 
-export function cellSigFromGrayThin(
+export async function cellSigFromGrayThin(
   gray: Float32Array,
   width: number,
   cellLeft: number,
@@ -2469,7 +2472,7 @@ export function cellSigFromGrayThin(
   bg: number,
   gridRow: number = -1,
   gridCol: number = -1
-): number[] | null {
+): Promise<number[] | null> {
   const THIN_MARGIN: number = 0.02;
   const LOW_GRID_DIFF: number = LOW_INK_THRESH_RETRY * 0.4;
   let mxLeft: number = cellW * THIN_MARGIN;

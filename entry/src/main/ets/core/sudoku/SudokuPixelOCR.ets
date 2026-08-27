@@ -108,7 +108,7 @@ export async function tryPixelGridRecognition(imagePath: string, imageBuf: Array
   }
 }
 
-export function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, height: number): number[] {
+export async function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, height: number): Promise<number[]> {
   const grid: number[] = new Array<number>(81).fill(0);
   setLastPixelConfidence(new Array<number>(81).fill(0));
 
@@ -196,7 +196,7 @@ export function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, he
     let digitCount: number = 0;
     for (let r: number = 0; r < 9; r++) {
       for (let c: number = 0; c < 9; c++) {
-        let sig: number[] | null = cellSigFromGray(
+        let sig: number[] | null = await cellSigFromGray(
           warpedGray, outSize,
           c * warpCellW, r * warpCellH,
           warpCellW, warpCellH, warpIsDark, warpBg, r, c
@@ -206,7 +206,7 @@ export function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, he
           digit = recognizeDigit(sig, countInk(sig));
         }
         if (digit === 0) {
-          const lowSig: number[] | null = cellSigFromGrayLowThresh(
+          const lowSig: number[] | null = await cellSigFromGrayLowThresh(
             warpedGray, outSize,
             c * warpCellW, r * warpCellH,
             warpCellW, warpCellH, warpIsDark, warpBg, r, c
@@ -217,7 +217,7 @@ export function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, he
           }
         }
         if (digit === 0 && getLastRawInkRatio() < MIN_CELL_INK_RATIO * 0.5) {
-          const thinSig: number[] | null = cellSigFromGrayThin(
+          const thinSig: number[] | null = await cellSigFromGrayThin(
             warpedGray, outSize,
             c * warpCellW, r * warpCellH,
             warpCellW, warpCellH, warpIsDark, warpBg, r, c
@@ -254,7 +254,7 @@ export function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, he
           const cTop: number = gridLines.hLines[r];
           const cW: number = gridLines.vLines[c + 1] - cLeft;
           const cH: number = gridLines.hLines[r + 1] - cTop;
-          let sig: number[] | null = cellSigFromGray(
+          let sig: number[] | null = await cellSigFromGray(
             gray, width, cLeft, cTop, cW, cH, bbox.isDark, bg, r, c
           );
           let digit: number = 0;
@@ -262,7 +262,7 @@ export function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, he
             digit = recognizeDigit(sig, countInk(sig));
           }
           if (digit === 0) {
-            const lowSig: number[] | null = cellSigFromGrayLowThresh(
+            const lowSig: number[] | null = await cellSigFromGrayLowThresh(
               gray, width, cLeft, cTop, cW, cH, bbox.isDark, bg, r, c
             );
             if (lowSig !== null) {
@@ -271,7 +271,7 @@ export function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, he
             }
           }
           if (digit === 0 && getLastRawInkRatio() < MIN_CELL_INK_RATIO * 0.5) {
-            const thinSig: number[] | null = cellSigFromGrayThin(
+            const thinSig: number[] | null = await cellSigFromGrayThin(
               gray, width, cLeft, cTop, cW, cH, bbox.isDark, bg, r, c
             );
             if (thinSig !== null) {
@@ -287,7 +287,7 @@ export function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, he
               const fallbackH: number = (bbox.bottom - bbox.top) / 9;
               const fallbackLeft: number = bbox.left + c * fallbackW;
               const fallbackTop: number = bbox.top + r * fallbackH;
-              const fallbackSig: number[] | null = cellSigFromGray(
+              const fallbackSig: number[] | null = await cellSigFromGray(
                 gray, width, fallbackLeft, fallbackTop, fallbackW, fallbackH, bbox.isDark, bg, r, c
               );
               if (fallbackSig !== null) {
@@ -314,7 +314,7 @@ export function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, he
       let digitCount3: number = 0;
       for (let r: number = 0; r < 9; r++) {
         for (let c: number = 0; c < 9; c++) {
-          let sig: number[] | null = cellSigFromGray(
+          let sig: number[] | null = await cellSigFromGray(
             gray, width,
             bbox.left + c * cellW, bbox.top + r * cellH,
             cellW, cellH, bbox.isDark, bg, r, c
@@ -324,7 +324,7 @@ export function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, he
             digit = recognizeDigit(sig, countInk(sig));
           }
           if (digit === 0) {
-            const lowSig: number[] | null = cellSigFromGrayLowThresh(
+            const lowSig: number[] | null = await cellSigFromGrayLowThresh(
               gray, width,
               bbox.left + c * cellW, bbox.top + r * cellH,
               cellW, cellH, bbox.isDark, bg, r, c
@@ -335,7 +335,7 @@ export function analyzePixelGridFromBuffer(pixels: Uint8Array, width: number, he
             }
           }
           if (digit === 0 && getLastRawInkRatio() < MIN_CELL_INK_RATIO * 0.5) {
-            const thinSig: number[] | null = cellSigFromGrayThin(
+            const thinSig: number[] | null = await cellSigFromGrayThin(
               gray, width,
               bbox.left + c * cellW, bbox.top + r * cellH,
               cellW, cellH, bbox.isDark, bg, r, c
@@ -485,7 +485,7 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
           cellL = c * warpCellW;
           cellT = r * warpCellH;
         }
-        let sig: number[] | null = cellSigFromGray(
+        let sig: number[] | null = await cellSigFromGray(
           warpedGray, outSize,
           cellL, cellT,
           cellW, cellH, warpIsDark, warpBg, r, c
@@ -496,7 +496,7 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
         }
         await yieldThread();
         if (digit === 0) {
-          const lowSig: number[] | null = cellSigFromGrayLowThresh(
+          const lowSig: number[] | null = await cellSigFromGrayLowThresh(
             warpedGray, outSize,
             cellL, cellT,
             cellW, cellH, warpIsDark, warpBg, r, c
@@ -508,7 +508,7 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
           await yieldThread();
         }
         if (digit === 0 && getLastRawInkRatio() < MIN_CELL_INK_RATIO * 0.5) {
-          const thinSig: number[] | null = cellSigFromGrayThin(
+          const thinSig: number[] | null = await cellSigFromGrayThin(
             warpedGray, outSize,
             cellL, cellT,
             cellW, cellH, warpIsDark, warpBg, r, c
@@ -558,7 +558,7 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
           const cTop: number = gridLines.hLines[r];
           const cW: number = gridLines.vLines[c + 1] - cLeft;
           const cH: number = gridLines.hLines[r + 1] - cTop;
-          let sig: number[] | null = cellSigFromGray(
+          let sig: number[] | null = await cellSigFromGray(
             gray, width, cLeft, cTop, cW, cH, bbox.isDark, bg, r, c
           );
           let digit: number = 0;
@@ -567,7 +567,7 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
           }
           await yieldThread();
           if (digit === 0) {
-            const lowSig: number[] | null = cellSigFromGrayLowThresh(
+            const lowSig: number[] | null = await cellSigFromGrayLowThresh(
               gray, width, cLeft, cTop, cW, cH, bbox.isDark, bg, r, c
             );
             if (lowSig !== null) {
@@ -577,7 +577,7 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
             await yieldThread();
           }
           if (digit === 0 && getLastRawInkRatio() < MIN_CELL_INK_RATIO * 0.5) {
-            const thinSig: number[] | null = cellSigFromGrayThin(
+            const thinSig: number[] | null = await cellSigFromGrayThin(
               gray, width, cLeft, cTop, cW, cH, bbox.isDark, bg, r, c
             );
             if (thinSig !== null) {
@@ -594,7 +594,7 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
               const fallbackH: number = (bbox.bottom - bbox.top) / 9;
               const fallbackLeft: number = bbox.left + c * fallbackW;
               const fallbackTop: number = bbox.top + r * fallbackH;
-              const fallbackSig: number[] | null = cellSigFromGray(
+              const fallbackSig: number[] | null = await cellSigFromGray(
                 gray, width, fallbackLeft, fallbackTop, fallbackW, fallbackH, bbox.isDark, bg, r, c
               );
               if (fallbackSig !== null) {
@@ -641,7 +641,7 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
       let digitCount3: number = 0;
       for (let r: number = 0; r < 9; r++) {
         for (let c: number = 0; c < 9; c++) {
-          let sig: number[] | null = cellSigFromGray(
+          let sig: number[] | null = await cellSigFromGray(
             gray, width,
             bbox.left + c * cellW, bbox.top + r * cellH,
             cellW, cellH, bbox.isDark, bg, r, c
@@ -652,7 +652,7 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
           }
           await yieldThread();
           if (digit === 0) {
-            const lowSig: number[] | null = cellSigFromGrayLowThresh(
+            const lowSig: number[] | null = await cellSigFromGrayLowThresh(
               gray, width,
               bbox.left + c * cellW, bbox.top + r * cellH,
               cellW, cellH, bbox.isDark, bg, r, c
@@ -664,7 +664,7 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
             await yieldThread();
           }
           if (digit === 0 && getLastRawInkRatio() < MIN_CELL_INK_RATIO * 0.5) {
-            const thinSig: number[] | null = cellSigFromGrayThin(
+            const thinSig: number[] | null = await cellSigFromGrayThin(
               gray, width,
               bbox.left + c * cellW, bbox.top + r * cellH,
               cellW, cellH, bbox.isDark, bg, r, c

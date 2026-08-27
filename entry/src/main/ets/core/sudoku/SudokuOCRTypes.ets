@@ -139,6 +139,8 @@ export function getOCRDebugInfo(): OCRDebugInfo | null {
   return g_debugInfo;
 }
 
+export function setDebugInfo(v: OCRDebugInfo | null): void { g_debugInfo = v; }
+
 export function getLastPixelConfidence(): number[] {
   return g_lastPixelConfidence;
 }
