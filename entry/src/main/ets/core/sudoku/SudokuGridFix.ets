@@ -150,7 +150,7 @@ async function recognizeDigitPixel(
     if (lowSig !== null) {
       sig = lowSig;
       const lowInk: number = countInk(lowSig);
-      const lowDigit: number = recognizeDigit(lowSig, lowInk);
+      const lowDigit: number = await recognizeDigit(lowSig, lowInk);
       if (lowDigit > 0) {
         const lowD: string = getLastPixelDiag();
         setLastRecognizeDiag(`retryLowThresh: digit=${lowDigit} ink=${lowInk} diag=[${lowD}] rawInk=${ri.toFixed(4)}`);
@@ -164,7 +164,7 @@ async function recognizeDigitPixel(
       if (thinSig !== null) {
         sig = thinSig;
         const thinInk: number = countInk(thinSig);
-        const thinDigit: number = recognizeDigit(thinSig, thinInk);
+        const thinDigit: number = await recognizeDigit(thinSig, thinInk);
         if (thinDigit > 0) {
           const thinD: string = getLastPixelDiag();
           setLastRecognizeDiag(`retryThin: digit=${thinDigit} ink=${thinInk} diag=[${thinD}] rawInk=${ri.toFixed(4)}`);
@@ -177,7 +177,7 @@ async function recognizeDigitPixel(
   }
 
   const inkCount: number = countInk(sig);
-  const digit: number = recognizeDigit(sig, inkCount);
+  const digit: number = await recognizeDigit(sig, inkCount);
   if (digit > 0) {
     const d: string = getLastPixelDiag();
     setLastRecognizeDiag(`digit=${digit} ink=${inkCount} diag=[${d}]`);
@@ -190,7 +190,7 @@ async function recognizeDigitPixel(
   );
   if (lowSig !== null) {
     const lowInk: number = countInk(lowSig);
-    const lowDigit: number = recognizeDigit(lowSig, lowInk);
+    const lowDigit: number = await recognizeDigit(lowSig, lowInk);
     if (lowDigit > 0) {
       const lowD: string = getLastPixelDiag();
       setLastRecognizeDiag(`retryLowThresh: digit=${lowDigit} ink=${lowInk} diag=[${lowD}] rawInk=${ri2.toFixed(4)}`);
@@ -203,7 +203,7 @@ async function recognizeDigitPixel(
     );
     if (thinSig !== null) {
       const thinInk: number = countInk(thinSig);
-      const thinDigit: number = recognizeDigit(thinSig, thinInk);
+      const thinDigit: number = await recognizeDigit(thinSig, thinInk);
       if (thinDigit > 0) {
         const thinD: string = getLastPixelDiag();
         setLastRecognizeDiag(`retryThin: digit=${thinDigit} ink=${thinInk} diag=[${thinD}] rawInk=${ri2.toFixed(4)}`);

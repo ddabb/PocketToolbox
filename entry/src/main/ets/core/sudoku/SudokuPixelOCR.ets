@@ -172,7 +172,26 @@ export async function analyzePixelGridFromBuffer(pixels: Uint8Array, width: numb
   }
 
   const corners: BoardCorners | null = detectBoardCorners(gray, width, height, isDark, bg);
+  let needsWarp: boolean = false;
   if (corners !== null) {
+    const cTopLen: number = Math.hypot(corners.topRightX - corners.topLeftX, corners.topRightY - corners.topLeftY);
+    const cBotLen: number = Math.hypot(corners.bottomRightX - corners.bottomLeftX, corners.bottomRightY - corners.bottomLeftY);
+    const cLeftLen: number = Math.hypot(corners.bottomLeftX - corners.topLeftX, corners.bottomLeftY - corners.topLeftY);
+    const cRightLen: number = Math.hypot(corners.bottomRightX - corners.topRightX, corners.bottomRightY - corners.topRightY);
+    const hRatio: number = cTopLen / (cBotLen + 0.01);
+    const vRatio: number = cLeftLen / (cRightLen + 0.01);
+    const maxSkew: number = Math.max(Math.abs(hRatio - 1), Math.abs(vRatio - 1));
+    const tlDot: number = Math.abs(
+      (corners.topRightX - corners.topLeftX) * (corners.bottomLeftX - corners.topLeftX) +
+      (corners.topRightY - corners.topLeftY) * (corners.bottomLeftY - corners.topLeftY)
+    );
+    const tlDiag: number = cTopLen * cLeftLen + 0.01;
+    const angleDev: number = tlDot / tlDiag;
+    if (maxSkew > 0.05 || angleDev > 0.05) {
+      needsWarp = true;
+    }
+  }
+  if (corners !== null && needsWarp) {
     const boardSize: number = Math.max(bbox.right - bbox.left, bbox.bottom - bbox.top);
     const outSize: number = Math.round(boardSize * WARP_SIZE_MULTIPLIER);
     const warpedGray: Float32Array = warpPerspectiveGray(gray, width, height, corners, outSize, bg);
@@ -203,7 +222,7 @@ export async function analyzePixelGridFromBuffer(pixels: Uint8Array, width: numb
         );
         let digit: number = 0;
         if (sig !== null) {
-          digit = recognizeDigit(sig, countInk(sig));
+          digit = await recognizeDigit(sig, countInk(sig));
         }
         if (digit === 0) {
           const lowSig: number[] | null = await cellSigFromGrayLowThresh(
@@ -213,7 +232,7 @@ export async function analyzePixelGridFromBuffer(pixels: Uint8Array, width: numb
           );
           if (lowSig !== null) {
             sig = lowSig;
-            digit = recognizeDigit(lowSig, countInk(lowSig));
+            digit = await recognizeDigit(lowSig, countInk(lowSig));
           }
         }
         if (digit === 0 && getLastRawInkRatio() < MIN_CELL_INK_RATIO * 0.5) {
@@ -224,7 +243,7 @@ export async function analyzePixelGridFromBuffer(pixels: Uint8Array, width: numb
           );
           if (thinSig !== null) {
             sig = thinSig;
-            digit = recognizeDigit(thinSig, countInk(thinSig));
+            digit = await recognizeDigit(thinSig, countInk(thinSig));
           }
         }
         if (sig !== null) {
@@ -259,7 +278,7 @@ export async function analyzePixelGridFromBuffer(pixels: Uint8Array, width: numb
           );
           let digit: number = 0;
           if (sig !== null) {
-            digit = recognizeDigit(sig, countInk(sig));
+            digit = await recognizeDigit(sig, countInk(sig));
           }
           if (digit === 0) {
             const lowSig: number[] | null = await cellSigFromGrayLowThresh(
@@ -267,7 +286,7 @@ export async function analyzePixelGridFromBuffer(pixels: Uint8Array, width: numb
             );
             if (lowSig !== null) {
               sig = lowSig;
-              digit = recognizeDigit(lowSig, countInk(lowSig));
+              digit = await recognizeDigit(lowSig, countInk(lowSig));
             }
           }
           if (digit === 0 && getLastRawInkRatio() < MIN_CELL_INK_RATIO * 0.5) {
@@ -276,7 +295,7 @@ export async function analyzePixelGridFromBuffer(pixels: Uint8Array, width: numb
             );
             if (thinSig !== null) {
               sig = thinSig;
-              digit = recognizeDigit(thinSig, countInk(thinSig));
+              digit = await recognizeDigit(thinSig, countInk(thinSig));
             }
           }
           if (sig !== null) {
@@ -291,7 +310,7 @@ export async function analyzePixelGridFromBuffer(pixels: Uint8Array, width: numb
                 gray, width, fallbackLeft, fallbackTop, fallbackW, fallbackH, bbox.isDark, bg, r, c
               );
               if (fallbackSig !== null) {
-                const fbDigit: number = recognizeDigit(fallbackSig, countInk(fallbackSig));
+                const fbDigit: number = await recognizeDigit(fallbackSig, countInk(fallbackSig));
                 g_lastPixelConfidence[r * 9 + c] = getLastConfidence();
                 if (fbDigit > 0) {
                   grid[r * 9 + c] = fbDigit;
@@ -321,7 +340,7 @@ export async function analyzePixelGridFromBuffer(pixels: Uint8Array, width: numb
           );
           let digit: number = 0;
           if (sig !== null) {
-            digit = recognizeDigit(sig, countInk(sig));
+            digit = await recognizeDigit(sig, countInk(sig));
           }
           if (digit === 0) {
             const lowSig: number[] | null = await cellSigFromGrayLowThresh(
@@ -331,7 +350,7 @@ export async function analyzePixelGridFromBuffer(pixels: Uint8Array, width: numb
             );
             if (lowSig !== null) {
               sig = lowSig;
-              digit = recognizeDigit(lowSig, countInk(lowSig));
+              digit = await recognizeDigit(lowSig, countInk(lowSig));
             }
           }
           if (digit === 0 && getLastRawInkRatio() < MIN_CELL_INK_RATIO * 0.5) {
@@ -342,7 +361,7 @@ export async function analyzePixelGridFromBuffer(pixels: Uint8Array, width: numb
             );
             if (thinSig !== null) {
               sig = thinSig;
-              digit = recognizeDigit(thinSig, countInk(thinSig));
+              digit = await recognizeDigit(thinSig, countInk(thinSig));
             }
           }
           if (sig !== null) {
@@ -437,7 +456,28 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
   await yieldThread();
 
   const corners: BoardCorners | null = detectBoardCorners(gray, width, height, isDark, bg);
+  let needsWarp: boolean = false;
   if (corners !== null) {
+    const cTopLen: number = Math.hypot(corners.topRightX - corners.topLeftX, corners.topRightY - corners.topLeftY);
+    const cBotLen: number = Math.hypot(corners.bottomRightX - corners.bottomLeftX, corners.bottomRightY - corners.bottomLeftY);
+    const cLeftLen: number = Math.hypot(corners.bottomLeftX - corners.topLeftX, corners.bottomLeftY - corners.topLeftY);
+    const cRightLen: number = Math.hypot(corners.bottomRightX - corners.topRightX, corners.bottomRightY - corners.topRightY);
+    const hRatio: number = cTopLen / (cBotLen + 0.01);
+    const vRatio: number = cLeftLen / (cRightLen + 0.01);
+    const maxSkew: number = Math.max(Math.abs(hRatio - 1), Math.abs(vRatio - 1));
+    const tlDot: number = Math.abs(
+      (corners.topRightX - corners.topLeftX) * (corners.bottomLeftX - corners.topLeftX) +
+      (corners.topRightY - corners.topLeftY) * (corners.bottomLeftY - corners.topLeftY)
+    );
+    const tlDiag: number = cTopLen * cLeftLen + 0.01;
+    const angleDev: number = tlDot / tlDiag;
+    if (maxSkew > 0.05 || angleDev > 0.05) {
+      needsWarp = true;
+    }
+    hilog.info(DOMAIN, TAG, '【像素透视/网格】角点检测OK hRatio=%{public}.3f vRatio=%{public}.3f angleDev=%{public}.3f needsWarp=%{public}d',
+      hRatio, vRatio, angleDev, needsWarp ? 1 : 0);
+  }
+  if (corners !== null && needsWarp) {
     const boardSize: number = Math.max(bbox.right - bbox.left, bbox.bottom - bbox.top);
     const outSize: number = Math.round(boardSize * WARP_SIZE_MULTIPLIER);
     const warpedGray: Float32Array = warpPerspectiveGray(gray, width, height, corners, outSize, bg);
@@ -492,7 +532,7 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
         );
         let digit: number = 0;
         if (sig !== null) {
-          digit = recognizeDigit(sig, countInk(sig));
+          digit = await recognizeDigit(sig, countInk(sig));
         }
         await yieldThread();
         if (digit === 0) {
@@ -503,7 +543,7 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
           );
           if (lowSig !== null) {
             sig = lowSig;
-            digit = recognizeDigit(lowSig, countInk(lowSig));
+            digit = await recognizeDigit(lowSig, countInk(lowSig));
           }
           await yieldThread();
         }
@@ -515,14 +555,41 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
           );
           if (thinSig !== null) {
             sig = thinSig;
-            digit = recognizeDigit(thinSig, countInk(thinSig));
+            digit = await recognizeDigit(thinSig, countInk(thinSig));
           }
           await yieldThread();
         }
         if (sig !== null) {
           sigCount++;
-          grid[r * 9 + c] = digit;
           g_lastPixelConfidence[r * 9 + c] = getLastConfidence();
+          if (digit > 0 && warpGridLines !== null &&
+            !validateCellCentering(warpedGray, outSize, outSize, cellL, cellT, cellW, cellH, warpIsDark, warpBg)) {
+            const fbL: number = c * warpCellW;
+            const fbT: number = r * warpCellH;
+            const fbSig: number[] | null = await cellSigFromGray(
+              warpedGray, outSize, fbL, fbT, warpCellW, warpCellH, warpIsDark, warpBg, r, c
+            );
+            if (fbSig !== null) {
+              const fbDigit: number = await recognizeDigit(fbSig, countInk(fbSig));
+              g_lastPixelConfidence[r * 9 + c] = getLastConfidence();
+              if (fbDigit > 0) {
+                grid[r * 9 + c] = fbDigit;
+                digitCount++;
+                const coordInfo: CellCoordInfo = {
+                  row: r, col: c, digit: fbDigit,
+                  left: Math.round(fbL), top: Math.round(fbT),
+                  w: Math.round(warpCellW), h: Math.round(warpCellH),
+                  conf: getLastConfidence(), rawInk: getLastRawInkRatio(),
+                  imgW: outSize, imgH: outSize,
+                  source: 'warp+grid_fallback'
+                };
+                g_lastCellCoords.push(coordInfo);
+                await yieldThread();
+                continue;
+              }
+            }
+          }
+          grid[r * 9 + c] = digit;
           if (digit > 0) { digitCount++; }
           const coordInfo: CellCoordInfo = {
             row: r, col: c, digit: digit,
@@ -563,7 +630,7 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
           );
           let digit: number = 0;
           if (sig !== null) {
-            digit = recognizeDigit(sig, countInk(sig));
+            digit = await recognizeDigit(sig, countInk(sig));
           }
           await yieldThread();
           if (digit === 0) {
@@ -572,7 +639,7 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
             );
             if (lowSig !== null) {
               sig = lowSig;
-              digit = recognizeDigit(lowSig, countInk(lowSig));
+              digit = await recognizeDigit(lowSig, countInk(lowSig));
             }
             await yieldThread();
           }
@@ -582,7 +649,7 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
             );
             if (thinSig !== null) {
               sig = thinSig;
-              digit = recognizeDigit(thinSig, countInk(thinSig));
+              digit = await recognizeDigit(thinSig, countInk(thinSig));
             }
             await yieldThread();
           }
@@ -598,7 +665,7 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
                 gray, width, fallbackLeft, fallbackTop, fallbackW, fallbackH, bbox.isDark, bg, r, c
               );
               if (fallbackSig !== null) {
-                const fbDigit: number = recognizeDigit(fallbackSig, countInk(fallbackSig));
+                const fbDigit: number = await recognizeDigit(fallbackSig, countInk(fallbackSig));
                 g_lastPixelConfidence[r * 9 + c] = getLastConfidence();
                 if (fbDigit > 0) {
                   grid[r * 9 + c] = fbDigit;
@@ -648,7 +715,7 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
           );
           let digit: number = 0;
           if (sig !== null) {
-            digit = recognizeDigit(sig, countInk(sig));
+            digit = await recognizeDigit(sig, countInk(sig));
           }
           await yieldThread();
           if (digit === 0) {
@@ -659,7 +726,7 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
             );
             if (lowSig !== null) {
               sig = lowSig;
-              digit = recognizeDigit(lowSig, countInk(lowSig));
+              digit = await recognizeDigit(lowSig, countInk(lowSig));
             }
             await yieldThread();
           }
@@ -671,7 +738,7 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
             );
             if (thinSig !== null) {
               sig = thinSig;
-              digit = recognizeDigit(thinSig, countInk(thinSig));
+              digit = await recognizeDigit(thinSig, countInk(thinSig));
             }
             await yieldThread();
           }

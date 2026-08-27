@@ -45,7 +45,7 @@ export const WARP_BG_SAMPLE_DIV: number = 20000;
 export const PIXEL_MAX_DIM: number = 1200;
 
 export function yieldThread(): Promise<void> {
-  return new Promise<void>((resolve: Function) => { setTimeout(() => { resolve(); }, 0); });
+  return new Promise<void>((resolve: Function) => { setTimeout(() => { resolve(); }, 1); });
 }
 
 export function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
