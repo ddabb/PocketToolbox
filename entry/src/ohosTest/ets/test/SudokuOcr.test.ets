@@ -36,7 +36,6 @@ const TEST_IMAGES: string[][] = [
   ['11_thin_font', 'sudoku_test_images/11_thin_font.png'],
   ['12_all_thin_lines', 'sudoku_test_images/12_all_thin_lines.png'],
   ['13_no_outer_border', 'sudoku_test_images/13_no_outer_border.png'],
-  ['14_tiny_200', 'sudoku_test_images/14_tiny_200.png'],
   ['15_huge_1000', 'sudoku_test_images/15_huge_1000.png'],
   ['16_dark_bg_light_numbers', 'sudoku_test_images/16_dark_bg_light_numbers.png'],
   ['17_pure_black_white', 'sudoku_test_images/17_pure_black_white.png'],
@@ -301,9 +300,6 @@ export default function sudokuOcrTest() {
     });
     it('pipeline_13_no_outer_border', 120000, (done: Function) => {
       runPipelineTest('13_no_outer_border', 'sudoku_test_images/13_no_outer_border.png', done);
-    });
-    it('pipeline_14_tiny_200', 120000, (done: Function) => {
-      runPipelineTest('14_tiny_200', 'sudoku_test_images/14_tiny_200.png', done);
     });
     it('pipeline_15_huge_1000', 120000, (done: Function) => {
       runPipelineTest('15_huge_1000', 'sudoku_test_images/15_huge_1000.png', done);

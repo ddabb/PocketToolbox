@@ -171,6 +171,7 @@ export async function analyzePixelGridFromBuffer(pixels: Uint8Array, width: numb
     hilog.warn(DOMAIN, TAG, '像素分析: 警告 - findBoardBBox返回全图退化bbox，棋盘定位可能失败');
   }
 
+  // [同步路径] Rectangleness guard: skip warp for rectangular boards
   const corners: BoardCorners | null = detectBoardCorners(gray, width, height, isDark, bg);
   let needsWarp: boolean = false;
   if (corners !== null) {
@@ -235,7 +236,11 @@ export async function analyzePixelGridFromBuffer(pixels: Uint8Array, width: numb
             digit = await recognizeDigit(lowSig, countInk(lowSig));
           }
         }
-        if (digit === 0 && getLastRawInkRatio() < MIN_CELL_INK_RATIO * 0.5) {
+        // Thin retry gate (log117): originally * 0.5, widened to * 2 so that
+        // cells with ink ratio up to 0.036 (2×MIN_CELL_INK_RATIO) get a
+        // second chance via the thin-path retry. This catches digit-1 cells
+        // that barely pass the rawInk gate but still produce a poor signature.
+        if (digit === 0 && getLastRawInkRatio() < MIN_CELL_INK_RATIO * 2) {
           const thinSig: number[] | null = await cellSigFromGrayThin(
             warpedGray, outSize,
             c * warpCellW, r * warpCellH,
@@ -289,7 +294,11 @@ export async function analyzePixelGridFromBuffer(pixels: Uint8Array, width: numb
               digit = await recognizeDigit(lowSig, countInk(lowSig));
             }
           }
-          if (digit === 0 && getLastRawInkRatio() < MIN_CELL_INK_RATIO * 0.5) {
+          // Thin retry gate (log117): originally * 0.5, widened to * 2 so that
+        // cells with ink ratio up to 0.036 (2×MIN_CELL_INK_RATIO) get a
+        // second chance via the thin-path retry. This catches digit-1 cells
+        // that barely pass the rawInk gate but still produce a poor signature.
+        if (digit === 0 && getLastRawInkRatio() < MIN_CELL_INK_RATIO * 2) {
             const thinSig: number[] | null = await cellSigFromGrayThin(
               gray, width, cLeft, cTop, cW, cH, bbox.isDark, bg, r, c
             );
@@ -353,7 +362,11 @@ export async function analyzePixelGridFromBuffer(pixels: Uint8Array, width: numb
               digit = await recognizeDigit(lowSig, countInk(lowSig));
             }
           }
-          if (digit === 0 && getLastRawInkRatio() < MIN_CELL_INK_RATIO * 0.5) {
+          // Thin retry gate (log117): originally * 0.5, widened to * 2 so that
+        // cells with ink ratio up to 0.036 (2×MIN_CELL_INK_RATIO) get a
+        // second chance via the thin-path retry. This catches digit-1 cells
+        // that barely pass the rawInk gate but still produce a poor signature.
+        if (digit === 0 && getLastRawInkRatio() < MIN_CELL_INK_RATIO * 2) {
             const thinSig: number[] | null = await cellSigFromGrayThin(
               gray, width,
               bbox.left + c * cellW, bbox.top + r * cellH,
@@ -455,6 +468,7 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
   }
   await yieldThread();
 
+  // [异步路径] Rectangleness guard: skip warp for rectangular boards
   const corners: BoardCorners | null = detectBoardCorners(gray, width, height, isDark, bg);
   let needsWarp: boolean = false;
   if (corners !== null) {
@@ -547,7 +561,11 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
           }
           await yieldThread();
         }
-        if (digit === 0 && getLastRawInkRatio() < MIN_CELL_INK_RATIO * 0.5) {
+        // Thin retry gate (log117): originally * 0.5, widened to * 2 so that
+        // cells with ink ratio up to 0.036 (2×MIN_CELL_INK_RATIO) get a
+        // second chance via the thin-path retry. This catches digit-1 cells
+        // that barely pass the rawInk gate but still produce a poor signature.
+        if (digit === 0 && getLastRawInkRatio() < MIN_CELL_INK_RATIO * 2) {
           const thinSig: number[] | null = await cellSigFromGrayThin(
             warpedGray, outSize,
             cellL, cellT,
@@ -643,7 +661,11 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
             }
             await yieldThread();
           }
-          if (digit === 0 && getLastRawInkRatio() < MIN_CELL_INK_RATIO * 0.5) {
+          // Thin retry gate (log117): originally * 0.5, widened to * 2 so that
+        // cells with ink ratio up to 0.036 (2×MIN_CELL_INK_RATIO) get a
+        // second chance via the thin-path retry. This catches digit-1 cells
+        // that barely pass the rawInk gate but still produce a poor signature.
+        if (digit === 0 && getLastRawInkRatio() < MIN_CELL_INK_RATIO * 2) {
             const thinSig: number[] | null = await cellSigFromGrayThin(
               gray, width, cLeft, cTop, cW, cH, bbox.isDark, bg, r, c
             );
@@ -730,7 +752,11 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
             }
             await yieldThread();
           }
-          if (digit === 0 && getLastRawInkRatio() < MIN_CELL_INK_RATIO * 0.5) {
+          // Thin retry gate (log117): originally * 0.5, widened to * 2 so that
+        // cells with ink ratio up to 0.036 (2×MIN_CELL_INK_RATIO) get a
+        // second chance via the thin-path retry. This catches digit-1 cells
+        // that barely pass the rawInk gate but still produce a poor signature.
+        if (digit === 0 && getLastRawInkRatio() < MIN_CELL_INK_RATIO * 2) {
             const thinSig: number[] | null = await cellSigFromGrayThin(
               gray, width,
               bbox.left + c * cellW, bbox.top + r * cellH,
