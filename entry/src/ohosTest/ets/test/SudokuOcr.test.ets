@@ -4,6 +4,7 @@ import { parseOCRToGrid, gridToString, solveSudoku, validateFullGrid, SolveResul
 import { initDigitTemplates } from '../../../main/ets/core/sudoku/SudokuPixel';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { resourceManager } from '@kit.LocalizationKit';
+import { abilityDelegatorRegistry } from '@kit.TestKit';
 
 const DOMAIN: number = 0xA03D00;
 const TAG: string = 'OCR_TEST';
@@ -185,7 +186,8 @@ function loadRawFileBuf(ctx: Context, rawfile: string): ArrayBuffer {
 }
 
 function runPipelineTest(name: string, rawfile: string, done: Function): void {
-  const ctx: Context = getContext();
+  const delegator: abilityDelegatorRegistry.AbilityDelegator = abilityDelegatorRegistry.getAbilityDelegator();
+  const ctx: Context = delegator.getAppContext();
   let buf: ArrayBuffer;
   try {
     buf = loadRawFileBuf(ctx, rawfile);
@@ -256,13 +258,14 @@ function runPipelineTest(name: string, rawfile: string, done: Function): void {
 export default function sudokuOcrTest() {
   describe('SudokuOCR_pipeline_full', () => {
     beforeAll(() => {
-      const ctx: Context = getContext();
+      const delegator: abilityDelegatorRegistry.AbilityDelegator = abilityDelegatorRegistry.getAbilityDelegator();
+      const ctx: Context = delegator.getAppContext();
       const ok: boolean = initDigitTemplates(ctx);
       console.info(`[OCR_TEST] initDigitTemplates: ${ok}`);
       hilog.info(DOMAIN, TAG, `initDigitTemplates: ${ok}`);
     });
 
-    it('pipeline_01_standard_544', 120000, (done: Function) => {
+    it('pipeline_01_standard_544', 120000,(done: Function) => {
       runPipelineTest('01_standard_544', 'sudoku_test_images/01_standard_544.png', done);
     });
     it('pipeline_02_small_300', 120000, (done: Function) => {

@@ -1,0 +1,127 @@
+Device info:emulator
+Build info:emulator 5.1.0.235(SP3DEVC00E235R4P11)
+Fingerprint:0eb8bf9ed06c2f94a063aca9e2b424d6504c13201e1e25439bcb6bb12cb74a06
+Timestamp:2026-09-02 19:14:51.548
+Module name:com.ddabb.toolbox
+Version:1.0.4
+VersionCode:1000004
+PreInstalled:No
+Foreground:No
+Pid:7594
+Uid:20020050
+Reason:ReferenceError
+Error name:ReferenceError
+Error message:Cannot find module '&entry/src/ohosTest/ets/testrunner/SudokuOCR_pipeline_full&' , which is application Entry Point
+Stacktrace:
+#01 pc 000000000082c907 /system/lib64/platformsdk/libark_jsruntime.so(0d7fa6e0b0f431940392eef2bb4725b8)
+#02 pc 0000000000390505 /system/lib64/platformsdk/libark_jsruntime.so(0d7fa6e0b0f431940392eef2bb4725b8)
+#03 pc 000000000020777e /system/lib64/platformsdk/libark_jsruntime.so(0d7fa6e0b0f431940392eef2bb4725b8)
+#04 pc 0000000000206fc1 /system/lib64/platformsdk/libark_jsruntime.so(0d7fa6e0b0f431940392eef2bb4725b8)
+#05 pc 000000000029f8f1 /system/lib64/platformsdk/libark_jsruntime.so(0d7fa6e0b0f431940392eef2bb4725b8)
+#06 pc 00000000006debf9 /system/lib64/platformsdk/libark_jsruntime.so(0d7fa6e0b0f431940392eef2bb4725b8)
+#07 pc 00000000006db37e /system/lib64/platformsdk/libark_jsruntime.so(panda::ecmascript::ObjectFactory::GetJSError(panda::ecmascript::base::ErrorType const&, char const*, panda::ecmascript::StackCheck)+110)(0d7fa6e0b0f431940392eef2bb4725b8)
+#08 pc 00000000004b47f7 /system/lib64/platformsdk/libark_jsruntime.so(0d7fa6e0b0f431940392eef2bb4725b8)
+#09 pc 00000000006c6ba9 /system/lib64/platformsdk/libark_jsruntime.so(panda::JSNApi::ExecuteModuleBufferSecure(panda::ecmascript::EcmaVM*, unsigned char*, int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, bool)+1049)(0d7fa6e0b0f431940392eef2bb4725b8)
+#10 pc 0000000000058568 /system/lib64/platformsdk/libace_napi.z.so(ArkNativeEngine::RunScriptBuffer(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned char*, unsigned long, bool)+296)(3c2b7743b5f7ebc6e2c047ecb836674b)
+#11 pc 000000000000a8e7 /system/lib64/platformsdk/libjs_environment.z.so(OHOS::JsEnv::JsEnvironment::LoadScript(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned char*, unsigned long, bool)+71)(0fa113eff8d9e04af89c3536c74b3bd8)
+#12 pc 000000000005cee3 /system/lib64/platformsdk/libruntime.z.so(OHOS::AbilityRuntime::JsRuntime::LoadScript(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned char*, unsigned long, bool, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)+499)(588cbe241910570b705bc7c5a66415a0)
+#13 pc 000000000006252f /system/lib64/platformsdk/libruntime.z.so(588cbe241910570b705bc7c5a66415a0)
+#14 pc 0000000000060ff5 /system/lib64/platformsdk/libruntime.z.so(OHOS::AbilityRuntime::JsRuntime::RunScript(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, bool, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)+1637)(588cbe241910570b705bc7c5a66415a0)
+#15 pc 000000000006172f /system/lib64/platformsdk/libruntime.z.so(OHOS::AbilityRuntime::JsRuntime::LoadJsModule(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)+223)(588cbe241910570b705bc7c5a66415a0)
+
+HiLog:
+09-02 19:14:51.405  7594  7594 I C02c11/APPSPAWN: [appspawn_server.c:74]AppSpawnChild id 21 flags: 0xc
+09-02 19:14:51.405  7594  7594 I C02c02/PARAM: [param_request.c:326]ResetParamSecurityLabel Fd:22
+09-02 19:14:51.405  7594  7594 E C02c11/APPSPAWN: [asan_detector.c:105]Not wrap com.ddabb.toolbox.
+09-02 19:14:51.406  7594  7594 I C02c11/APPSPAWN: [sandbox_utils.cpp:371]errno is: 2, bind mount /system/data to /mnt/sandbox/100/com.ddabb.toolbox/system/data
+09-02 19:14:51.406  7594  7594 I C02c11/APPSPAWN: [sandbox_utils.cpp:296]file /mnt/sandbox/100/com.ddabb.toolbox/data/service/el1/network/hosts_user/hosts already exist
+09-02 19:14:51.406  7594  7594 I C02c11/APPSPAWN: [sandbox_utils.cpp:371]errno is: 2, bind mount /system/etc/hosts to /mnt/sandbox/100/com.ddabb.toolbox/data/service/el1/network/hosts_user/hosts
+09-02 19:14:51.406  7594  7594 I C02c11/APPSPAWN: [sandbox_utils.cpp:371]errno is: 2, bind mount /vendor/lib to /mnt/sandbox/100/com.ddabb.toolbox/vendor/lib
+09-02 19:14:51.406  7594  7594 I C02c11/APPSPAWN: [sandbox_utils.cpp:371]errno is: 2, bind mount /vendor/etc/hiai to /mnt/sandbox/100/com.ddabb.toolbox/vendor/etc/hiai
+09-02 19:14:51.406  7594  7594 I C02c11/APPSPAWN: [sandbox_utils.cpp:371]errno is: 2, bind mount /data/data/hiai to /mnt/sandbox/100/com.ddabb.toolbox/data/data/hiai
+09-02 19:14:51.407  7594  7594 I C02c11/APPSPAWN: [sandbox_utils.cpp:371]errno is: 2, bind mount /data/app/el1/public/aot_compiler/ark_cache/com.ddabb.toolbox to /mnt/sandbox/100/com.ddabb.toolbox/data/storage/ark-cache
+09-02 19:14:51.407  7594  7594 E C02c11/APPSPAWN: [sandbox_utils.cpp:287]check dir /data/app/el1/public/aot_compiler/ark_cache/com.ddabb.toolbox failed, strerror: No such file or directory
+09-02 19:14:51.407  7594  7594 I C02c11/APPSPAWN: [sandbox_utils.cpp:371]errno is: 2, bind mount /data/app/el1/public/shader_cache/cloud/com.ddabb.toolbox to /mnt/sandbox/100/com.ddabb.toolbox/data/storage/shader_cache/cloud
+09-02 19:14:51.407  7594  7594 E C02c11/APPSPAWN: [sandbox_utils.cpp:287]check dir /data/app/el1/public/shader_cache/cloud/com.ddabb.toolbox failed, strerror: No such file or directory
+09-02 19:14:51.407  7594  7594 I C02c11/APPSPAWN: [sandbox_utils.cpp:371]errno is: 2, bind mount /data/service/el1/public/themes/100/a/app to /mnt/sandbox/100/com.ddabb.toolbox/data/themes/a/app
+09-02 19:14:51.407  7594  7594 I C02c11/APPSPAWN: [sandbox_utils.cpp:371]errno is: 2, bind mount /data/service/el1/public/themes/100/b/app to /mnt/sandbox/100/com.ddabb.toolbox/data/themes/b/app
+09-02 19:14:51.407  7594  7594 I C02c11/APPSPAWN: [sandbox_utils.cpp:381]errno is: 13, private mount to /mnt/sandbox/100/com.ddabb.toolbox/data/service/el0/public/for-all-app '524288' failed
+09-02 19:14:51.408  7594  7594 E C02c11/APPSPAWN: [sandbox_utils.cpp:366]mount /data/service/el1/100/utdtypes/utd time 1000 us
+09-02 19:14:51.408  7594  7594 I C02c11/APPSPAWN: [sandbox_utils.cpp:371]errno is: 2, bind mount /chip_prod/etc/passthrough to /mnt/sandbox/100/com.ddabb.toolbox/chip_prod/etc/passthrough
+09-02 19:14:51.408  7594  7594 I C02c11/APPSPAWN: [sandbox_utils.cpp:371]errno is: 2, bind mount /vendor/etc/vulkan to /mnt/sandbox/100/com.ddabb.toolbox/vendor/etc/vulkan
+09-02 19:14:51.408  7594  7594 I C02c11/APPSPAWN: [sandbox_utils.cpp:371]errno is: 2, bind mount /mnt/hmdfs/100/cloud/data/com.ddabb.toolbox to /mnt/sandbox/100/com.ddabb.toolbox/data/storage/el2/cloud
+09-02 19:14:51.408  7594  7594 I C02c11/APPSPAWN: [sandbox_utils.cpp:371]errno is: 2, bind mount /vendor/etc/silk to /mnt/sandbox/100/com.ddabb.toolbox/vendor/etc/silk
+09-02 19:14:51.408  7594  7594 I C02c11/APPSPAWN: [sandbox_utils.cpp:371]errno is: 2, bind mount /system/asan/lib64 to /mnt/sandbox/100/com.ddabb.toolbox/system/asan/lib64
+09-02 19:14:51.408  7594  7594 I C02c11/APPSPAWN: [sandbox_utils.cpp:371]errno is: 2, bind mount /vendor/asan/lib64 to /mnt/sandbox/100/com.ddabb.toolbox/vendor/asan/lib64
+09-02 19:14:51.408  7594  7594 I C02c11/APPSPAWN: [sandbox_utils.cpp:371]errno is: 2, bind mount /chip_prod/lib64/passthrough to /mnt/sandbox/100/com.ddabb.toolbox/chip_prod/lib64/passthrough
+09-02 19:14:51.408  7594  7594 I C02c11/APPSPAWN: [sandbox_utils.cpp:371]errno is: 2, bind mount /system/app/ohos.global.systemres to /mnt/sandbox/100/com.ddabb.toolbox/data/global/systemResources
+09-02 19:14:51.408  7594  7594 I C02c11/APPSPAWN: [sandbox_utils.cpp:371]errno is: 2, bind mount /data/preload/app to /mnt/sandbox/100/com.ddabb.toolbox/data/preload/app
+09-02 19:14:51.408  7594  7594 I C02c11/APPSPAWN: [sandbox_utils.cpp:1181]uname sysname is linux
+09-02 19:14:51.412  7594  7594 E C02c11/APPSPAWN: [sandbox_utils.cpp:366]mount /mnt/sandbox/100/com.ddabb.toolbox/mnt/storage/Users time 5000 us
+09-02 19:14:51.416  7594  7594 E C02c11/APPSPAWN: [sandbox_utils.cpp:366]mount /mnt/sandbox/100/com.ddabb.toolbox/mnt/storage/external time 3000 us
+09-02 19:14:51.420  7594  7594 E C02c11/APPSPAWN: [sandbox_utils.cpp:366]mount /mnt/sandbox/100/com.ddabb.toolbox/mnt/storage/hmdfs time 4000 us
+09-02 19:14:51.421  7594  7594 E C02c11/APPSPAWN: [sandbox_dec.c:178]open dec file fail.
+09-02 19:14:51.421  7594  7594 E C02c11/APPSPAWN: [appspawn_silk.c:118]ConfigItems is NULL
+09-02 19:14:51.423  7594  7594 I C05a05/SecCompEnhanceClient: [RegisterCheckCallback]Register secComp: sessionId=1030886798, seqNum=******196.
+09-02 19:14:51.423  7594 11651 I C057c1/IPCWorkThread: ThreadHandler 119: proto:0 policy:1 name:OS_IPC_0_11651 invoker:13757728
+09-02 19:14:51.424  7594 11652 I C057c1/IPCWorkThread: ThreadHandler 119: proto:0 policy:0 name:OS_IPC_1_11652 invoker:13758288
+09-02 19:14:51.425  7594  7594 I C02c11/APPSPAWN: [appspawn_server.c:38]NotifyResToParent: 0
+09-02 19:14:51.425  7594  7594 I C02d0b/HICHECKER: hichecker param is empty.
+09-02 19:14:51.425  7594  7594 I C01317/AppKit: [main_thread.cpp:2889]App main thread create, pid:7594
+09-02 19:14:51.425  7594  7594 I C01201/EventHandler: Create eventHandler 1_712123741709
+09-02 19:14:51.427  7594  7594 I C01317/AppKit: [main_thread.cpp:398]attach to appMGR
+09-02 19:14:51.431  7594  7594 I C03900/ACE_UIContent: [69]AceForwardCompatibility [com.ddabb.toolbox] force:1 newpipe:1
+09-02 19:14:51.432  7594  7594 I C03f00/ArkCompiler: [ecmascript] Set large heap: 0
+09-02 19:14:51.432  7594  7594 I C03f00/ArkCompiler: [ecmascript] asmint: 1, aot: 0, jit: 1, baseline jit: 0, bundle name: com.ddabb.toolbox
+09-02 19:14:51.439  7594  7594 I C03f00/ArkCompiler: [ecmascript] multi-thread check enabled: 0
+09-02 19:14:51.439  7594  7594 I C03f00/ArkCompiler: [pgo] reset pgo profiler, pgo profiler is disabled
+09-02 19:14:51.440  7594  7594 E C01707/CONCUR: [Interface] task 11656 apply qos failed, errno = 4
+09-02 19:14:51.440  7594  7594 I C03301/LIBUV: init:2163462880
+09-02 19:14:51.440  7594  7594 I C03301/LIBUV: init:2163462880, backend_fd:4
+09-02 19:14:51.440  7594  7594 I C03301/LIBUV: open:2163462880, pipefd[0]:29
+09-02 19:14:51.441  7594  7594 I C03f00/ArkCompiler: [ecmascript] can not find aot file
+09-02 19:14:51.442  7594  7594 I C01321/JsRuntime: [js_runtime_lite.cpp:456]moduleName: entry parse json success
+09-02 19:14:51.444  7594  7594 I C01321/JsRuntime: [js_runtime_lite.cpp:456]moduleName: entry_test parse json success
+09-02 19:14:51.508  7594 11669 W C01719/ffrt: 2:FFRTQosApplyForOther:249 tid 11669, Interrupted system call, ret:-1, eno:4
+09-02 19:14:51.508  7594 11670 W C01719/ffrt: 3:operator():111 [1842072352] set priority warn ret[1] eno[0]
+09-02 19:14:51.510  7594  7594 E C01321/JsRuntime: [hdc_register.cpp:58]null registerLocalHandler_
+09-02 19:14:51.512  7594  7594 I C03f00/ArkCompiler: StartServer, componentName = <private>
+09-02 19:14:51.512  7594  7594 W C01321/JsRuntime: [connect_server_manager.cpp:163]not Connected
+09-02 19:14:51.512  7594  7594 I C03f00/ArkCompiler: [ecmascript] JSNApi::NotifyDebugMode, tid = 7594, debugApp = 1, isDebugMode = 0, instanceId = 0
+09-02 19:14:51.513  7594 11671 I C02c03/PARAM_WATCHER: [watcher_manager_kits.cpp:171]Add watcher keyPrefix persist.hdc.jdwp remoteWatcherId 36 success
+09-02 19:14:51.518  7594  7594 I C03f00/ArkCompiler: [compiler] __jit_debug_register_code() is called.
+09-02 19:14:51.518  7594  7594 I C03f00/ArkCompiler: [compiler] success to register stub.an to debugger.
+09-02 19:14:51.527  7594 11673 W C01719/ffrt: 4:FFRTQosApplyForOther:249 tid 11673, Interrupted system call, ret:-1, eno:4
+09-02 19:14:51.527  7594 11673 I C01317/AppKit: [dump_runtime_helper.cpp:352]File existed. dir: /data/storage/el2/base/cache/rawheap
+09-02 19:14:51.527  7594 11673 I C01317/AppKit: [dump_runtime_helper.cpp:332]success to AclSetAccess, path: /data/storage/el2/base/cache/rawheap
+09-02 19:14:51.534  7594  7594 I C03f00/ArkCompiler: [ecmascript] can not find aot file
+09-02 19:14:51.534  7594  7594 I C03f00/ArkCompiler: [ecmascript] start to execute module buffer with secure memory: /data/storage/el1/bundle/entry_test/ets/testrunner/SudokuOCR_pipeline_full.abc
+09-02 19:14:51.535  7594 11658 W C03f00/ArkCompiler: [ecmascript] set label failed! level: s1, file: /data/storage/ark-profile/rt_entry_test.ap
+09-02 19:14:51.535  7594 11658 I C03f00/ArkCompiler: [pgo] will save profiler to file /data/storage/ark-profile/rt_entry_test.ap
+09-02 19:14:51.538  7594  7594 E C03f00/ArkCompiler: [ecmascript] Can not open xpm proc file, do not check secure memory anymore.
+09-02 19:14:51.543  7594  7594 E C03f00/ArkCompiler: [ecmascript] Cannot execute module buffer file '/data/storage/el1/bundle/entry_test/ets/testrunner/SudokuOCR_pipeline_full.abc
+09-02 19:14:51.549  7594  7594 I C01311/AppMS: [app_mgr_client.cpp:87]get AppMgrRemote object
+09-02 19:14:51.549  7594  7594 I C01311/AppMS: [app_mgr_proxy.cpp:1347]called
+09-02 19:14:51.550  7594  7594 I C01356/Recovery: [app_recovery.cpp:255]scheduleRecoverApp  begin
+09-02 19:14:51.550  7594  7594 E C01317/AppKit: [main_thread.cpp:1688]
+09-02 19:14:51.550  7594  7594 E C01317/AppKit: com.ddabb.toolbox is about to exit due to RuntimeError
+09-02 19:14:51.550  7594  7594 E C01317/AppKit: Error type:ReferenceError
+09-02 19:14:51.550  7594  7594 E C01317/AppKit: Error name:ReferenceError
+09-02 19:14:51.550  7594  7594 E C01317/AppKit: Error message:Cannot find module '&entry/src/ohosTest/ets/testrunner/SudokuOCR_pipeline_full&' , which is application Entry Point
+09-02 19:14:51.550  7594  7594 E C01317/AppKit: Stacktrace:
+09-02 19:14:51.550  7594  7594 E C01317/AppKit: #01 pc 000000000082c907 /system/lib64/platformsdk/libark_jsruntime.so(0d7fa6e0b0f431940392eef2bb4725b8)
+09-02 19:14:51.550  7594  7594 E C01317/AppKit: #02 pc 0000000000390505 /system/lib64/platformsdk/libark_jsruntime.so(0d7fa6e0b0f431940392eef2bb4725b8)
+09-02 19:14:51.550  7594  7594 E C01317/AppKit: #03 pc 000000000020777e /system/lib64/platformsdk/libark_jsruntime.so(0d7fa6e0b0f431940392eef2bb4725b8)
+09-02 19:14:51.550  7594  7594 E C01317/AppKit: #04 pc 0000000000206fc1 /system/lib64/platformsdk/libark_jsruntime.so(0d7fa6e0b0f431940392eef2bb4725b8)
+09-02 19:14:51.550  7594  7594 E C01317/AppKit: #05 pc 000000000029f8f1 /system/lib64/platformsdk/libark_jsruntime.so(0d7fa6e0b0f431940392eef2bb4725b8)
+09-02 19:14:51.550  7594  7594 E C01317/AppKit: #06 pc 00000000006debf9 /system/lib64/platformsdk/libark_jsruntime.so(0d7fa6e0b0f431940392eef2bb4725b8)
+09-02 19:14:51.550  7594  7594 E C01317/AppKit: #07 pc 00000000006db37e /system/lib64/platformsdk/libark_jsruntime.so(panda::ecmascript::ObjectFactory::GetJSError(panda::ecmascript::base::ErrorType const&, char const*, panda::ecmascript::StackCheck)+110)(0d7fa6e0b0f431940392eef2bb4725b8)
+09-02 19:14:51.550  7594  7594 E C01317/AppKit: #08 pc 00000000004b47f7 /system/lib64/platformsdk/libark_jsruntime.so(0d7fa6e0b0f431940392eef2bb4725b8)
+09-02 19:14:51.550  7594  7594 E C01317/AppKit: #09 pc 00000000006c6ba9 /system/lib64/platformsdk/libark_jsruntime.so(panda::JSNApi::ExecuteModuleBufferSecure(panda::ecmascript::EcmaVM*, unsigned char*, int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, bool)+1049)(0d7fa6e0b0f431940392eef2bb4725b8)
+09-02 19:14:51.550  7594  7594 E C01317/AppKit: #10 pc 0000000000058568 /system/lib64/platformsdk/libace_napi.z.so(ArkNativeEngine::RunScriptBuffer(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned char*, unsigned long, bool)+296)(3c2b7743b5f7ebc6e2c047ecb836674b)
+09-02 19:14:51.550  7594  7594 E C01317/AppKit: #11 pc 000000000000a8e7 /system/lib64/platformsdk/libjs_environment.z.so(OHOS::JsEnv::JsEnvironment::LoadScript(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned char*, unsigned long, bool)+71)(0fa113eff8d9e04af89c3536c74b3bd8)
+09-02 19:14:51.550  7594  7594 E C01317/AppKit: #12 pc 000000000005cee3 /system/lib64/platformsdk/libruntime.z.so(OHOS::AbilityRuntime::JsRuntime::LoadScript(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned char*, unsigned long, bool, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)+499)(588cbe241910570b705bc7c5a66415a0)
+09-02 19:14:51.550  7594  7594 E C01317/AppKit: #13 pc 000000000006252f /system/lib64/platformsdk/libruntime.z.so(588cbe241910570b705bc7c5a66415a0)
+09-02 19:14:51.550  7594  7594 E C01317/AppKit: #14 pc 0000000000060ff5 /system/lib64/platformsdk/libruntime.z.so(OHOS::AbilityRuntime::JsRuntime::RunScript(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, bool, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)+1637)(588cbe241910570b705bc7c5a66415a0)
+09-02 19:14:51.550  7594  7594 E C01317/AppKit: #15 pc 000000000006172f /system/lib64/platformsdk/libruntime.z.so(OHOS::AbilityRuntime::JsRuntime::LoadJsModule(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)+223)(588cbe241910570b705bc7c5a66415a0)
+09-02 19:14:51.550  7594  7594 W C01317/AppKit: [main_thread.cpp:1699]hisysevent write result=0, send event [FRAMEWORK,PROCESS_KILL], pid=7594, processName=com.ddabb.toolbox, msg=Kill Reason:Js Error, foreground=0

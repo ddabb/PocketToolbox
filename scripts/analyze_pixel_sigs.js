@@ -504,7 +504,8 @@ function recognizeDigit(sig, inkCount) {
         }
         const recall = tplInk > 0 ? tp / tplInk : 0;
         const veryThin1Gate = Math.floor(SIG_LEN * 0.57);
-        if (best1Score >= veryThin1Gate && recall >= 0.25) {
+        const recallGate = inkCount < THIN1_MIN_INK_COUNT * 2 ? 0.10 : 0.25;
+        if (best1Score >= veryThin1Gate && recall >= recallGate) {
           const conf = best1Score / (SIG_LEN + 200);
           return { digit: 1, confidence: Math.min(1, Math.max(0, conf)), details: `veryThin1: score=${best1Score} recall=${recall.toFixed(2)} ink=${inkCount}` };
         }

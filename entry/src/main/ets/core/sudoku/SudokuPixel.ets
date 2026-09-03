@@ -385,6 +385,7 @@ let g_lastConfidence: number = 0;
 let g_lastBboxDiag: string = '';
 let g_lastPixelDiag: string = '';
 let g_lastRawInkRatio: number = 0;
+let g_lastLocalBgInfo: string = '';
 
 export function getLastBboxDiag(): string {
   return g_lastBboxDiag;
@@ -398,9 +399,14 @@ export function getLastRawInkRatio(): number {
   return g_lastRawInkRatio;
 }
 
+export function getLastLocalBgInfo(): string {
+  return g_lastLocalBgInfo;
+}
+
 export function resetLastPixelDiag(): void {
   g_lastPixelDiag = '';
   g_lastRawInkRatio = 0;
+  g_lastLocalBgInfo = '';
 }
 
 export function resetGridLineCrop(): void {
@@ -2179,6 +2185,39 @@ export async function cellSigFromGray(
   const cellWInner: number = x1 - x0;
   const cellHInner: number = y1 - y0;
 
+  let effectiveBg: number = bg;
+  let effectiveIsDark: boolean = isDark;
+  if (cellWInner > 0 && cellHInner > 0) {
+    const histProbe: number[] = new Array<number>(256).fill(0);
+    for (let y: number = y0; y < y1; y++) {
+      for (let x: number = x0; x < x1; x++) {
+        const gv: number = Math.floor(gray[y * width + x]);
+        if (gv >= 0 && gv < 256) { histProbe[gv]++; }
+      }
+    }
+    let peakVal: number = 0;
+    let peakCount: number = 0;
+    for (let i: number = 0; i < 256; i++) {
+      if (histProbe[i] > peakCount) { peakCount = histProbe[i]; peakVal = i; }
+    }
+    let aboveCount: number = 0;
+    let belowCount: number = 0;
+    for (let y: number = y0; y < y1; y++) {
+      for (let x: number = x0; x < x1; x++) {
+        const gv: number = gray[y * width + x];
+        if (gv > peakVal + INK_THRESH * 0.5) { aboveCount++; }
+        if (gv < peakVal - INK_THRESH * 0.5) { belowCount++; }
+      }
+    }
+    effectiveIsDark = aboveCount > belowCount;
+    if (Math.abs(peakVal - bg) > INK_THRESH * 0.5) {
+      effectiveBg = peakVal;
+    }
+    g_lastLocalBgInfo = `localBg: peak=${peakVal} bg=${bg.toFixed(1)} above=${aboveCount} below=${belowCount} effBg=${effectiveBg.toFixed(1)} effDark=${effectiveIsDark ? 1 : 0}`;
+  } else {
+    g_lastLocalBgInfo = `localBg: skip cellWInner=${cellWInner} cellHInner=${cellHInner}`;
+  }
+
   let savedPixels: number[] = [];
   let savedPositions: number[] = [];
 
@@ -2204,7 +2243,7 @@ export async function cellSigFromGray(
     const isGridRow: boolean[] = new Array<boolean>(cellHInner).fill(false);
     let gridRowCount: number = 0;
     for (let dy: number = 0; dy < cellHInner; dy++) {
-      const diff: number = isDark ? (rowAvg[dy] - bg) : (bg - rowAvg[dy]);
+      const diff: number = effectiveIsDark ? (rowAvg[dy] - effectiveBg) : (effectiveBg - rowAvg[dy]);
       if (diff > GRID_LINE_GRAY_DIFF) {
         let variance: number = 0;
         let inkCols: number = 0;
@@ -2213,7 +2252,7 @@ export async function cellSigFromGray(
           const g: number = gray[y * width + x0 + dx];
           const d: number = g - rowAvg[dy];
           variance += d * d;
-          if (isDark ? g > (bg + INK_THRESH) : g < (bg - INK_THRESH)) { inkCols++; }
+          if (effectiveIsDark ? g > (effectiveBg + INK_THRESH) : g < (effectiveBg - INK_THRESH)) { inkCols++; }
         }
         variance = Math.sqrt(variance / cellWInner);
         // fullSpan guard (log117): A real grid line spans the entire cell width,
@@ -2235,7 +2274,7 @@ export async function cellSigFromGray(
     const isGridCol: boolean[] = new Array<boolean>(cellWInner).fill(false);
     let gridColCount: number = 0;
     for (let dx: number = 0; dx < cellWInner; dx++) {
-      const diff: number = isDark ? (colAvg[dx] - bg) : (bg - colAvg[dx]);
+      const diff: number = effectiveIsDark ? (colAvg[dx] - effectiveBg) : (effectiveBg - colAvg[dx]);
       if (diff > GRID_LINE_GRAY_DIFF) {
         let variance: number = 0;
         let inkRows: number = 0;
@@ -2244,7 +2283,7 @@ export async function cellSigFromGray(
           const g: number = gray[(y0 + dy) * width + x];
           const d: number = g - colAvg[dx];
           variance += d * d;
-          if (isDark ? g > (bg + INK_THRESH) : g < (bg - INK_THRESH)) { inkRows++; }
+          if (effectiveIsDark ? g > (effectiveBg + INK_THRESH) : g < (effectiveBg - INK_THRESH)) { inkRows++; }
         }
         variance = Math.sqrt(variance / cellHInner);
         // fullSpan guard for columns: same as rows — real grid lines span the
@@ -2267,7 +2306,7 @@ export async function cellSigFromGray(
         const pos: number = y * width + x0 + dx;
         savedPixels.push(gray[pos]);
         savedPositions.push(pos);
-        gray[pos] = bg;
+        gray[pos] = effectiveBg;
       }
     }
     for (let dx: number = 0; dx < cellWInner; dx++) {
@@ -2277,7 +2316,7 @@ export async function cellSigFromGray(
         const pos: number = (y0 + dy) * width + x;
         savedPixels.push(gray[pos]);
         savedPositions.push(pos);
-        gray[pos] = bg;
+        gray[pos] = effectiveBg;
       }
     }
   }
@@ -2288,13 +2327,13 @@ export async function cellSigFromGray(
   let bmaxX: number = -1;
   let bminY: number = 1000000;
   let bmaxY: number = -1;
-  const inkBg: number = isDark ? bg + INK_THRESH : bg - INK_THRESH;
+  const inkBg: number = effectiveIsDark ? effectiveBg + INK_THRESH : effectiveBg - INK_THRESH;
 
   for (let y: number = y0; y < y1; y++) {
     for (let x: number = x0; x < x1; x++) {
       area++;
       const g: number = gray[y * width + x];
-      if (isDark ? g > inkBg : g < inkBg) {
+      if (effectiveIsDark ? g > inkBg : g < inkBg) {
         ink++;
         if (x < bminX) { bminX = x; }
         if (x > bmaxX) { bmaxX = x; }
@@ -2312,7 +2351,7 @@ export async function cellSigFromGray(
     const bh: number = bmaxY - bminY + 1;
 
     if (bw >= SAUVOLA_MIN_DIM * 3 && bh >= SAUVOLA_MIN_DIM * 3) {
-      const sauvBinary: Float32Array | null = await sauvolaThreshold(gray, width, H, bminX, bminY, bw, bh, isDark);
+      const sauvBinary: Float32Array | null = await sauvolaThreshold(gray, width, H, bminX, bminY, bw, bh, effectiveIsDark);
       if (sauvBinary !== null) {
         const scale: number = Math.max(1, Math.ceil(SIG_COLS / bw), Math.ceil(SIG_ROWS / bh));
         const sbw: number = bw * scale;
@@ -2342,11 +2381,19 @@ export async function cellSigFromGray(
           }
         }
         const sauvInk: number = countInk(sauvSig);
+        const sauvPreStrip: number[] = new Array<number>(SIG_LEN).fill(0);
+        for (let i: number = 0; i < SIG_LEN; i++) sauvPreStrip[i] = sauvSig[i];
         stripEdgeGridLines(sauvSig);
         stripFullHeightVerticalStrokes(sauvSig);
         const sauvInkStripped: number = countInk(sauvSig);
         if (sauvInkStripped >= THIN1_MIN_INK_COUNT && sauvInkStripped <= MAX_INK_COUNT) {
           result = sauvSig;
+        } else if (sauvInk >= THIN1_MIN_INK_COUNT && sauvInk <= MAX_INK_COUNT) {
+          stripEdgeGridLines(sauvPreStrip);
+          const ink2: number = countInk(sauvPreStrip);
+          if (ink2 >= THIN1_MIN_INK_COUNT && ink2 <= MAX_INK_COUNT) {
+            result = sauvPreStrip;
+          }
         }
       }
     }
@@ -2361,7 +2408,7 @@ export async function cellSigFromGray(
         for (let c: number = 0; c < sbw2; c++) {
           const sy: number = bminY + Math.floor(r / scale2);
           const sx: number = bminX + Math.floor(c / scale2);
-          scaledGray[r * sbw2 + c] = (sy >= 0 && sy < H && sx >= 0 && sx < width) ? gray[sy * width + sx] : bg;
+          scaledGray[r * sbw2 + c] = (sy >= 0 && sy < H && sx >= 0 && sx < width) ? gray[sy * width + sx] : effectiveBg;
         }
       }
       for (let r: number = 0; r < SIG_ROWS; r++) {
@@ -2378,19 +2425,29 @@ export async function cellSigFromGray(
               n++;
             }
           }
-          const avg: number = n > 0 ? s / n : bg;
-          sig[r * SIG_COLS + c] = (isDark ? avg > inkBg : avg < inkBg) ? 1 : 0;
+          const avg: number = n > 0 ? s / n : effectiveBg;
+          sig[r * SIG_COLS + c] = (effectiveIsDark ? avg > inkBg : avg < inkBg) ? 1 : 0;
         }
       }
       const inkCount: number = countInk(sig);
+      const preStrip: number[] = new Array<number>(SIG_LEN).fill(0);
+      for (let i: number = 0; i < SIG_LEN; i++) preStrip[i] = sig[i];
        stripEdgeGridLines(sig);
-      stripFullHeightVerticalStrokes(sig);
-      const inkCountStripped: number = countInk(sig);
-      if (inkCountStripped >= THIN1_MIN_INK_COUNT && inkCountStripped <= MAX_INK_COUNT) {
-        result = sig;
-      } else {
-        g_lastPixelDiag = `sigInk=${inkCountStripped} gate=${THIN1_MIN_INK_COUNT}`;
-      }
+       stripFullHeightVerticalStrokes(sig);
+       const inkCountStripped: number = countInk(sig);
+       if (inkCountStripped >= THIN1_MIN_INK_COUNT && inkCountStripped <= MAX_INK_COUNT) {
+         result = sig;
+       } else if (inkCount >= THIN1_MIN_INK_COUNT && inkCount <= MAX_INK_COUNT) {
+         stripEdgeGridLines(preStrip);
+         const ink2: number = countInk(preStrip);
+         if (ink2 >= THIN1_MIN_INK_COUNT && ink2 <= MAX_INK_COUNT) {
+           result = preStrip;
+         } else {
+           g_lastPixelDiag = `sigInk=${inkCountStripped} preStrip=${inkCount} edgeOnly=${ink2} gate=${THIN1_MIN_INK_COUNT}`;
+         }
+       } else {
+         g_lastPixelDiag = `sigInk=${inkCountStripped} preStrip=${inkCount} gate=${THIN1_MIN_INK_COUNT}`;
+       }
     }
   } else {
     const ratio: number = g_lastRawInkRatio;
@@ -2406,6 +2463,7 @@ export async function cellSigFromGray(
 // Lower ink threshold for retry when initial signature has low inkCount.
 // Half of INK_THRESH, used to recover faint strokes in small cells.
 const LOW_INK_THRESH_RETRY: number = Math.floor(INK_THRESH / 2);
+export const ULTRA_LOW_INK_THRESH: number = Math.floor(INK_THRESH / 4);
 
 export async function cellSigFromGrayLowThresh(
   gray: Float32Array,
@@ -2417,7 +2475,8 @@ export async function cellSigFromGrayLowThresh(
   isDark: boolean,
   bg: number,
   gridRow: number = -1,
-  gridCol: number = -1
+  gridCol: number = -1,
+  inkThresh: number = LOW_INK_THRESH_RETRY
 ): Promise<number[] | null> {
   let mxLeft: number = cellW * CELL_MARGIN_RATIO;
   let mxRight: number = cellW * CELL_MARGIN_RATIO;
@@ -2440,6 +2499,39 @@ export async function cellSigFromGrayLowThresh(
   const cellWInner: number = x1 - x0;
   const cellHInner: number = y1 - y0;
 
+  let effectiveBg: number = bg;
+  let effectiveIsDark: boolean = isDark;
+  if (cellWInner > 0 && cellHInner > 0) {
+    const histProbe: number[] = new Array<number>(256).fill(0);
+    for (let y: number = y0; y < y1; y++) {
+      for (let x: number = x0; x < x1; x++) {
+        const gv: number = Math.floor(gray[y * width + x]);
+        if (gv >= 0 && gv < 256) { histProbe[gv]++; }
+      }
+    }
+    let peakVal: number = 0;
+    let peakCount: number = 0;
+    for (let i: number = 0; i < 256; i++) {
+      if (histProbe[i] > peakCount) { peakCount = histProbe[i]; peakVal = i; }
+    }
+    let aboveCount: number = 0;
+    let belowCount: number = 0;
+    for (let y: number = y0; y < y1; y++) {
+      for (let x: number = x0; x < x1; x++) {
+        const gv: number = gray[y * width + x];
+        if (gv > peakVal + INK_THRESH * 0.5) { aboveCount++; }
+        if (gv < peakVal - INK_THRESH * 0.5) { belowCount++; }
+      }
+    }
+    effectiveIsDark = aboveCount > belowCount;
+    if (Math.abs(peakVal - bg) > INK_THRESH * 0.5) {
+      effectiveBg = peakVal;
+    }
+    g_lastLocalBgInfo = `localBg: peak=${peakVal} bg=${bg.toFixed(1)} above=${aboveCount} below=${belowCount} effBg=${effectiveBg.toFixed(1)} effDark=${effectiveIsDark ? 1 : 0}`;
+  } else {
+    g_lastLocalBgInfo = `localBg: skip cellWInner=${cellWInner} cellHInner=${cellHInner}`;
+  }
+
   const rowAvg: number[] = new Array<number>(cellHInner).fill(0);
   for (let dy: number = 0; dy < cellHInner; dy++) {
     let s: number = 0;
@@ -2450,7 +2542,7 @@ export async function cellSigFromGrayLowThresh(
   }
   const isGridRow: boolean[] = new Array<boolean>(cellHInner).fill(false);
   for (let dy: number = 0; dy < cellHInner; dy++) {
-    const diff: number = isDark ? (rowAvg[dy] - bg) : (bg - rowAvg[dy]);
+    const diff: number = effectiveIsDark ? (rowAvg[dy] - effectiveBg) : (effectiveBg - rowAvg[dy]);
     if (diff > GRID_LINE_GRAY_DIFF) {
       let variance: number = 0;
       let inkCols: number = 0;
@@ -2459,11 +2551,9 @@ export async function cellSigFromGrayLowThresh(
         const g: number = gray[y * width + x0 + dx];
         const d: number = g - rowAvg[dy];
         variance += d * d;
-        if (isDark ? g > (bg + INK_THRESH) : g < (bg - INK_THRESH)) { inkCols++; }
+        if (effectiveIsDark ? g > (effectiveBg + INK_THRESH) : g < (effectiveBg - INK_THRESH)) { inkCols++; }
       }
       variance = Math.sqrt(variance / cellWInner);
-      // fullSpan guard (lowThresh path): same as cellSigFromGray — prevents
-      // thin digit strokes from being neutralized in low-threshold retry path
       if (variance < GRID_LINE_GRAY_DIFF * 2 && inkCols >= cellWInner * 0.7) {
         isGridRow[dy] = true;
       }
@@ -2479,7 +2569,7 @@ export async function cellSigFromGrayLowThresh(
   }
   const isGridCol: boolean[] = new Array<boolean>(cellWInner).fill(false);
   for (let dx: number = 0; dx < cellWInner; dx++) {
-    const diff: number = isDark ? (colAvg[dx] - bg) : (bg - colAvg[dx]);
+    const diff: number = effectiveIsDark ? (colAvg[dx] - effectiveBg) : (effectiveBg - colAvg[dx]);
     if (diff > GRID_LINE_GRAY_DIFF) {
       let variance: number = 0;
       let inkRows: number = 0;
@@ -2488,10 +2578,9 @@ export async function cellSigFromGrayLowThresh(
         const g: number = gray[(y0 + dy) * width + x];
         const d: number = g - colAvg[dx];
         variance += d * d;
-        if (isDark ? g > (bg + INK_THRESH) : g < (bg - INK_THRESH)) { inkRows++; }
+        if (effectiveIsDark ? g > (effectiveBg + INK_THRESH) : g < (effectiveBg - INK_THRESH)) { inkRows++; }
       }
       variance = Math.sqrt(variance / cellHInner);
-      // fullSpan guard for columns (lowThresh path)
       if (variance < GRID_LINE_GRAY_DIFF * 2 && inkRows >= cellHInner * 0.7) {
         isGridCol[dx] = true;
       }
@@ -2507,7 +2596,7 @@ export async function cellSigFromGrayLowThresh(
       const pos: number = y * width + x0 + dx;
       savedPixels.push(gray[pos]);
       savedPositions.push(pos);
-      gray[pos] = bg;
+      gray[pos] = effectiveBg;
     }
   }
   for (let dx: number = 0; dx < cellWInner; dx++) {
@@ -2517,7 +2606,7 @@ export async function cellSigFromGrayLowThresh(
       const pos: number = (y0 + dy) * width + x;
       savedPixels.push(gray[pos]);
       savedPositions.push(pos);
-      gray[pos] = bg;
+      gray[pos] = effectiveBg;
     }
   }
 
@@ -2526,12 +2615,12 @@ export async function cellSigFromGrayLowThresh(
   let bminY: number = 1000000;
   let bmaxY: number = -1;
   let inkCount: number = 0;
-  const lowInkBg: number = isDark ? bg + LOW_INK_THRESH_RETRY : bg - LOW_INK_THRESH_RETRY;
+  const lowInkBg: number = effectiveIsDark ? effectiveBg + inkThresh : effectiveBg - inkThresh;
 
   for (let y: number = y0; y < y1; y++) {
     for (let x: number = x0; x < x1; x++) {
       const g: number = gray[y * width + x];
-      if (isDark ? g > lowInkBg : g < lowInkBg) {
+      if (effectiveIsDark ? g > lowInkBg : g < lowInkBg) {
         inkCount++;
         if (x < bminX) { bminX = x; }
         if (x > bmaxX) { bmaxX = x; }
@@ -2563,17 +2652,25 @@ export async function cellSigFromGrayLowThresh(
             }
           }
         }
-        const avg: number = n > 0 ? s / n : bg;
-        sig[r * SIG_COLS + c] = (isDark ? avg > lowInkBg : avg < lowInkBg) ? 1 : 0;
+        const avg: number = n > 0 ? s / n : effectiveBg;
+        sig[r * SIG_COLS + c] = (effectiveIsDark ? avg > lowInkBg : avg < lowInkBg) ? 1 : 0;
       }
     }
 
     const sigInk: number = countInk(sig);
+    const preStrip: number[] = new Array<number>(SIG_LEN).fill(0);
+    for (let i: number = 0; i < SIG_LEN; i++) preStrip[i] = sig[i];
     stripEdgeGridLines(sig);
     stripFullHeightVerticalStrokes(sig);
     const sigInkStripped: number = countInk(sig);
     if (sigInkStripped >= THIN1_MIN_INK_COUNT && sigInkStripped <= MAX_INK_COUNT) {
       result = sig;
+    } else if (sigInk >= THIN1_MIN_INK_COUNT && sigInk <= MAX_INK_COUNT) {
+      stripEdgeGridLines(preStrip);
+      const ink2: number = countInk(preStrip);
+      if (ink2 >= THIN1_MIN_INK_COUNT && ink2 <= MAX_INK_COUNT) {
+        result = preStrip;
+      }
     }
   }
 
@@ -2596,7 +2693,6 @@ export async function cellSigFromGrayThin(
   gridCol: number = -1
 ): Promise<number[] | null> {
   const THIN_MARGIN: number = 0.02;
-  const LOW_GRID_DIFF: number = LOW_INK_THRESH_RETRY * 0.4;
   let mxLeft: number = cellW * THIN_MARGIN;
   let mxRight: number = cellW * THIN_MARGIN;
   let myTop: number = cellH * THIN_MARGIN;
@@ -2618,6 +2714,40 @@ export async function cellSigFromGrayThin(
   const cellWInner: number = x1 - x0;
   const cellHInner: number = y1 - y0;
 
+  let effectiveBg: number = bg;
+  let effectiveIsDark: boolean = isDark;
+  if (cellWInner > 0 && cellHInner > 0) {
+    const histProbe: number[] = new Array<number>(256).fill(0);
+    for (let y: number = y0; y < y1; y++) {
+      for (let x: number = x0; x < x1; x++) {
+        const gv: number = Math.floor(gray[y * width + x]);
+        if (gv >= 0 && gv < 256) { histProbe[gv]++; }
+      }
+    }
+    let peakVal: number = 0;
+    let peakCount: number = 0;
+    for (let i: number = 0; i < 256; i++) {
+      if (histProbe[i] > peakCount) { peakCount = histProbe[i]; peakVal = i; }
+    }
+    let aboveCount: number = 0;
+    let belowCount: number = 0;
+    for (let y: number = y0; y < y1; y++) {
+      for (let x: number = x0; x < x1; x++) {
+        const gv: number = gray[y * width + x];
+        if (gv > peakVal + INK_THRESH * 0.5) { aboveCount++; }
+        if (gv < peakVal - INK_THRESH * 0.5) { belowCount++; }
+      }
+    }
+    effectiveIsDark = aboveCount > belowCount;
+    if (Math.abs(peakVal - bg) > INK_THRESH * 0.5) {
+      effectiveBg = peakVal;
+    }
+    g_lastLocalBgInfo = `localBg: peak=${peakVal} bg=${bg.toFixed(1)} above=${aboveCount} below=${belowCount} effBg=${effectiveBg.toFixed(1)} effDark=${effectiveIsDark ? 1 : 0}`;
+  } else {
+    g_lastLocalBgInfo = `localBg: skip cellWInner=${cellWInner} cellHInner=${cellHInner}`;
+  }
+
+  const LOW_GRID_DIFF: number = LOW_INK_THRESH_RETRY * 0.4;
   const rowAvg: number[] = new Array<number>(cellHInner).fill(0);
   for (let dy: number = 0; dy < cellHInner; dy++) {
     let s: number = 0;
@@ -2629,7 +2759,7 @@ export async function cellSigFromGrayThin(
   const isGridRow: boolean[] = new Array<boolean>(cellHInner).fill(false);
   let gridRowCount: number = 0;
   for (let dy: number = 0; dy < cellHInner; dy++) {
-    const diff: number = isDark ? (rowAvg[dy] - bg) : (bg - rowAvg[dy]);
+    const diff: number = effectiveIsDark ? (rowAvg[dy] - effectiveBg) : (effectiveBg - rowAvg[dy]);
     if (diff > LOW_GRID_DIFF) {
       let variance: number = 0;
       const y: number = y0 + dy;
@@ -2659,7 +2789,7 @@ export async function cellSigFromGrayThin(
   const isGridCol: boolean[] = new Array<boolean>(cellWInner).fill(false);
   let gridColCount: number = 0;
   for (let dx: number = 0; dx < cellWInner; dx++) {
-    const diff: number = isDark ? (colAvg[dx] - bg) : (bg - colAvg[dx]);
+    const diff: number = effectiveIsDark ? (colAvg[dx] - effectiveBg) : (effectiveBg - colAvg[dx]);
     if (diff > LOW_GRID_DIFF) {
       let variance: number = 0;
       const x: number = x0 + dx;
@@ -2688,7 +2818,7 @@ export async function cellSigFromGrayThin(
       const pos: number = y * width + x0 + dx;
       savedPixels.push(gray[pos]);
       savedPositions.push(pos);
-      gray[pos] = bg;
+      gray[pos] = effectiveBg;
     }
   }
   for (let dx: number = 0; dx < cellWInner; dx++) {
@@ -2698,7 +2828,7 @@ export async function cellSigFromGrayThin(
       const pos: number = (y0 + dy) * width + x;
       savedPixels.push(gray[pos]);
       savedPositions.push(pos);
-      gray[pos] = bg;
+      gray[pos] = effectiveBg;
     }
   }
 
@@ -2707,11 +2837,11 @@ export async function cellSigFromGrayThin(
   let bminY: number = 1000000;
   let bmaxY: number = -1;
   let inkCount: number = 0;
-  const lowInkBg: number = isDark ? bg + LOW_INK_THRESH_RETRY : bg - LOW_INK_THRESH_RETRY;
+  const lowInkBg: number = effectiveIsDark ? effectiveBg + LOW_INK_THRESH_RETRY : effectiveBg - LOW_INK_THRESH_RETRY;
   for (let y: number = y0; y < y1; y++) {
     for (let x: number = x0; x < x1; x++) {
       const g: number = gray[y * width + x];
-      if (isDark ? g > lowInkBg : g < lowInkBg) {
+      if (effectiveIsDark ? g > lowInkBg : g < lowInkBg) {
         inkCount++;
         if (x < bminX) { bminX = x; }
         if (x > bmaxX) { bmaxX = x; }
@@ -2743,16 +2873,24 @@ export async function cellSigFromGrayThin(
               }
             }
           }
-          const avg: number = n > 0 ? s / n : bg;
-          sig[r * SIG_COLS + c] = (isDark ? avg > lowInkBg : avg < lowInkBg) ? 1 : 0;
+          const avg: number = n > 0 ? s / n : effectiveBg;
+          sig[r * SIG_COLS + c] = (effectiveIsDark ? avg > lowInkBg : avg < lowInkBg) ? 1 : 0;
         }
       }
       const sigInk: number = countInk(sig);
+      const preStrip: number[] = new Array<number>(SIG_LEN).fill(0);
+      for (let i: number = 0; i < SIG_LEN; i++) preStrip[i] = sig[i];
       stripEdgeGridLines(sig);
       stripFullHeightVerticalStrokes(sig);
       const sigInkStripped: number = countInk(sig);
       if (sigInkStripped >= THIN1_MIN_INK_COUNT && sigInkStripped <= MAX_INK_COUNT) {
         result = sig;
+      } else if (sigInk >= THIN1_MIN_INK_COUNT && sigInk <= MAX_INK_COUNT) {
+        stripEdgeGridLines(preStrip);
+        const ink2: number = countInk(preStrip);
+        if (ink2 >= THIN1_MIN_INK_COUNT && ink2 <= MAX_INK_COUNT) {
+          result = preStrip;
+        }
       }
     }
   }
@@ -3229,10 +3367,11 @@ export async function recognizeDigit(sig: number[], inkCount: number): Promise<n
     let best1Score: number = -100000;
     let best1Key: Int8Array | null = null;
     const tpls1: DigitTemplate[] = g_templatesByDigit[1];
+    const veryThinInk: boolean = inkCount < MIN_INK_COUNT_DIGIT1;
     for (let ti: number = 0; ti < tpls1.length; ti++) {
       if (ti % 30 === 0) { await yieldThread(); }
       const t: DigitTemplate = tpls1[ti];
-      if (!templateMatchesInkFilter(t, inkCount)) { continue; }
+      if (!veryThinInk && !templateMatchesInkFilter(t, inkCount)) { continue; }
       const kb: Int8Array = t.keyBytes;
       let tp: number = 0;
       for (let j: number = 0; j < sigInkLen; j++) {
@@ -3244,7 +3383,6 @@ export async function recognizeDigit(sig: number[], inkCount: number): Promise<n
     }
     const lowInkMinScore: number = Math.floor(SIG_LEN * 0.57);
     const geoMinScore: number = Math.floor(SIG_LEN * 0.55);
-    const veryThinInk: boolean = inkCount < MIN_INK_COUNT_DIGIT1;
     if (veryThinInk) {
       if (best1Key !== null) {
         let tp: number = 0;
@@ -3258,7 +3396,8 @@ export async function recognizeDigit(sig: number[], inkCount: number): Promise<n
         const recall: number = tplInkC > 0 ? tp / tplInkC : 0;
         const thinOk: boolean = detectThinOne(sig, inkCount);
       g_lastPixelDiag = `ink=${inkCount} score=${best1Score} recall=${recall.toFixed(2)} thinOk=${thinOk ? 1 : 0} tp=${tp}/${tplInkC}`;
-        if (best1Score >= lowInkMinScore && recall >= 0.25 && thinOk) {
+        const recallGate: number = inkCount < THIN1_MIN_INK_COUNT * 2 ? 0.10 : 0.25;
+        if (best1Score >= lowInkMinScore && recall >= recallGate && thinOk) {
           g_lastConfidence = 0.50;
           return 1;
         }
@@ -3592,9 +3731,10 @@ export async function recognizeDigit(sig: number[], inkCount: number): Promise<n
   if (bestDigit === 6 || bestDigit === 9) {
     const score6: number = digitBestScore[6];
     const score9: number = digitBestScore[9];
+    const score5: number = digitBestScore[5];
     const scoreGap: number = Math.abs(score6 - score9);
 
-    if (scoreGap >= DISAMBIG_SCORE_GAP_SKIP) {
+    if (scoreGap >= DISAMBIG_SCORE_GAP_SKIP && !(bestDigit === 6 && score5 >= score6 - DISAMBIG_SCORE_GAP_SKIP)) {
       const r69skip: number = score6 > score9 ? 6 : 9;
       g_lastPixelDiag = `69skip: s6=${score6.toFixed(0)} s9=${score9.toFixed(0)} gap=${scoreGap.toFixed(0)}>=${DISAMBIG_SCORE_GAP_SKIP} =>${r69skip}`;
       return r69skip;
@@ -3796,9 +3936,11 @@ export async function recognizeDigit(sig: number[], inkCount: number): Promise<n
   }
 
   // 1/4 disambiguation: Digit 1 with a serif or slanted top can be
-  // misrecognized as 4. Key discriminator: 1 has a narrow vertical stroke
-  // (avg row width ≤ ~6 pixels), while 4 has a wider cross-stroke structure
-  // (avg row width > ~8). No score-gap gate: structural check is sufficient.
+  // misrecognized as 4. Two structural checks:
+  // (a) avg row width: 1 has narrow vertical stroke (≤6px), 4 has wider structure
+  // (b) cross-stroke detection: 4 has a continuous horizontal stroke in the
+  //     middle band (40-65% down); 1 does not. A serif-1 may have wide ink
+  //     in the upper portion but never a continuous mid-band cross-stroke.
   if (bestDigit === 4) {
     const score4b: number = digitBestScore[4];
     const score1b: number = digitBestScore[1];
@@ -3819,11 +3961,79 @@ export async function recognizeDigit(sig: number[], inkCount: number): Promise<n
         if (maxC >= minC) { totalRowWidth14 += maxC - minC + 1; rowCount14++; }
       }
       const avgRowWidth14: number = rowCount14 > 0 ? totalRowWidth14 / rowCount14 : 0;
-      // A narrow stroke (width ≤ 6) means this is likely 1, not 4
       if (avgRowWidth14 <= 6) {
         g_lastPixelDiag = `4→1: avgRowW=${avgRowWidth14.toFixed(1)} s4=${score4b} s1=${score1b}`;
         bestDigit = 1;
         bestScore = score1b;
+      } else {
+        const crossTop14: number = Math.floor(SIG_ROWS * 0.40);
+        const crossBot14: number = Math.floor(SIG_ROWS * 0.65);
+        let hasMidCross14: boolean = false;
+        let maxMidSpan14: number = 0;
+        for (let r: number = crossTop14; r < crossBot14; r++) {
+          let span14: number = 0;
+          let maxSpan14: number = 0;
+          for (let c: number = 0; c < SIG_COLS; c++) {
+            if (sig[r * SIG_COLS + c] === 1) {
+              span14++;
+              if (span14 > maxSpan14) { maxSpan14 = span14; }
+            } else {
+              span14 = 0;
+            }
+          }
+          if (maxSpan14 > maxMidSpan14) { maxMidSpan14 = maxSpan14; }
+          if (maxSpan14 >= SIG_COLS * 0.40) { hasMidCross14 = true; break; }
+        }
+        if (!hasMidCross14 && score4b - score1b < 200) {
+          g_lastPixelDiag = `4→1: avgRowW=${avgRowWidth14.toFixed(1)} noMidCross(maxSpan=${maxMidSpan14}) s4=${score4b} s1=${score1b}`;
+          bestDigit = 1;
+          bestScore = score1b;
+        }
+      }
+    }
+  }
+
+  // 1→4 disambiguation: Serif "4" with a narrow vertical stem can be
+  // misrecognized as "1". Key discriminator: "4" has a diagonal arm from
+  // top-right to mid-left, creating top-right ink that "1" lacks.
+  // Also "4" has a horizontal cross-stroke in the lower half.
+  if (bestDigit === 1) {
+    const score1c: number = digitBestScore[1];
+    const score4d: number = digitBestScore[4];
+    if (score4d > 0 && score4d >= score1c * 0.75) {
+      const midTop14b: number = Math.floor(SIG_ROWS * 0.15);
+      const midBot14b: number = Math.floor(SIG_ROWS * 0.45);
+      let topRightInk14: number = 0;
+      let topLeftInk14: number = 0;
+      for (let r: number = midTop14b; r < midBot14b; r++) {
+        for (let c: number = 0; c < SIG_COLS; c++) {
+          if (sig[r * SIG_COLS + c] === 1) {
+            if (c >= SIG_COLS / 2) { topRightInk14++; } else { topLeftInk14++; }
+          }
+        }
+      }
+      const crossTop14: number = Math.floor(SIG_ROWS * 0.55);
+      const crossBot14: number = Math.floor(SIG_ROWS * 0.75);
+      let crossInk14: number = 0;
+      let crossCols14: number = 0;
+      for (let r2: number = crossTop14; r2 < crossBot14; r2++) {
+        let minC2: number = SIG_COLS;
+        let maxC2: number = -1;
+        for (let c2: number = 0; c2 < SIG_COLS; c2++) {
+          if (sig[r2 * SIG_COLS + c2] === 1) {
+            if (c2 < minC2) { minC2 = c2; }
+            if (c2 > maxC2) { maxC2 = c2; }
+          }
+        }
+        if (maxC2 >= minC2) { crossCols14 += maxC2 - minC2 + 1; }
+        for (let c3: number = 0; c3 < SIG_COLS; c3++) {
+          if (sig[r2 * SIG_COLS + c3] === 1) { crossInk14++; }
+        }
+      }
+      if (topRightInk14 >= SIG_COLS * 0.3 && crossCols14 >= SIG_COLS * 0.5) {
+        g_lastPixelDiag = `1→4: topR=${topRightInk14} cross=${crossCols14} s1=${score1c} s4=${score4d}`;
+        bestDigit = 4;
+        bestScore = score4d;
       }
     }
   }
@@ -4034,26 +4244,29 @@ export async function recognizeDigit(sig: number[], inkCount: number): Promise<n
 
   if (bestScore >= MIN_DIGIT_SCORE) {
     if (bestDigit === 4 && isLikelyNot4(sig)) {
-      let best1Score3: number = -100000;
-      const tpls1d: DigitTemplate[] = g_templatesByDigit[1];
-      for (let ti: number = 0; ti < tpls1d.length; ti++) {
-        if (ti % 30 === 0) { await yieldThread(); }
-        const t: DigitTemplate = tpls1d[ti];
-        if (!templateMatchesInkFilter(t, inkCount)) { continue; }
-        const kb: Int8Array = t.keyBytes;
-        let tp3: number = 0;
-        for (let j: number = 0; j < sigInkLen; j++) {
-          if (kb[sigInkPos[j]] === 1) { tp3++; }
+      const scoreGap41: number = digitBestScore[4] - digitBestScore[1];
+      if (scoreGap41 < 100) {
+        let best1Score3: number = -100000;
+        const tpls1d: DigitTemplate[] = g_templatesByDigit[1];
+        for (let ti: number = 0; ti < tpls1d.length; ti++) {
+          if (ti % 30 === 0) { await yieldThread(); }
+          const t: DigitTemplate = tpls1d[ti];
+          if (!templateMatchesInkFilter(t, inkCount)) { continue; }
+          const kb: Int8Array = t.keyBytes;
+          let tp3: number = 0;
+          for (let j: number = 0; j < sigInkLen; j++) {
+            if (kb[sigInkPos[j]] === 1) { tp3++; }
+          }
+          const match3: number = SIG_LEN - sigInkLen - t.inkCount + 2 * tp3;
+          const score: number = match3 - (SIG_LEN - match3) * TEMPLATE_MISMATCH_PENALTY;
+          if (score > best1Score3) { best1Score3 = score; }
         }
-        const match3: number = SIG_LEN - sigInkLen - t.inkCount + 2 * tp3;
-        const score: number = match3 - (SIG_LEN - match3) * TEMPLATE_MISMATCH_PENALTY;
-        if (score > best1Score3) { best1Score3 = score; }
-      }
-      const geoGate2: number = Math.floor(SIG_LEN * 0.55);
-      if (best1Score3 >= geoGate2) {
-        g_lastPixelDiag = `not4→1: score1=${best1Score3} ink=${inkCount} sig=${sigToCompactStr(sig)}`;
-        g_lastConfidence = 0.55;
-        return 1;
+        const geoGate2: number = Math.floor(SIG_LEN * 0.55);
+        if (best1Score3 >= geoGate2) {
+          g_lastPixelDiag = `not4→1: score1=${best1Score3} ink=${inkCount} sig=${sigToCompactStr(sig)}`;
+          g_lastConfidence = 0.55;
+          return 1;
+        }
       }
     }
     if (bestDigit === 4 || bestDigit === 7) {

@@ -1,18 +1,18 @@
-I     AppSpawnChild id 4255 flags:0xc
+I     AppSpawnChild id 1812 flags:0xc
 I     ResetParamSecurityLabel Fd:18
-I     FilterAppTrace com.ddabb.toolbox 55389
+I     FilterAppTrace com.ddabb.toolbox 59121
 W     errno:13 private mount to /mnt/sandbox/100/com.ddabb.toolbox/chip_prod/lib64/passthrough '524288' failed
 W     check dir /data/app/el1/public/aot_compiler/ark_cache/com.ddabb.toolbox failed,strerror:No such file or directory
 W     errno:2 bind mount /data/preload/app to /mnt/sandbox/100/com.ddabb.toolbox/data/preload/app
 E     [XpmIoctl]:Ioctl cmd 40087803 failed: Invalid argument (ignore)
 I     Hap type for com.ddabb.toolbox is changing from u:r:appspawn:s0 to o:r:debug_hap:s0:x113,x335,x512,x868,x1024
 I     Hap setcon finish for com.ddabb.toolbox
-I     [RegisterCheckCallback]Register secComp: sessionId=167836975, seqNum=******740.
-W     ThreadHandler: proto:0 policy:1 name:OS_IPC_0_55643 invoker:2442258048
-W     ThreadHandler: proto:0 policy:0 name:OS_IPC_1_55644 invoker:2347693440
+W     ThreadHandler: proto:0 policy:1 name:OS_IPC_0_59295 invoker:1587634816
+I     [RegisterCheckCallback]Register secComp: sessionId=4184596240, seqNum=******584.
+W     ThreadHandler: proto:0 policy:0 name:OS_IPC_1_59296 invoker:1489289984
 I     hichecker param is empty.
 I     SelectWebcoreBeforeProcessRun: SelectWebcoreBeforeProcessRun for app com.ddabb.toolbox.
-I     [MTHRD3220]mainthread start, pid:55389
+I     [MTHRD3220]mainthread start, pid:59121
 I     init default task finished.
 I     [MTHRD431]attach
 I     [69]AceForwardCompatibility [com.ddabb.toolbox] force:1 newpipe:1
@@ -20,34 +20,34 @@ I     [MTHRD1813]SmartGC: process is start. enable warm startup SmartGC: 0
 I     [ecmascript] asmint: 1, aot: 0, jit: 1, baseline jit: 0, bundle name: com.ddabb.toolbox, arkTSMode: dynamic
 I     [ecmascript] multi-thread check enabled: 0
 I     [pgo] reset pgo profiler, pgo profiler is disabled
-I     clean up handles in loop(8912)
-I     loop:(8912) closed in 0s
-I     close:8912, async_io_wfd:15
-I     close:8912, backend_fd:9
-I     init:8912
-I     init:8912, backend_fd:9
-I     open:8912, pipefd[0]:15
+I     clean up handles in loop(5664)
+I     loop:(5664) closed in 0s
+I     close:5664, async_io_wfd:15
+I     close:5664, backend_fd:9
+I     init:4160
+I     init:4160, backend_fd:9
+I     open:4160, pipefd[0]:15
 I     [ecmascript] can not find aot file
 I     StartServer, componentName = <private>
 W     [CSM161]not Connected
-I     [ecmascript] JSNApi::NotifyDebugMode, tid = 55389, debugApp = 1, isDebugMode = 0, instanceId = 0
+I     [ecmascript] JSNApi::NotifyDebugMode, tid = 59121, debugApp = 1, isDebugMode = 0, instanceId = 0
+I     Add watcher keyPrefix persist.hdc.jdwp remoteWatcherId 1920 success
+I     AddWatchHdcdJdwp rc:0
+I     connect success cfd:26
+I     Send2Jdwp send pid:59121, pp:com.ddabb.toolbox, isDebug:1, msglen:29
 I     [compiler] __jit_debug_register_code() is called.
 I     [compiler] success to register stub.an to debugger.
+I     [DRH373]success to create /data/storage/el2/base/cache/rawheap
 E     GetTestRunner failed -n com.ddabb.toolbox -m entry_test error: 8519884
 E     [MTHRD4409]get testrunner failed: 8519884
 E     [MTHRD2592]query testrunner failed
 I     [js_test_runner.cpp69]srcPath: entry_test/ets/testrunner/OpenHarmonyTestRunner.abc
 I     [ecmascript] can not find aot file
 I     [ecmascript] start to execute module buffer with secure memory: /data/storage/el1/bundle/entry_test/ets/testrunner/OpenHarmonyTestRunner.abc
-I     Add watcher keyPrefix persist.hdc.jdwp remoteWatcherId 4435 success
-I     AddWatchHdcdJdwp rc:0
-I     connect success cfd:27
-I     Send2Jdwp send pid:55389, pp:com.ddabb.toolbox, isDebug:1, msglen:29
-I     [DRH373]success to create /data/storage/el2/base/cache/rawheap
 I     [pgo] will save profiler to file /data/storage/ark-profile/rt_entry_test.ap
 I     [js_ability_delegator_registry.cpp91]called
 I     [js_ability_delegator_registry.cpp114]called
-I     [JSENV299]timing: 12
+I     [JSENV299]timing: 5
 I     [iability_delegator.cpp75]Enter
 I     [ability_delegator.cpp245]Enter
 I     [js_test_runner.cpp150]Enter
@@ -79,254 +79,254 @@ I     [js_ability_delegator.cpp1343]called
 I     [js_ability_delegator.cpp1285]called
 E     [NativeAsyncWork] Get traceStr fail
 I     [js_ability_delegator.cpp277]complete called
-I     addAbilityMonitorCallback : null
 I     [js_ability_delegator.cpp698]execute called
 I     [ability_delegator.cpp333]command : aa start -b com.ddabb.toolbox -a TestAbility -m entry_test, timeout : 0
 I     [test_observer_proxy.cpp23]created
 I     [test_observer_proxy.cpp94]start
+I     addAbilityMonitorCallback : null
+I     [a92ab1c541dce76 2f36f4d 1407f51][MTHRD825]ScheduleLaunchAbility called, ability TestAbility, type is 1.
+I     [a92ab1c541dce76 cc06cc 2f36f4d][MTHRD2688]NotifyApplicationPreAbilityCreate
 I     [test_observer_proxy.cpp28]destroyed
+I     [a92ab1c541dce76 cc06cc 2f36f4d][JAS193]LoadModule
+W     [a92ab1c541dce76 cc06cc 2f36f4d][JAS966]null stage
+W     [a92ab1c541dce76 cc06cc 2f36f4d][JAS236]Not found AbilityStage.js
+I     [a92ab1c541dce76 cc06cc 2f36f4d][OH_APP424]OnAboutToCreateAbility
+W     [a92ab1c541dce76 cc06cc 2f36f4d][JAS331]Not found AbilityStage.js
+I     [a92ab1c541dce76 cc06cc 2f36f4d][ecmascript] start to execute module buffer with secure memory: /data/storage/el1/bundle/entry_test/ets/testability/TestAbility.abc
+W     [a92ab1c541dce76 cc06cc 2f36f4d][NMM:1289] Name mismatch: ai.ocr.textRecognition != ai.ocr.textrecognition
+I     [a92ab1c541dce76 cc06cc 2f36f4d][(TextRecognitionExport)]init TextRecognitionExport start.
+I     [a92ab1c541dce76 cc06cc 2f36f4d][(TextRecognitionExport)]init text detect js success.
+I     [a92ab1c541dce76 cc06cc 2f36f4d][JSENV299]timing: 63
+I     [a92ab1c541dce76 cc06cc 2f36f4d]Callee constructor is OK string
+I     [a92ab1c541dce76 cc06cc 2f36f4d]Ability::constructor callee is object [object Object]
+I     [a92ab1c541dce76 cc06cc 2f36f4d][ui_ability_thread.cpp173]Lifecycle:Attach
 I     [js_ability_delegator.cpp715]complete called
 I     [js_ability_delegator_utils.cpp117]called
 I     OpenHarmonyTestRunner onRun end
-I     [a92ab13a1ba591b 2a960d9 377df31][MTHRD825]ScheduleLaunchAbility called, ability TestAbility, type is 1.
-I     [a92ab13a1ba591b 13eb9a7 2a960d9][MTHRD2688]NotifyApplicationPreAbilityCreate
-I     [a92ab13a1ba591b 13eb9a7 2a960d9][JAS193]LoadModule
-W     [a92ab13a1ba591b 13eb9a7 2a960d9][JAS966]null stage
-W     [a92ab13a1ba591b 13eb9a7 2a960d9][JAS236]Not found AbilityStage.js
-I     [a92ab13a1ba591b 13eb9a7 2a960d9][OH_APP424]OnAboutToCreateAbility
-W     [a92ab13a1ba591b 13eb9a7 2a960d9][JAS331]Not found AbilityStage.js
-I     [a92ab13a1ba591b 13eb9a7 2a960d9][ecmascript] start to execute module buffer with secure memory: /data/storage/el1/bundle/entry_test/ets/testability/TestAbility.abc
-W     [a92ab13a1ba591b 13eb9a7 2a960d9][NMM:1289] Name mismatch: ai.ocr.textRecognition != ai.ocr.textrecognition
-I     [a92ab13a1ba591b 13eb9a7 2a960d9][(TextRecognitionExport)]init TextRecognitionExport start.
-I     [a92ab13a1ba591b 13eb9a7 2a960d9][(TextRecognitionExport)]init text detect js success.
-I     [a92ab13a1ba591b 13eb9a7 2a960d9][JSENV299]timing: 83
-I     [a92ab13a1ba591b 13eb9a7 2a960d9]Callee constructor is OK string
-I     [a92ab13a1ba591b 13eb9a7 2a960d9]Ability::constructor callee is object [object Object]
-I     [a92ab13a1ba591b 13eb9a7 2a960d9][ui_ability_thread.cpp173]Lifecycle:Attach
-I     [a92ab13a1ba591b 32b4afb 195834b][MTHRD2864]called
-I     [a92ab13a1ba591b 32b4afb 195834b][gc] app is not inBackground
-I     [a92ab13a1ba591b 6f2321 137053b][ui_ability_thread.cpp321]name:TestAbility,targeState:5,isNewWant:0
-I     [a92ab13a1ba591b 3c673f8 6f2321][ui_ability_thread.cpp240]Lifecycle:name TestAbility
-I     [a92ab13a1ba591b 3c673f8 6f2321]AddDisplayIdFromAms: abilityToken and display[0] has been added.
-W     [a92ab13a1ba591b 3c673f8 6f2321]RegisterClientDeathListener: regis reverse death
-I     [a92ab13a1ba591b 3c673f8 6f2321]RegisterClientDeathListener: ENTER
-I     [a92ab13a1ba591b 3c673f8 6f2321][JUA2036]JsUIAbility call js, name: onCreate
-I     [a92ab13a1ba591b 3c673f8 6f2321]TestAbility onCreate
-I     [a92ab13a1ba591b 3c673f8 6f2321]want param:{"deviceId":"","bundleName":"com.ddabb.toolbox","abilityName":"TestAbility","moduleName":"entry_test","uri":"","type":"","flags":0,"action":"","parameters":{"component.startup.newRules":true,"isCallBySCB":false,"isShellCall":true,"moduleName":"entry_test","ohos.aafwk.param.callerAbilityName":"","ohos.aafwk.param.callerBundleName":"","ohos.aafwk.param.callerNativeName":"_hdcd","ohos.aafwk.param.callerPid":55668,"ohos.aafwk.param.callerToken":805761148,"ohos.aafwk.param.callerUid":2000,"ohos.aafwk.param.displayId":0,"ohos.dlp.params.sandbox":false,"ohos.param.callerAppCloneIndex":0},"fds":{},"entities":[]}
-I     [a92ab13a1ba591b 3c673f8 6f2321]launchParam:{"launchReason":1,"launchReasonMessage":"","lastExitReason":2,"lastExitMessage":"","lastExitDetailInfo":{"pid":-1,"processName":"","uid":-1,"exitSubReason":-1,"exitMsg":"","rss":0,"pss":0,"processState":0,"timestamp":0},"launchUptime":166841516,"launchUTCTime":1787902491711}
-I     [a92ab13a1ba591b 3c673f8 6f2321][js_ability_delegator_registry.cpp76]called
-I     [a92ab13a1ba591b 3c673f8 6f2321][js_ability_delegator_utils.cpp94]called
-I     [a92ab13a1ba591b 3c673f8 6f2321][js_ability_delegator_utils.cpp74]called
-I     [a92ab13a1ba591b 3c673f8 6f2321]start run testcase!!!
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]parameters:{"class":"SudokuOCR_pipeline_full#pipeline_01_standard_544","timeout":"120000"}
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter params:0
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter suite : ActsAbilityTest
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]stress length : 1
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter it :pipeline_02_small_300
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter it :pipeline_03_large_800
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter it :pipeline_04_blue_numbers
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter it :pipeline_05_red_theme
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter it :pipeline_06_green_theme
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter it :pipeline_07_light_gray_numbers
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter it :pipeline_08_gray_bg_dark_numbers
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter it :pipeline_09_serif_font
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter it :pipeline_10_italic_font
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter it :pipeline_11_thin_font
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter it :pipeline_12_all_thin_lines
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter it :pipeline_13_no_outer_border
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter it :pipeline_15_huge_1000
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter it :pipeline_16_dark_bg_light_numbers
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter it :pipeline_17_pure_black_white
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter it :pipeline_18_small_font_in_cell
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter it :pipeline_19_large_font_in_cell
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter it :pipeline_20_dashed_lines
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter it :pipeline_21_thick_all_lines
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter it :pipeline_22_yellow_highlight
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter it :pipeline_23_orange_numbers
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter it :pipeline_24_medium_gray_numbers
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter it :pipeline_25_very_faint_numbers
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter it :pipeline_26_mono_font
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter it :pipeline_27_cursive_font
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter it :pipeline_28_medium_400
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter it :pipeline_29_wide_padding
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter it :pipeline_30_no_padding
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter it :pipeline_31_puzzle2_standard
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter it :pipeline_32_puzzle2_tiny
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter it :pipeline_33_puzzle3_hard
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter it :pipeline_photos
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter suite : SudokuOCR_parseOCRToGrid
-I     [a92ab13a1ba591b 3c673f8 6f2321][Hypium]filter suite : SudokuOCR_pipeline_solve
-I     [a92ab13a1ba591b 3c673f8 6f2321][JUA2081]end, name: onCreate, time: 3
-I     [a92ab13a1ba591b 3c673f8 6f2321][ability_delegator.cpp372]called
-I     [a92ab13a1ba591b 3c673f8 6f2321][ability_delegator.cpp611]Enter
-W     [a92ab13a1ba591b 3c673f8 6f2321][ability_delegator.cpp619]ability property : name : TestAbility, state : 5
-I     [a92ab13a1ba591b 3c673f8 6f2321][ability_delegator.cpp652]Enter
-I     [a92ab13a1ba591b 3c673f8 6f2321][iability_monitor.cpp58]ability name : TestAbility, isNotify : true
-I     [a92ab13a1ba591b 3c673f8 6f2321][iability_monitor.cpp61]notify ability matched
-I     [a92ab13a1ba591b 3c673f8 6f2321][ability_monitor.cpp37]called
-I     [a92ab13a1ba591b 3c673f8 6f2321]onAbilityCreateCallback, data: ${}
-E     [a92ab13a1ba591b 3c673f8 6f2321][ui_ability_impl.cpp314]hasSaveData_: false
-W     [a92ab13a1ba591b 3c673f8 6f2321][JUA1223]formatRegex: []
-I     [a92ab13a1ba591b 3c673f8 6f2321]Init: WindowScene with window session!
-I     [a92ab13a1ba591b 3c673f8 6f2321]Init: set isModuleAbilityHookEnd
-I     [a92ab13a1ba591b 3c673f8 6f2321]RS multi-instance enabled: 1
-I     [a92ab13a1ba591b 3c673f8 6f2321]multi-instance, create RSUIContextManager, isMultiInstanceOpen_ 1
-I     Add watcher keyPrefix persist.sys.graphic.animationscale remoteWatcherId 4435 success
-I     [a92ab13a1ba591b 3c673f8 6f2321]InitRSUIDirector: Create RSUIDirector: RSUIDirector's RSUIContext [token: 237893943558145, tid: 55389], rsUIContext: RSUIContext is null
-W     [a92ab13a1ba591b 3c673f8 6f2321]redo Connect
-I     [a92ab13a1ba591b 3c673f8 6f2321]Start to ConnectService
-I     [a92ab13a1ba591b 3c673f8 6f2321]GetSystemAbilityManager success
-I     [a92ab13a1ba591b 3c673f8 6f2321]GetSystemAbility success
-I     [a92ab13a1ba591b 3c673f8 6f2321]RSLogManager init log flag: 0x0(0)
-I     [a92ab13a1ba591b 3c673f8 6f2321]RSFrameRateLinker::Create id: 237893943558144
-I     [a92ab13a1ba591b 3c673f8 6f2321]VsyncStation: id 237893943558146 created
-I     [a92ab13a1ba591b 3c673f8 6f2321]WindowSceneSessionImpl: [WMSCom] Constructor toolbox0
-E     [a92ab13a1ba591b 3c673f8 6f2321]SetWindowType: permission denied!
-I     [a92ab13a1ba591b 3c673f8 6f2321]Create: Window Create name:toolbox0, state:0, mode:0
-I     [a92ab13a1ba591b 3c673f8 6f2321]Create: SetIsAbilityHookOff 0
-W     [a92ab13a1ba591b 3c673f8 6f2321]IsWindowSessionInvalid: already destroyed or not created! id: 0 state_: 0
-W     [a92ab13a1ba591b 3c673f8 6f2321]AdjustWindowAnimationFlag: session invalid!
-I     [a92ab13a1ba591b 3c673f8 6f2321]Remove window flag WINDOW_FLAG_SHOW_WHEN_LOCKED
-I     [a92ab13a1ba591b 3c673f8 6f2321]Connect: in
-I     [a92ab13a1ba591b 1cbd7cb cb2201]NotifyAppHookWindowInfoUpdated: in
-I     [a92ab13a1ba591b 1cbd7cb cb2201]SetAppHookWindowInfo: Id:0, preHookWindowInfo:[enableHookWindow: false, widthHookRatio: 1.000000, notifyWindowChange: false], newHookWindowInfo:[enableHookWindow: false, widthHookRatio: 1.000000, notifyWindowChange: false]
-I     [a92ab13a1ba591b 3e85666 cb2201]UpdateRect: id:0 name:toolbox0 rect:[0 0 0 0]->[0 0 1260 2720] reason:0 displayId:0
-I     [a92ab13a1ba591b 3e85666 cb2201]NotifyFirstValidLayoutUpdate: Id:0, rect:[0 0 1260 2720]
-W     [a92ab13a1ba591b 311affb cb2201]NotifySingleHandTransformChange: id:0, uiContent is nullptr
-I     [a92ab13a1ba591b 3c673f8 6f2321]Connect: updateRect when connect.preRect:[0,0,1260,2720]rect:[0,0,1260,2720]
-W     ThreadHandler: proto:0 policy:0 name:OS_IPC_2_55730 invoker:2442259968
-I     [a92ab13a1ba591b 3c673f8 6f2321]Connect: Window Connect [name:toolbox0, id:353, type:1], ret:0, oriDisplayId:0, curDisplayId:0
-I     [a92ab13a1ba591b 3c673f8 6f2321]SendCombinedCompatibleConfigToArkUI: bundleName: com.ddabb.toolbox, combinedCompatibleConfig size: 2
-I     [a92ab13a1ba591b 3c673f8 6f2321]SendCombinedCompatibleConfigToArkUI: bundleName:com.ddabb.toolbox, logicalDeviceConfig size:2, arkUIAndWebConfig size:58
-I     [a92ab13a1ba591b 3c673f8 6f2321][201]get angle info: {}
-I     [a92ab13a1ba591b 3c673f8 6f2321]SendCombinedCompatibleConfigToArkUI: Send null logical device config to arkui
-I     [a92ab13a1ba591b 3c673f8 6f2321]SendCombinedCompatibleConfigToArkUI: Send combined compatible config to arkui successfully!
-I     [a92ab13a1ba591b 3c673f8 6f2321]SetWindowMode: windowId: 353, windowModeSupportType: 63, mode: 1
-I     [a92ab13a1ba591b 3c673f8 6f2321]NotifyWindowStatusChange: id:353, windowMode:1, windowStatus:1, lastWindowStatus:0, skipRedundantWindowStatusNotifications:0
-I     [a92ab13a1ba591b 3c673f8 6f2321]SetConfigWindowLimitsVP: id:353, windowLimits:[0 0 0 0 0.000000 0.000000 1.000000 1]
-I     [a92ab13a1ba591b 3c673f8 6f2321]GetSystemSizeLimits: px[6240,6240,1040,780], vp[1920,1920,320,240], configMax:1920, vpr:3.250000, winType:1
-I     [a92ab13a1ba591b 3c673f8 6f2321]GetSupportedWindowModesConfiguration: winId: 353, windowModeSupportType: 15
-I     [a92ab13a1ba591b 3c673f8 6f2321]SetSupportedWindowModesForAncoInFreeWindow: is not anco app, need not update support window mode.
-I     [a92ab13a1ba591b 3c673f8 6f2321]GetConfigurationFromAbilityInfo: windowId: 353, windowModeSupportType: 15, isAncoSupportFreeWindow: 0
-I     [a92ab13a1ba591b 3c673f8 6f2321]RegisterSessionRecoverCallbackFunc: persistentId=353
-I     [a92ab13a1ba591b 3c673f8 6f2321]UpdateStatusBarColorByColorMode: win 353 type 1 hasDarkRes 1 colorMode dark
-I     [a92ab13a1ba591b 3c673f8 6f2321]IsMainHandlerAvailable: id:353, isAvailable:1
-I     [a92ab13a1ba591b 3c673f8 6f2321]IsMainHandlerAvailable: id:353, isAvailable:1
-I     [a92ab13a1ba591b 3c673f8 6f2321][][SetWindowInputEventConsumer:366] enter
-I     [a92ab13a1ba591b 3c673f8 6f2321][|267]Connection to server succeeded, fd:34
-I     [a92ab13a1ba591b 3c673f8 6f2321][|166]Server was listening
-I     [a92ab13a1ba591b 3c673f8 6f2321][|127]reuse current event handler, thread name:
-I     [a92ab13a1ba591b 3c673f8 6f2321][|130]File fd is in listening
-I     [a92ab13a1ba591b 3c673f8 6f2321][][SetWindowInputEventConsumer] leave
-I     [a92ab13a1ba591b 3c673f8 6f2321]AddInputWindow: SetWindowInputEventConsumer success, wid:353
-I     [a92ab13a1ba591b 3c673f8 6f2321]LoadGameController: in
-I     [a92ab13a1ba591b 3c673f8 6f2321][(RegisterEntryModule:24)]begin load gamecontroller_event
-I     [a92ab13a1ba591b 3c673f8 6f2321][(StartInputToTouch:61)]Begin StartInputToTouch
-I     [a92ab13a1ba591b 3c673f8 6f2321]LoadGameController: dlopen GameController success
-I     [a92ab13a1ba591b 3c673f8 6f2321]SubscribeEvent: Subscribe touch.events.touchpredict Event
+I     [a92ab1c541dce76 36dd32d 3e00865][MTHRD2864]called
+I     [a92ab1c541dce76 36dd32d 3e00865][gc] app is not inBackground
+I     [a92ab1c541dce76 35cc7bd 106e5af][ui_ability_thread.cpp321]name:TestAbility,targeState:5,isNewWant:0
+I     [a92ab1c541dce76 119cc6f 35cc7bd][ui_ability_thread.cpp240]Lifecycle:name TestAbility
+I     [a92ab1c541dce76 119cc6f 35cc7bd]AddDisplayIdFromAms: abilityToken and display[0] has been added.
+W     [a92ab1c541dce76 119cc6f 35cc7bd]RegisterClientDeathListener: regis reverse death
+I     [a92ab1c541dce76 119cc6f 35cc7bd]RegisterClientDeathListener: ENTER
+I     [a92ab1c541dce76 119cc6f 35cc7bd][JUA2036]JsUIAbility call js, name: onCreate
+I     [a92ab1c541dce76 119cc6f 35cc7bd]TestAbility onCreate
+I     [a92ab1c541dce76 119cc6f 35cc7bd]want param:{"deviceId":"","bundleName":"com.ddabb.toolbox","abilityName":"TestAbility","moduleName":"entry_test","uri":"","type":"","flags":0,"action":"","parameters":{"component.startup.newRules":true,"isCallBySCB":false,"isShellCall":true,"moduleName":"entry_test","ohos.aafwk.param.callerAbilityName":"","ohos.aafwk.param.callerBundleName":"","ohos.aafwk.param.callerNativeName":"_hdcd","ohos.aafwk.param.callerPid":59329,"ohos.aafwk.param.callerToken":805761148,"ohos.aafwk.param.callerUid":2000,"ohos.aafwk.param.displayId":0,"ohos.dlp.params.sandbox":false,"ohos.param.callerAppCloneIndex":0},"fds":{},"entities":[]}
+I     [a92ab1c541dce76 119cc6f 35cc7bd]launchParam:{"launchReason":1,"launchReasonMessage":"","lastExitReason":2,"lastExitMessage":"","lastExitDetailInfo":{"pid":-1,"processName":"","uid":-1,"exitSubReason":-1,"exitMsg":"","rss":0,"pss":0,"processState":0,"timestamp":0},"launchUptime":79974948,"launchUTCTime":1788265793947}
+I     [a92ab1c541dce76 119cc6f 35cc7bd][js_ability_delegator_registry.cpp76]called
+I     [a92ab1c541dce76 119cc6f 35cc7bd][js_ability_delegator_utils.cpp94]called
+I     [a92ab1c541dce76 119cc6f 35cc7bd][js_ability_delegator_utils.cpp74]called
+I     [a92ab1c541dce76 119cc6f 35cc7bd]start run testcase!!!
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]parameters:{"class":"SudokuOCR_pipeline_full#pipeline_01_standard_544","timeout":"120000"}
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter params:0
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter suite : ActsAbilityTest
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]stress length : 1
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter it :pipeline_02_small_300
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter it :pipeline_03_large_800
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter it :pipeline_04_blue_numbers
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter it :pipeline_05_red_theme
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter it :pipeline_06_green_theme
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter it :pipeline_07_light_gray_numbers
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter it :pipeline_08_gray_bg_dark_numbers
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter it :pipeline_09_serif_font
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter it :pipeline_10_italic_font
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter it :pipeline_11_thin_font
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter it :pipeline_12_all_thin_lines
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter it :pipeline_13_no_outer_border
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter it :pipeline_15_huge_1000
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter it :pipeline_16_dark_bg_light_numbers
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter it :pipeline_17_pure_black_white
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter it :pipeline_18_small_font_in_cell
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter it :pipeline_19_large_font_in_cell
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter it :pipeline_20_dashed_lines
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter it :pipeline_21_thick_all_lines
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter it :pipeline_22_yellow_highlight
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter it :pipeline_23_orange_numbers
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter it :pipeline_24_medium_gray_numbers
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter it :pipeline_25_very_faint_numbers
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter it :pipeline_26_mono_font
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter it :pipeline_27_cursive_font
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter it :pipeline_28_medium_400
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter it :pipeline_29_wide_padding
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter it :pipeline_30_no_padding
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter it :pipeline_31_puzzle2_standard
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter it :pipeline_32_puzzle2_tiny
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter it :pipeline_33_puzzle3_hard
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter it :pipeline_photos
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter suite : SudokuOCR_parseOCRToGrid
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Hypium]filter suite : SudokuOCR_pipeline_solve
+I     [a92ab1c541dce76 119cc6f 35cc7bd][JUA2081]end, name: onCreate, time: 5
+I     [a92ab1c541dce76 119cc6f 35cc7bd][ability_delegator.cpp372]called
+I     [a92ab1c541dce76 119cc6f 35cc7bd][ability_delegator.cpp611]Enter
+W     [a92ab1c541dce76 119cc6f 35cc7bd][ability_delegator.cpp619]ability property : name : TestAbility, state : 5
+I     [a92ab1c541dce76 119cc6f 35cc7bd][ability_delegator.cpp652]Enter
+I     [a92ab1c541dce76 119cc6f 35cc7bd][iability_monitor.cpp58]ability name : TestAbility, isNotify : true
+I     [a92ab1c541dce76 119cc6f 35cc7bd][iability_monitor.cpp61]notify ability matched
+I     [a92ab1c541dce76 119cc6f 35cc7bd][ability_monitor.cpp37]called
+I     [a92ab1c541dce76 119cc6f 35cc7bd]onAbilityCreateCallback, data: ${}
+E     [a92ab1c541dce76 119cc6f 35cc7bd][ui_ability_impl.cpp314]hasSaveData_: false
+W     [a92ab1c541dce76 119cc6f 35cc7bd][JUA1223]formatRegex: []
+I     [a92ab1c541dce76 119cc6f 35cc7bd]Init: WindowScene with window session!
+I     [a92ab1c541dce76 119cc6f 35cc7bd]Init: set isModuleAbilityHookEnd
+I     [a92ab1c541dce76 119cc6f 35cc7bd]RS multi-instance enabled: 1
+I     [a92ab1c541dce76 119cc6f 35cc7bd]multi-instance, create RSUIContextManager, isMultiInstanceOpen_ 1
+I     Add watcher keyPrefix persist.sys.graphic.animationscale remoteWatcherId 1920 success
+I     [a92ab1c541dce76 119cc6f 35cc7bd]InitRSUIDirector: Create RSUIDirector: RSUIDirector's RSUIContext [token: 253922761506817, tid: 59121], rsUIContext: RSUIContext is null
+W     [a92ab1c541dce76 119cc6f 35cc7bd]redo Connect
+I     [a92ab1c541dce76 119cc6f 35cc7bd]Start to ConnectService
+I     [a92ab1c541dce76 119cc6f 35cc7bd]GetSystemAbilityManager success
+I     [a92ab1c541dce76 119cc6f 35cc7bd]GetSystemAbility success
+I     [a92ab1c541dce76 119cc6f 35cc7bd]RSLogManager init log flag: 0x0(0)
+I     [a92ab1c541dce76 119cc6f 35cc7bd]RSFrameRateLinker::Create id: 253922761506816
+I     [a92ab1c541dce76 119cc6f 35cc7bd]VsyncStation: id 253922761506818 created
+I     [a92ab1c541dce76 119cc6f 35cc7bd]WindowSceneSessionImpl: [WMSCom] Constructor toolbox0
+E     [a92ab1c541dce76 119cc6f 35cc7bd]SetWindowType: permission denied!
+I     [a92ab1c541dce76 119cc6f 35cc7bd]Create: Window Create name:toolbox0, state:0, mode:0
+I     [a92ab1c541dce76 119cc6f 35cc7bd]Create: SetIsAbilityHookOff 0
+W     [a92ab1c541dce76 119cc6f 35cc7bd]IsWindowSessionInvalid: already destroyed or not created! id: 0 state_: 0
+W     [a92ab1c541dce76 119cc6f 35cc7bd]AdjustWindowAnimationFlag: session invalid!
+I     [a92ab1c541dce76 119cc6f 35cc7bd]Remove window flag WINDOW_FLAG_SHOW_WHEN_LOCKED
+I     [a92ab1c541dce76 119cc6f 35cc7bd]Connect: in
+I     [a92ab1c541dce76 314ee5c 1b9e443]NotifyAppHookWindowInfoUpdated: in
+I     [a92ab1c541dce76 314ee5c 1b9e443]SetAppHookWindowInfo: Id:0, preHookWindowInfo:[enableHookWindow: false, widthHookRatio: 1.000000, notifyWindowChange: false], newHookWindowInfo:[enableHookWindow: false, widthHookRatio: 1.000000, notifyWindowChange: false]
+I     [a92ab1c541dce76 119cc6f 35cc7bd]Connect: updateRect when connect.preRect:[0,0,0,0]rect:[0,0,1260,2720]
+W     ThreadHandler: proto:0 policy:0 name:OS_IPC_2_59374 invoker:1507536640
+I     [a92ab1c541dce76 144b51d 1b9e443]UpdateRect: id:162 name:toolbox0 rect:[0 0 1260 2720]->[0 0 1260 2720] reason:0 displayId:0
+I     [a92ab1c541dce76 144b51d 1b9e443]NotifyFirstValidLayoutUpdate: Id:162, rect:[0 0 1260 2720]
+W     [a92ab1c541dce76 203814a 1b9e443]NotifySingleHandTransformChange: id:162, uiContent is nullptr
+I     [a92ab1c541dce76 119cc6f 35cc7bd]Connect: Window Connect [name:toolbox0, id:162, type:1], ret:0, oriDisplayId:0, curDisplayId:0
+I     [a92ab1c541dce76 119cc6f 35cc7bd]SendCombinedCompatibleConfigToArkUI: bundleName: com.ddabb.toolbox, combinedCompatibleConfig size: 2
+I     [a92ab1c541dce76 119cc6f 35cc7bd]SendCombinedCompatibleConfigToArkUI: bundleName:com.ddabb.toolbox, logicalDeviceConfig size:2, arkUIAndWebConfig size:58
+I     [a92ab1c541dce76 119cc6f 35cc7bd][201]get angle info: {}
+I     [a92ab1c541dce76 119cc6f 35cc7bd]SendCombinedCompatibleConfigToArkUI: Send null logical device config to arkui
+I     [a92ab1c541dce76 119cc6f 35cc7bd]SendCombinedCompatibleConfigToArkUI: Send combined compatible config to arkui successfully!
+I     [a92ab1c541dce76 119cc6f 35cc7bd]SetWindowMode: windowId: 162, windowModeSupportType: 63, mode: 1
+I     [a92ab1c541dce76 119cc6f 35cc7bd]NotifyWindowStatusChange: id:162, windowMode:1, windowStatus:1, lastWindowStatus:0, skipRedundantWindowStatusNotifications:0
+I     [a92ab1c541dce76 119cc6f 35cc7bd]SetConfigWindowLimitsVP: id:162, windowLimits:[0 0 0 0 0.000000 0.000000 1.000000 1]
+I     [a92ab1c541dce76 119cc6f 35cc7bd]GetSystemSizeLimits: px[6240,6240,1040,780], vp[1920,1920,320,240], configMax:1920, vpr:3.250000, winType:1
+I     [a92ab1c541dce76 119cc6f 35cc7bd]GetSupportedWindowModesConfiguration: winId: 162, windowModeSupportType: 15
+I     [a92ab1c541dce76 119cc6f 35cc7bd]SetSupportedWindowModesForAncoInFreeWindow: is not anco app, need not update support window mode.
+I     [a92ab1c541dce76 119cc6f 35cc7bd]GetConfigurationFromAbilityInfo: windowId: 162, windowModeSupportType: 15, isAncoSupportFreeWindow: 0
+I     [a92ab1c541dce76 119cc6f 35cc7bd]RegisterSessionRecoverCallbackFunc: persistentId=162
+I     [a92ab1c541dce76 119cc6f 35cc7bd]UpdateStatusBarColorByColorMode: win 162 type 1 hasDarkRes 1 colorMode light
+I     [a92ab1c541dce76 119cc6f 35cc7bd]IsMainHandlerAvailable: id:162, isAvailable:1
+I     [a92ab1c541dce76 119cc6f 35cc7bd]IsMainHandlerAvailable: id:162, isAvailable:1
+I     [a92ab1c541dce76 119cc6f 35cc7bd][][SetWindowInputEventConsumer:366] enter
+I     [a92ab1c541dce76 119cc6f 35cc7bd][|267]Connection to server succeeded, fd:34
+I     [a92ab1c541dce76 119cc6f 35cc7bd][|166]Server was listening
+I     [a92ab1c541dce76 119cc6f 35cc7bd][|127]reuse current event handler, thread name:
+I     [a92ab1c541dce76 119cc6f 35cc7bd][|130]File fd is in listening
+I     [a92ab1c541dce76 119cc6f 35cc7bd][][SetWindowInputEventConsumer] leave
+I     [a92ab1c541dce76 119cc6f 35cc7bd]AddInputWindow: SetWindowInputEventConsumer success, wid:162
+I     [a92ab1c541dce76 119cc6f 35cc7bd]LoadGameController: in
+I     [a92ab1c541dce76 119cc6f 35cc7bd][(RegisterEntryModule:24)]begin load gamecontroller_event
+I     [a92ab1c541dce76 119cc6f 35cc7bd][(StartInputToTouch:61)]Begin StartInputToTouch
+I     [a92ab1c541dce76 119cc6f 35cc7bd]LoadGameController: dlopen GameController success
 I     [(GetSelfBundleName:49)]The current bundleName [com.ddabb.toolbox]. version [1.0.4]
+I     [a92ab1c541dce76 119cc6f 35cc7bd]SubscribeEvent: Subscribe touch.events.touchpredict Event
 I     [(IsCommonApp:94)]The [com.ddabb.toolbox] is a common app.
 W     [(ReadJsonFromFile:224)]realpath failed for [/data/service/el1/public/for-all-app/gamecontroller_server/game_support_key_mapping.json]
 I     [(SetSupportKeyMapping:73)]SetSupportKeyMapping. isSupportKeyMapping_ is [0]
 I     [(DoAsyncTask:76)]The app does not support input-to-touch feature.
-I     [a92ab13a1ba591b 3c673f8 6f2321]ConnectServer: start connect
-I     [a92ab13a1ba591b 3c673f8 6f2321]ConnectServer: end connect
-W     [a92ab13a1ba591b 3c673f8 6f2321]RegisterGetWMSWindowListCallback: callback has registered
-I     [a92ab13a1ba591b 3c673f8 6f2321]RegisterGetWMSWindowListCallback: winId: 353
-I     [a92ab13a1ba591b 3c673f8 6f2321]UpdateColorMode: winId: 353, colorMode: dark
-I     [a92ab13a1ba591b 3c673f8 6f2321]UpdateSidebarBlurStyleWhenColorModeChange: in, persistentId=353
-W     [a92ab13a1ba591b 3c673f8 6f2321]UpdateSidebarBlurStyleWhenColorModeChange: RSAnimatableProperty is null
-I     [a92ab13a1ba591b 3c673f8 6f2321]UpdateColorMode: winId: 353, colorMode: dark, hasDarkRes: 1
-I     [a92ab13a1ba591b 3c673f8 6f2321]SetPcAppInpadSpecificSystemBarInvisible: isPcAppInpadSpecificSystemBarInvisible: 0
-I     [a92ab13a1ba591b 3c673f8 6f2321]SetPcAppInpadOrientationLandscape: isPcAppInpadOrientationLandscape: 0
-I     [a92ab13a1ba591b 3c673f8 6f2321]Create: Window Create success [name:toolbox0, id:353], state:1, mode:1, enableDefaultDensity:0, displayId:0
-E     [a92ab13a1ba591b 3c673f8 6f2321]singleton_container.cpp GetSingleton: cant get OHOS::Rosen::WindowInfoReporter
-I     [a92ab13a1ba591b 3c673f8 6f2321][JUA2036]JsUIAbility call js, name: onWindowStageCreate
-I     [a92ab13a1ba591b 3c673f8 6f2321]TestAbility onWindowStageCreate
-I     [a92ab13a1ba591b 3c673f8 6f2321]LoadContent: [NAPI]
-I     [a92ab13a1ba591b 3c673f8 6f2321][JUA2081]end, name: onWindowStageCreate, time: 0
-I     [a92ab13a1ba591b 3c673f8 6f2321]NotifyWindowStageCreateFinished: id: 353
-I     [a92ab13a1ba591b 3c673f8 6f2321][ability_delegator.cpp421]called
-I     [a92ab13a1ba591b 3c673f8 6f2321][ability_delegator.cpp611]Enter
-W     [a92ab13a1ba591b 3c673f8 6f2321][ability_delegator.cpp619]ability property : name : TestAbility, state : 5
-I     [a92ab13a1ba591b 3c673f8 6f2321][ability_delegator.cpp652]Enter
-I     [a92ab13a1ba591b 3c673f8 6f2321][iability_monitor.cpp58]ability name : TestAbility, isNotify : true
-I     [a92ab13a1ba591b 3c673f8 6f2321][iability_monitor.cpp61]notify ability matched
-I     [a92ab13a1ba591b 3c673f8 6f2321][ability_monitor.cpp114]called
-I     [a92ab13a1ba591b 3c673f8 6f2321][JUA2036]JsUIAbility call js, name: onWillForeground
-I     [a92ab13a1ba591b 3c673f8 6f2321][JUA2081]end, name: onWillForeground, time: 0
-I     [a92ab13a1ba591b 3c673f8 6f2321]GoForeground: reason: 4
-I     [a92ab13a1ba591b 3c673f8 6f2321]Show: Window show [name: toolbox0, id: 353, type: 1], reason: 4, state:1, requestState:1
-I     [a92ab13a1ba591b 3c673f8 6f2321]GetSystemSizeLimits: px[6240,6240,1040,780], vp[1920,1920,320,240], configMax:1920, vpr:3.250000, winType:1
-I     [a92ab13a1ba591b 3c673f8 6f2321]UpdateNewSize: fullscreen or compatible mode could not update new size, Id: 353
-I     [a92ab13a1ba591b 3c673f8 6f2321]IsSystemDensityChanged: windowId: 353, lastDensity: -1.000000, currDensity: 3.250000
-W     [a92ab13a1ba591b 3c673f8 6f2321]UpdateViewportConfig: uiContent is null!
-I     [a92ab13a1ba591b 3c673f8 6f2321][ui_ability_impl.cpp439]wnd call, AfterForeground
-W     [a92ab13a1ba591b 3c673f8 6f2321]GetAttachStateSyncResult: lifecycleCallback is null
-I     [a92ab13a1ba591b 3c673f8 6f2321]RSFrameRateLinker::Create id: 237893943558145
-I     [a92ab13a1ba591b 3c673f8 6f2321]RsFrameReportExt:[LoadLibrary] load library success!
-I     [a92ab13a1ba591b 3c673f8 6f2321]RsFrameReportExt:[Init] dlopen libframe_ui_intf.so success!
-I     [a92ab13a1ba591b 3ae8aa1 ea3a54]UpdateFocusState: focus: 1, id: 353
-I     [a92ab13a1ba591b 3c673f8 6f2321][Init]:ret:1, inited:1
-I     [a92ab13a1ba591b 3c673f8 6f2321]InitWaterfallMode: winId: 353
-I     [a92ab13a1ba591b 3c673f8 6f2321]NotifyWaterfallModeChange: winId: 353, waterfall: 0, stat: 2
-I     [a92ab13a1ba591b 3c673f8 6f2321]NotifyAfterDidForeground: reason: 4
-I     [a92ab13a1ba591b 3c673f8 6f2321]NotifyFreeMultiWindowModeResume: IsPcMode 0, isColdStart 1
-I     [a92ab13a1ba591b 3c673f8 6f2321]Show: Window show success [name:toolbox0, id:353, type:1]
-I     [a92ab13a1ba591b 3c673f8 6f2321]NotifyWindowStatusChange: id:353, windowMode:1, windowStatus:1, lastWindowStatus:1, skipRedundantWindowStatusNotifications:0
-W     [a92ab13a1ba591b 3c673f8 6f2321]OnDisplayInfoChange: data is not changed.
-I     [a92ab13a1ba591b 41f161 ea3a54]NotifyHighlightChange: windowId: 353, isHighlight: 1,
-I     [a92ab13a1ba591b 3c673f8 6f2321][JUA2036]JsUIAbility call js, name: onForeground
-I     [a92ab13a1ba591b 3c673f8 6f2321]TestAbility onForeground
-I     [a92ab13a1ba591b 3c673f8 6f2321][JUA2081]end, name: onForeground, time: 0
-I     [a92ab13a1ba591b 3c673f8 6f2321][ability_delegator.cpp502]called
-I     [a92ab13a1ba591b 3c673f8 6f2321][ability_delegator.cpp611]Enter
-W     [a92ab13a1ba591b 3c673f8 6f2321][ability_delegator.cpp619]ability property : name : TestAbility, state : 6
-I     [a92ab13a1ba591b 3c673f8 6f2321][ability_delegator.cpp652]Enter
-I     [a92ab13a1ba591b 3c673f8 6f2321][iability_monitor.cpp58]ability name : TestAbility, isNotify : true
-I     [a92ab13a1ba591b 3c673f8 6f2321][iability_monitor.cpp61]notify ability matched
-I     [a92ab13a1ba591b 3c673f8 6f2321][ability_monitor.cpp56]called
-I     [a92ab13a1ba591b 3c673f8 6f2321][page_config_manager.cpp49]configJson is empty
-I     [a92ab13a1ba591b 3763136 3c673f8]NotifyAfterDidForeground execute
-I     [a92ab13a1ba591b 3763136 3c673f8][JUA2036]JsUIAbility call js, name: onDidForeground
-I     [a92ab13a1ba591b 3763136 3c673f8][JUA2081]end, name: onDidForeground, time: 0
-I     [a92ab13a1ba591b 3763136 3c673f8]GoResume: in
-I     [a92ab13a1ba591b 3763136 3c673f8]Resume: in, isColdStart: 1, isDidForeground: 0
-I     [a92ab13a1ba591b 3763136 3c673f8]NotifyAfterLifecycleResumed: in
-I     [a92ab13a1ba591b 3a28a9b 3c673f8]SetUIContentInner: testability/pages/Index, state:2, persistentId: 353
-I     [a92ab13a1ba591b 3a28a9b 3c673f8]SetUIContentComplete: persistentId=353
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(-1:-1:undefined)] CreateUIContent.
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(-1:-1:undefined)] report ace loaded
-I     [a92ab13a1ba591b 3a28a9b 3c673f8]OnAceLoaded end
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(-2:-1:undefined)] Init RenderService UniRender Type:0
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(-2:-1:undefined)] [com.ddabb.toolbox][entry_test][-1]: UIContent: apiCompatibleVersion: 50100018, apiTargetVersion: 50100018, and apiReleaseType: Release, useNewPipe: 1, enableCustomComponentCrossAbility: 0
-I     Add watcher keyPrefix persist.sys.arkui.animationscale remoteWatcherId 4435 success
-E     [a92ab13a1ba591b 3a28a9b 3c673f8][(-2:-1:undefined)] ConfigParserBase read system UI correction config file failed
-W     [a92ab13a1ba591b 3a28a9b 3c673f8][(-2:-1:undefined)] ArkUiFeatureParamManager failed to load UI correction config file
+I     [a92ab1c541dce76 119cc6f 35cc7bd]ConnectServer: start connect
+I     [a92ab1c541dce76 119cc6f 35cc7bd]ConnectServer: end connect
+W     [a92ab1c541dce76 119cc6f 35cc7bd]RegisterGetWMSWindowListCallback: callback has registered
+I     [a92ab1c541dce76 119cc6f 35cc7bd]RegisterGetWMSWindowListCallback: winId: 162
+I     [a92ab1c541dce76 119cc6f 35cc7bd]UpdateColorMode: winId: 162, colorMode: light
+I     [a92ab1c541dce76 119cc6f 35cc7bd]UpdateSidebarBlurStyleWhenColorModeChange: in, persistentId=162
+W     [a92ab1c541dce76 119cc6f 35cc7bd]UpdateSidebarBlurStyleWhenColorModeChange: RSAnimatableProperty is null
+I     [a92ab1c541dce76 119cc6f 35cc7bd]UpdateColorMode: winId: 162, colorMode: light, hasDarkRes: 1
+I     [a92ab1c541dce76 119cc6f 35cc7bd]SetPcAppInpadSpecificSystemBarInvisible: isPcAppInpadSpecificSystemBarInvisible: 0
+I     [a92ab1c541dce76 119cc6f 35cc7bd]SetPcAppInpadOrientationLandscape: isPcAppInpadOrientationLandscape: 0
+I     [a92ab1c541dce76 119cc6f 35cc7bd]Create: Window Create success [name:toolbox0, id:162], state:1, mode:1, enableDefaultDensity:0, displayId:0
+E     [a92ab1c541dce76 119cc6f 35cc7bd]singleton_container.cpp GetSingleton: cant get OHOS::Rosen::WindowInfoReporter
+I     [a92ab1c541dce76 119cc6f 35cc7bd][JUA2036]JsUIAbility call js, name: onWindowStageCreate
+I     [a92ab1c541dce76 119cc6f 35cc7bd]TestAbility onWindowStageCreate
+I     [a92ab1c541dce76 119cc6f 35cc7bd]LoadContent: [NAPI]
+I     [a92ab1c541dce76 119cc6f 35cc7bd][JUA2081]end, name: onWindowStageCreate, time: 0
+I     [a92ab1c541dce76 119cc6f 35cc7bd]NotifyWindowStageCreateFinished: id: 162
+I     [a92ab1c541dce76 119cc6f 35cc7bd][ability_delegator.cpp421]called
+I     [a92ab1c541dce76 119cc6f 35cc7bd][ability_delegator.cpp611]Enter
+W     [a92ab1c541dce76 119cc6f 35cc7bd][ability_delegator.cpp619]ability property : name : TestAbility, state : 5
+I     [a92ab1c541dce76 119cc6f 35cc7bd][ability_delegator.cpp652]Enter
+I     [a92ab1c541dce76 119cc6f 35cc7bd][iability_monitor.cpp58]ability name : TestAbility, isNotify : true
+I     [a92ab1c541dce76 119cc6f 35cc7bd][iability_monitor.cpp61]notify ability matched
+I     [a92ab1c541dce76 119cc6f 35cc7bd][ability_monitor.cpp114]called
+I     [a92ab1c541dce76 119cc6f 35cc7bd][JUA2036]JsUIAbility call js, name: onWillForeground
+I     [a92ab1c541dce76 119cc6f 35cc7bd][JUA2081]end, name: onWillForeground, time: 0
+I     [a92ab1c541dce76 119cc6f 35cc7bd]GoForeground: reason: 4
+I     [a92ab1c541dce76 119cc6f 35cc7bd]Show: Window show [name: toolbox0, id: 162, type: 1], reason: 4, state:1, requestState:1
+I     [a92ab1c541dce76 119cc6f 35cc7bd]GetSystemSizeLimits: px[6240,6240,1040,780], vp[1920,1920,320,240], configMax:1920, vpr:3.250000, winType:1
+I     [a92ab1c541dce76 119cc6f 35cc7bd]UpdateNewSize: fullscreen or compatible mode could not update new size, Id: 162
+I     [a92ab1c541dce76 119cc6f 35cc7bd]IsSystemDensityChanged: windowId: 162, lastDensity: -1.000000, currDensity: 3.250000
+W     [a92ab1c541dce76 119cc6f 35cc7bd]UpdateViewportConfig: uiContent is null!
+I     [a92ab1c541dce76 119cc6f 35cc7bd][ui_ability_impl.cpp439]wnd call, AfterForeground
+W     [a92ab1c541dce76 119cc6f 35cc7bd]GetAttachStateSyncResult: lifecycleCallback is null
+I     [a92ab1c541dce76 119cc6f 35cc7bd]RSFrameRateLinker::Create id: 253922761506817
+I     [a92ab1c541dce76 119cc6f 35cc7bd]RsFrameReportExt:[LoadLibrary] load library success!
+I     [a92ab1c541dce76 119cc6f 35cc7bd]RsFrameReportExt:[Init] dlopen libframe_ui_intf.so success!
+I     [a92ab1c541dce76 2541079 30fea77]UpdateFocusState: focus: 1, id: 162
+I     [a92ab1c541dce76 119cc6f 35cc7bd][Init]:ret:1, inited:1
+I     [a92ab1c541dce76 119cc6f 35cc7bd]InitWaterfallMode: winId: 162
+I     [a92ab1c541dce76 119cc6f 35cc7bd]NotifyWaterfallModeChange: winId: 162, waterfall: 0, stat: 2
+I     [a92ab1c541dce76 119cc6f 35cc7bd]NotifyAfterDidForeground: reason: 4
+I     [a92ab1c541dce76 119cc6f 35cc7bd]NotifyFreeMultiWindowModeResume: IsPcMode 0, isColdStart 1
+I     [a92ab1c541dce76 119cc6f 35cc7bd]Show: Window show success [name:toolbox0, id:162, type:1]
+I     [a92ab1c541dce76 119cc6f 35cc7bd]NotifyWindowStatusChange: id:162, windowMode:1, windowStatus:1, lastWindowStatus:1, skipRedundantWindowStatusNotifications:0
+W     [a92ab1c541dce76 119cc6f 35cc7bd]OnDisplayInfoChange: data is not changed.
+I     [a92ab1c541dce76 119cc6f 35cc7bd][JUA2036]JsUIAbility call js, name: onForeground
+I     [a92ab1c541dce76 119cc6f 35cc7bd]TestAbility onForeground
+I     [a92ab1c541dce76 119cc6f 35cc7bd][JUA2081]end, name: onForeground, time: 0
+I     [a92ab1c541dce76 119cc6f 35cc7bd][ability_delegator.cpp502]called
+I     [a92ab1c541dce76 119cc6f 35cc7bd][ability_delegator.cpp611]Enter
+W     [a92ab1c541dce76 119cc6f 35cc7bd][ability_delegator.cpp619]ability property : name : TestAbility, state : 6
+I     [a92ab1c541dce76 119cc6f 35cc7bd][ability_delegator.cpp652]Enter
+I     [a92ab1c541dce76 119cc6f 35cc7bd][iability_monitor.cpp58]ability name : TestAbility, isNotify : true
+I     [a92ab1c541dce76 119cc6f 35cc7bd][iability_monitor.cpp61]notify ability matched
+I     [a92ab1c541dce76 119cc6f 35cc7bd][ability_monitor.cpp56]called
+I     [a92ab1c541dce76 119cc6f 35cc7bd][page_config_manager.cpp49]configJson is empty
+I     [a92ab1c541dce76 3395829 119cc6f]NotifyAfterDidForeground execute
+I     [a92ab1c541dce76 3395829 119cc6f][JUA2036]JsUIAbility call js, name: onDidForeground
+I     [a92ab1c541dce76 3395829 119cc6f][JUA2081]end, name: onDidForeground, time: 0
+I     [a92ab1c541dce76 3395829 119cc6f]GoResume: in
+I     [a92ab1c541dce76 3395829 119cc6f]Resume: in, isColdStart: 1, isDidForeground: 0
+I     [a92ab1c541dce76 3395829 119cc6f]NotifyAfterLifecycleResumed: in
+I     [a92ab1c541dce76 48387f 119cc6f]SetUIContentInner: testability/pages/Index, state:2, persistentId: 162
+I     [a92ab1c541dce76 48387f 119cc6f]SetUIContentComplete: persistentId=162
+I     [a92ab1c541dce76 48387f 119cc6f][(-1:-1:undefined)] CreateUIContent.
+I     [a92ab1c541dce76 48387f 119cc6f][(-1:-1:undefined)] report ace loaded
+I     [a92ab1c541dce76 48387f 119cc6f]OnAceLoaded end
+I     [a92ab1c541dce76 48387f 119cc6f][(-2:-1:undefined)] Init RenderService UniRender Type:0
+I     [a92ab1c541dce76 48387f 119cc6f][(-2:-1:undefined)] [com.ddabb.toolbox][entry_test][-1]: UIContent: apiCompatibleVersion: 50100018, apiTargetVersion: 50100018, and apiReleaseType: Release, useNewPipe: 1, enableCustomComponentCrossAbility: 0
 I     Start init Async Stack.
-E     [a92ab13a1ba591b 8cb0e5 ea3a54]NotifyUIExtHostRectChangeInGlobalDisplayListeners: uiContent is null
-W     [a92ab13a1ba591b 1a435e7 ea3a54]NotifySingleHandTransformChange: id:353, uiContent is nullptr
-W     ThreadHandler: proto:0 policy:0 name:OS_IPC_3_55733 invoker:2442272128
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(-2:-1:undefined)] SetLocale language tag: zh-CN, select language: zh-CN
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(-2:-1:undefined)] [com.ddabb.toolbox][entry_test][-1]: SetLanguage: zh, colorMode: dark, deviceAccess: 0
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(-2:-1:undefined)] [com.ddabb.toolbox][entry_test][-1]: Initialize UIContent isModelJson:true
-I     [a92ab13a1ba591b e7e84b 3a28a9b][(-1:-1:undefined)] dlsym function ReportData success.
-I     [a92ab13a1ba591b e7e84b 3a28a9b][(-1:-1:undefined)] dlsym function ReportSyncEvent success.
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(-2:-1:undefined)] subscribe hsp Update successfully
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] SetHapPath, Use hap path to load resource
-I     [a92ab13a1ba591b 3a28a9b 3c673f8]RegisterWaterfallModeChangeListener: winId: 353
-I     [a92ab13a1ba591b 3a28a9b 3c673f8]GetSurfaceNode: name:toolbox0, id:353
-I     [a92ab13a1ba591b 3a28a9b 3c673f8]GetSurfaceNode: name:toolbox0, id:353
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] SetRSSurfaceNode 237893943558146 with rs multi
-I     [a92ab13a1ba591b 3a28a9b 3c673f8]RSUIContext::AttachFromUI. token: 237893943558145 uiPiplineNum: -1
-I     NotifyWindowStatusDidChange: Id:353, WindowMode:1, windowStatus:1, lastWindowStatus:0, listenerSize:0, rect:[0 0 1260 2720]
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] createManager, deviceType: 0
-W     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] Invalid config:zh_CN-long-notround-vertical-dark-phone-xxhdpi
-I     [a92ab13a1ba591b 3a28a9b 3c673f8]RSSurfaceNode::SetAbilityState, surfaceNodeId:[237893943558146], ability state: background
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] set translateManager to pipeline, instanceId:100000
-I     [a92ab13a1ba591b 3a28a9b 3c673f8]RegisterOrientationChangeListener: in
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] AddPersistAfterLayoutTask size: 1
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] Debug touch pass mode 0
+I     Add watcher keyPrefix persist.sys.arkui.animationscale remoteWatcherId 1920 success
+E     [a92ab1c541dce76 48387f 119cc6f][(-2:-1:undefined)] ConfigParserBase read system UI correction config file failed
+W     [a92ab1c541dce76 48387f 119cc6f][(-2:-1:undefined)] ArkUiFeatureParamManager failed to load UI correction config file
+I     [a92ab1c541dce76 219a597 30fea77]NotifyHighlightChange: windowId: 162, isHighlight: 1,
+I     [a92ab1c541dce76 48387f 119cc6f][(-2:-1:undefined)] SetLocale language tag: zh-CN, select language: zh-CN
+I     [a92ab1c541dce76 48387f 119cc6f][(-2:-1:undefined)] [com.ddabb.toolbox][entry_test][-1]: SetLanguage: zh, colorMode: light, deviceAccess: 0
+I     [a92ab1c541dce76 48387f 119cc6f][(-2:-1:undefined)] [com.ddabb.toolbox][entry_test][-1]: Initialize UIContent isModelJson:true
+E     [a92ab1c541dce76 1cfac7 30fea77]NotifyUIExtHostRectChangeInGlobalDisplayListeners: uiContent is null
+W     ThreadHandler: proto:0 policy:0 name:OS_IPC_3_59377 invoker:1507537920
+W     [a92ab1c541dce76 331f3b4 30fea77]NotifySingleHandTransformChange: id:162, uiContent is nullptr
+I     [a92ab1c541dce76 10d6a69 48387f][(-1:-1:undefined)] dlsym function ReportData success.
+I     [a92ab1c541dce76 10d6a69 48387f][(-1:-1:undefined)] dlsym function ReportSyncEvent success.
+I     NotifyWindowStatusDidChange: Id:162, WindowMode:1, windowStatus:1, lastWindowStatus:0, listenerSize:0, rect:[0 0 1260 2720]
+I     [a92ab1c541dce76 48387f 119cc6f][(-2:-1:undefined)] subscribe hsp Update successfully
+I     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] SetHapPath, Use hap path to load resource
+I     [a92ab1c541dce76 48387f 119cc6f]RegisterWaterfallModeChangeListener: winId: 162
+I     [a92ab1c541dce76 48387f 119cc6f]GetSurfaceNode: name:toolbox0, id:162
+I     [a92ab1c541dce76 48387f 119cc6f]GetSurfaceNode: name:toolbox0, id:162
+I     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] SetRSSurfaceNode 253922761506818 with rs multi
+I     [a92ab1c541dce76 48387f 119cc6f]RSUIContext::AttachFromUI. token: 253922761506817 uiPiplineNum: -1
+I     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] createManager, deviceType: 0
+W     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] Invalid config:zh_CN-long-notround-vertical-light-phone-xxhdpi
+I     [a92ab1c541dce76 48387f 119cc6f]RSSurfaceNode::SetAbilityState, surfaceNodeId:[253922761506818], ability state: background
+I     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] set translateManager to pipeline, instanceId:100000
+I     [a92ab1c541dce76 48387f 119cc6f]RegisterOrientationChangeListener: in
+I     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] AddPersistAfterLayoutTask size: 1
+I     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] Debug touch pass mode 0
 W     load absolute_path /system/lib64/libtransform_interaction_ext.z.so: check ns accessible failed namespace=ndk.
 W     load /system/lib64/libtransform_interaction_ext.z.so failed, namespace=ndk no inherits, errno=2
 W     load absolute_path /system/lib64/libtransform_interaction_ext.z.so: check ns accessible failed namespace=passthrough.
@@ -337,109 +337,109 @@ W     load absolute_path /system/lib64/libtransform_interaction_ext.z.so: check 
 W     load /system/lib64/libtransform_interaction_ext.z.so failed, namespace=vendor no inherits, errno=2
 W     load /system/lib64/libtransform_interaction_ext.z.so failed, namespace=default, errno=2
 W     dlopen_impl load library header failed for /system/lib64/libtransform_interaction_ext.z.so
-E     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] AceTransform load failed: Error loading shared library /system/lib64/libtransform_interaction_ext.z.so: No such file or directory
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] ResourceAdapter UpdateResConfig with colorMode dark
-W     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] not found systemTheme in HapModuleInfo, loading default OHOS_THEME
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] Cannot Get File List from resources/styles/
-W     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] GetAsset failed: resources/styles/default.json
+E     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] AceTransform load failed: Error loading shared library /system/lib64/libtransform_interaction_ext.z.so: No such file or directory
+I     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] ResourceAdapter UpdateResConfig with colorMode light
+W     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] not found systemTheme in HapModuleInfo, loading default OHOS_THEME
+I     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] Cannot Get File List from resources/styles/
+W     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] GetAsset failed: resources/styles/default.json
+I     [a92ab1c541dce76 48387f 119cc6f]RSTransactionHandler::Begin syncId:0, transactionHandler:7113160950408569665, remoteTransactionDataStack.size:0
+I     [a92ab1c541dce76 48387f 119cc6f]RSTransactionHandler::Commit transactionHandler:7113160950408569665
+W     [a92ab1c541dce76 48387f 119cc6f]RSNodeMap::UnregisterNode: node id 253922761506818 not found
+I     [a92ab1c541dce76 48387f 119cc6f]RSRootNode::Create, Node:253922761506819, Token:253922761506817
+I     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] root node OnAttachToFrameNode, id:0
 I     Init async stack successfully.
 I     Finish init Async Stack.
-I     [a92ab13a1ba591b 3a28a9b 3c673f8]RSTransactionHandler::Begin syncId:0, transactionHandler:16632200078898935711, remoteTransactionDataStack.size:0
-I     [a92ab13a1ba591b 3a28a9b 3c673f8]RSTransactionHandler::Commit transactionHandler:16632200078898935711
-W     [a92ab13a1ba591b 3a28a9b 3c673f8]RSNodeMap::UnregisterNode: node id 237893943558146 not found
-I     [a92ab13a1ba591b 3a28a9b 3c673f8]RSRootNode::Create, Node:237893943558147, Token:237893943558145
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] root node OnAttachToFrameNode, id:0
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] Rosenwindow set root, rsId:237893943558147
-I     [a92ab13a1ba591b 3a28a9b 3c673f8]RSRootNode::AttachRSSurfaceNode, SurfaceNode:237893943558146, Node:237893943558147
-I     [a92ab13a1ba591b 3a28a9b 3c673f8]RSTransactionHandler::Begin syncId:0, transactionHandler:16632200078898935711, remoteTransactionDataStack.size:0
-I     [a92ab13a1ba591b 3a28a9b 3c673f8]RSTransactionHandler::Commit transactionHandler:16632200078898935711
-W     [a92ab13a1ba591b 3a28a9b 3c673f8]RSNodeMap::UnregisterNode: node id 237893943558146 not found
-E     [a92ab13a1ba591b 3a28a9b 3c673f8][(AccessibilitySystemAbilityClientImpl:78)]accessibility service is ready.
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] focusWindowId: 0, realHostWindowId: 0
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] [com.ddabb.toolbox][entry_test][100000]: window focus
-I     Add watcher keyPrefix debug.graphic.frame remoteWatcherId 4435 success
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] font path exist
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] LoadThemeFont:hykaitij.ttf
-I     [a92ab13a1ba591b 3a28a9b 3c673f8]RSInterfaces: Register typeface with share memory, name: HYKaiTiJ hash: 3659894393
-I     [a92ab13a1ba591b 3a28a9b 3c673f8]RegisterTypeface: Succeed in registering typeface, family name: OhosThemeFont, hash: 3834975151
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] ArkUIInvisibleFreeze: 0
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] [com.ddabb.toolbox][entry_test][100000]: SetMinPlatformVersion is 50100018
-I     [a92ab13a1ba591b 3a28a9b 3c673f8]RegisterAvoidAreaChangeListener: win 353
-E     [nodict][a92ab13a1ba591b 3a28a9b 3c673f8]Read result failed, code is: 4.
-E     [nodict][a92ab13a1ba591b 3a28a9b 3c673f8]Read result failed, code is: 4.
-I     [a92ab13a1ba591b 3a28a9b 3c673f8]InitSceneSessionManagerProxy: enter
-E     [a92ab13a1ba591b 98b68d 322cdb2]NotifyUIExtHostRectChangeInGlobalDisplayListeners: uiContent is null
-I     [a92ab13a1ba591b 3643f23 322cdb2]UpdateRect: id:353 name:toolbox0 rect:[0 0 1260 2720]->[0 0 1260 2720] reason:23 displayId:0
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] InitializeSafeArea systemInsets:SafeAreaInsets left_: [start: 0, end: 0], top_: [start: 0, end: 123], right_: [start: 0, end: 0], bottom_: [start: 0, end: 0], cutoutInsets:SafeAreaInsets left_: [start: 0, end: 0], top_: [start: 36, end: 108], right_: [start: 0, end: 0], bottom_: [start: 0, end: 0], navInsets:SafeAreaInsets left_: [start: 0, end: 0], top_: [start: 0, end: 0], right_: [start: 0, end: 0], bottom_: [start: 2629, end: 2720]
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] Initialize displayId: 0, availableRect: [0, 0, 1260, 2720]
-I     [a92ab13a1ba591b 3a28a9b 3c673f8]GetProcessName[66]name is: com.ddabb.toolbox
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(-2:100000:singleton)] [com.ddabb.toolbox][entry_test][100000]: Initialize: testability/pages/Index
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] RunPage:testability/pages/Index
-W     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] GetAsset failed: manifest.json
-I     [a92ab13a1ba591b 3a28a9b 3c673f8]InitUIContent: [0, 0]
-I     [a92ab13a1ba591b 3a28a9b 3c673f8]SetUIContentInner: single hand, id:353, posX:0, posY:0, scaleX:1.000000, scaleY:1.000000
-I     [a92ab13a1ba591b daea03 3a28a9b][(-1:100000:singleton)] Subscribe touch.events.pass.through Event
-I     [a92ab13a1ba591b 3a28a9b 3c673f8]UpdateDecorEnable: decorVisible:1, id: 353
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(-2:100000:singleton)] [com.ddabb.toolbox][entry_test][100000]: UpdateWindowVisible: 1, hasDecor: 0
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(-2:100000:singleton)] [com.ddabb.toolbox][entry_test][100000]: NotifyWindowMode mode = 1
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(-2:100000:singleton)] [com.ddabb.toolbox][entry_test][100000]: window foreground
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] Update application state , state: ON_SHOW
-I     [a92ab13a1ba591b 3a28a9b 3c673f8]RSSurfaceNode::SetAbilityState, surfaceNodeId:[237893943558146], ability state: foreground
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] ArkUI requests first Vsync.
-I     [a92ab13a1ba591b 3a28a9b 3c673f8]RequestVsync: First vsync has requested, nodeId: 237893943558146
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(-2:100000:singleton)] [com.ddabb.toolbox][entry_test][100000]: UpdateViewportConfig Viewport config: size: (1260, 2720) orientation: 0 density: 3.250000 position: (0, 0) transformHint: 0 displayId: 0, windowSizeChangeReason 0, is rsTransaction nullptr 1, , keyboardInfo is null
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] Update displayWindowRect in UpdateViewportConfig to : Rect (0.00, 0.00) - [0.00 x 0.00]
-I     [a92ab13a1ba591b 3a28a9b 3c673f8]UpdateViewportConfig: Id: 353, reason: 0, windowRect: [0 0 1260 2720], displayOrientation: 0, config[0, 0, 0, 3.250000]
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(-2:100000:singleton)] [com.ddabb.toolbox][entry_test][100000]: window focus
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(-2:100000:singleton)] [com.ddabb.toolbox][entry_test][100000]:window active
-W     [a92ab13a1ba591b 3a28a9b 3c673f8][source_map.cpp145]the stack without line info
-I     [a92ab13a1ba591b 3a28a9b 3c673f8]Succeeded in loading the content.
-I     [a92ab13a1ba591b 3a28a9b 3c673f8]Window [353, toolbox0] load content end, ret=0
-I     [a92ab13a1ba591b 3c2931a 3e85666]NotifyAvoidAreaChange: win 353 api 18 type 0 area top [0 0 1260 123]
-I     [a92ab13a1ba591b 3c2931a 3e85666]NotifyAvoidAreaChange: win 353 api 18 type 1 area top [494 36 273 72]
-I     [a92ab13a1ba591b 3c2931a 3e85666]NotifyAvoidAreaChange: win 353 api 18 type 2 area empty
-I     [a92ab13a1ba591b 3c2931a 3e85666]NotifyAvoidAreaChange: win 353 api 18 type 3 area empty
-I     [a92ab13a1ba591b 3c2931a 3e85666]NotifyAvoidAreaChange: win 353 api 18 type 4 area bottom [409 2629 442 91]
-I     [a92ab13a1ba591b 3c2931a 3e85666]UpdateViewportConfig: Id: 353, reason: 0, windowRect: [0 0 1260 2720], displayOrientation: 0, config[0, 0, 0, 3.250000]
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] Update application state , state: ON_ACTIVE
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(SubscribeStateObserver:652)]Observer has subscribed!
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(SubscribeStateObserver:652)]Observer has subscribed!
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(SubscribeStateObserver:652)]Observer has subscribed!
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] Window: 353 get focus.
-W     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] Current focus view can not found!
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] Request focus on rootFocusHub: root/0
-I     Add watcher keyPrefix persist.ace.trace.layout.enabled remoteWatcherId 4435 success
-I     [a92ab13a1ba591b 27c2e5d 3643f23]UpdateViewportConfig: Id: 353, reason: 23, windowRect: [0 0 1260 2720], displayOrientation: 0, config[0, 0, 0, 3.250000]
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] Page router manager is creating page[1]: url: testability/pages/Index path: testability/pages/Index.js, recoverable: yes, namedRouter: no
-I     Add watcher keyPrefix persist.ace.trace.inputevent.enabled remoteWatcherId 4435 success
-W     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] style text_pattern not contains linear_split_child_min_size!
-I     Add watcher keyPrefix const.security.developermode.state remoteWatcherId 4435 success
-W     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] style text_pattern not contains menu_celia_ask_is_support!
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] view: page/2 show
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] can't find inner navigation
-I     Add watcher keyPrefix persist.ace.debug.statemgr.enabled remoteWatcherId 4435 success
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] StageManager FrameNode notNeedSoftKeyboard.
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] Container not SceneBoardWindow.
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] LoadPage Success
-I     [a92ab13a1ba591b 3eb50d8 3a28a9b][(-2:100000:singleton)] SetIsFullScreen 1
-I     [a92ab13a1ba591b 3eb50d8 3a28a9b][(-2:100000:singleton)] NotifyWindowMode aliveUIExtensions = 0
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] Root node request first frame.
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] Update application state , state: ON_ACTIVE
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(SubscribeStateObserver:652)]Observer has subscribed!
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(SubscribeStateObserver:652)]Observer has subscribed!
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(SubscribeStateObserver:652)]Observer has subscribed!
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] Window: 353 get focus.
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(100000:100000:scope)] Update application state , state: ON_ACTIVE
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(SubscribeStateObserver:652)]Observer has subscribed!
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(SubscribeStateObserver:652)]Observer has subscribed!
-I     [a92ab13a1ba591b 3a28a9b 3c673f8][(SubscribeStateObserver:652)]Observer has subscribed!
-I     VsyncCallbackInner: First vsync has come back, nodeId: 237893943558146
+I     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] Rosenwindow set root, rsId:253922761506819
+I     [a92ab1c541dce76 48387f 119cc6f]RSRootNode::AttachRSSurfaceNode, SurfaceNode:253922761506818, Node:253922761506819
+I     [a92ab1c541dce76 48387f 119cc6f]RSTransactionHandler::Begin syncId:0, transactionHandler:7113160950408569665, remoteTransactionDataStack.size:0
+I     [a92ab1c541dce76 48387f 119cc6f]RSTransactionHandler::Commit transactionHandler:7113160950408569665
+W     [a92ab1c541dce76 48387f 119cc6f]RSNodeMap::UnregisterNode: node id 253922761506818 not found
+E     [a92ab1c541dce76 48387f 119cc6f][(AccessibilitySystemAbilityClientImpl:78)]accessibility service is ready.
+I     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] focusWindowId: 0, realHostWindowId: 0
+I     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] [com.ddabb.toolbox][entry_test][100000]: window focus
+I     Add watcher keyPrefix debug.graphic.frame remoteWatcherId 1920 success
+I     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] font path exist
+I     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] LoadThemeFont:hykaitij.ttf
+I     [a92ab1c541dce76 48387f 119cc6f]RSInterfaces: Register typeface with share memory, name: HYKaiTiJ hash: 3659894393
+I     [a92ab1c541dce76 48387f 119cc6f]RegisterTypeface: Succeed in registering typeface, family name: OhosThemeFont, hash: 3834975151
+I     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] ArkUIInvisibleFreeze: 0
+I     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] [com.ddabb.toolbox][entry_test][100000]: SetMinPlatformVersion is 50100018
+I     [a92ab1c541dce76 48387f 119cc6f]RegisterAvoidAreaChangeListener: win 162
+E     [nodict][a92ab1c541dce76 48387f 119cc6f]Read result failed, code is: 4.
+E     [nodict][a92ab1c541dce76 48387f 119cc6f]Read result failed, code is: 4.
+I     [a92ab1c541dce76 48387f 119cc6f]InitSceneSessionManagerProxy: enter
+E     [a92ab1c541dce76 182258b 2d8b773]NotifyUIExtHostRectChangeInGlobalDisplayListeners: uiContent is null
+I     [a92ab1c541dce76 1256d0e 2d8b773]UpdateRect: id:162 name:toolbox0 rect:[0 0 1260 2720]->[0 0 1260 2720] reason:23 displayId:0
+I     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] InitializeSafeArea systemInsets:SafeAreaInsets left_: [start: 0, end: 0], top_: [start: 0, end: 123], right_: [start: 0, end: 0], bottom_: [start: 0, end: 0], cutoutInsets:SafeAreaInsets left_: [start: 0, end: 0], top_: [start: 36, end: 108], right_: [start: 0, end: 0], bottom_: [start: 0, end: 0], navInsets:SafeAreaInsets left_: [start: 0, end: 0], top_: [start: 0, end: 0], right_: [start: 0, end: 0], bottom_: [start: 2629, end: 2720]
+I     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] Initialize displayId: 0, availableRect: [0, 0, 2720, 1260]
+I     [a92ab1c541dce76 48387f 119cc6f]GetProcessName[66]name is: com.ddabb.toolbox
+I     [a92ab1c541dce76 48387f 119cc6f][(-2:100000:singleton)] [com.ddabb.toolbox][entry_test][100000]: Initialize: testability/pages/Index
+I     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] RunPage:testability/pages/Index
+W     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] GetAsset failed: manifest.json
+I     [a92ab1c541dce76 3f222f8 48387f][(-1:100000:singleton)] Subscribe touch.events.pass.through Event
+I     [a92ab1c541dce76 48387f 119cc6f]InitUIContent: [0, 0]
+I     [a92ab1c541dce76 48387f 119cc6f]SetUIContentInner: single hand, id:162, posX:0, posY:0, scaleX:1.000000, scaleY:1.000000
+I     [a92ab1c541dce76 48387f 119cc6f]UpdateDecorEnable: decorVisible:1, id: 162
+I     [a92ab1c541dce76 48387f 119cc6f][(-2:100000:singleton)] [com.ddabb.toolbox][entry_test][100000]: UpdateWindowVisible: 1, hasDecor: 0
+I     [a92ab1c541dce76 48387f 119cc6f][(-2:100000:singleton)] [com.ddabb.toolbox][entry_test][100000]: NotifyWindowMode mode = 1
+I     [a92ab1c541dce76 48387f 119cc6f][(-2:100000:singleton)] [com.ddabb.toolbox][entry_test][100000]: window foreground
+I     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] Update application state , state: ON_SHOW
+I     [a92ab1c541dce76 48387f 119cc6f]RSSurfaceNode::SetAbilityState, surfaceNodeId:[253922761506818], ability state: foreground
+I     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] ArkUI requests first Vsync.
+I     [a92ab1c541dce76 48387f 119cc6f]RequestVsync: First vsync has requested, nodeId: 253922761506818
+I     [a92ab1c541dce76 48387f 119cc6f][(-2:100000:singleton)] [com.ddabb.toolbox][entry_test][100000]: UpdateViewportConfig Viewport config: size: (1260, 2720) orientation: 0 density: 3.250000 position: (0, 0) transformHint: 0 displayId: 0, windowSizeChangeReason 0, is rsTransaction nullptr 1, , keyboardInfo is null
+I     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] Update displayWindowRect in UpdateViewportConfig to : Rect (0.00, 0.00) - [0.00 x 0.00]
+I     [a92ab1c541dce76 48387f 119cc6f]UpdateViewportConfig: Id: 162, reason: 0, windowRect: [0 0 1260 2720], displayOrientation: 0, config[0, 0, 0, 3.250000]
+I     [a92ab1c541dce76 48387f 119cc6f][(-2:100000:singleton)] [com.ddabb.toolbox][entry_test][100000]: window focus
+I     [a92ab1c541dce76 48387f 119cc6f][(-2:100000:singleton)] [com.ddabb.toolbox][entry_test][100000]:window active
+W     [a92ab1c541dce76 48387f 119cc6f][source_map.cpp145]the stack without line info
+I     [a92ab1c541dce76 48387f 119cc6f]Succeeded in loading the content.
+I     [a92ab1c541dce76 48387f 119cc6f]Window [162, toolbox0] load content end, ret=0
+I     [a92ab1c541dce76 3322de9 144b51d]NotifyAvoidAreaChange: win 162 api 18 type 0 area top [0 0 1260 123]
+I     [a92ab1c541dce76 3322de9 144b51d]NotifyAvoidAreaChange: win 162 api 18 type 1 area top [494 36 273 72]
+I     [a92ab1c541dce76 3322de9 144b51d]NotifyAvoidAreaChange: win 162 api 18 type 2 area empty
+I     [a92ab1c541dce76 3322de9 144b51d]NotifyAvoidAreaChange: win 162 api 18 type 3 area empty
+I     [a92ab1c541dce76 3322de9 144b51d]NotifyAvoidAreaChange: win 162 api 18 type 4 area bottom [409 2629 442 91]
+I     Add watcher keyPrefix persist.ace.trace.layout.enabled remoteWatcherId 1920 success
+I     [a92ab1c541dce76 3322de9 144b51d]UpdateViewportConfig: Id: 162, reason: 0, windowRect: [0 0 1260 2720], displayOrientation: 0, config[0, 0, 0, 3.250000]
+I     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] Update application state , state: ON_ACTIVE
+I     [a92ab1c541dce76 48387f 119cc6f][(SubscribeStateObserver:652)]Observer has subscribed!
+I     [a92ab1c541dce76 48387f 119cc6f][(SubscribeStateObserver:652)]Observer has subscribed!
+I     [a92ab1c541dce76 48387f 119cc6f][(SubscribeStateObserver:652)]Observer has subscribed!
+I     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] Window: 162 get focus.
+I     Add watcher keyPrefix persist.ace.trace.inputevent.enabled remoteWatcherId 1920 success
+W     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] Current focus view can not found!
+I     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] Request focus on rootFocusHub: root/0
+I     [a92ab1c541dce76 1222423 1256d0e]UpdateViewportConfig: Id: 162, reason: 23, windowRect: [0 0 1260 2720], displayOrientation: 0, config[0, 0, 0, 3.250000]
+I     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] Page router manager is creating page[1]: url: testability/pages/Index path: testability/pages/Index.js, recoverable: yes, namedRouter: no
+I     Add watcher keyPrefix const.security.developermode.state remoteWatcherId 1920 success
+I     Add watcher keyPrefix persist.ace.debug.statemgr.enabled remoteWatcherId 1920 success
+W     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] style text_pattern not contains linear_split_child_min_size!
+W     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] style text_pattern not contains menu_celia_ask_is_support!
+I     Add watcher keyPrefix persist.ace.debug.boundary.enabled remoteWatcherId 1920 success
+I     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] view: page/2 show
+I     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] can't find inner navigation
+I     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] StageManager FrameNode notNeedSoftKeyboard.
+I     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] Container not SceneBoardWindow.
+I     Add watcher keyPrefix persist.ace.performance.monitor.enabled remoteWatcherId 1920 success
+I     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] LoadPage Success
+I     [a92ab1c541dce76 41b79d 48387f][(-2:100000:singleton)] SetIsFullScreen 1
+I     [a92ab1c541dce76 41b79d 48387f][(-2:100000:singleton)] NotifyWindowMode aliveUIExtensions = 0
+I     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] Root node request first frame.
+I     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] Update application state , state: ON_ACTIVE
+I     [a92ab1c541dce76 48387f 119cc6f][(SubscribeStateObserver:652)]Observer has subscribed!
+I     [a92ab1c541dce76 48387f 119cc6f][(SubscribeStateObserver:652)]Observer has subscribed!
+I     [a92ab1c541dce76 48387f 119cc6f][(SubscribeStateObserver:652)]Observer has subscribed!
+I     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] Window: 162 get focus.
+I     [a92ab1c541dce76 48387f 119cc6f][(100000:100000:scope)] Update application state , state: ON_ACTIVE
+I     [a92ab1c541dce76 48387f 119cc6f][(SubscribeStateObserver:652)]Observer has subscribed!
+I     [a92ab1c541dce76 48387f 119cc6f][(SubscribeStateObserver:652)]Observer has subscribed!
+I     [a92ab1c541dce76 48387f 119cc6f][(SubscribeStateObserver:652)]Observer has subscribed!
+I     VsyncCallbackInner: First vsync has come back, nodeId: 253922761506818
 W     [(100000:100000:scope)] FeatureParamManager feature is missing or invalid
 I     InitTextBundleConfig: Adapter text height enabled 0
-I     Add watcher keyPrefix persist.ace.debug.boundary.enabled remoteWatcherId 4435 success
 E     LoadFromTypeface: Drawing_Text [LoadFromTypeface] not variable font!
 I     RSInterfaces: Register typeface with share memory, name: HYKaiTiJ hash: 3659894393
-I     Add watcher keyPrefix persist.ace.performance.monitor.enabled remoteWatcherId 4435 success
 E     RegisterTypeface: Failed to register typeface in service.
 E     RSInterfaces: Failed to register typeface, name: HYKaiTiJ hash: 3659894393
 I     [(100000:100000:scope)] ArkUi flush first frame messages.
@@ -448,10 +448,10 @@ I     [(100000:100000:scope)] WinFocusMove end, root/secure_field onBlur, Row/se
 I     [(100000:100000:scope)] current focus node: (Row/5). isDynamic: 0
 I     [(100000:100000:scope)] Trigger Window Focus Callback
 I     [(100000:100000:scope)] need keyboard : 0.
-I     id: 353, isNeedKeyboard: 0, keepKeyboardFlag: 0
-I     RequestInputMethodCloseKeyboard: Notify InputMethod framework close keyboard start. id: 353, isUIEProc: 0, hostWindowId: 353
+I     id: 162, isNeedKeyboard: 0, keepKeyboardFlag: 0
+I     RequestInputMethodCloseKeyboard: Notify InputMethod framework close keyboard start. id: 162, isUIEProc: 0, hostWindowId: 162
 I     [(100000:100000:scope)] hide menu ng exit, window not exist
-I     FlushLayoutSize: NotifyFrameLayoutFinishFromApp, id: 353, rect: [0 0 1260 2720], notifyListener: 0
+I     FlushLayoutSize: NotifyFrameLayoutFinishFromApp, id: 162, rect: [0 0 1260 2720], notifyListener: 0
 I     [Hypium] rootSuite:{"description":"","childSuites":[{"description":"SudokuOCR_pipeline_full","childSuites":[],"specs":[{"description":"pipeline_01_standard_544","fi":120000,"duration":0,"startTime":0,"isExecuted":false,"isSkip":false,"skipReason":"","expectMsg":""}],"beforeAll":[null],"afterAll":[],"beforeItSpecified":{},"afterItSpecified":{},"beforeEach":[],"beforeEachIt":[],"afterEach":[],"afterEachIt":[],"duration":0,"hookError":null,"isSkip":false,"skipReason":""}],"specs":[],"beforeAll":[],"afterAll":[],"beforeItSpecified":{},"afterItSpecified":{},"beforeEach":[],"beforeEachIt":[],"afterEach":[],"afterEachIt":[],"duration":0,"hookError":null,"isSkip":false,"skipReason":""}
 I     [Hypium][start] start run suites
 I     [Hypium][suite start]SudokuOCR_pipeline_full
@@ -469,7 +469,52 @@ I     [test_observer_proxy.cpp33]start
 I     [test_observer_proxy.cpp28]destroyed
 I     [Hypium]SudokuOCR_pipeline_full suiteStart print success
 I     NotifyTransformChange: in
-I     UpdateRect: id:353 name:toolbox0 rect:[0 0 1260 2720]->[0 0 1260 2720] reason:23 displayId:0
+I     UpdateRect: id:162 name:toolbox0 rect:[0 0 1260 2720]->[0 0 1260 2720] reason:23 displayId:0
+I     [gc] SmartGC: app cold start just finished
+I     [ecmascript] Trigger old gc here may cost long time, trigger full concurrent mark instead
+I     [gc] Has checked a long time gc
+I     [gc]  [ HPP OldGC ] 306.832 (313) -> 143.714 (209.25) MB, 74.937(+0.628)ms, GCReason: Allocate object failed, MarkReason: OldGC without concurrent full mark
+I     [gc] IsInBackground: 0; SensitiveStatus: 1; StartupStatus: 2; BundleName: com.ddabb.toolbox; Young: 141557760; Old: 36700160; TotalCommit219414528
+I     [gc] /***************** GC Duration statistic: ****************/
+I     [gc] TotalGC:                 74.937  ms
+      Initialize:              0       ms
+      Mark:                    0.214   ms
+      MarkRoots:               0.182   ms
+      ConcurrentMark pause:    0.628   ms
+      WaitConcurrentMarkFinish:0.816   ms
+      ReMark:                  0.213   ms
+      ProcessSharedGCRSetWorkList:0       ms
+      Sweep:                   0.128   ms
+      ClearNativeObject:       67.28   ms
+      Evacuate:                5.041   ms
+      UpdateReference:         3.134   ms
+      UpdateWeekRef:           1.887   ms
+      UpdateRoot:              0.189   ms
+      ProceeWorkload:          0.576   ms
+      EvacuateSpace:           1.841   ms
+      EvacuateRegion:          0.374   ms
+      WaitFinish:              0.337   ms
+      Finish:                  0.193   ms
+I     [gc] /****************** GC Memory statistic: *****************/
+I     [gc] AllSpaces        used:  147164KB     committed:  214272KB
+      ActiveSemiSpace  used:  135454KB     committed:  138240KB
+      OldSpace         used: 4279.44KB     committed:   35840KB
+      HugeObjectSpace  used:     512KB     committed:     512KB
+      NonMovableSpace  used: 1045.14KB     committed:   33536KB
+      AppSpawnSpace    used: 5617.24KB     committed:    5888KB
+I     [gc] Anno memory usage size:  321.75  MB
+      Native memory usage size:43.5998 MB
+      NativeBindingSize:       0.280273KB
+      NativeLimitSize:         110183  KB
+      ArrayBufferNativeSize:   0.0117188KB
+      ChunkNativeSize:         24      KB
+I     [gc] Heap alive rate:         0.459151
+I     [gc] /***************** GC summary statistic: *****************/
+I     [gc] OldGC occurs count       1
+      OldGC max pause:         74.937  ms
+      OldGC min pause:         74.937  ms
+      OldGC average pause:     74.937  ms
+      Heap average alive rate: 0.459151
 I     [OCR_TEST] initDigitTemplates: true
 I     [Hypium]start running case 'pipeline_01_standard_544'
 I     OHOS_REPORT_STATUS: class=SudokuOCR_pipeline_full
@@ -497,183 +542,140 @@ I     [test_observer_proxy.cpp28]destroyed
 I     [Hypium]pipeline_01_standard_544 specStart start print success
 I     [OCR_TEST] === pipeline: 01_standard_544 buf=18788 ===
 I     success to submit start trace
-I     MainThread TraceCollector Start result: 0, Duration Time: 1290 ms
+I     MainThread TraceCollector Start result: 0, Duration Time: 1630 ms
 I     GetHiViewRemoteService: refresh remote service instance.
-I     [a92ab13a1ba591b 15cb0e2 1daafd5][(100000:100000:scope)] [@146][ID: 1] The modal UIExtension is created.
-I     [a92ab13a1ba591b 15cb0e2 1daafd5][(100000:100000:scope)] Create UIExtensionNode
-I     [a92ab13a1ba591b 15cb0e2 1daafd5][(100000:100000:scope)] [@1083][ID: 1] RegisterPipelineEvent
-I     [a92ab13a1ba591b 15cb0e2 1daafd5][(100000:100000:scope)] [@1035][ID: 1] OnAttachToFrameNode
-I     [a92ab13a1ba591b 15cb0e2 1daafd5][(100000:100000:scope)] [@552][ID: 1] The current state is 'NONE' when UpdateWant, needCheck: '0'.
-I     [a92ab13a1ba591b 15cb0e2 1daafd5][(100000:100000:scope)] [@579][ID: 1] The ability KeyAsync 0, uIExtensionUsage: 0.
-I     [a92ab13a1ba591b 15cb0e2 1daafd5][(100000:100000:scope)] [@656][ID: 1] The session is created with bundle=com.huawei.hmsapp.appgallery, ability=DisposeAlertAbility, componentId=8, sessionType=1.
-I     [a92ab13a1ba591b 15cb0e2 1daafd5]GetExtensionConfig: waterfall: 0, winId: 353
-I     [a92ab13a1ba591b 15cb0e2 1daafd5]GetGestureBackEnabled: win 353 enable 1
-I     [a92ab13a1ba591b 15cb0e2 1daafd5][(100000:100000:scope)] [@699][ID: 1] Want param isNotifyOccupiedAreaChange is 1, realHostWindowId: 353, parentWindowType: 1
-I     [a92ab13a1ba591b 1c096ae 15cb0e2]GeneratePersistentId: persistentId: 0, persistentId_: 1300615170
-I     [a92ab13a1ba591b 1c096ae 15cb0e2]persistentId: 1300615170, bundleName: com.huawei.hmsapp.appgallery, moduleName: , abilityName: DisposeAlertAbility, isDensityFollowHost_: 0, density_: 3.250000
-I     [a92ab13a1ba591b 15cb0e2 1daafd5][(100000:100000:scope)] [@972][ID: 1] The state is changing from 'NONE' to 'FOREGROUND'.
-I     [a92ab13a1ba591b 15cb0e2 1daafd5][(100000:100000:scope)] [@1034][ID: 1] NotifyForeground, persistentid = 1300615170, hostWindowId = 353, windowSceneId = -1, IsSceneBoardWindow: 0, componentId=8.
-I     [a92ab13a1ba591b 15cb0e2 1daafd5]GetExtensionConfig: waterfall: 0, winId: 353
-I     [a92ab13a1ba591b 15cb0e2 1daafd5]GetGestureBackEnabled: win 353 enable 1
-I     [a92ab13a1ba591b 2e2c5b8 15cb0e2]Activate session, id=1300615170
-I     [a92ab13a1ba591b 15cb0e2 1daafd5][(100000:100000:scope)] [@308][ID: 1] OnAttachContext newInstanceId: 100000, oldInstanceId: 100000, isMoving: 0, detachContextHappened: 0.
-I     [a92ab13a1ba591b 15cb0e2 1daafd5][(100000:100000:scope)] [@270][ID: 1] OnAttachToMainTree, isMoving: 0
-I     [a92ab13a1ba591b 15cb0e2 1daafd5][(100000:100000:scope)] modalNode->GetParent() 0 mark IsProhibitedAddChildNode when sessionId -1300615170,prohibitedRemoveByRouter: 1, isAllowAddChildBelowModalUec: 0.
-I     [a92ab13a1ba591b 15cb0e2 1daafd5][(100000:100000:scope)] view: ModalPage/9 show
-I     [a92ab13a1ba591b 15cb0e2 1daafd5][(100000:100000:scope)] View: page/2 lost focus
-I     [a92ab13a1ba591b 15cb0e2 1daafd5][(100000:100000:scope)] Scope(Row/5) has no last focusNode.
-I     [a92ab13a1ba591b 15cb0e2 1daafd5][(100000:100000:scope)] can't find inner navigation
-I     [a92ab13a1ba591b 15cb0e2 1daafd5][(100000:100000:scope)] [com.ddabb.toolbox][entry_test][100000]: create modal page, sessionId=1300615170, isProhibitBack=1, isAsyncModalBinding=0, isAllowedBeCovered=0, prohibitedRemoveByRouter=1, isAllowAddChildBelowModalUec=0, prohibitedRemoveByNavigation=1
+I     [a92ab1c541dce76 3d3b4c 576b1d][(100000:100000:scope)] [@146][ID: 1] The modal UIExtension is created.
+I     [a92ab1c541dce76 3d3b4c 576b1d][(100000:100000:scope)] Create UIExtensionNode
+I     [a92ab1c541dce76 3d3b4c 576b1d][(100000:100000:scope)] [@1083][ID: 1] RegisterPipelineEvent
+I     [a92ab1c541dce76 3d3b4c 576b1d][(100000:100000:scope)] [@1035][ID: 1] OnAttachToFrameNode
+I     [a92ab1c541dce76 3d3b4c 576b1d][(100000:100000:scope)] [@552][ID: 1] The current state is 'NONE' when UpdateWant, needCheck: '0'.
+I     [a92ab1c541dce76 3d3b4c 576b1d][(100000:100000:scope)] [@579][ID: 1] The ability KeyAsync 0, uIExtensionUsage: 0.
+I     [a92ab1c541dce76 3d3b4c 576b1d][(100000:100000:scope)] [@656][ID: 1] The session is created with bundle=com.huawei.hmsapp.appgallery, ability=DisposeAlertAbility, componentId=8, sessionType=1.
+I     [a92ab1c541dce76 3d3b4c 576b1d]GetExtensionConfig: waterfall: 0, winId: 162
+I     [a92ab1c541dce76 3d3b4c 576b1d]GetGestureBackEnabled: win 162 enable 1
+I     [a92ab1c541dce76 3d3b4c 576b1d][(100000:100000:scope)] [@699][ID: 1] Want param isNotifyOccupiedAreaChange is 1, realHostWindowId: 162, parentWindowType: 1
+I     [a92ab1c541dce76 345a3a3 3d3b4c]GeneratePersistentId: persistentId: 0, persistentId_: 1315901442
+I     [a92ab1c541dce76 345a3a3 3d3b4c]persistentId: 1315901442, bundleName: com.huawei.hmsapp.appgallery, moduleName: , abilityName: DisposeAlertAbility, isDensityFollowHost_: 0, density_: 3.250000
+I     [a92ab1c541dce76 3d3b4c 576b1d][(100000:100000:scope)] [@972][ID: 1] The state is changing from 'NONE' to 'FOREGROUND'.
+I     [a92ab1c541dce76 3d3b4c 576b1d][(100000:100000:scope)] [@1034][ID: 1] NotifyForeground, persistentid = 1315901442, hostWindowId = 162, windowSceneId = -1, IsSceneBoardWindow: 0, componentId=8.
+I     [a92ab1c541dce76 3d3b4c 576b1d]GetExtensionConfig: waterfall: 0, winId: 162
+I     [a92ab1c541dce76 3d3b4c 576b1d]GetGestureBackEnabled: win 162 enable 1
+I     [a92ab1c541dce76 296dcb1 3d3b4c]Activate session, id=1315901442
+I     [a92ab1c541dce76 3d3b4c 576b1d][(100000:100000:scope)] [@308][ID: 1] OnAttachContext newInstanceId: 100000, oldInstanceId: 100000, isMoving: 0, detachContextHappened: 0.
+I     [a92ab1c541dce76 3d3b4c 576b1d][(100000:100000:scope)] [@270][ID: 1] OnAttachToMainTree, isMoving: 0
+I     [a92ab1c541dce76 3d3b4c 576b1d][(100000:100000:scope)] modalNode->GetParent() 0 mark IsProhibitedAddChildNode when sessionId -1315901442,prohibitedRemoveByRouter: 1, isAllowAddChildBelowModalUec: 0.
+I     [a92ab1c541dce76 3d3b4c 576b1d][(100000:100000:scope)] view: ModalPage/9 show
+I     [a92ab1c541dce76 3d3b4c 576b1d][(100000:100000:scope)] View: page/2 lost focus
+I     [a92ab1c541dce76 3d3b4c 576b1d][(100000:100000:scope)] Scope(Row/5) has no last focusNode.
+I     [a92ab1c541dce76 3d3b4c 576b1d][(100000:100000:scope)] can't find inner navigation
+I     [a92ab1c541dce76 3d3b4c 576b1d][(100000:100000:scope)] [com.ddabb.toolbox][entry_test][100000]: create modal page, sessionId=1315901442, isProhibitBack=1, isAsyncModalBinding=0, isAllowedBeCovered=0, prohibitedRemoveByRouter=1, isAllowAddChildBelowModalUec=0, prohibitedRemoveByNavigation=1
 I     [(-2:100000:singleton)] [com.ddabb.toolbox][entry_test][100000]: UpdateViewportConfig Viewport config: size: (1260, 2720) orientation: 0 density: 3.250000 position: (0, 0) transformHint: 0 displayId: 0, windowSizeChangeReason 23, is rsTransaction nullptr 1, updateAvoidAreas size: 5[(0,top [0 0 1260 123] )(1,top [494 36 273 72] )(2,empty)(3,empty)(4,bottom [409 2629 442 91] )], keyboardInfo is null
-I     UpdateViewportConfig: Id: 353, reason: 23, windowRect: [0 0 1260 2720], displayOrientation: 0, config[0, 0, 0, 3.250000]
+I     UpdateViewportConfig: Id: 162, reason: 23, windowRect: [0 0 1260 2720], displayOrientation: 0, config[0, 0, 0, 3.250000]
 W     OnVsyncTimeOut: in
-I     [a92ab13a1ba591b 342ac6f 13eb9a7][app_recovery.cpp489]fileDir: /data/storage/el2/base/files
-W     PrintRequestTs: recv vsync timeout, from:WM_55389, now:166843124589125, fromRsTs:166841824744371, timeInterval:1299844754ns
-I     [(100000:100000:scope)] [@1312][ID: 1] NotifyDisplayArea displayArea=RectT (0.00, 0.00) - [1260.00 x 2720.00], curWindow=Rect (0.00, 0.00) - [1260.00 x 2720.00], reason=0, duration=0, persistentId=1300615170, componentId=8.
+I     [a92ab1c541dce76 23aabe2 cc06cc][app_recovery.cpp489]fileDir: /data/storage/el2/base/files
+I     [js_ability_delegator.cpp765]finalizer called
+I     [js_ability_delegator.cpp765]finalizer called
+I     [a92ab1c541dce76 296dcb1 3d3b4c]Activate ret:0, persistentId:1315901442
+I     Start to open trace result: 1203, interval: 28 ms
+I     CreatePixelMap success, id:1788265795897249,dSize:(800,800),srcSize: (544,544),dHdr:1,sHdr:1,memType: 2,cost 41423 us
+I     Application is in starting period.
+W     PrintRequestTs: recv vsync timeout, from:WM_59121, now:79977081156546, fromRsTs:79975259297442, timeInterval:1821859104ns
+I     [(100000:100000:scope)] [@1312][ID: 1] NotifyDisplayArea displayArea=RectT (0.00, 0.00) - [1260.00 x 2720.00], curWindow=Rect (0.00, 0.00) - [1260.00 x 2720.00], reason=0, duration=0, persistentId=1315901442, componentId=8.
 I     [(100000:100000:scope)] Request focus on focusView: ModalPage/9.
 I     [(100000:100000:scope)] FocusSwitch end, Row/secure_field onBlur, ModalPage/secure_field onFocus, start: 2, end: 1, update: 2
 I     [(100000:100000:scope)] current focus node: (ModalPage/9). isDynamic: 0
 I     [(100000:100000:scope)] FrameNode(ModalPage/9) notNeedSoftKeyboard.
 I     ProcessJank: JankFrameMonitor::ProcessJank jank >= threshold
-I     [a92ab13a1ba591b 2e2c5b8 15cb0e2]Activate ret:0, persistentId:1300615170
-I     CreatePixelMap success, id:1787902493313911,dSize:(800,800),srcSize: (544,544),dHdr:1,sHdr:1,memType: 2,cost 13727 us
-I     [gc] SmartGC: app cold start just finished
-I     Start to open trace result: 1203, interval: 114 ms
 I     Application is in starting period.
-I     [js_ability_delegator.cpp765]finalizer called
-I     [js_ability_delegator.cpp765]finalizer called
-I     [gc] Has checked a long time gc
-I     [gc]  [ HPP OldGC ] 306.696 (313) -> 11.8729 (79) MB, 67.776(+0.466)ms, GCReason: ConcurrentMark finished, MarkReason: Idle time task
-I     [gc] IsInBackground: 0; SensitiveStatus: 0; StartupStatus: 2; BundleName: com.ddabb.toolbox; Young: 262144; Old: 39059456; TotalCommit82837504
-I     [gc] /***************** GC Duration statistic: ****************/
-I     [gc] TotalGC:                 67.776  ms
-      Initialize:              0       ms
-      Mark:                    0.094   ms
-      MarkRoots:               0.077   ms
-      ConcurrentMark pause:    0.466   ms
-      WaitConcurrentMarkFinish:0       ms
-      ReMark:                  0.094   ms
-      ProcessSharedGCRSetWorkList:0       ms
-      Sweep:                   0.135   ms
-      ClearNativeObject:       62.33   ms
-      Evacuate:                4.566   ms
-      UpdateReference:         0.92    ms
-      UpdateWeekRef:           0.221   ms
-      UpdateRoot:              0.342   ms
-      ProceeWorkload:          0       ms
-      EvacuateSpace:           3.593   ms
-      EvacuateRegion:          2.971   ms
-      WaitFinish:              0.001   ms
-      Finish:                  0.025   ms
-I     [gc] /****************** GC Memory statistic: *****************/
-I     [gc] AllSpaces        used: 12157.9KB     committed:   80896KB
-      ActiveSemiSpace  used:      31KB     committed:     256KB
-      OldSpace         used: 4695.17KB     committed:   38144KB
-      HugeObjectSpace  used:     512KB     committed:     512KB
-      NonMovableSpace  used: 1046.43KB     committed:   35840KB
-      AppSpawnSpace    used: 5617.27KB     committed:    5888KB
-I     [gc] Anno memory usage size:  313.25  MB
-      Native memory usage size:57.2714 MB
-      NativeBindingSize:       7518.68 KB
-      NativeLimitSize:         131701  KB
-      ArrayBufferNativeSize:   7518.36 KB
-      ChunkNativeSize:         24      KB
-I     [gc] Heap alive rate:         0.0379327
-I     [gc] /***************** GC summary statistic: *****************/
-I     [gc] OldGC occurs count       1
-      OldGC max pause:         67.776  ms
-      OldGC min pause:         67.776  ms
-      OldGC average pause:     67.776  ms
-      Heap average alive rate: 0.0379327
+I     ProcessJank: JankFrameMonitor::ProcessJank jank >= threshold
 I     Application is in starting period.
-I     RSSurfaceNode::Unmarshalling, Node: 238971980349442, Name: com.huawei.hmsapp.appgalleryDisposeAlertAbility
-I     ConnectInner: [id: 1300615170] state: 0,isTerminating:0, callingPid:55640, disableDelegator:0
-I     GetRSUIContext: : RSUIContext is null, sessionId: 1300615170, screenId:18446744073709551615
-E     SetRSUIContext: RSUIContext is null, RSNode [id: 238971980349442], RSUIContext is null
-I     InitSessionPropertyWhenConnect: [id: 1300615170] requestedOrientation: 0, defaultRequestedOrientation: 0, userRequestedOrientation: 0
-I     SetCallingPid: id:1300615170, 55640
-I     sessionStateChangeFunc is null
-I     sessionStateChangeNotifyManagerFunc is null
-E     GetScreenSession: Error found screen session with id: 18446744073709551615
-I     ConnectInner: set session id 1300615170 disableDelegator 0
-E     WriteCombinedCompatibleConfig: combinedSize: 0 fail to meet the conditions
+I     [a92ab1c544bad19 0 0]RSSurfaceNode::Unmarshalling, Node: 254665790849026, Name: com.huawei.hmsapp.appgalleryDisposeAlertAbility
+I     [a92ab1c544bad19 0 0]ConnectInner: [id: 1315901442] state: 0,isTerminating:0, callingPid:59294, disableDelegator:0
+I     [a92ab1c544bad19 0 0]GetRSUIContext: : RSUIContext is null, sessionId: 1315901442, screenId:18446744073709551615
+E     [a92ab1c544bad19 0 0]SetRSUIContext: RSUIContext is null, RSNode [id: 254665790849026], RSUIContext is null
+I     [a92ab1c544bad19 0 0]InitSessionPropertyWhenConnect: [id: 1315901442] requestedOrientation: 0, defaultRequestedOrientation: 0, userRequestedOrientation: 0
+I     [a92ab1c544bad19 0 0]SetCallingPid: id:1315901442, 59294
+I     [a92ab1c544bad19 0 0]sessionStateChangeFunc is null
+I     [a92ab1c544bad19 0 0]sessionStateChangeNotifyManagerFunc is null
+E     [a92ab1c544bad19 0 0]GetScreenSession: Error found screen session with id: 18446744073709551615
+I     [a92ab1c544bad19 0 0]ConnectInner: set session id 1315901442 disableDelegator 0
+E     [a92ab1c544bad19 0 0]WriteCombinedCompatibleConfig: combinedSize: 0 fail to meet the conditions
+I     [a92ab1c544bad19 0 0][(-2:100000:singleton)] [@674][ID: 1] The session is connected and the current state is 'FOREGROUND'.
+I     [a92ab1c544bad19 0 0][(100000:100000:scope)] [@1588][ID: 1] OnRemoteReady the current state is 'FOREGROUND'.
+I     [a92ab1c544bad19 0 0][(100000:100000:scope)] UIExtensionComponent/secure_field RequestFocusImmediatelyFromModalUEC isOnMainTree:1
+I     [a92ab1c544bad19 0 0][(100000:100000:scope)] [@922][ID: 1] focused state notified to uiextension, persistentid = 1315901442, componentId=8.
+I     [a92ab1c544bad19 0 0][(100000:100000:scope)] FocusSwitch end, ModalPage/secure_field onBlur, UIExtensionComponent/secure_field onFocus, start: 2, end: 1, update: 2
+I     [a92ab1c544bad19 0 0][(100000:100000:scope)] current focus node: (UIExtensionComponent/8). isDynamic: 0
+I     [a92ab1c544bad19 0 0][(100000:100000:scope)] UIExtension(UIExtensionComponent/8) not need process.
+I     [a92ab1c544bad19 0 0][(100000:100000:scope)] [@922][ID: 1] focused state notified to uiextension, persistentid = 1315901442, componentId=8.
+I     [a92ab1c544bad19 0 0][(100000:100000:scope)] UIExtensionManager register listener
+I     [a92ab1c544bad19 0 0]GetExtensionConfig: waterfall: 0, winId: 162
+I     [a92ab1c544bad19 0 0]GetGestureBackEnabled: win 162 enable 1
+I     [a92ab1c544bad19 0 0][(100000:100000:scope)] Create UIExtensionAccessibilityChildTreeCallback
+I     [a92ab1c544bad19 0 0][(100000:100000:scope)] [@1863][ID: 1] UIExtension: 7 register child tree, realHostWindowId: 162
+I     [a92ab1c544bad19 0 0][(100000:100000:scope)] [@2419][ID: 1] RegisterUIExtBusinessConsumeCallback businessCode=1002.
+I     [a92ab1c544bad19 0 0][(100000:100000:scope)] [@2419][ID: 1] RegisterUIExtBusinessConsumeCallback businessCode=1001.
+I     [a92ab1c544bad19 0 0][(100000:100000:scope)] [@2419][ID: 1] RegisterUIExtBusinessConsumeCallback businessCode=3002.
+I     [a92ab1c544bad19 0 0][(100000:100000:scope)] [@2434][ID: 1] NotifyHostWindowMode: instanceId = 100000, followStrategy = 1, mode = 1
+I     [a92ab1c544bad19 0 0][(100000:100000:scope)] [@1645][ID: 1] SendWindowModeToProvider: mode = 1
+I     [a92ab1c544bad19 0 0][(100000:100000:scope)] [@1563][ID: 1] PostBusinessDataConsumeAsync, businessCode=1002.
+I     [a92ab1c544bad19 0 0]NotifyExtensionSecureLimitChange: windowId: 162, isLimite: 1
+I     [a92ab1c544bad19 0 0]Foreground: [id: 1315901442] state:1, isTerminating:0
+I     [a92ab1c544bad19 0 0]SetActive: new active:1, id:1315901442, state:2
+I     [a92ab1c544bad19 0 0]sessionStateChangeFunc is null
+I     [a92ab1c544bad19 0 0]sessionStateChangeNotifyManagerFunc is null
+I     [a92ab1c544bad19 0 0]sessionStateChangeFunc is null
+I     [a92ab1c544bad19 0 0]sessionStateChangeNotifyManagerFunc is null
 I     Application is in starting period.
-I     [(100000:100000:scope)] [@1563][ID: 1] PostBusinessDataConsumeAsync, businessCode=1002.
-I     NotifyExtensionSecureLimitChange: windowId: 353, isLimite: 1
-I     Foreground: [id: 1300615170] state:1, isTerminating:0
-I     SetActive: new active:1, id:1300615170, state:2
-I     sessionStateChangeFunc is null
-I     sessionStateChangeNotifyManagerFunc is null
-I     sessionStateChangeFunc is null
-I     sessionStateChangeNotifyManagerFunc is null
-I     [(-2:100000:singleton)] [@674][ID: 1] The session is connected and the current state is 'FOREGROUND'.
-I     [(100000:100000:scope)] [@1588][ID: 1] OnRemoteReady the current state is 'FOREGROUND'.
-I     [(100000:100000:scope)] UIExtensionComponent/secure_field RequestFocusImmediatelyFromModalUEC isOnMainTree:1
-I     [(100000:100000:scope)] [@922][ID: 1] focused state notified to uiextension, persistentid = 1300615170, componentId=8.
-I     [(100000:100000:scope)] FocusSwitch end, ModalPage/secure_field onBlur, UIExtensionComponent/secure_field onFocus, start: 2, end: 1, update: 2
-I     [(100000:100000:scope)] current focus node: (UIExtensionComponent/8). isDynamic: 0
-I     [(100000:100000:scope)] UIExtension(UIExtensionComponent/8) not need process.
-I     [(100000:100000:scope)] [@922][ID: 1] focused state notified to uiextension, persistentid = 1300615170, componentId=8.
-I     [(100000:100000:scope)] UIExtensionManager register listener
-I     GetExtensionConfig: waterfall: 0, winId: 353
-I     GetGestureBackEnabled: win 353 enable 1
-I     [(100000:100000:scope)] Create UIExtensionAccessibilityChildTreeCallback
-I     [(100000:100000:scope)] [@1863][ID: 1] UIExtension: 7 register child tree, realHostWindowId: 353
-I     [(100000:100000:scope)] [@2419][ID: 1] RegisterUIExtBusinessConsumeCallback businessCode=1002.
-I     [(100000:100000:scope)] [@2419][ID: 1] RegisterUIExtBusinessConsumeCallback businessCode=1001.
-I     [(100000:100000:scope)] [@2419][ID: 1] RegisterUIExtBusinessConsumeCallback businessCode=3002.
-I     [(100000:100000:scope)] [@2434][ID: 1] NotifyHostWindowMode: instanceId = 100000, followStrategy = 1, mode = 1
-I     [(100000:100000:scope)] [@1645][ID: 1] SendWindowModeToProvider: mode = 1
-I     [(100000:100000:scope)] DispatchExtensionDataToHostWindow code=10002, want={"abilityName":"","action":"","bundleName":"","deviceId":"","entities":null,"flags":0,"parameters":"{}","type":"","uri":""}, persistentId=1300615170.
-I     HandleRegisterHostWindowRectChangeListener: businessCode: 10002
-I     HandleRegisterHostWindowRectChangeListener: persistentId: 1300615170 register rect change listener
-I     [(100000:100000:scope)] [@2399][ID: 1] OnUIExtBusinessReceive businessCode=1002.
-I     Application is in starting period.
+I     [a92ab1c544bad19 0 0][(100000:100000:scope)] DispatchExtensionDataToHostWindow code=10002, want={"abilityName":"","action":"","bundleName":"","deviceId":"","entities":null,"flags":0,"parameters":"{}","type":"","uri":""}, persistentId=1315901442.
+I     [a92ab1c544bad19 0 0]HandleRegisterHostWindowRectChangeListener: businessCode: 10002
+I     [a92ab1c544bad19 0 0]HandleRegisterHostWindowRectChangeListener: persistentId: 1315901442 register rect change listener
 I     [(100000:100000:scope)] UIExtensionSurface: isDisappearing = 0, paintRect = RectT (0.00, 0.00) - [1260.00 x 2720.00].
-I     [(100000:100000:scope)] [@1312][ID: 1] NotifyDisplayArea displayArea=RectT (0.00, 0.00) - [1260.00 x 2720.00], curWindow=Rect (0.00, 0.00) - [1260.00 x 2720.00], reason=0, duration=0, persistentId=1300615170, componentId=8.
+I     [(100000:100000:scope)] [@1312][ID: 1] NotifyDisplayArea displayArea=RectT (0.00, 0.00) - [1260.00 x 2720.00], curWindow=Rect (0.00, 0.00) - [1260.00 x 2720.00], reason=0, duration=0, persistentId=1315901442, componentId=8.
 E     GetScreenSession: Error found screen session with id: 18446744073709551615
-I     [(100000:100000:scope)] [@913][ID: 1] Notify uiextension, persistentid = 1300615170 to clear the focus state, componentId=8.
-I     RSNode::AddChild, Id: 237893943558153, SurfaceNode:[Id: 238971980349442, name: com.huawei.hmsapp.appgalleryDisposeAlertAbility]
+I     [(100000:100000:scope)] [@913][ID: 1] Notify uiextension, persistentid = 1315901442 to clear the focus state, componentId=8.
+I     RSNode::AddChild, Id: 253922761506825, SurfaceNode:[Id: 254665790849026, name: com.huawei.hmsapp.appgalleryDisposeAlertAbility]
 I     [(100000:100000:scope)] [@1991][ID: 1] HandleVisibleAreaChange visible: 1, curVisible: 0, ratio: 1.000000, displayArea: RectT (0.00, 0.00) - [1260.00 x 2720.00].
 I     [(100000:100000:scope)] [@1822][ID: 1] The component is changing from 'visible' to 'visible'.
 I     ProcessJank: JankFrameMonitor::ProcessJank jank >= threshold
-I     [(100000:100000:scope)] [@1563][ID: 1] PostBusinessDataConsumeAsync, businessCode=3002.
-I     GetStatusBarHeight: in
-I     GetStatusBarHeight: in
-I     GetStatusBarHeight: in
-I     GetStatusBarHeight: in
-I     GetStatusBarHeight: in
+I     [a92ab1c544bad19 0 0][(100000:100000:scope)] [@2399][ID: 1] OnUIExtBusinessReceive businessCode=1002.
+I     [a92ab1c544bad19 0 0][(100000:100000:scope)] [@1563][ID: 1] PostBusinessDataConsumeAsync, businessCode=3002.
 I     GetStatusBarHeight: in
 I     Application is in starting period.
-I     [(100000:100000:scope)] [@2399][ID: 1] OnUIExtBusinessReceive businessCode=3002.
-I     [(100000:100000:scope)] UECPattern send avoidInfo: needAvoid: false, titleHeight: 0, rect: RectT (0.00, 0.00) - [0.00 x 0.00].
 I     ProcessJank: JankFrameMonitor::ProcessJank jank >= threshold
+I     [a92ab1c544bad19 0 0][(100000:100000:scope)] [@2399][ID: 1] OnUIExtBusinessReceive businessCode=3002.
+I     [a92ab1c544bad19 0 0][(100000:100000:scope)] UECPattern send avoidInfo: needAvoid: false, titleHeight: 0, rect: RectT (0.00, 0.00) - [0.00 x 0.00].
+I     GetStatusBarHeight: in
+I     GetStatusBarHeight: in
+I     GetStatusBarHeight: in
+I     GetStatusBarHeight: in
+I     GetStatusBarHeight: in
 I     GetStatusBarHeight: in
 I     success to submit dump trace
-I     Detect collect trace task complete.
 I     Start to dump trace failed, openTrace result: 1203
+I     Detect collect trace task complete.
 I     [(-2:100000:singleton)] [@1711][ID: 1] OnResult the state is changing from 'FOREGROUND' to 'DESTRUCTION'.
 E     [(100000:100000:scope)] [@1633][ID: 1] Modal is not destroyed after UEC is destroyed!
-I     Background: Background ExtensionSession, id: 1300615170, state: 3
-I     NotifyExtensionSecureLimitChange: windowId: 353, isLimite: 0
+I     Background: Background ExtensionSession, id: 1315901442, state: 3
+I     NotifyExtensionSecureLimitChange: windowId: 162, isLimite: 0
 I     sessionStateChangeFunc is null
 I     sessionStateChangeNotifyManagerFunc is null
 I     sessionStateChangeFunc is null
 I     sessionStateChangeNotifyManagerFunc is null
 I     [(100000:100000:scope)] [@2556][ID: 1] UEC UpdateWMSUIExtProperty state=DESTRUCTION.
-I     Disconnect: [id: 1300615170] Disconnect session, state: 5
+I     Disconnect: [id: 1315901442] Disconnect session, state: 5
 I     sessionStateChangeFunc is null
 I     sessionStateChangeNotifyManagerFunc is null
 I     sessionStateChangeFunc is null
 I     sessionStateChangeNotifyManagerFunc is null
 I     [(-2:100000:singleton)] [@894][ID: 1] The session is disconnected and the current state is 'DESTRUCTION'.
 I     [(-2:100000:singleton)] [@1651][ID: 1] OnRelease the state is changing from 'DESTRUCTION' to 'DESTRUCTION' and releaseCode = 0.
-I     [(-2:100000:singleton)] [com.ddabb.toolbox][entry_test][100000]: close modal page, sessionId=1300615170
-I     [(-2:100000:singleton)] [@1075][ID: 1] OnReleaseDone, persistentid = 1300615170, componentId=8.
-W     [(100000:100000:scope)] The sessionId 1300615170 does not exist
-I     Destroy session done with persistentId: 1300615170
+I     [(-2:100000:singleton)] [com.ddabb.toolbox][entry_test][100000]: close modal page, sessionId=1315901442
+I     [(-2:100000:singleton)] [@1075][ID: 1] OnReleaseDone, persistentid = 1315901442, componentId=8.
+I     Destroy session done with persistentId: 1315901442
+W     [(100000:100000:scope)] The sessionId 1315901442 does not exist
+I     [AMC493]name: DisposeAlertAbility com.huawei.hmsapp.appgallery, persistentId: 1315901442
 I     [(100000:100000:scope)] ProcessModalPageScene
-I     [AMC493]name: DisposeAlertAbility com.huawei.hmsapp.appgallery, persistentId: 1300615170
 I     [(100000:100000:scope)] across processes CloseKeyboard Successfully.
 I     [(100000:100000:scope)] can't find inner navigation
 I     [(100000:100000:scope)] can't find inner navigation
@@ -689,7 +691,10 @@ I     [(100000:100000:scope)] [@1115][ID: 1] UnRegisterPipelineEvent
 I     [(100000:100000:scope)] [@1991][ID: 1] HandleVisibleAreaChange visible: 0, curVisible: 1, ratio: 0.000000, displayArea: RectT (0.00, 0.00) - [1260.00 x 2720.00].
 I     [(100000:100000:scope)] [@1822][ID: 1] The component is changing from 'visible' to 'invisible'.
 I     [(100000:100000:scope)] [@290][ID: 1] OnDetachFromMainTree, isMoving: 0
-I     [(100000:100000:scope)] ResetRootNode -1300615170.
+I     [(100000:100000:scope)] ResetRootNode -1315901442.
+I     [(100000:100000:scope)] DispatchExtensionDataToHostWindow code=10003, want={"abilityName":"","action":"","bundleName":"","deviceId":"","entities":null,"flags":0,"parameters":"{}","type":"","uri":""}, persistentId=0.
+I     HandleUnregisterHostWindowRectChangeListener: businessCode: 10003
+I     HandleUnregisterHostWindowRectChangeListener: persistentId: 0 unregister rect change listener
 I     [(100000:100000:scope)] Destory UIExtensionNode
 I     [(100000:100000:scope)] [@1115][ID: 1] UnRegisterPipelineEvent
 I     [(100000:100000:scope)] [@151][ID: 1] The modal UIExtension is destroyed.
@@ -697,15 +702,16 @@ I     [(100000:100000:scope)] [@184][ID: 1] LogoutModalUIExtension sessionId 0.
 I     [(100000:100000:scope)] [@1606][ID: 1] ModalOnDestroy the current state is 'DESTRUCTION'.
 W     [(100000:100000:scope)] [@2042][ID: 1] UIExtension pattern instanceId 100000 not equal frame node instanceId -1
 I     [(100000:100000:scope)] UIExtensionSurface: OnDetachFromFrameNode
-I     RSSurfaceNode::~RSSurfaceNode, Node: 238971980349442, Name: com.huawei.hmsapp.appgalleryDisposeAlertAbility
-W     RSNodeMap::UnregisterNode: node id 238971980349442 not found
+I     RSSurfaceNode::~RSSurfaceNode, Node: 254665790849026, Name: com.huawei.hmsapp.appgalleryDisposeAlertAbility
+W     RSNodeMap::UnregisterNode: node id 254665790849026 not found
 I     [(100000:100000:scope)] Request focus on focusView: page/2.
 I     [(100000:100000:scope)] FocusSwitch end, NULL/secure_field onBlur, Row/secure_field onFocus, start: 2, end: 1, update: 2
 I     [(100000:100000:scope)] current focus node: (Row/5). isDynamic: 0
 I     [(100000:100000:scope)] FrameNode(Row/5) notNeedSoftKeyboard.
 I     hd:28 ct:1 D:*.IWindowEventChannel
-I     ~ExtensionSession: id=1300615170
-I     ~Session: id:1300615170
+I     ~ExtensionSession: id=1315901442
+I     ~Session: id:1315901442
+I     Application is in starting period.
 I     Application is in starting period.
 I     [gc] SmartGC: app cold start finished
 I     [OCR_DBG] 01_standard_544:MIS pipeline=像素分析+修正
@@ -722,114 +728,115 @@ I     [OCR_DBG] 01_standard_544:MIS vkOcrSize=
 I     [OCR_DBG] 01_standard_544:MIS vkBlocks=0
 I     [OCR_DBG] 01_standard_544:MIS vkGrid=
 I     [OCR_DBG] 01_standard_544:MIS   5 3 . . 7 . . . .
-I     [OCR_DBG] 01_standard_544:MIS   6 . . 1 9 5 . . .
+I     [OCR_DBG] 01_standard_544:MIS   6 . . 4 9 5 . . .
 I     [OCR_DBG] 01_standard_544:MIS   . 9 8 . . . . 6 .
 I     [OCR_DBG] 01_standard_544:MIS   8 . . . 6 . . . 3
-I     [OCR_DBG] 01_standard_544:MIS   5 . . 8 . 3 . . 1
+I     [OCR_DBG] 01_standard_544:MIS   4 . . 8 . 3 . . 4
 I     [OCR_DBG] 01_standard_544:MIS   7 . . . 2 . . . 6
 I     [OCR_DBG] 01_standard_544:MIS   . 6 . . . . 2 8 .
-I     [OCR_DBG] 01_standard_544:MIS   . . . 5 1 9 . . 5
+I     [OCR_DBG] 01_standard_544:MIS   . . . 4 4 9 . . 5
 I     [OCR_DBG] 01_standard_544:MIS   . . . . 8 . . 7 9
 I     [OCR_DBG] 01_standard_544:MIS
 I     [OCR_DBG] 01_standard_544:MIS finalGrid=
 I     [OCR_DBG] 01_standard_544:MIS   5 3 . . 7 . . . .
-I     [OCR_DBG] 01_standard_544:MIS   6 . . 1 9 5 . . .
+I     [OCR_DBG] 01_standard_544:MIS   6 . . 2 9 5 . . .
 I     [OCR_DBG] 01_standard_544:MIS   . 9 8 . . . . 6 .
 I     [OCR_DBG] 01_standard_544:MIS   8 . . . 6 . . . 3
-I     [OCR_DBG] 01_standard_544:MIS   9 . . 8 . 3 . . 1
+I     [OCR_DBG] 01_standard_544:MIS   2 . . 8 . 3 . . 4
 I     [OCR_DBG] 01_standard_544:MIS   7 . . . 2 . . . 6
 I     [OCR_DBG] 01_standard_544:MIS   . 6 . . . . 2 8 .
-I     [OCR_DBG] 01_standard_544:MIS   . . . 6 1 9 . . 5
+I     [OCR_DBG] 01_standard_544:MIS   . . . 1 4 9 . . 5
 I     [OCR_DBG] 01_standard_544:MIS   . . . . 8 . . 7 9
 I     [OCR_DBG] 01_standard_544:MIS
-I     [OCR_DBG] 01_standard_544:MIS fd=不变(0,0)=5 P=5 V=- P_only(conf=1.00 c=4→4) pxDiag=[digit=5 ink=264 diag=[]]
-I     [OCR_DBG] 01_standard_544:MIS fd=不变(4,0)=5 P=5 V=- P_only(conf=1.00 c=4→4) pxDiag=[digit=5 ink=206 diag=[]]
-I     [OCR_DBG] 01_standard_544:MIS fd=不变(7,3)=5 P=5 V=- P_only(conf=1.00 c=4→4) pxDiag=[digit=5 ink=208 diag=[]]
-I     [OCR_DBG] 01_standard_544:MIS fd=不变(7,8)=5 P=5 V=- P_only(conf=1.00 c=4→4) pxDiag=[digit=5 ink=248 diag=[]]
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(0,2) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(0,3) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(0,5) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(0,6) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(0,7) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(0,8) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(1,1) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(1,2) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(1,6) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(1,7) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(1,8) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(2,0) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(2,3) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(2,4) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(2,5) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(2,6) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(2,8) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(3,1) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(3,2) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(3,3) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4761 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(3,5) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4761 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(3,6) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(3,7) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(4,1) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(4,2) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(4,4) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4761 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(4,6) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(4,7) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(5,1) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(5,2) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(5,3) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4761 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(5,5) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4761 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(5,6) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(5,7) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(6,0) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(6,2) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(6,3) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(6,4) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(6,5) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(6,8) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(7,0) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(7,1) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(7,2) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(7,6) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(7,7) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(8,0) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(8,1) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(8,2) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(8,3) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(8,5) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS fd=留空(8,6) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] crop=skip
-I     [OCR_DBG] 01_standard_544:MIS coord=R0C0:d=5 rect=[26,26,83x83] conf=1.00 ink=0.0612 imgSize=800x800 src=gridLines
-I     [OCR_DBG] 01_standard_544:MIS coord=R0C1:d=3 rect=[109,26,83x83] conf=1.00 ink=0.0641 imgSize=800x800 src=gridLines
-I     [OCR_DBG] 01_standard_544:MIS coord=R0C4:d=7 rect=[358,26,82x83] conf=1.00 ink=0.0482 imgSize=800x800 src=gridLines
-I     [OCR_DBG] 01_standard_544:MIS coord=R1C0:d=6 rect=[26,109,83x83] conf=1.00 ink=0.0733 imgSize=800x800 src=gridLines
-I     [OCR_DBG] 01_standard_544:MIS coord=R1C3:d=1 rect=[274,109,84x83] conf=1.00 ink=0.0501 imgSize=800x800 src=gridLines
-I     [OCR_DBG] 01_standard_544:MIS coord=R1C4:d=9 rect=[358,109,82x83] conf=1.00 ink=0.0739 imgSize=800x800 src=gridLines
-I     [OCR_DBG] 01_standard_544:MIS coord=R1C5:d=5 rect=[440,109,81x83] conf=1.00 ink=0.0599 imgSize=800x800 src=gridLines
-I     [OCR_DBG] 01_standard_544:MIS coord=R2C1:d=9 rect=[109,192,83x82] conf=1.00 ink=0.0718 imgSize=800x800 src=gridLines
-I     [OCR_DBG] 01_standard_544:MIS coord=R2C2:d=8 rect=[192,192,82x82] conf=1.00 ink=0.0823 imgSize=800x800 src=gridLines
-I     [OCR_DBG] 01_standard_544:MIS coord=R2C7:d=6 rect=[606,192,83x82] conf=1.00 ink=0.0754 imgSize=800x800 src=gridLines
-I     [OCR_DBG] 01_standard_544:MIS coord=R3C0:d=8 rect=[26,274,83x84] conf=1.00 ink=0.0781 imgSize=800x800 src=gridLines
-I     [OCR_DBG] 01_standard_544:MIS coord=R3C4:d=6 rect=[358,274,82x84] conf=1.00 ink=0.0757 imgSize=800x800 src=gridLines
-I     [OCR_DBG] 01_standard_544:MIS coord=R3C8:d=3 rect=[689,274,79x84] conf=1.00 ink=0.0666 imgSize=800x800 src=gridLines
-I     [OCR_DBG] 01_standard_544:MIS coord=R4C0:d=5 rect=[26,358,83x82] conf=1.00 ink=0.0638 imgSize=800x800 src=gridLines
-I     [OCR_DBG] 01_standard_544:MIS coord=R4C3:d=8 rect=[274,358,84x82] conf=1.00 ink=0.0778 imgSize=800x800 src=gridLines
-I     [OCR_DBG] 01_standard_544:MIS coord=R4C5:d=3 rect=[440,358,81x82] conf=1.00 ink=0.0652 imgSize=800x800 src=gridLines
-I     [OCR_DBG] 01_standard_544:MIS coord=R4C8:d=1 rect=[689,358,79x82] conf=1.00 ink=0.0487 imgSize=800x800 src=gridLines
-I     [OCR_DBG] 01_standard_544:MIS coord=R5C0:d=7 rect=[26,440,83x81] conf=1.00 ink=0.0464 imgSize=800x800 src=gridLines
-I     [OCR_DBG] 01_standard_544:MIS coord=R5C4:d=2 rect=[358,440,82x81] conf=1.00 ink=0.0650 imgSize=800x800 src=gridLines
-I     [OCR_DBG] 01_standard_544:MIS coord=R5C8:d=6 rect=[689,440,79x81] conf=1.00 ink=0.0802 imgSize=800x800 src=gridLines
-I     [OCR_DBG] 01_standard_544:MIS coord=R6C1:d=6 rect=[109,521,83x85] conf=1.00 ink=0.0718 imgSize=800x800 src=gridLines
-I     [OCR_DBG] 01_standard_544:MIS coord=R6C6:d=2 rect=[521,521,85x85] conf=1.00 ink=0.0613 imgSize=800x800 src=gridLines
-I     [OCR_DBG] 01_standard_544:MIS coord=R6C7:d=8 rect=[606,521,83x85] conf=1.00 ink=0.0772 imgSize=800x800 src=gridLines
-I     [OCR_DBG] 01_standard_544:MIS coord=R7C3:d=5 rect=[274,606,84x83] conf=1.00 ink=0.0620 imgSize=800x800 src=gridLines
-I     [OCR_DBG] 01_standard_544:MIS coord=R7C4:d=1 rect=[358,606,82x83] conf=1.00 ink=0.0468 imgSize=800x800 src=gridLines
-I     [OCR_DBG] 01_standard_544:MIS coord=R7C5:d=9 rect=[440,606,81x83] conf=1.00 ink=0.0756 imgSize=800x800 src=gridLines
-I     [OCR_DBG] 01_standard_544:MIS coord=R7C8:d=5 rect=[689,606,79x83] conf=1.00 ink=0.0608 imgSize=800x800 src=gridLines
-I     [OCR_DBG] 01_standard_544:MIS coord=R8C4:d=8 rect=[358,689,82x79] conf=1.00 ink=0.0856 imgSize=800x800 src=gridLines
-I     [OCR_DBG] 01_standard_544:MIS coord=R8C7:d=7 rect=[606,689,83x79] conf=1.00 ink=0.0504 imgSize=800x800 src=gridLines
-I     [OCR_DBG] 01_standard_544:MIS coord=R8C8:d=9 rect=[689,689,79x79] conf=1.00 ink=0.0845 imgSize=800x800 src=gridLines
-I     [OCR_TEST] 01_standard_544: FAIL given:93% full:98% fp:0 fn:2 diff=R5C1:got=9 want=4; R8C4:got=6 want=4
-I     [Hypium][fail]pipeline_01_standard_544 ; consuming 6698ms
-I     [Hypium][failDetail]expect 9..8.3..1 equals 4..8.3..1
+I     [OCR_DBG] 01_standard_544:MIS fd=不变(1,3)=4 P=4 V=- P_only(conf=1.00 c=5→5) pxDiag=[digit=4 ink=173 diag=[best=4 score=745 ink=173 [stripLeftSkip: col0=0] sig=....................|....................|............#####...|.....############...|.....#..#########...|...##############...|...##############...|...##############...|...####.....#####...|............#####...|............#####...|............#####...|............#####...|............#####...|............#####...|............#####...|............#####...|............#####...|............#####...|............#####...|............#####...|............#####...|............#####...|............#####...|............#####...|............#####...|............#####...|............#####...]] localBg: peak=255 bg=255.0 above=0 below=255 effBg=255.0 effDark=0
+I     [OCR_DBG] 01_standard_544:MIS fd=不变(4,0)=4 P=4 V=- P_only(conf=1.00 c=5→5) pxDiag=[digit=4 ink=206 diag=[4/5→4: s4=969>s5=519]] localBg: peak=255 bg=255.0 above=0 below=332 effBg=255.0 effDark=0
+I     [OCR_DBG] 01_standard_544:MIS fd=不变(4,8)=4 P=4 V=- P_only(conf=1.00 c=5→5) pxDiag=[digit=4 ink=218 diag=[best=4 score=739 ink=218 [stripLeftSkip: col0=0] sig=....................|....................|...........#######..|.....#############..|.....#############..|....##############..|....##############..|....##############..|....##.....#######..|...........#######..|....#......#######..|...........#######..|...........#######..|...........#######..|...........#######..|...........#######..|...........#######..|...........#######..|...........#######..|...........#######..|...........#######..|...........#######..|...........#######..|...........#######..|...........#######..|...........#######..|...........#######..|...........#######..]] localBg: peak=255 bg=255.0 above=0 below=232 effBg=255.0 effDark=0
+I     [OCR_DBG] 01_standard_544:MIS fd=不变(7,3)=4 P=4 V=- P_only(conf=1.00 c=5→5) pxDiag=[digit=4 ink=208 diag=[4/5→4: s4=969>s5=515]] localBg: peak=255 bg=255.0 above=0 below=330 effBg=255.0 effDark=0
+I     [OCR_DBG] 01_standard_544:MIS fd=不变(7,4)=4 P=4 V=- P_only(conf=1.00 c=5→5) pxDiag=[digit=4 ink=198 diag=[best=4 score=707 ink=198 [stripLeftSkip: col0=0] sig=....................|....................|...........######...|.....############...|.......##########...|..###############...|..###############...|..###############...|..####.....######...|...........######...|....#......######...|...........######...|...........######...|...........######...|...........######...|...........######...|...........######...|...........######...|...........######...|...........######...|...........######...|...........######...|...........######...|...........######...|...........######...|...........######...|...........######...|...........######...]] localBg: peak=255 bg=255.0 above=0 below=234 effBg=255.0 effDark=0
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(0,2) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(0,3) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(0,5) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(0,6) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(0,7) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(0,8) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(1,1) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(1,2) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(1,6) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(1,7) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(1,8) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(2,0) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(2,3) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(2,4) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(2,5) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(2,6) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(2,8) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(3,1) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(3,2) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(3,3) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4761 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(3,5) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4761 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(3,6) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(3,7) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(4,1) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(4,2) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(4,4) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4761 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(4,6) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(4,7) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(5,1) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(5,2) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(5,3) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4761 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(5,5) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4761 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(5,6) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(5,7) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(6,0) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(6,2) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(6,3) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(6,4) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(6,5) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(6,8) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(7,0) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(7,1) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(7,2) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(7,6) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(7,7) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(8,0) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(8,1) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(8,2) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(8,3) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(8,5) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4830 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS fd=留空(8,6) V=- P=- ink=0 rawInk=0.0000 pxDiag=[sigNull diag=[rawInk=0/4900 ratio=0.0000 gate=0.018] rawInk=0.0000] localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 localBg: peak=255 bg=255.0 above=0 below=0 effBg=255.0 effDark=0 crop=skip
+I     [OCR_DBG] 01_standard_544:MIS coord=R0C0:d=5 rect=[26,26,83x83] conf=1.00 ink=0.0612 imgSize=800x800 src=gridLines localBg: peak=255 bg=255.0 above=0 below=331 effBg=255.0 effDark=0
+I     [OCR_DBG] 01_standard_544:MIS coord=R0C1:d=3 rect=[109,26,83x83] conf=1.00 ink=0.0641 imgSize=800x800 src=gridLines localBg: peak=255 bg=255.0 above=0 below=324 effBg=255.0 effDark=0
+I     [OCR_DBG] 01_standard_544:MIS coord=R0C4:d=7 rect=[358,26,82x83] conf=1.00 ink=0.0482 imgSize=800x800 src=gridLines localBg: peak=255 bg=255.0 above=0 below=271 effBg=255.0 effDark=0
+I     [OCR_DBG] 01_standard_544:MIS coord=R1C0:d=6 rect=[26,109,83x83] conf=1.00 ink=0.0733 imgSize=800x800 src=gridLines localBg: peak=255 bg=255.0 above=0 below=377 effBg=255.0 effDark=0
+I     [OCR_DBG] 01_standard_544:MIS coord=R1C3:d=4 rect=[274,109,84x83] conf=1.00 ink=0.0501 imgSize=800x800 src=gridLines localBg: peak=255 bg=255.0 above=0 below=255 effBg=255.0 effDark=0
+I     [OCR_DBG] 01_standard_544:MIS coord=R1C4:d=9 rect=[358,109,82x83] conf=1.00 ink=0.0739 imgSize=800x800 src=gridLines localBg: peak=255 bg=255.0 above=0 below=369 effBg=255.0 effDark=0
+I     [OCR_DBG] 01_standard_544:MIS coord=R1C5:d=5 rect=[440,109,81x83] conf=1.00 ink=0.0599 imgSize=800x800 src=gridLines localBg: peak=255 bg=255.0 above=0 below=343 effBg=255.0 effDark=0
+I     [OCR_DBG] 01_standard_544:MIS coord=R2C1:d=9 rect=[109,192,83x82] conf=1.00 ink=0.0718 imgSize=800x800 src=gridLines localBg: peak=255 bg=255.0 above=0 below=359 effBg=255.0 effDark=0
+I     [OCR_DBG] 01_standard_544:MIS coord=R2C2:d=8 rect=[192,192,82x82] conf=1.00 ink=0.0823 imgSize=800x800 src=gridLines localBg: peak=255 bg=255.0 above=0 below=414 effBg=255.0 effDark=0
+I     [OCR_DBG] 01_standard_544:MIS coord=R2C7:d=6 rect=[606,192,83x82] conf=1.00 ink=0.0754 imgSize=800x800 src=gridLines localBg: peak=255 bg=255.0 above=0 below=374 effBg=255.0 effDark=0
+I     [OCR_DBG] 01_standard_544:MIS coord=R3C0:d=8 rect=[26,274,83x84] conf=1.00 ink=0.0781 imgSize=800x800 src=gridLines localBg: peak=255 bg=255.0 above=0 below=401 effBg=255.0 effDark=0
+I     [OCR_DBG] 01_standard_544:MIS coord=R3C4:d=6 rect=[358,274,82x84] conf=1.00 ink=0.0757 imgSize=800x800 src=gridLines localBg: peak=255 bg=255.0 above=0 below=382 effBg=255.0 effDark=0
+I     [OCR_DBG] 01_standard_544:MIS coord=R3C8:d=3 rect=[689,274,79x84] conf=1.00 ink=0.0666 imgSize=800x800 src=gridLines localBg: peak=255 bg=255.0 above=0 below=323 effBg=255.0 effDark=0
+I     [OCR_DBG] 01_standard_544:MIS coord=R4C0:d=4 rect=[26,358,83x82] conf=1.00 ink=0.0638 imgSize=800x800 src=gridLines localBg: peak=255 bg=255.0 above=0 below=332 effBg=255.0 effDark=0
+I     [OCR_DBG] 01_standard_544:MIS coord=R4C3:d=8 rect=[274,358,84x82] conf=1.00 ink=0.0778 imgSize=800x800 src=gridLines localBg: peak=255 bg=255.0 above=0 below=399 effBg=255.0 effDark=0
+I     [OCR_DBG] 01_standard_544:MIS coord=R4C5:d=3 rect=[440,358,81x82] conf=1.00 ink=0.0652 imgSize=800x800 src=gridLines localBg: peak=255 bg=255.0 above=0 below=321 effBg=255.0 effDark=0
+I     [OCR_DBG] 01_standard_544:MIS coord=R4C8:d=4 rect=[689,358,79x82] conf=1.00 ink=0.0487 imgSize=800x800 src=gridLines localBg: peak=255 bg=255.0 above=0 below=232 effBg=255.0 effDark=0
+I     [OCR_DBG] 01_standard_544:MIS coord=R5C0:d=7 rect=[26,440,83x81] conf=1.00 ink=0.0464 imgSize=800x800 src=gridLines localBg: peak=255 bg=255.0 above=0 below=262 effBg=255.0 effDark=0
+I     [OCR_DBG] 01_standard_544:MIS coord=R5C4:d=2 rect=[358,440,82x81] conf=1.00 ink=0.0650 imgSize=800x800 src=gridLines localBg: peak=255 bg=255.0 above=0 below=329 effBg=255.0 effDark=0
+I     [OCR_DBG] 01_standard_544:MIS coord=R5C8:d=6 rect=[689,440,79x81] conf=1.00 ink=0.0802 imgSize=800x800 src=gridLines localBg: peak=255 bg=255.0 above=0 below=373 effBg=255.0 effDark=0
+I     [OCR_DBG] 01_standard_544:MIS coord=R6C1:d=6 rect=[109,521,83x85] conf=1.00 ink=0.0718 imgSize=800x800 src=gridLines localBg: peak=255 bg=255.0 above=0 below=374 effBg=255.0 effDark=0
+I     [OCR_DBG] 01_standard_544:MIS coord=R6C6:d=2 rect=[521,521,85x85] conf=1.00 ink=0.0613 imgSize=800x800 src=gridLines localBg: peak=255 bg=255.0 above=0 below=345 effBg=255.0 effDark=0
+I     [OCR_DBG] 01_standard_544:MIS coord=R6C7:d=8 rect=[606,521,83x85] conf=1.00 ink=0.0772 imgSize=800x800 src=gridLines localBg: peak=255 bg=255.0 above=0 below=402 effBg=255.0 effDark=0
+I     [OCR_DBG] 01_standard_544:MIS coord=R7C3:d=4 rect=[274,606,84x83] conf=1.00 ink=0.0620 imgSize=800x800 src=gridLines localBg: peak=255 bg=255.0 above=0 below=330 effBg=255.0 effDark=0
+I     [OCR_DBG] 01_standard_544:MIS coord=R7C4:d=4 rect=[358,606,82x83] conf=1.00 ink=0.0468 imgSize=800x800 src=gridLines localBg: peak=255 bg=255.0 above=0 below=234 effBg=255.0 effDark=0
+I     [OCR_DBG] 01_standard_544:MIS coord=R7C5:d=9 rect=[440,606,81x83] conf=1.00 ink=0.0756 imgSize=800x800 src=gridLines localBg: peak=255 bg=255.0 above=0 below=376 effBg=255.0 effDark=0
+I     [OCR_DBG] 01_standard_544:MIS coord=R7C8:d=5 rect=[689,606,79x83] conf=1.00 ink=0.0608 imgSize=800x800 src=gridLines localBg: peak=255 bg=255.0 above=0 below=335 effBg=255.0 effDark=0
+I     [OCR_DBG] 01_standard_544:MIS coord=R8C4:d=8 rect=[358,689,82x79] conf=1.00 ink=0.0856 imgSize=800x800 src=gridLines localBg: peak=255 bg=255.0 above=0 below=407 effBg=255.0 effDark=0
+I     [OCR_DBG] 01_standard_544:MIS coord=R8C7:d=7 rect=[606,689,83x79] conf=1.00 ink=0.0504 imgSize=800x800 src=gridLines localBg: peak=255 bg=255.0 above=0 below=270 effBg=255.0 effDark=0
+I     [OCR_DBG] 01_standard_544:MIS coord=R8C8:d=9 rect=[689,689,79x79] conf=1.00 ink=0.0845 imgSize=800x800 src=gridLines localBg: peak=255 bg=255.0 above=0 below=379 effBg=255.0 effDark=0
+I     [OCR_TEST] 01_standard_544: FAIL given:83% full:94% fp:0 fn:5 diff=R2C4:got=2 want=1; R5C1:got=2 want=4; R5C9:got=4 want=1; R8C4:got=1 want=4; R8C5:got=4 want=1
+I     [Hypium][fail]pipeline_01_standard_544 ; consuming 7827ms
+I     [Hypium][failDetail]expect 6..295... equals 6..195...
 I     OHOS_REPORT_STATUS: class=SudokuOCR_pipeline_full
       OHOS_REPORT_STATUS: current=1
       OHOS_REPORT_STATUS: id=JS
@@ -837,10 +844,10 @@ I     OHOS_REPORT_STATUS: class=SudokuOCR_pipeline_full
 I     OHOS_REPORT_STATUS: stack=    at AssertException @ohos/hypium (oh_modules/.ohpm/@ohos+hypium@1.0.25/oh_modules/@ohos/hypium/src/main/service.js:75:9)
           at anonymous @ohos/hypium (oh_modules/.ohpm/@ohos+hypium@1.0.25/oh_modules/@ohos/hypium/src/main/service.js:1149:37)
           at anonymous entry (entry/src/ohosTest/ets/test/SudokuOcr.test.ets:234:28)
-I     OHOS_REPORT_STATUS: stream=Error in pipeline_01_standard_544, expect 9..8.3..1 equals 4..8.3..1
+I     OHOS_REPORT_STATUS: stream=Error in pipeline_01_standard_544, expect 6..295... equals 6..195...
       OHOS_REPORT_STATUS: test=pipeline_01_standard_544
       OHOS_REPORT_STATUS_CODE: -2
-      OHOS_REPORT_STATUS: consuming=6698
+      OHOS_REPORT_STATUS: consuming=7827
 I     [Hypium]printSync called ...
 I     [js_ability_delegator.cpp662]argc: 1
 I     [js_ability_delegator.cpp1320]enter
@@ -868,16 +875,16 @@ I     [js_ability_delegator.cpp662]argc: 1
 I     [js_ability_delegator.cpp1320]enter
 I     [ability_delegator.cpp352]Enter
 I     [test_observer_proxy.cpp23]created
-I     [ability_delegator.cpp365]message: OHOS_REPORT_STATUS: stream=Error in pipeline_01_standard_544, expect 9..8.3..1 equals 4..8.3..1
+I     [ability_delegator.cpp365]message: OHOS_REPORT_STATUS: stream=Error in pipeline_01_standard_544, expect 6..295... equals 6..195...
       OHOS_REPORT_STATUS: test=pipeline_01_standard_544
       OHOS_REPORT_STATUS_CODE: -2
-      OHOS_REPORT_STATUS: consuming=6698
+      OHOS_REPORT_STATUS: consuming=7827
 I     [test_observer_proxy.cpp33]start
 I     [test_observer_proxy.cpp28]destroyed
 I     [Hypium]pipeline_01_standard_544 specDone end print success
-I     [suite end] SudokuOCR_pipeline_full consuming 6698 ms
+I     [suite end] SudokuOCR_pipeline_full consuming 7827 ms
 I     OHOS_REPORT_STATUS: class=SudokuOCR_pipeline_full
-      OHOS_REPORT_STATUS: suiteconsuming=6698
+      OHOS_REPORT_STATUS: suiteconsuming=7827
 I     [Hypium]printSync called ...
 I     [js_ability_delegator.cpp662]argc: 1
 I     [js_ability_delegator.cpp1320]enter
@@ -885,15 +892,15 @@ I     [ability_delegator.cpp352]Enter
 I     [test_observer_proxy.cpp23]created
 I     [ability_delegator.cpp365]message:
       OHOS_REPORT_STATUS: class=SudokuOCR_pipeline_full
-      OHOS_REPORT_STATUS: suiteconsuming=6698
+      OHOS_REPORT_STATUS: suiteconsuming=7827
 I     [test_observer_proxy.cpp33]start
 I     [test_observer_proxy.cpp28]destroyed
 I     [Hypium]SudokuOCR_pipeline_full suiteDone print success
-I     [Hypium]total cases:1;failure 1,error 0,pass 0; consuming 6698ms
+I     [Hypium]total cases:1;failure 1,error 0,pass 0; consuming 7827ms
 I     [Hypium][end] run suites end
 I     OHOS_REPORT_RESULT: stream=Tests run: 1, Failure: 1, Error: 0, Pass: 0, Ignore: 0
       OHOS_REPORT_CODE: -1
-      OHOS_REPORT_STATUS: taskconsuming=6698
+      OHOS_REPORT_STATUS: taskconsuming=7827
 I     [Hypium]printSync called ...
 I     [js_ability_delegator.cpp662]argc: 1
 I     [js_ability_delegator.cpp1320]enter
@@ -902,7 +909,7 @@ I     [test_observer_proxy.cpp23]created
 I     [ability_delegator.cpp365]message:
       OHOS_REPORT_RESULT: stream=Tests run: 1, Failure: 1, Error: 0, Pass: 0, Ignore: 0
       OHOS_REPORT_CODE: -1
-      OHOS_REPORT_STATUS: taskconsuming=6698
+      OHOS_REPORT_STATUS: taskconsuming=7827
 I     [test_observer_proxy.cpp33]start
 I     [test_observer_proxy.cpp28]destroyed
 I     [Hypium]report print success

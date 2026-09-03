@@ -57,6 +57,7 @@ export interface CellCoordInfo {
   imgW: number;
   imgH: number;
   source: string;
+  localBg: string;
 }
 
 export interface PerCellVkDiag {

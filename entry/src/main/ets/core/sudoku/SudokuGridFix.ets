@@ -28,9 +28,11 @@ import { recognizeDigitVisionKit, recognizeDigitInWideRegion } from './SudokuVKO
 import {
   BoardBBox, bgColor, toGrayArray, findBoardBBox,
   getLastConfidence, getLastRawInkRatio, getLastPixelDiag,
+  getLastLocalBgInfo,
   resetLastPixelDiag, resetGridLineCrop, detectGridLineWidths,
   MIN_CELL_INK_RATIO, cellSigFromGray, cellSigFromGrayLowThresh,
-  cellSigFromGrayThin, recognizeDigit, countInk, getLastBboxDiag
+  cellSigFromGrayThin, recognizeDigit, countInk, getLastBboxDiag,
+  ULTRA_LOW_INK_THRESH
 } from './SudokuPixel';
 
 export function findConflictCells(grid: number[]): number[] {
@@ -172,6 +174,22 @@ async function recognizeDigitPixel(
         }
       }
     }
+    if (ri < MIN_CELL_INK_RATIO * 3) {
+      const ultraSig: number[] | null = await cellSigFromGrayLowThresh(
+        gray, imgW, cellLeft, cellTop, cellW, cellH, isDark, bg, gridRow, gridCol,
+        ULTRA_LOW_INK_THRESH
+      );
+      if (ultraSig !== null) {
+        sig = ultraSig;
+        const ultraInk: number = countInk(ultraSig);
+        const ultraDigit: number = await recognizeDigit(ultraSig, ultraInk);
+        if (ultraDigit > 0) {
+          const ultraD: string = getLastPixelDiag();
+          setLastRecognizeDiag(`retryUltraLow: digit=${ultraDigit} ink=${ultraInk} diag=[${ultraD}] rawInk=${ri.toFixed(4)}`);
+          return ultraDigit;
+        }
+      }
+    }
     setLastRecognizeDiag(`sigNull diag=[${d}] rawInk=${ri.toFixed(4)}`);
     return null;
   }
@@ -208,6 +226,22 @@ async function recognizeDigitPixel(
         const thinD: string = getLastPixelDiag();
         setLastRecognizeDiag(`retryThin: digit=${thinDigit} ink=${thinInk} diag=[${thinD}] rawInk=${ri2.toFixed(4)}`);
         return thinDigit;
+      }
+    }
+  }
+  if (ri2 < MIN_CELL_INK_RATIO * 3) {
+    const ultraSig: number[] | null = await cellSigFromGrayLowThresh(
+      gray, imgW, cellLeft, cellTop, cellW, cellH, isDark, bg, gridRow, gridCol,
+      ULTRA_LOW_INK_THRESH
+    );
+    if (ultraSig !== null) {
+      sig = ultraSig;
+      const ultraInk: number = countInk(ultraSig);
+      const ultraDigit: number = await recognizeDigit(ultraSig, ultraInk);
+      if (ultraDigit > 0) {
+        const ultraD: string = getLastPixelDiag();
+        setLastRecognizeDiag(`retryUltraLow: digit=${ultraDigit} ink=${ultraInk} diag=[${ultraD}] rawInk=${ri2.toFixed(4)}`);
+        return ultraDigit;
       }
     }
   }
@@ -647,7 +681,7 @@ export async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, im
           const probeTop: number | undefined = g_probeBbox?.top;
           fixDetailLines.push(`高墨VK全null${cellLabel} cell=(${cellLeft.toFixed(0)},${cellTop.toFixed(0)},${cellW.toFixed(0)}x${cellH.toFixed(0)}) board=(${boardL.toFixed(0)},${boardT.toFixed(0)}) probeBbox=(${probeLeft},${probeTop}) fitted=(${g_fittedBoardL.toFixed(0)},${g_fittedBoardT.toFixed(0)}) cellSize=(${cellW.toFixed(1)}x${cellH.toFixed(1)})`);
         }
-        fixDetailLines.push(`留空${cellLabel} V=${vStr} P=${pStr} ink=${pixelHasInk ? 1 : 0} rawInk=${rawInkRatio.toFixed(4)} pxDiag=[${pixelDiag}] crop=${vkCropInfo}`);
+        fixDetailLines.push(`留空${cellLabel} V=${vStr} P=${pStr} ink=${pixelHasInk ? 1 : 0} rawInk=${rawInkRatio.toFixed(4)} pxDiag=[${pixelDiag}] ${getLastLocalBgInfo()} ${getLastLocalBgInfo()} crop=${vkCropInfo}`);
       }
       continue;
     }
@@ -776,14 +810,14 @@ export async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, im
         }
       }
 
-      fixDetailLines.push(`修正${cellLabel} ${origDigit}→${finalDigit} P=${pStr} V=${vStr} ${decision}${swapNote} pxDiag=[${pixelDiag}]`);
+      fixDetailLines.push(`修正${cellLabel} ${origDigit}→${finalDigit} P=${pStr} V=${vStr} ${decision}${swapNote} pxDiag=[${pixelDiag}] ${getLastLocalBgInfo()}`);
     } else if (finalDigit === null && (origDigit === 6 || origDigit === 9)) {
       const isConflict: boolean = conflictIndices.some((ci: number) => ci === idx);
       if (isConflict && rawInkRatio < MIN_CELL_INK_RATIO && pixelDigit === null) {
         grid[idx] = 0;
         fixCount++;
         hilog.info(DOMAIN, TAG, '【逐格修正详情】冲突无墨清除 %{public}s %{public}d→0', cellLabel, origDigit);
-        fixDetailLines.push(`清除${cellLabel} ${origDigit}→0 P=${pStr} V=${vStr} 冲突无墨 pxDiag=[${pixelDiag}]`);
+        fixDetailLines.push(`清除${cellLabel} ${origDigit}→0 P=${pStr} V=${vStr} 冲突无墨 pxDiag=[${pixelDiag}] ${getLastLocalBgInfo()}`);
       } else if (isConflict && rawInkRatio >= MIN_CELL_INK_RATIO) {
         const swapped: number = origDigit === 6 ? 9 : 6;
         grid[idx] = swapped;
@@ -791,14 +825,14 @@ export async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, im
         const swapConflict: boolean = afterSwap.some((ci: number) => ci === idx);
         if (swapConflict) {
           grid[idx] = origDigit;
-          fixDetailLines.push(`不变${cellLabel}=${origDigit} P=${pStr} V=${vStr} ${decision} 6/9冲突交换失败 pxDiag=[${pixelDiag}]`);
+          fixDetailLines.push(`不变${cellLabel}=${origDigit} P=${pStr} V=${vStr} ${decision} 6/9冲突交换失败 pxDiag=[${pixelDiag}] ${getLastLocalBgInfo()}`);
         } else {
           fixCount++;
           hilog.info(DOMAIN, TAG, '【逐格修正详情】6/9冲突交换 %{public}s %{public}d -> %{public}d', cellLabel, origDigit, swapped);
-          fixDetailLines.push(`修正${cellLabel} ${origDigit}→${swapped} P=${pStr} V=${vStr} 冲突6/9交换 pxDiag=[${pixelDiag}]`);
+          fixDetailLines.push(`修正${cellLabel} ${origDigit}→${swapped} P=${pStr} V=${vStr} 冲突6/9交换 pxDiag=[${pixelDiag}] ${getLastLocalBgInfo()}`);
         }
       } else {
-        fixDetailLines.push(`不变${cellLabel}=${origDigit} P=${pStr} V=${vStr} ${decision} pxDiag=[${pixelDiag}]`);
+        fixDetailLines.push(`不变${cellLabel}=${origDigit} P=${pStr} V=${vStr} ${decision} pxDiag=[${pixelDiag}] ${getLastLocalBgInfo()}`);
       }
     } else if (finalDigit === null && origDigit > 0) {
       const isConflict: boolean = conflictIndices.some((ci: number) => ci === idx);
@@ -806,7 +840,7 @@ export async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, im
         grid[idx] = 0;
         fixCount++;
         hilog.info(DOMAIN, TAG, '【逐格修正详情】冲突无墨清除 %{public}s %{public}d→0', cellLabel, origDigit);
-        fixDetailLines.push(`清除${cellLabel} ${origDigit}→0 P=${pStr} V=${vStr} 冲突无墨 pxDiag=[${pixelDiag}]`);
+        fixDetailLines.push(`清除${cellLabel} ${origDigit}→0 P=${pStr} V=${vStr} 冲突无墨 pxDiag=[${pixelDiag}] ${getLastLocalBgInfo()}`);
       } else if (isConflict && rawInkRatio >= MIN_CELL_INK_RATIO) {
         let swappedOk: boolean = false;
         let swapDigit: number = origDigit;
@@ -826,15 +860,15 @@ export async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, im
         if (swappedOk) {
           fixCount++;
           hilog.info(DOMAIN, TAG, '【逐格修正详情】冲突交换 %{public}s %{public}d -> %{public}d', cellLabel, origDigit, swapDigit);
-          fixDetailLines.push(`修正${cellLabel} ${origDigit}→${swapDigit} P=${pStr} V=${vStr} 冲突交换 pxDiag=[${pixelDiag}]`);
+          fixDetailLines.push(`修正${cellLabel} ${origDigit}→${swapDigit} P=${pStr} V=${vStr} 冲突交换 pxDiag=[${pixelDiag}] ${getLastLocalBgInfo()}`);
         } else {
-          fixDetailLines.push(`不变${cellLabel}=${origDigit} P=${pStr} V=${vStr} ${decision} 冲突交换失败 pxDiag=[${pixelDiag}]`);
+          fixDetailLines.push(`不变${cellLabel}=${origDigit} P=${pStr} V=${vStr} ${decision} 冲突交换失败 pxDiag=[${pixelDiag}] ${getLastLocalBgInfo()}`);
         }
       } else {
-        fixDetailLines.push(`不变${cellLabel}=${origDigit} P=${pStr} V=${vStr} ${decision} pxDiag=[${pixelDiag}]`);
+        fixDetailLines.push(`不变${cellLabel}=${origDigit} P=${pStr} V=${vStr} ${decision} pxDiag=[${pixelDiag}] ${getLastLocalBgInfo()}`);
       }
     } else {
-      fixDetailLines.push(`不变${cellLabel}=${origDigit} P=${pStr} V=${vStr} ${decision} pxDiag=[${pixelDiag}]`);
+      fixDetailLines.push(`不变${cellLabel}=${origDigit} P=${pStr} V=${vStr} ${decision} pxDiag=[${pixelDiag}] ${getLastLocalBgInfo()}`);
     }
     if (col === 8) { await yieldThread(); }
   }

@@ -14,9 +14,11 @@ import { image } from '@kit.ImageKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { BoardBBox, BoardCorners, GridLines, bgColor, cellSigFromGray, cellSigFromGrayLowThresh,
   cellSigFromGrayThin, countInk, detectBoardCorners, detectGridLineWidths, findBoardBBox,
-  findBoxLongRun, getLastBboxDiag, getLastConfidence, getLastRawInkRatio, MIN_CELL_INK_RATIO,
+  findBoxLongRun, getLastBboxDiag, getLastConfidence, getLastRawInkRatio, getLastLocalBgInfo,
+  MIN_CELL_INK_RATIO,
   resetChannelBgCache, resetGridLineCrop, isGridLineCropDetected, findPreciseGridLines,
-  toGrayArray, validateCellCentering, warpPerspectiveGray, INK_THRESH, recognizeDigit } from './SudokuPixel';
+  toGrayArray, validateCellCentering, warpPerspectiveGray, INK_THRESH, recognizeDigit,
+  ULTRA_LOW_INK_THRESH } from './SudokuPixel';
 import { taskpool } from '@kit.ArkTS';
 
 export async function tryPixelGridRecognition(imagePath: string, imageBuf: ArrayBuffer | null = null): Promise<OCRResult> {
@@ -251,6 +253,18 @@ export async function analyzePixelGridFromBuffer(pixels: Uint8Array, width: numb
             digit = await recognizeDigit(thinSig, countInk(thinSig));
           }
         }
+        if (digit === 0 && getLastRawInkRatio() < MIN_CELL_INK_RATIO * 3) {
+          const ultraSig: number[] | null = await cellSigFromGrayLowThresh(
+            warpedGray, outSize,
+            c * warpCellW, r * warpCellH,
+            warpCellW, warpCellH, warpIsDark, warpBg, r, c,
+            ULTRA_LOW_INK_THRESH
+          );
+          if (ultraSig !== null) {
+            sig = ultraSig;
+            digit = await recognizeDigit(ultraSig, countInk(ultraSig));
+          }
+        }
         if (sig !== null) {
           sigCount++;
           grid[r * 9 + c] = digit;
@@ -305,6 +319,16 @@ export async function analyzePixelGridFromBuffer(pixels: Uint8Array, width: numb
             if (thinSig !== null) {
               sig = thinSig;
               digit = await recognizeDigit(thinSig, countInk(thinSig));
+            }
+          }
+          if (digit === 0 && getLastRawInkRatio() < MIN_CELL_INK_RATIO * 3) {
+            const ultraSig: number[] | null = await cellSigFromGrayLowThresh(
+              gray, width, cLeft, cTop, cW, cH, bbox.isDark, bg, r, c,
+              ULTRA_LOW_INK_THRESH
+            );
+            if (ultraSig !== null) {
+              sig = ultraSig;
+              digit = await recognizeDigit(ultraSig, countInk(ultraSig));
             }
           }
           if (sig !== null) {
@@ -375,6 +399,18 @@ export async function analyzePixelGridFromBuffer(pixels: Uint8Array, width: numb
             if (thinSig !== null) {
               sig = thinSig;
               digit = await recognizeDigit(thinSig, countInk(thinSig));
+            }
+          }
+          if (digit === 0 && getLastRawInkRatio() < MIN_CELL_INK_RATIO * 3) {
+            const ultraSig: number[] | null = await cellSigFromGrayLowThresh(
+              gray, width,
+              bbox.left + c * cellW, bbox.top + r * cellH,
+              cellW, cellH, bbox.isDark, bg, r, c,
+              ULTRA_LOW_INK_THRESH
+            );
+            if (ultraSig !== null) {
+              sig = ultraSig;
+              digit = await recognizeDigit(ultraSig, countInk(ultraSig));
             }
           }
           if (sig !== null) {
@@ -577,6 +613,19 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
           }
           await yieldThread();
         }
+        if (digit === 0 && getLastRawInkRatio() < MIN_CELL_INK_RATIO * 3) {
+          const ultraSig: number[] | null = await cellSigFromGrayLowThresh(
+            warpedGray, outSize,
+            cellL, cellT,
+            cellW, cellH, warpIsDark, warpBg, r, c,
+            ULTRA_LOW_INK_THRESH
+          );
+          if (ultraSig !== null) {
+            sig = ultraSig;
+            digit = await recognizeDigit(ultraSig, countInk(ultraSig));
+          }
+          await yieldThread();
+        }
         if (sig !== null) {
           sigCount++;
           g_lastPixelConfidence[r * 9 + c] = getLastConfidence();
@@ -599,7 +648,8 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
                   w: Math.round(warpCellW), h: Math.round(warpCellH),
                   conf: getLastConfidence(), rawInk: getLastRawInkRatio(),
                   imgW: outSize, imgH: outSize,
-                  source: 'warp+grid_fallback'
+                  source: 'warp+grid_fallback',
+                  localBg: getLastLocalBgInfo()
                 };
                 g_lastCellCoords.push(coordInfo);
                 await yieldThread();
@@ -615,7 +665,8 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
             w: Math.round(cellW), h: Math.round(cellH),
             conf: getLastConfidence(), rawInk: getLastRawInkRatio(),
             imgW: outSize, imgH: outSize,
-            source: warpGridLines !== null ? 'warp+grid' : 'warp'
+            source: warpGridLines !== null ? 'warp+grid' : 'warp',
+            localBg: getLastLocalBgInfo()
           };
           g_lastCellCoords.push(coordInfo);
         }
@@ -675,6 +726,17 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
             }
             await yieldThread();
           }
+          if (digit === 0 && getLastRawInkRatio() < MIN_CELL_INK_RATIO * 3) {
+            const ultraSig: number[] | null = await cellSigFromGrayLowThresh(
+              gray, width, cLeft, cTop, cW, cH, bbox.isDark, bg, r, c,
+              ULTRA_LOW_INK_THRESH
+            );
+            if (ultraSig !== null) {
+              sig = ultraSig;
+              digit = await recognizeDigit(ultraSig, countInk(ultraSig));
+            }
+            await yieldThread();
+          }
           if (sig !== null) {
             sigCount2++;
             g_lastPixelConfidence[r * 9 + c] = getLastConfidence();
@@ -698,7 +760,8 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
                     w: Math.round(fallbackW), h: Math.round(fallbackH),
                     conf: getLastConfidence(), rawInk: getLastRawInkRatio(),
                     imgW: width, imgH: height,
-                    source: 'gridLines_fallback'
+                    source: 'gridLines_fallback',
+                    localBg: getLastLocalBgInfo()
                   };
                   g_lastCellCoords.push(coordInfo2);
                   continue;
@@ -713,7 +776,8 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
               w: Math.round(cW), h: Math.round(cH),
               conf: getLastConfidence(), rawInk: getLastRawInkRatio(),
               imgW: width, imgH: height,
-              source: 'gridLines'
+              source: 'gridLines',
+              localBg: getLastLocalBgInfo()
             };
             g_lastCellCoords.push(coordInfo3);
           }
@@ -768,6 +832,19 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
             }
             await yieldThread();
           }
+          if (digit === 0 && getLastRawInkRatio() < MIN_CELL_INK_RATIO * 3) {
+            const ultraSig: number[] | null = await cellSigFromGrayLowThresh(
+              gray, width,
+              bbox.left + c * cellW, bbox.top + r * cellH,
+              cellW, cellH, bbox.isDark, bg, r, c,
+              ULTRA_LOW_INK_THRESH
+            );
+            if (ultraSig !== null) {
+              sig = ultraSig;
+              digit = await recognizeDigit(ultraSig, countInk(ultraSig));
+            }
+            await yieldThread();
+          }
           if (sig !== null) {
             sigCount3++;
             grid[r * 9 + c] = digit;
@@ -781,7 +858,8 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
               w: Math.round(cellW), h: Math.round(cellH),
               conf: getLastConfidence(), rawInk: getLastRawInkRatio(),
               imgW: width, imgH: height,
-              source: 'AABB'
+              source: 'AABB',
+              localBg: getLastLocalBgInfo()
             };
             g_lastCellCoords.push(coordInfo4);
           }
@@ -795,7 +873,7 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
   let coordLines: string[] = [];
   for (let idx: number = 0; idx < g_lastCellCoords.length; idx++) {
     const ci: CellCoordInfo = g_lastCellCoords[idx];
-    coordLines.push(`R${ci.row}C${ci.col}:d=${ci.digit} rect=[${ci.left},${ci.top},${ci.w}x${ci.h}] conf=${ci.conf.toFixed(2)} ink=${ci.rawInk.toFixed(4)} imgSize=${ci.imgW}x${ci.imgH} src=${ci.source}`);
+    coordLines.push(`R${ci.row}C${ci.col}:d=${ci.digit} rect=[${ci.left},${ci.top},${ci.w}x${ci.h}] conf=${ci.conf.toFixed(2)} ink=${ci.rawInk.toFixed(4)} imgSize=${ci.imgW}x${ci.imgH} src=${ci.source} ${ci.localBg}`);
   }
   setLastDebugPixelCellCoords(coordLines.join('\n'));
 

@@ -417,42 +417,26 @@ function cellSigFromGray(gray, width, cellLeft, cellTop, cellW, cellH, isDark, b
   if (g_gridLineDetected && gridRow>=0 && gridRow<9 && gridCol>=0 && gridCol<9) { const idx=gridRow*9+gridCol, maxMW=Math.floor(cellW*0.45), maxMH=Math.floor(cellH*0.45); mxLeft=Math.max(mxLeft,Math.min(g_gridLineCropLeft[idx],maxMW)); mxRight=Math.max(mxRight,Math.min(g_gridLineCropRight[idx],maxMW)); myTop=Math.max(myTop,Math.min(g_gridLineCropTop[idx],maxMH)); myBot=Math.max(myBot,Math.min(g_gridLineCropBot[idx],maxMH)); }
   const x0=Math.floor(cellLeft+mxLeft), y0=Math.floor(cellTop+myTop), x1=Math.floor(cellLeft+cellW-mxRight), y1=Math.floor(cellTop+cellH-myBot);
   const H=Math.floor(gray.length/width), cellWInner=x1-x0, cellHInner=y1-y0;
-
-  let effectiveBg = bg, effectiveIsDark = isDark;
-  if (cellWInner > 0 && cellHInner > 0) {
-    const histProbe = new Array(256).fill(0);
-    for (let y=y0;y<y1;y++) for (let x=x0;x<x1;x++) { const gv=Math.floor(gray[y*width+x]); if (gv>=0&&gv<256) histProbe[gv]++; }
-    let peakVal=0, peakCount=0;
-    for (let i=0;i<256;i++) if (histProbe[i]>peakCount) { peakCount=histProbe[i]; peakVal=i; }
-    let aboveCount=0, belowCount=0;
-    for (let y=y0;y<y1;y++) for (let x=x0;x<x1;x++) { const gv=gray[y*width+x]; if (gv>peakVal+INK_THRESH*0.5) aboveCount++; if (gv<peakVal-INK_THRESH*0.5) belowCount++; }
-    effectiveIsDark=aboveCount>belowCount;
-    if (Math.abs(peakVal-bg) > INK_THRESH*0.5) {
-      effectiveBg=peakVal;
-    }
-  }
-
   const savedPixels=[], savedPositions=[];
   { const rowAvg=new Float32Array(cellHInner); for (let dy=0;dy<cellHInner;dy++) { let sum=0; const y=y0+dy; for (let dx=0;dx<cellWInner;dx++) sum+=gray[y*width+x0+dx]; rowAvg[dy]=sum/cellWInner; }
     const colAvg=new Float32Array(cellWInner); for (let dx=0;dx<cellWInner;dx++) { let sum=0; const x=x0+dx; for (let dy=0;dy<cellHInner;dy++) sum+=gray[(y0+dy)*width+x]; colAvg[dx]=sum/cellHInner; }
     const isGridRow=new Array(cellHInner).fill(false); let gridRowCount=0;
-    for (let dy=0;dy<cellHInner;dy++) { const diff=effectiveIsDark?(rowAvg[dy]-effectiveBg):(effectiveBg-rowAvg[dy]); if (diff>GRID_LINE_GRAY_DIFF) { let v=0,inkCols=0; const y=y0+dy; for (let dx=0;dx<cellWInner;dx++) { const g=gray[y*width+x0+dx]; v+=(g-rowAvg[dy])**2; if (effectiveIsDark?g>(effectiveBg+INK_THRESH):g<(effectiveBg-INK_THRESH)) inkCols++; } v=Math.sqrt(v/cellWInner); if (v<GRID_LINE_GRAY_DIFF*2&&inkCols>=cellWInner*0.7) { isGridRow[dy]=true; gridRowCount++; } } }
+    for (let dy=0;dy<cellHInner;dy++) { const diff=isDark?(rowAvg[dy]-bg):(bg-rowAvg[dy]); if (diff>GRID_LINE_GRAY_DIFF) { let v=0; const y=y0+dy; for (let dx=0;dx<cellWInner;dx++) { const g=gray[y*width+x0+dx]; v+=(g-rowAvg[dy])**2; } v=Math.sqrt(v/cellWInner); if (v<GRID_LINE_GRAY_DIFF*2) { isGridRow[dy]=true; gridRowCount++; } } }
     if (gridRowCount>Math.floor(cellHInner*0.3)) for (let dy=0;dy<cellHInner;dy++) isGridRow[dy]=false;
     const isGridCol=new Array(cellWInner).fill(false); let gridColCount=0;
-    for (let dx=0;dx<cellWInner;dx++) { const diff=effectiveIsDark?(colAvg[dx]-effectiveBg):(effectiveBg-colAvg[dx]); if (diff>GRID_LINE_GRAY_DIFF) { let v=0,inkRows=0; const x=x0+dx; for (let dy=0;dy<cellHInner;dy++) { const g=gray[(y0+dy)*width+x]; v+=(g-colAvg[dx])**2; if (effectiveIsDark?g>(effectiveBg+INK_THRESH):g<(effectiveBg-INK_THRESH)) inkRows++; } v=Math.sqrt(v/cellHInner); if (v<GRID_LINE_GRAY_DIFF*2&&inkRows>=cellHInner*0.7) { isGridCol[dx]=true; gridColCount++; } } }
+    for (let dx=0;dx<cellWInner;dx++) { const diff=isDark?(colAvg[dx]-bg):(bg-colAvg[dx]); if (diff>GRID_LINE_GRAY_DIFF) { let v=0; const x=x0+dx; for (let dy=0;dy<cellHInner;dy++) { const g=gray[(y0+dy)*width+x]; v+=(g-colAvg[dx])**2; } v=Math.sqrt(v/cellHInner); if (v<GRID_LINE_GRAY_DIFF*2) { isGridCol[dx]=true; gridColCount++; } } }
     if (gridColCount>Math.floor(cellWInner*0.3)) for (let dx=0;dx<cellWInner;dx++) isGridCol[dx]=false;
-    for (let dy=0;dy<cellHInner;dy++) { if (!isGridRow[dy]) continue; const y=y0+dy; for (let dx=0;dx<cellWInner;dx++) { const pos=y*width+x0+dx; savedPixels.push(gray[pos]); savedPositions.push(pos); gray[pos]=effectiveBg; } }
-    for (let dx=0;dx<cellWInner;dx++) { if (!isGridCol[dx]) continue; const x=x0+dx; for (let dy=0;dy<cellHInner;dy++) { const pos=(y0+dy)*width+x; savedPixels.push(gray[pos]); savedPositions.push(pos); gray[pos]=effectiveBg; } }
+    for (let dy=0;dy<cellHInner;dy++) { if (!isGridRow[dy]) continue; const y=y0+dy; for (let dx=0;dx<cellWInner;dx++) { const pos=y*width+x0+dx; savedPixels.push(gray[pos]); savedPositions.push(pos); gray[pos]=bg; } }
+    for (let dx=0;dx<cellWInner;dx++) { if (!isGridCol[dx]) continue; const x=x0+dx; for (let dy=0;dy<cellHInner;dy++) { const pos=(y0+dy)*width+x; savedPixels.push(gray[pos]); savedPositions.push(pos); gray[pos]=bg; } }
   }
   let ink=0, area=0, bminX=1e6, bmaxX=-1, bminY=1e6, bmaxY=-1;
-  const inkBg=effectiveIsDark?effectiveBg+INK_THRESH:effectiveBg-INK_THRESH;
-  for (let y=y0;y<y1;y++) for (let x=x0;x<x1;x++) { area++; const g=gray[y*width+x]; if (effectiveIsDark?g>inkBg:g<inkBg) { ink++; if (x<bminX) bminX=x; if (x>bmaxX) bmaxX=x; if (y<bminY) bminY=y; if (y>bmaxY) bmaxY=y; } }
+  for (let y=y0;y<y1;y++) for (let x=x0;x<x1;x++) { area++; const g=gray[y*width+x]; if (grayInkPixel(g,bg,isDark,INK_THRESH)) { ink++; if (x<bminX) bminX=x; if (x>bmaxX) bmaxX=x; if (y<bminY) bminY=y; if (y>bmaxY) bmaxY=y; } }
   g_lastRawInkRatio = area > 0 ? ink / area : 0;
   let result = null;
   if (ink >= area * MIN_CELL_INK_RATIO && bmaxX >= 0) {
     const bw=bmaxX-bminX+1, bh=bmaxY-bminY+1;
     if (bw >= SAUVOLA_MIN_DIM * 3 && bh >= SAUVOLA_MIN_DIM * 3) {
-      const sauvBinary = sauvolaThreshold(gray, width, H, bminX, bminY, bw, bh, effectiveIsDark);
+      const sauvBinary = sauvolaThreshold(gray, width, H, bminX, bminY, bw, bh, isDark);
       if (sauvBinary !== null) {
         const scale = Math.max(1, Math.ceil(SIG_COLS / bw), Math.ceil(SIG_ROWS / bh));
         const sbw = bw * scale, sbh = bh * scale;
@@ -460,7 +444,7 @@ function cellSigFromGray(gray, width, cellLeft, cellTop, cellW, cellH, isDark, b
         for (let r=0;r<sbh;r++) for (let c=0;c<sbw;c++) scaledBinary[r*sbw+c] = sauvBinary[Math.floor(r/scale)*bw+Math.floor(c/scale)];
         const sauvSig=new Array(SIG_LEN).fill(0);
         for (let r=0;r<SIG_ROWS;r++) for (let c=0;c<SIG_COLS;c++) { const sx0=Math.floor(sbw*c/SIG_COLS),sx1=Math.floor(sbw*(c+1)/SIG_COLS),sy0=Math.floor(sbh*r/SIG_ROWS),sy1=Math.floor(sbh*(r+1)/SIG_ROWS); let s=0,n=0; for (let ly=sy0;ly<sy1;ly++) for (let lx=sx0;lx<sx1;lx++) { s+=scaledBinary[ly*sbw+lx]; n++; } sauvSig[r*SIG_COLS+c]=(n>0&&s/n>0.5)?1:0; }
-        const sauvPreStrip=[...sauvSig]; stripEdgeGridLines(sauvSig); stripFullHeightVerticalStrokes(sauvSig); const si=countInk(sauvSig); if (si>=THIN1_MIN_INK_COUNT&&si<=MAX_INK_COUNT) result=sauvSig; else if (countInk(sauvPreStrip)>=THIN1_MIN_INK_COUNT&&countInk(sauvPreStrip)<=MAX_INK_COUNT) { stripEdgeGridLines(sauvPreStrip); const si2=countInk(sauvPreStrip); if (si2>=THIN1_MIN_INK_COUNT&&si2<=MAX_INK_COUNT) result=sauvPreStrip; }
+        stripEdgeGridLines(sauvSig); stripFullHeightVerticalStrokes(sauvSig); const si=countInk(sauvSig); if (si>=THIN1_MIN_INK_COUNT&&si<=MAX_INK_COUNT) result=sauvSig;
       }
     }
     if (result === null) {
@@ -470,16 +454,16 @@ function cellSigFromGray(gray, width, cellLeft, cellTop, cellW, cellH, isDark, b
       const scaledGray = new Float32Array(sbw * sbh);
       for (let r=0;r<sbh;r++) for (let c=0;c<sbw;c++) {
         const sy = bminY + Math.floor(r / scale), sx = bminX + Math.floor(c / scale);
-        scaledGray[r * sbw + c] = (sy >= 0 && sy < H && sx >= 0 && sx < width) ? gray[sy * width + sx] : effectiveBg;
+        scaledGray[r * sbw + c] = (sy >= 0 && sy < H && sx >= 0 && sx < width) ? gray[sy * width + sx] : bg;
       }
       for (let r=0;r<SIG_ROWS;r++) for (let c=0;c<SIG_COLS;c++) {
         const sx0=Math.floor(sbw*c/SIG_COLS),sx1=Math.floor(sbw*(c+1)/SIG_COLS),sy0=Math.floor(sbh*r/SIG_ROWS),sy1=Math.floor(sbh*(r+1)/SIG_ROWS);
         let s=0,n=0;
         for (let ly=sy0;ly<sy1;ly++) for (let lx=sx0;lx<sx1;lx++) { s+=scaledGray[ly*sbw+lx]; n++; }
-        const avg=n>0?s/n:effectiveBg;
-        sig[r*SIG_COLS+c]=grayInkPixel(avg,effectiveBg,effectiveIsDark,INK_THRESH)?1:0;
+        const avg=n>0?s/n:bg;
+        sig[r*SIG_COLS+c]=grayInkPixel(avg,bg,isDark,INK_THRESH)?1:0;
       }
-      const preStrip=[...sig]; stripEdgeGridLines(sig); stripFullHeightVerticalStrokes(sig); const ic=countInk(sig); if (ic>=THIN1_MIN_INK_COUNT&&ic<=MAX_INK_COUNT) result=sig; else if (countInk(preStrip)>=THIN1_MIN_INK_COUNT&&countInk(preStrip)<=MAX_INK_COUNT) { stripEdgeGridLines(preStrip); const ic2=countInk(preStrip); if (ic2>=THIN1_MIN_INK_COUNT&&ic2<=MAX_INK_COUNT) result=preStrip; }
+      stripEdgeGridLines(sig); stripFullHeightVerticalStrokes(sig); const ic=countInk(sig); if (ic>=THIN1_MIN_INK_COUNT&&ic<=MAX_INK_COUNT) result=sig;
     }
   }
   for (let i=0;i<savedPositions.length;i++) gray[savedPositions[i]]=savedPixels[i];
@@ -492,34 +476,19 @@ function cellSigFromGrayLowThresh(gray, width, cellLeft, cellTop, cellW, cellH, 
   if (g_gridLineDetected && gridRow>=0 && gridRow<9 && gridCol>=0 && gridCol<9) { const idx=gridRow*9+gridCol, maxMW=Math.floor(cellW*0.45), maxMH=Math.floor(cellH*0.45); mxLeft=Math.max(mxLeft,Math.min(g_gridLineCropLeft[idx],maxMW)); mxRight=Math.max(mxRight,Math.min(g_gridLineCropRight[idx],maxMW)); myTop=Math.max(myTop,Math.min(g_gridLineCropTop[idx],maxMH)); myBot=Math.max(myBot,Math.min(g_gridLineCropBot[idx],maxMH)); }
   const x0=Math.floor(cellLeft+mxLeft), y0=Math.floor(cellTop+myTop), x1=Math.floor(cellLeft+cellW-mxRight), y1=Math.floor(cellTop+cellH-myBot);
   const H=Math.floor(gray.length/width), cellWInner=x1-x0, cellHInner=y1-y0;
-
-  let effectiveBg = bg, effectiveIsDark = isDark;
-  if (cellWInner > 0 && cellHInner > 0) {
-    const histProbe = new Array(256).fill(0);
-    for (let y=y0;y<y1;y++) for (let x=x0;x<x1;x++) { const gv=Math.floor(gray[y*width+x]); if (gv>=0&&gv<256) histProbe[gv]++; }
-    let peakVal=0, peakCount=0;
-    for (let i=0;i<256;i++) if (histProbe[i]>peakCount) { peakCount=histProbe[i]; peakVal=i; }
-    if (Math.abs(peakVal-bg) > INK_THRESH*0.5) {
-      effectiveBg=peakVal;
-      let aboveCount=0, belowCount=0;
-      for (let y=y0;y<y1;y++) for (let x=x0;x<x1;x++) { const gv=gray[y*width+x]; if (gv>peakVal+INK_THRESH*0.5) aboveCount++; if (gv<peakVal-INK_THRESH*0.5) belowCount++; }
-      effectiveIsDark=aboveCount>belowCount;
-    }
-  }
-
   const rowAvg=new Array(cellHInner).fill(0); for (let dy=0;dy<cellHInner;dy++) { let s=0; for (let dx=0;dx<cellWInner;dx++) s+=gray[(y0+dy)*width+x0+dx]; rowAvg[dy]=s/cellWInner; }
   const isGridRow=new Array(cellHInner).fill(false);
-  for (let dy=0;dy<cellHInner;dy++) { const diff=effectiveIsDark?(rowAvg[dy]-effectiveBg):(effectiveBg-rowAvg[dy]); if (diff>LOW_GRID_DIFF) { let v=0,inkCols=0; const y=y0+dy; for (let dx=0;dx<cellWInner;dx++) { const g=gray[y*width+x0+dx]; v+=(g-rowAvg[dy])**2; if (effectiveIsDark?g>(effectiveBg+INK_THRESH):g<(effectiveBg-INK_THRESH)) inkCols++; } v=Math.sqrt(v/cellWInner); if (v<LOW_GRID_DIFF*2&&inkCols>=cellWInner*0.7) isGridRow[dy]=true; } }
-  const colAvg=new Array(cellWInner).fill(0); for (let dx=0;dx<cellWInner;dx++) { let s=0; for (let dy=0;dy<cellHInner;dy++) s+=gray[(y0+dy)*width+x0+dx]; colAvg[dx]=s/cellHInner; }
+  for (let dy=0;dy<cellHInner;dy++) { const diff=isDark?(rowAvg[dy]-bg):(bg-rowAvg[dy]); if (diff>LOW_GRID_DIFF) { let v=0; const y=y0+dy; for (let dx=0;dx<cellWInner;dx++) { const g=gray[y*width+x0+dx]; v+=(g-rowAvg[dy])**2; } v=Math.sqrt(v/cellWInner); if (v<LOW_GRID_DIFF*2) isGridRow[dy]=true; } }
+  const colAvg=new Array(cellWInner).fill(0); for (let dx=0;dx<cellWInner;dx++) { let s=0; for (let dy=0;dy<cellHInner;dy++) s+=gray[(y0+dy)*width+x0+dx]; colAvg[dx]=s/cellWInner; }
   const isGridCol=new Array(cellWInner).fill(false);
-  for (let dx=0;dx<cellWInner;dx++) { const diff=effectiveIsDark?(colAvg[dx]-effectiveBg):(effectiveBg-colAvg[dx]); if (diff>LOW_GRID_DIFF) { let v=0,inkRows=0; const x=x0+dx; for (let dy=0;dy<cellHInner;dy++) { const g=gray[(y0+dy)*width+x]; v+=(g-colAvg[dx])**2; if (effectiveIsDark?g>(effectiveBg+INK_THRESH):g<(effectiveBg-INK_THRESH)) inkRows++; } v=Math.sqrt(v/cellHInner); if (v<LOW_GRID_DIFF*2&&inkRows>=cellHInner*0.7) isGridCol[dx]=true; } }
+  for (let dx=0;dx<cellWInner;dx++) { const diff=isDark?(colAvg[dx]-bg):(bg-colAvg[dx]); if (diff>LOW_GRID_DIFF) { let v=0; const x=x0+dx; for (let dy=0;dy<cellHInner;dy++) { const g=gray[(y0+dy)*width+x]; v+=(g-colAvg[dx])**2; } v=Math.sqrt(v/cellHInner); if (v<LOW_GRID_DIFF*2) isGridCol[dx]=true; } }
   const savedPixels=[], savedPositions=[];
-  for (let dy=0;dy<cellHInner;dy++) { if (!isGridRow[dy]) continue; const y=y0+dy; for (let dx=0;dx<cellWInner;dx++) { const pos=y*width+x0+dx; savedPixels.push(gray[pos]); savedPositions.push(pos); gray[pos]=effectiveBg; } }
-  for (let dx=0;dx<cellWInner;dx++) { if (!isGridCol[dx]) continue; const x=x0+dx; for (let dy=0;dy<cellHInner;dy++) { const pos=(y0+dy)*width+x; savedPixels.push(gray[pos]); savedPositions.push(pos); gray[pos]=effectiveBg; } }
+  for (let dy=0;dy<cellHInner;dy++) { if (!isGridRow[dy]) continue; const y=y0+dy; for (let dx=0;dx<cellWInner;dx++) { const pos=y*width+x0+dx; savedPixels.push(gray[pos]); savedPositions.push(pos); gray[pos]=bg; } }
+  for (let dx=0;dx<cellWInner;dx++) { if (!isGridCol[dx]) continue; const x=x0+dx; for (let dy=0;dy<cellHInner;dy++) { const pos=(y0+dy)*width+x; savedPixels.push(gray[pos]); savedPositions.push(pos); gray[pos]=bg; } }
   let bminX=1e6,bmaxX=-1,bminY=1e6,bmaxY=-1,inkCount=0;
-  for (let y=y0;y<y1;y++) for (let x=x0;x<x1;x++) { const g=gray[y*width+x]; if (grayInkPixel(g,effectiveBg,effectiveIsDark,LOW_INK_THRESH_RETRY)) { inkCount++; if (x<bminX) bminX=x; if (x>bmaxX) bmaxX=x; if (y<bminY) bminY=y; if (y>bmaxY) bmaxY=y; } }
+  for (let y=y0;y<y1;y++) for (let x=x0;x<x1;x++) { const g=gray[y*width+x]; if (grayInkPixel(g,bg,isDark,LOW_INK_THRESH_RETRY)) { inkCount++; if (x<bminX) bminX=x; if (x>bmaxX) bmaxX=x; if (y<bminY) bminY=y; if (y>bmaxY) bmaxY=y; } }
   let result = null;
-  if (bmaxX>=0) { const bw=bmaxX-bminX+1, bh=bmaxY-bminY+1; const scale=Math.max(1,Math.ceil(SIG_COLS/bw),Math.ceil(SIG_ROWS/bh)); const sbw=bw*scale,sbh=bh*scale; const scaledGray=new Float32Array(sbw*sbh); for(let r=0;r<sbh;r++) for(let c=0;c<sbw;c++){const sy=bminY+Math.floor(r/scale),sx=bminX+Math.floor(c/scale);scaledGray[r*sbw+c]=(sy>=0&&sy<H&&sx>=0&&sx<width)?gray[sy*width+sx]:effectiveBg;} const sig=new Array(SIG_LEN).fill(0); for (let r=0;r<SIG_ROWS;r++) for (let c=0;c<SIG_COLS;c++) { const sx0=Math.floor(sbw*c/SIG_COLS),sx1=Math.floor(sbw*(c+1)/SIG_COLS),sy0=Math.floor(sbh*r/SIG_ROWS),sy1=Math.floor(sbh*(r+1)/SIG_ROWS); let s=0,n=0; for (let ly=sy0;ly<sy1;ly++) for (let lx=sx0;lx<sx1;lx++) { s+=scaledGray[ly*sbw+lx]; n++; } const avg=n>0?s/n:effectiveBg; sig[r*SIG_COLS+c]=grayInkPixel(avg,effectiveBg,effectiveIsDark,LOW_INK_THRESH_RETRY)?1:0; } const preStrip=[...sig]; stripEdgeGridLines(sig); stripFullHeightVerticalStrokes(sig); const si=countInk(sig); if (si>=THIN1_MIN_INK_COUNT&&si<=MAX_INK_COUNT) result=sig; else if (countInk(preStrip)>=THIN1_MIN_INK_COUNT&&countInk(preStrip)<=MAX_INK_COUNT) { stripEdgeGridLines(preStrip); const si2=countInk(preStrip); if (si2>=THIN1_MIN_INK_COUNT&&si2<=MAX_INK_COUNT) result=preStrip; } }
+  if (bmaxX>=0) { const bw=bmaxX-bminX+1, bh=bmaxY-bminY+1; const scale=Math.max(1,Math.ceil(SIG_COLS/bw),Math.ceil(SIG_ROWS/bh)); const sbw=bw*scale,sbh=bh*scale; const scaledGray=new Float32Array(sbw*sbh); for(let r=0;r<sbh;r++) for(let c=0;c<sbw;c++){const sy=bminY+Math.floor(r/scale),sx=bminX+Math.floor(c/scale);scaledGray[r*sbw+c]=(sy>=0&&sy<H&&sx>=0&&sx<width)?gray[sy*width+sx]:bg;} const sig=new Array(SIG_LEN).fill(0); for (let r=0;r<SIG_ROWS;r++) for (let c=0;c<SIG_COLS;c++) { const sx0=Math.floor(sbw*c/SIG_COLS),sx1=Math.floor(sbw*(c+1)/SIG_COLS),sy0=Math.floor(sbh*r/SIG_ROWS),sy1=Math.floor(sbh*(r+1)/SIG_ROWS); let s=0,n=0; for (let ly=sy0;ly<sy1;ly++) for (let lx=sx0;lx<sx1;lx++) { s+=scaledGray[ly*sbw+lx]; n++; } const avg=n>0?s/n:bg; sig[r*SIG_COLS+c]=grayInkPixel(avg,bg,isDark,LOW_INK_THRESH_RETRY)?1:0; } stripEdgeGridLines(sig); stripFullHeightVerticalStrokes(sig); const si=countInk(sig); if (si>=THIN1_MIN_INK_COUNT&&si<=MAX_INK_COUNT) result=sig; }
   for (let i=0;i<savedPositions.length;i++) gray[savedPositions[i]]=savedPixels[i];
   return result;
 }
@@ -531,36 +500,21 @@ function cellSigFromGrayThin(gray, width, cellLeft, cellTop, cellW, cellH, isDar
   if (g_gridLineDetected && gridRow>=0 && gridRow<9 && gridCol>=0 && gridCol<9) { const idx=gridRow*9+gridCol, maxMW=Math.floor(cellW*0.45), maxMH=Math.floor(cellH*0.45); mxLeft=Math.max(mxLeft,Math.min(g_gridLineCropLeft[idx],maxMW)); mxRight=Math.max(mxRight,Math.min(g_gridLineCropRight[idx],maxMW)); myTop=Math.max(myTop,Math.min(g_gridLineCropTop[idx],maxMH)); myBot=Math.max(myBot,Math.min(g_gridLineCropBot[idx],maxMH)); }
   const x0=Math.floor(cellLeft+mxLeft), y0=Math.floor(cellTop+myTop), x1=Math.floor(cellLeft+cellW-mxRight), y1=Math.floor(cellTop+cellH-myBot);
   const H=Math.floor(gray.length/width), cellWInner=x1-x0, cellHInner=y1-y0;
-
-  let effectiveBg = bg, effectiveIsDark = isDark;
-  if (cellWInner > 0 && cellHInner > 0) {
-    const histProbe = new Array(256).fill(0);
-    for (let y=y0;y<y1;y++) for (let x=x0;x<x1;x++) { const gv=Math.floor(gray[y*width+x]); if (gv>=0&&gv<256) histProbe[gv]++; }
-    let peakVal=0, peakCount=0;
-    for (let i=0;i<256;i++) if (histProbe[i]>peakCount) { peakCount=histProbe[i]; peakVal=i; }
-    let aboveCount=0, belowCount=0;
-    for (let y=y0;y<y1;y++) for (let x=x0;x<x1;x++) { const gv=gray[y*width+x]; if (gv>peakVal+INK_THRESH*0.5) aboveCount++; if (gv<peakVal-INK_THRESH*0.5) belowCount++; }
-    effectiveIsDark=aboveCount>belowCount;
-    if (Math.abs(peakVal-bg) > INK_THRESH*0.5) {
-      effectiveBg=peakVal;
-    }
-  }
-
   const rowAvg=new Array(cellHInner).fill(0); for (let dy=0;dy<cellHInner;dy++) { let s=0; for (let dx=0;dx<cellWInner;dx++) s+=gray[(y0+dy)*width+x0+dx]; rowAvg[dy]=s/cellWInner; }
   const isGridRow=new Array(cellHInner).fill(false); let gridRowCount=0;
-  for (let dy=0;dy<cellHInner;dy++) { const diff=effectiveIsDark?(rowAvg[dy]-effectiveBg):(effectiveBg-rowAvg[dy]); if (diff>LOW_GRID_DIFF) { let v=0,inkCols=0; const y=y0+dy; for (let dx=0;dx<cellWInner;dx++) { const g=gray[y*width+x0+dx]; v+=(g-rowAvg[dy])**2; if (effectiveIsDark?g>(effectiveBg+INK_THRESH):g<(effectiveBg-INK_THRESH)) inkCols++; } v=Math.sqrt(v/cellWInner); if (v<LOW_GRID_DIFF*3&&inkCols>=cellWInner*0.7) { isGridRow[dy]=true; gridRowCount++; } } }
+  for (let dy=0;dy<cellHInner;dy++) { const diff=isDark?(rowAvg[dy]-bg):(bg-rowAvg[dy]); if (diff>LOW_GRID_DIFF) { let v=0; const y=y0+dy; for (let dx=0;dx<cellWInner;dx++) { const g=gray[y*width+x0+dx]; v+=(g-rowAvg[dy])**2; } v=Math.sqrt(v/cellWInner); if (v<LOW_GRID_DIFF*3) { isGridRow[dy]=true; gridRowCount++; } } }
   if (gridRowCount>Math.floor(cellHInner*0.3)) for (let dy=0;dy<cellHInner;dy++) isGridRow[dy]=false;
   const colAvg=new Array(cellWInner).fill(0); for (let dx=0;dx<cellWInner;dx++) { let s=0; for (let dy=0;dy<cellHInner;dy++) s+=gray[(y0+dy)*width+x0+dx]; colAvg[dx]=s/cellHInner; }
   const isGridCol=new Array(cellWInner).fill(false); let gridColCount=0;
-  for (let dx=0;dx<cellWInner;dx++) { const diff=effectiveIsDark?(colAvg[dx]-effectiveBg):(effectiveBg-colAvg[dx]); if (diff>LOW_GRID_DIFF) { let v=0,inkRows=0; const x=x0+dx; for (let dy=0;dy<cellHInner;dy++) { const g=gray[(y0+dy)*width+x]; v+=(g-colAvg[dx])**2; if (effectiveIsDark?g>(effectiveBg+INK_THRESH):g<(effectiveBg-INK_THRESH)) inkRows++; } v=Math.sqrt(v/cellHInner); if (v<LOW_GRID_DIFF*3&&inkRows>=cellHInner*0.7) { isGridCol[dx]=true; gridColCount++; } } }
+  for (let dx=0;dx<cellWInner;dx++) { const diff=isDark?(colAvg[dx]-bg):(bg-colAvg[dx]); if (diff>LOW_GRID_DIFF) { let v=0; const x=x0+dx; for (let dy=0;dy<cellHInner;dy++) { const g=gray[(y0+dy)*width+x]; v+=(g-colAvg[dx])**2; } v=Math.sqrt(v/cellHInner); if (v<LOW_GRID_DIFF*3) { isGridCol[dx]=true; gridColCount++; } } }
   if (gridColCount>Math.floor(cellWInner*0.3)) for (let dx=0;dx<cellWInner;dx++) isGridCol[dx]=false;
   const savedPixels=[], savedPositions=[];
-  for (let dy=0;dy<cellHInner;dy++) { if (!isGridRow[dy]) continue; const y=y0+dy; for (let dx=0;dx<cellWInner;dx++) { const pos=y*width+x0+dx; savedPixels.push(gray[pos]); savedPositions.push(pos); gray[pos]=effectiveBg; } }
-  for (let dx=0;dx<cellWInner;dx++) { if (!isGridCol[dx]) continue; const x=x0+dx; for (let dy=0;dy<cellHInner;dy++) { const pos=(y0+dy)*width+x; savedPixels.push(gray[pos]); savedPositions.push(pos); gray[pos]=effectiveBg; } }
+  for (let dy=0;dy<cellHInner;dy++) { if (!isGridRow[dy]) continue; const y=y0+dy; for (let dx=0;dx<cellWInner;dx++) { const pos=y*width+x0+dx; savedPixels.push(gray[pos]); savedPositions.push(pos); gray[pos]=bg; } }
+  for (let dx=0;dx<cellWInner;dx++) { if (!isGridCol[dx]) continue; const x=x0+dx; for (let dy=0;dy<cellHInner;dy++) { const pos=(y0+dy)*width+x; savedPixels.push(gray[pos]); savedPositions.push(pos); gray[pos]=bg; } }
   let bminX=1e6,bmaxX=-1,bminY=1e6,bmaxY=-1,inkCount=0;
-  for (let y=y0;y<y1;y++) for (let x=x0;x<x1;x++) { const g=gray[y*width+x]; if (grayInkPixel(g,effectiveBg,effectiveIsDark,LOW_INK_THRESH_RETRY)) { inkCount++; if (x<bminX) bminX=x; if (x>bmaxX) bmaxX=x; if (y<bminY) bminY=y; if (y>bmaxY) bmaxY=y; } }
+  for (let y=y0;y<y1;y++) for (let x=x0;x<x1;x++) { const g=gray[y*width+x]; if (grayInkPixel(g,bg,isDark,LOW_INK_THRESH_RETRY)) { inkCount++; if (x<bminX) bminX=x; if (x>bmaxX) bmaxX=x; if (y<bminY) bminY=y; if (y>bmaxY) bmaxY=y; } }
   let result = null;
-  if (bmaxX>=0) { const bw=bmaxX-bminX+1, bh=bmaxY-bminY+1; if (bw>=3&&bh>=3) { const scale=Math.max(1,Math.ceil(SIG_COLS/bw),Math.ceil(SIG_ROWS/bh)); const sbw=bw*scale,sbh=bh*scale; const scaledGray=new Float32Array(sbw*sbh); for(let r=0;r<sbh;r++) for(let c=0;c<sbw;c++){const sy=bminY+Math.floor(r/scale),sx=bminX+Math.floor(c/scale);scaledGray[r*sbw+c]=(sy>=0&&sy<H&&sx>=0&&sx<width)?gray[sy*width+sx]:effectiveBg;} const sig=new Array(SIG_LEN).fill(0); for (let r=0;r<SIG_ROWS;r++) for (let c=0;c<SIG_COLS;c++) { const sx0=Math.floor(sbw*c/SIG_COLS),sx1=Math.floor(sbw*(c+1)/SIG_COLS),sy0=Math.floor(sbh*r/SIG_ROWS),sy1=Math.floor(sbh*(r+1)/SIG_ROWS); let s=0,n=0; for (let ly=sy0;ly<sy1;ly++) for (let lx=sx0;lx<sx1;lx++) { s+=scaledGray[ly*sbw+lx]; n++; } const avg=n>0?s/n:effectiveBg; sig[r*SIG_COLS+c]=grayInkPixel(avg,effectiveBg,effectiveIsDark,LOW_INK_THRESH_RETRY)?1:0; } const preStrip=[...sig]; stripEdgeGridLines(sig); stripFullHeightVerticalStrokes(sig); const si=countInk(sig); if (si>=THIN1_MIN_INK_COUNT&&si<=MAX_INK_COUNT) result=sig; else if (countInk(preStrip)>=THIN1_MIN_INK_COUNT&&countInk(preStrip)<=MAX_INK_COUNT) { stripEdgeGridLines(preStrip); const si2=countInk(preStrip); if (si2>=THIN1_MIN_INK_COUNT&&si2<=MAX_INK_COUNT) result=preStrip; } } }
+  if (bmaxX>=0) { const bw=bmaxX-bminX+1, bh=bmaxY-bminY+1; if (bw>=3&&bh>=3) { const scale=Math.max(1,Math.ceil(SIG_COLS/bw),Math.ceil(SIG_ROWS/bh)); const sbw=bw*scale,sbh=bh*scale; const scaledGray=new Float32Array(sbw*sbh); for(let r=0;r<sbh;r++) for(let c=0;c<sbw;c++){const sy=bminY+Math.floor(r/scale),sx=bminX+Math.floor(c/scale);scaledGray[r*sbw+c]=(sy>=0&&sy<H&&sx>=0&&sx<width)?gray[sy*width+sx]:bg;} const sig=new Array(SIG_LEN).fill(0); for (let r=0;r<SIG_ROWS;r++) for (let c=0;c<SIG_COLS;c++) { const sx0=Math.floor(sbw*c/SIG_COLS),sx1=Math.floor(sbw*(c+1)/SIG_COLS),sy0=Math.floor(sbh*r/SIG_ROWS),sy1=Math.floor(sbh*(r+1)/SIG_ROWS); let s=0,n=0; for (let ly=sy0;ly<sy1;ly++) for (let lx=sx0;lx<sx1;lx++) { s+=scaledGray[ly*sbw+lx]; n++; } const avg=n>0?s/n:bg; sig[r*SIG_COLS+c]=grayInkPixel(avg,bg,isDark,LOW_INK_THRESH_RETRY)?1:0; } stripEdgeGridLines(sig); stripFullHeightVerticalStrokes(sig); const si=countInk(sig); if (si>=THIN1_MIN_INK_COUNT&&si<=MAX_INK_COUNT) result=sig; } }
   for (let i=0;i<savedPositions.length;i++) gray[savedPositions[i]]=savedPixels[i];
   return result;
 }
@@ -660,8 +614,7 @@ function recognizeDigit(sig, templates) {
         for (let i = 0; i < SIG_LEN; i++) { if (best1Key[i] === 1) { tplInk++; if (sig[i] === 1) tp++; } }
         const recall = tplInk > 0 ? tp / tplInk : 0;
         const thinOk = detectThinOne(sig, inkCount);
-        const recallGate = inkCount < THIN1_MIN_INK_COUNT * 2 ? 0.10 : 0.25;
-        if (best1Score >= lowInkMinScore && recall >= recallGate && thinOk) { g_lastConfidence = 0.50; return 1; }
+        if (best1Score >= lowInkMinScore && recall >= 0.25 && thinOk) { g_lastConfidence = 0.50; return 1; }
       }
       g_lastConfidence = 0; return 0;
     }
@@ -690,38 +643,10 @@ function recognizeDigit(sig, templates) {
         if (best7F1 >= LOW_INK_FALLBACK_MIN_SCORE && best7F1Recall >= LOW_INK_FALLBACK_MIN_RECALL) {
           g_lastConfidence = Math.min(1, best7F1 / (SIG_LEN + 200)); return 7;
         }
-        g_lastConfidence = Math.min(1, best1Score / (SIG_LEN + 200));
-        // 1→4 check for low-ink serif fonts
-        const midTop14low = Math.floor(SIG_ROWS * 0.15), midBot14low = Math.floor(SIG_ROWS * 0.45);
-        let topRightInk14low = 0;
-        for (let r = midTop14low; r < midBot14low; r++) for (let c = Math.floor(SIG_COLS / 2); c < SIG_COLS; c++) if (sig[r * SIG_COLS + c] === 1) topRightInk14low++;
-        const crossTop14low = Math.floor(SIG_ROWS * 0.55), crossBot14low = Math.floor(SIG_ROWS * 0.75);
-        let crossCols14low = 0;
-        for (let r = crossTop14low; r < crossBot14low; r++) { let minC2 = SIG_COLS, maxC2 = -1; for (let c = 0; c < SIG_COLS; c++) if (sig[r * SIG_COLS + c] === 1) { if (c < minC2) minC2 = c; if (c > maxC2) maxC2 = c; } if (maxC2 >= minC2) crossCols14low += maxC2 - minC2 + 1; }
-        if (topRightInk14low >= SIG_COLS * 0.15 && crossCols14low >= SIG_COLS * 0.25) {
-          let best4Score = -100000;
-          for (const t4 of templates) { if (t4.digit !== 4) continue; let m4 = 0; for (let i = 0; i < SIG_LEN; i++) if (sig[i] === t4.key[i]) m4++; const s4 = m4 - (SIG_LEN - m4) * TEMPLATE_MISMATCH_PENALTY; if (s4 > best4Score) best4Score = s4; }
-          if (best4Score >= geoMinScore) return 4;
-        }
-        return 1;
+        g_lastConfidence = Math.min(1, best1Score / (SIG_LEN + 200)); return 1;
       }
     }
-    const thinOneResult = best1Score >= geoMinScore && detectThinOne(sig, inkCount);
-    if (best1Score >= geoMinScore && detectThinOne(sig, inkCount)) {
-      // 1→4 check for low-ink serif fonts (fallback path)
-      const midTop14fb = Math.floor(SIG_ROWS * 0.15), midBot14fb = Math.floor(SIG_ROWS * 0.45);
-      let topRightInk14fb = 0;
-      for (let r = midTop14fb; r < midBot14fb; r++) for (let c = Math.floor(SIG_COLS / 2); c < SIG_COLS; c++) if (sig[r * SIG_COLS + c] === 1) topRightInk14fb++;
-      const crossTop14fb = Math.floor(SIG_ROWS * 0.55), crossBot14fb = Math.floor(SIG_ROWS * 0.75);
-      let crossCols14fb = 0;
-      for (let r = crossTop14fb; r < crossBot14fb; r++) { let minC2 = SIG_COLS, maxC2 = -1; for (let c = 0; c < SIG_COLS; c++) if (sig[r * SIG_COLS + c] === 1) { if (c < minC2) minC2 = c; if (c > maxC2) maxC2 = c; } if (maxC2 >= minC2) crossCols14fb += maxC2 - minC2 + 1; }
-      if (topRightInk14fb >= SIG_COLS * 0.15 && crossCols14fb >= SIG_COLS * 0.25) {
-        let best4ScoreFb = -100000;
-        for (const t4 of templates) { if (t4.digit !== 4) continue; let m4 = 0; for (let i = 0; i < SIG_LEN; i++) if (sig[i] === t4.key[i]) m4++; const s4 = m4 - (SIG_LEN - m4) * TEMPLATE_MISMATCH_PENALTY; if (s4 > best4ScoreFb) best4ScoreFb = s4; }
-        if (best4ScoreFb >= geoMinScore) return 4;
-      }
-      g_lastConfidence = 0.55; return 1;
-    }
+    if (best1Score >= geoMinScore && detectThinOne(sig, inkCount)) { g_lastConfidence = 0.55; return 1; }
     const digitBestScore = new Array(10).fill(-100000), digitBestRecall = new Array(10).fill(0);
     for (const t of templates) {
       if (t.digit === 1) continue;
@@ -811,9 +736,9 @@ function recognizeDigit(sig, templates) {
   const rawConf = bestScore / (SIG_LEN + 200);
   g_lastConfidence = rawConf > 1 ? 1 : (rawConf < 0 ? 0 : rawConf);
   if (bestDigit === 6 || bestDigit === 9) {
-    const score6 = digitBestScore[6], score9 = digitBestScore[9], score5 = digitBestScore[5];
+    const score6 = digitBestScore[6], score9 = digitBestScore[9];
     const scoreGap = Math.abs(score6 - score9);
-    if (scoreGap >= DISAMBIG_SCORE_GAP_SKIP && !(bestDigit === 6 && score5 >= score6 - DISAMBIG_SCORE_GAP_SKIP)) return score6 > score9 ? 6 : 9;
+    if (scoreGap >= DISAMBIG_SCORE_GAP_SKIP) return score6 > score9 ? 6 : 9;
     const qHole = holeCenterRow(sig), iCentroid = inkCentroidRow(sig), ratio = topBottomInkRatio(sig), hogGrad = hogVerticalGradient(sig), swRatio = strokeWidthRatio(sig);
     let vote6 = 0, vote9 = 0;
     if (qHole >= 0) { if (qHole > SIG_ROWS / 2) vote6 += DISAMBIG_HOLE_WEIGHT; else vote9 += DISAMBIG_HOLE_WEIGHT; }
@@ -886,24 +811,9 @@ function recognizeDigit(sig, templates) {
   }
   if (bestScore >= MIN_DIGIT_SCORE) {
     if (bestDigit === 4 && isLikelyNot4(sig)) {
-      const scoreGap41 = digitBestScore[4] - digitBestScore[1];
-      if (scoreGap41 < 100) {
-        let best1s3 = -100000;
-        for (const t of templates) { if (t.digit !== 1) continue; let m = 0; for (let i = 0; i < SIG_LEN; i++) if (sig[i] === t.key[i]) m++; const s = m - (SIG_LEN - m) * TEMPLATE_MISMATCH_PENALTY; if (s > best1s3) best1s3 = s; }
-        if (best1s3 >= Math.floor(SIG_LEN * 0.55)) { g_lastConfidence = 0.55; return 1; }
-      }
-    }
-    if (bestDigit === 1) {
-      const score1c = digitBestScore[1], score4d = digitBestScore[4];
-      const midTop14b = Math.floor(SIG_ROWS * 0.15), midBot14b = Math.floor(SIG_ROWS * 0.45);
-      let topRightInk14 = 0, topLeftInk14 = 0;
-      for (let r = midTop14b; r < midBot14b; r++) for (let c = 0; c < SIG_COLS; c++) if (sig[r * SIG_COLS + c] === 1) { if (c >= SIG_COLS / 2) topRightInk14++; else topLeftInk14++; }
-      const crossTop14 = Math.floor(SIG_ROWS * 0.55), crossBot14 = Math.floor(SIG_ROWS * 0.75);
-      let crossCols14 = 0;
-      for (let r = crossTop14; r < crossBot14; r++) { let minC2 = SIG_COLS, maxC2 = -1; for (let c = 0; c < SIG_COLS; c++) if (sig[r * SIG_COLS + c] === 1) { if (c < minC2) minC2 = c; if (c > maxC2) maxC2 = c; } if (maxC2 >= minC2) crossCols14 += maxC2 - minC2 + 1; }
-      if (score4d > 0 && score4d >= score1c * 0.75) {
-        if (topRightInk14 >= SIG_COLS * 0.3 && crossCols14 >= SIG_COLS * 0.5) return 4;
-      }
+      let best1s3 = -100000;
+      for (const t of templates) { if (t.digit !== 1) continue; let m = 0; for (let i = 0; i < SIG_LEN; i++) if (sig[i] === t.key[i]) m++; const s = m - (SIG_LEN - m) * TEMPLATE_MISMATCH_PENALTY; if (s > best1s3) best1s3 = s; }
+      if (best1s3 >= Math.floor(SIG_LEN * 0.55)) { g_lastConfidence = 0.55; return 1; }
     }
     return bestDigit;
   }
@@ -972,6 +882,36 @@ function conflictCountAfterSet(grid, idx, val) {
   return count;
 }
 
+function solveSudoku(grid) {
+  const g = grid.slice();
+  let iterations = 0;
+  const MAX_ITER = 100000;
+  function isValid(r, c, val) {
+    for (let i = 0; i < 9; i++) { if (g[r*9+i]===val||g[i*9+c]===val) return false; }
+    const br=Math.floor(r/3)*3, bc=Math.floor(c/3)*3;
+    for (let dr=0;dr<3;dr++) for (let dc=0;dc<3;dc++) if (g[(br+dr)*9+bc+dc]===val) return false;
+    return true;
+  }
+  function solve() {
+    if (++iterations > MAX_ITER) return false;
+    let minCandidates = 10, bestIdx = -1;
+    for (let i=0;i<81;i++) { if (g[i]===0) { const r=Math.floor(i/9), c=i%9; let n=0; for (let v=1;v<=9;v++) if (isValid(r,c,v)) n++; if (n===0) return false; if (n<minCandidates) { minCandidates=n; bestIdx=i; if (n===1) break; } } }
+    if (bestIdx===-1) return true;
+    const r=Math.floor(bestIdx/9), c=bestIdx%9;
+    for (let v=1;v<=9;v++) { if (isValid(r,c,v)) { g[bestIdx]=v; if (solve()) return true; g[bestIdx]=0; } }
+    return false;
+  }
+  if (!solve()) return null;
+  return g;
+}
+
+function validateFullGrid(grid) {
+  for (let r=0;r<9;r++) { const s=new Set(); for (let c=0;c<9;c++) { const v=grid[r*9+c]; if (v<1||v>9||s.has(v)) return false; s.add(v); } }
+  for (let c=0;c<9;c++) { const s=new Set(); for (let r=0;r<9;r++) { const v=grid[r*9+c]; if (s.has(v)) return false; s.add(v); } }
+  for (let br=0;br<3;br++) for (let bc=0;bc<3;bc++) { const s=new Set(); for (let dr=0;dr<3;dr++) for (let dc=0;dc<3;dc++) { const v=grid[(br*3+dr)*9+bc*3+dc]; if (s.has(v)) return false; s.add(v); } }
+  return true;
+}
+
 function fixAndFillGridPixelOnly(grid, sigArray, templates, gray, width, bbox, isDark, bg) {
   let g = grid.slice();
   const boardL=bbox.left, boardT=bbox.top, boardR=bbox.right, boardB=bbox.bottom;
@@ -999,6 +939,10 @@ function fixAndFillGridPixelOnly(grid, sigArray, templates, gray, width, bbox, i
     }
     if (!changed) break;
   }
+  const zeroCount = g.filter(v => v === 0).length;
+  if (zeroCount > 30) return g;
+  const solved = solveSudoku(g);
+  if (solved !== null && validateFullGrid(solved)) return solved;
   return g;
 }
 
@@ -1044,7 +988,7 @@ function processImage(pixels, width, height, templates) {
       }
       const sig = cellSigFromGray(gray, width, cellL, cellT, cellW, cellH, isDark, bg, r, c);
       let digit = recognizeDigit(sig, templates);
-      if (digit === 0) {
+      if (digit === 0 && g_lastRawInkRatio > 0 && g_lastRawInkRatio < MIN_CELL_INK_RATIO) {
         const lowSig = cellSigFromGrayLowThresh(gray, width, cellL, cellT, cellW, cellH, isDark, bg, r, c);
         if (lowSig !== null) {
           const lowDigit = recognizeDigit(lowSig, templates);
