@@ -3577,9 +3577,24 @@ export async function recognizeDigit(sig: number[], inkCount: number): Promise<n
         }
         const avgRowWidth14low: number = rowCount14low > 0 ? totalRowWidth14low / rowCount14low : 0;
         if (avgRowWidth14low <= 6) {
-          g_lastPixelDiag = `lowInk4→1: avgRowW=${avgRowWidth14low.toFixed(1)} ink=${inkCount}`;
-          g_lastConfidence = 0.50;
-          return 1;
+          let brInk14w: number = 0;
+          let brTotal14w: number = 0;
+          const brTop14w: number = Math.floor(SIG_ROWS * 0.55);
+          const brLeft14w: number = Math.floor(SIG_COLS * 0.45);
+          for (let r14w: number = brTop14w; r14w < SIG_ROWS; r14w++) {
+            for (let c14w: number = brLeft14w; c14w < SIG_COLS; c14w++) {
+              if (sig[r14w * SIG_COLS + c14w] === 1) { brInk14w++; }
+              brTotal14w++;
+            }
+          }
+          const brRatio14w: number = brTotal14w > 0 ? brInk14w / brTotal14w : 0;
+          if (brRatio14w > 0.20) {
+            g_lastPixelDiag = `lowInk4→1:blocked(brR=${brRatio14w.toFixed(2)}) avgRowW=${avgRowWidth14low.toFixed(1)} ink=${inkCount}`;
+          } else {
+            g_lastPixelDiag = `lowInk4→1: avgRowW=${avgRowWidth14low.toFixed(1)} ink=${inkCount}`;
+            g_lastConfidence = 0.50;
+            return 1;
+          }
         }
         const crossTop14low: number = Math.floor(SIG_ROWS * 0.40);
         const crossBot14low: number = Math.floor(SIG_ROWS * 0.65);
@@ -3598,9 +3613,24 @@ export async function recognizeDigit(sig: number[], inkCount: number): Promise<n
           if (maxSpan14l >= SIG_COLS * 0.40) { hasMidCross14low = true; break; }
         }
         if (!hasMidCross14low) {
-          g_lastPixelDiag = `lowInk4→1: noMidCross avgRowW=${avgRowWidth14low.toFixed(1)} ink=${inkCount}`;
-          g_lastConfidence = 0.50;
-          return 1;
+          let brInk14low: number = 0;
+          let brTotal14low: number = 0;
+          const brTop14l: number = Math.floor(SIG_ROWS * 0.55);
+          const brLeft14l: number = Math.floor(SIG_COLS * 0.45);
+          for (let r14l: number = brTop14l; r14l < SIG_ROWS; r14l++) {
+            for (let c14l: number = brLeft14l; c14l < SIG_COLS; c14l++) {
+              if (sig[r14l * SIG_COLS + c14l] === 1) { brInk14low++; }
+              brTotal14low++;
+            }
+          }
+          const brRatio14low: number = brTotal14low > 0 ? brInk14low / brTotal14low : 0;
+          if (brRatio14low > 0.20) {
+            g_lastPixelDiag = `lowInk4→1:blocked(brR=${brRatio14low.toFixed(2)}) avgRowW=${avgRowWidth14low.toFixed(1)} ink=${inkCount}`;
+          } else {
+            g_lastPixelDiag = `lowInk4→1: noMidCross avgRowW=${avgRowWidth14low.toFixed(1)} ink=${inkCount}`;
+            g_lastConfidence = 0.50;
+            return 1;
+          }
         }
         if (isLikelyNot4(sig)) {
           let best1Score2: number = -100000;
