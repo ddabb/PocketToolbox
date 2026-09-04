@@ -6,7 +6,7 @@ import { OCRResult, CellCoordInfo, AdaptiveResizeParams,
   setLastPixelConfidence, setLastCellCoords, setCachedPixels, setCachedImgW, setCachedImgH,
   setProbeBbox, setProbeResizeW, setProbeResizeH,
   setLastDebugPixelBgInfo, setLastDebugPixelBboxLocator, setLastDebugPixelWarpInfo,
-  setLastDebugPixelCellStats, setLastDebugPixelCellCoords } from './SudokuOCRTypes';
+  setLastDebugPixelCellStats, setLastDebugPixelCellCoords, setLastDebugPixelCellDiags } from './SudokuOCRTypes';
 import { DOMAIN, TAG, yieldThread, withTimeout, computeAdaptiveResize,
   openImageSource, openImageSourceFromBuffer, PIXEL_MAX_DIM, BG_DARK_THRESHOLD,
   WARP_SIZE_MULTIPLIER, WARP_BG_SAMPLE_DIV } from './SudokuOCRUtils';
@@ -18,7 +18,7 @@ import { BoardBBox, BoardCorners, GridLines, bgColor, cellSigFromGray, cellSigFr
   MIN_CELL_INK_RATIO,
   resetChannelBgCache, resetGridLineCrop, isGridLineCropDetected, findPreciseGridLines,
   toGrayArray, validateCellCentering, warpPerspectiveGray, INK_THRESH, recognizeDigit,
-  ULTRA_LOW_INK_THRESH } from './SudokuPixel';
+  ULTRA_LOW_INK_THRESH, getLastPixelDiag } from './SudokuPixel';
 import { taskpool } from '@kit.ArkTS';
 
 export async function tryPixelGridRecognition(imagePath: string, imageBuf: ArrayBuffer | null = null): Promise<OCRResult> {
@@ -581,8 +581,10 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
           cellW, cellH, warpIsDark, warpBg, r, c
         );
         let digit: number = 0;
+        let cellDiag: string = '';
         if (sig !== null) {
           digit = await recognizeDigit(sig, countInk(sig));
+          cellDiag = getLastPixelDiag();
         }
         await yieldThread();
         if (digit === 0) {
@@ -594,6 +596,7 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
           if (lowSig !== null) {
             sig = lowSig;
             digit = await recognizeDigit(lowSig, countInk(lowSig));
+            cellDiag = getLastPixelDiag();
           }
           await yieldThread();
         }
@@ -649,7 +652,8 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
                   conf: getLastConfidence(), rawInk: getLastRawInkRatio(),
                   imgW: outSize, imgH: outSize,
                   source: 'warp+grid_fallback',
-                  localBg: getLastLocalBgInfo()
+                  localBg: getLastLocalBgInfo(),
+                  pxDiag: getLastPixelDiag()
                 };
                 g_lastCellCoords.push(coordInfo);
                 await yieldThread();
@@ -666,7 +670,8 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
             conf: getLastConfidence(), rawInk: getLastRawInkRatio(),
             imgW: outSize, imgH: outSize,
             source: warpGridLines !== null ? 'warp+grid' : 'warp',
-            localBg: getLastLocalBgInfo()
+            localBg: getLastLocalBgInfo(),
+            pxDiag: getLastPixelDiag()
           };
           g_lastCellCoords.push(coordInfo);
         }
@@ -698,8 +703,10 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
             gray, width, cLeft, cTop, cW, cH, bbox.isDark, bg, r, c
           );
           let digit: number = 0;
+          let cellDiag: string = '';
           if (sig !== null) {
             digit = await recognizeDigit(sig, countInk(sig));
+            cellDiag = getLastPixelDiag();
           }
           await yieldThread();
           if (digit === 0) {
@@ -709,6 +716,7 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
             if (lowSig !== null) {
               sig = lowSig;
               digit = await recognizeDigit(lowSig, countInk(lowSig));
+              cellDiag = getLastPixelDiag();
             }
             await yieldThread();
           }
@@ -723,6 +731,7 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
             if (thinSig !== null) {
               sig = thinSig;
               digit = await recognizeDigit(thinSig, countInk(thinSig));
+              cellDiag = getLastPixelDiag();
             }
             await yieldThread();
           }
@@ -734,6 +743,7 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
             if (ultraSig !== null) {
               sig = ultraSig;
               digit = await recognizeDigit(ultraSig, countInk(ultraSig));
+              cellDiag = getLastPixelDiag();
             }
             await yieldThread();
           }
@@ -761,7 +771,8 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
                     conf: getLastConfidence(), rawInk: getLastRawInkRatio(),
                     imgW: width, imgH: height,
                     source: 'gridLines_fallback',
-                    localBg: getLastLocalBgInfo()
+                    localBg: getLastLocalBgInfo(),
+                    pxDiag: getLastPixelDiag()
                   };
                   g_lastCellCoords.push(coordInfo2);
                   continue;
@@ -777,7 +788,8 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
               conf: getLastConfidence(), rawInk: getLastRawInkRatio(),
               imgW: width, imgH: height,
               source: 'gridLines',
-              localBg: getLastLocalBgInfo()
+              localBg: getLastLocalBgInfo(),
+              pxDiag: cellDiag
             };
             g_lastCellCoords.push(coordInfo3);
           }
@@ -859,7 +871,8 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
               conf: getLastConfidence(), rawInk: getLastRawInkRatio(),
               imgW: width, imgH: height,
               source: 'AABB',
-              localBg: getLastLocalBgInfo()
+              localBg: getLastLocalBgInfo(),
+              pxDiag: getLastPixelDiag()
             };
             g_lastCellCoords.push(coordInfo4);
           }
@@ -871,11 +884,16 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
   }
 
   let coordLines: string[] = [];
+  let diagLines: string[] = [];
   for (let idx: number = 0; idx < g_lastCellCoords.length; idx++) {
     const ci: CellCoordInfo = g_lastCellCoords[idx];
-    coordLines.push(`R${ci.row}C${ci.col}:d=${ci.digit} rect=[${ci.left},${ci.top},${ci.w}x${ci.h}] conf=${ci.conf.toFixed(2)} ink=${ci.rawInk.toFixed(4)} imgSize=${ci.imgW}x${ci.imgH} src=${ci.source} ${ci.localBg}`);
+    coordLines.push(`R${ci.row}C${ci.col}:d=${ci.digit} conf=${ci.conf.toFixed(2)} ink=${ci.rawInk.toFixed(4)} src=${ci.source}`);
+    if (ci.pxDiag.length > 0) {
+      diagLines.push(`R${ci.row}C${ci.col}:d=${ci.digit} ${ci.pxDiag}`);
+    }
   }
   setLastDebugPixelCellCoords(coordLines.join('\n'));
+  setLastDebugPixelCellDiags(diagLines.join('\n'));
 
   let gridStr: string = '[SudokuOCR] 像素分析结果:\n';
   for (let r: number = 0; r < 9; r++) {

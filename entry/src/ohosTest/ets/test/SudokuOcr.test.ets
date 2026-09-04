@@ -168,6 +168,12 @@ function dumpDebugCompact(info: OCRDebugInfo, prefix: string): void {
       console.info(`[OCR_DBG] ${prefix}coord=${ccl}`);
     }
   }
+  if (info.pixelCellDiags.length > 0) {
+    const dLines: string[] = info.pixelCellDiags.split('\n');
+    for (const dl of dLines) {
+      console.info(`[OCR_DBG] ${prefix}pxd=${dl}`);
+    }
+  }
 }
 
 function loadRawFileBuf(ctx: Context, rawfile: string): ArrayBuffer {
@@ -226,16 +232,12 @@ function runPipelineTest(name: string, rawfile: string, done: Function): void {
         console.info(`[OCR_TEST] ${name}: FAIL given:${(mr.givenAcc * 100).toFixed(0)}% full:${(mr.fullAcc * 100).toFixed(0)}% fp:${mr.falsePos} fn:${mr.falseNeg} diff=${mr.diffDetail}`);
         hilog.info(DOMAIN, TAG, `${name}:\n${gridToAscii(ocrResult.grid)}`);
         hilog.info(DOMAIN, TAG, `${name}: FAIL given:${(mr.givenAcc * 100).toFixed(0)}% full:${(mr.fullAcc * 100).toFixed(0)}% fp:${mr.falsePos} fn:${mr.falseNeg} diff=${mr.diffDetail}`);
-        try {
-          for (let r: number = 0; r < 9; r++) {
-            const gotRow: string = gridToRowString(ocrResult.grid, r);
-            const expRow: string = gridToRowString(EXPECTED, r);
-            if (gotRow !== expRow) {
-              hilog.info(DOMAIN, TAG, `${name}: 第${r + 1}行 got=[${gotRow}] expect=[${expRow}]`);
-            }
-            expect(gotRow).assertEqual(expRow);
-          }
-        } catch (_e) { /* swallow assertion error */ }
+        {
+          const gotStr: string = gridToAscii(ocrResult.grid);
+          const expStr: string = gridToAscii(EXPECTED);
+          hilog.info(DOMAIN, TAG, `${name}: got=\n${gotStr}expect=\n${expStr}`);
+          expect(gotStr).assertEqual(expStr);
+        }
       }
     } catch (innerErr) {
       console.info(`[OCR_TEST] ${name}: FAIL unexpected: ${innerErr}`);

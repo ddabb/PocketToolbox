@@ -31,6 +31,7 @@ export interface OCRDebugInfo {
   pixelWarpInfo: string;
   pixelCellStats: string;
   pixelCellCoords: string;
+  pixelCellDiags: string;
   fixDetails: string;
   bboxDiag: string;
 }
@@ -58,6 +59,7 @@ export interface CellCoordInfo {
   imgH: number;
   source: string;
   localBg: string;
+  pxDiag: string;
 }
 
 export interface PerCellVkDiag {
@@ -130,6 +132,7 @@ export let g_lastDebugPixelBboxLocator: string = '';
 export let g_lastDebugPixelWarpInfo: string = '';
 export let g_lastDebugPixelCellStats: string = '';
 export let g_lastDebugPixelCellCoords: string = '';
+export let g_lastDebugPixelCellDiags: string = '';
 export let g_lastDebugFixDetails: string = '';
 export let g_lastRecognizeDiag: string = '';
 export let g_perCellVkDiag: PerCellVkDiag = {
@@ -182,3 +185,5 @@ export function setLastDebugPixelBboxLocator(v: string): void { g_lastDebugPixel
 export function setLastDebugPixelWarpInfo(v: string): void { g_lastDebugPixelWarpInfo = v; }
 export function setLastDebugPixelCellStats(v: string): void { g_lastDebugPixelCellStats = v; }
 export function setLastDebugPixelCellCoords(v: string): void { g_lastDebugPixelCellCoords = v; }
+
+export function setLastDebugPixelCellDiags(v: string): void { g_lastDebugPixelCellDiags = v; }

@@ -1929,6 +1929,11 @@ function findBoardByHoughLines(gray: Float32Array, W: number, H: number, isDark:
 
 export function findBoardBBox(pixels: Uint8Array, width: number, height: number, bg: number): BoardBBox {
   g_lastBboxDiag = '';
+  // 确保灰度映射使用当前图像的通道背景缓存: toGrayArray 依赖 g_cachedChannelBg,
+  // 该缓存仅由 bgColor() 刷新。若调用方未先调 bgColor（或缓存来自上一张图）,
+  // 灰度会按默认 128 基准映射, 导致全图被误判为墨迹。此处重算对生产零影响
+  // （生产调用方传入的 bg 本就来自同一张图的 bgColor, 结果一致）。
+  bgColor(pixels, width, height);
   const isDark: boolean = bg < BG_DARK_THRESHOLD;
   const gray: Float32Array = toGrayArray(pixels, width, height);
   const imgArea: number = width * height;
@@ -3203,7 +3208,20 @@ function tryStripLeftEdgeAs1(sig: number[], inkCount: number, origBestDigit: num
     if (sig[r * SIG_COLS] === 1) { leftColInk++; }
   }
   if (leftColInk < 3) {
-    g_lastPixelDiag = `stripLeftSkip: col0=${leftColInk}`;
+    const botTop: number = Math.floor(SIG_ROWS * 0.50);
+    let colSum: number = 0;
+    let inkCnt: number = 0;
+    for (let r2: number = botTop; r2 < SIG_ROWS; r2++) {
+      for (let c2: number = 0; c2 < SIG_COLS; c2++) {
+        if (sig[r2 * SIG_COLS + c2] === 1) { colSum += c2; inkCnt++; }
+      }
+    }
+    const colCent: number = inkCnt > 0 ? colSum / inkCnt : SIG_COLS / 2;
+    if (colCent > SIG_COLS * 0.55) {
+      g_lastPixelDiag = `stripLeft→1: colCent=${colCent.toFixed(1)} col0=${leftColInk}`;
+      return 1;
+    }
+    g_lastPixelDiag = `stripLeftSkip: col0=${leftColInk} colCent=${colCent.toFixed(1)}`;
     return 0;
   }
 
@@ -3541,27 +3559,71 @@ export async function recognizeDigit(sig: number[], inkCount: number): Promise<n
     }
     const lowMinScore: number = LOW_INK_FALLBACK_MIN_SCORE;
     if (lowBestDigit > 0 && lowBestScore >= lowMinScore && lowBestRecall >= LOW_INK_FALLBACK_MIN_RECALL) {
-      if (lowBestDigit === 4 && isLikelyNot4(sig)) {
-        let best1Score2: number = -100000;
-        const tpls1b: DigitTemplate[] = g_templatesByDigit[1];
-        for (let ti: number = 0; ti < tpls1b.length; ti++) {
-          if (ti % 30 === 0) { await yieldThread(); }
-          const t: DigitTemplate = tpls1b[ti];
-          if (!templateMatchesInkFilter(t, inkCount)) { continue; }
-          const kb: Int8Array = t.keyBytes;
-          let tp2: number = 0;
-          for (let j: number = 0; j < sigInkLen; j++) {
-            if (kb[sigInkPos[j]] === 1) { tp2++; }
+      if (lowBestDigit === 4) {
+        const midTop14low: number = Math.floor(SIG_ROWS * 0.25);
+        const midBot14low: number = Math.floor(SIG_ROWS * 0.75);
+        let totalRowWidth14low: number = 0;
+        let rowCount14low: number = 0;
+        for (let r: number = midTop14low; r < midBot14low; r++) {
+          let minC14: number = SIG_COLS;
+          let maxC14: number = -1;
+          for (let c: number = 0; c < SIG_COLS; c++) {
+            if (sig[r * SIG_COLS + c] === 1) {
+              if (c < minC14) { minC14 = c; }
+              if (c > maxC14) { maxC14 = c; }
+            }
           }
-          const match2: number = SIG_LEN - sigInkLen - t.inkCount + 2 * tp2;
-          const score: number = match2 - (SIG_LEN - match2) * TEMPLATE_MISMATCH_PENALTY;
-          if (score > best1Score2) { best1Score2 = score; }
+          if (maxC14 >= minC14) { totalRowWidth14low += maxC14 - minC14 + 1; rowCount14low++; }
         }
-        const geoGate1: number = Math.floor(SIG_LEN * 0.55);
-        if (best1Score2 >= geoGate1) {
-          g_lastPixelDiag = `not4→1: score1=${best1Score2} ink=${inkCount} sig=${sigToCompactStr(sig)}`;
-          g_lastConfidence = 0.55;
+        const avgRowWidth14low: number = rowCount14low > 0 ? totalRowWidth14low / rowCount14low : 0;
+        if (avgRowWidth14low <= 6) {
+          g_lastPixelDiag = `lowInk4→1: avgRowW=${avgRowWidth14low.toFixed(1)} ink=${inkCount}`;
+          g_lastConfidence = 0.50;
           return 1;
+        }
+        const crossTop14low: number = Math.floor(SIG_ROWS * 0.40);
+        const crossBot14low: number = Math.floor(SIG_ROWS * 0.65);
+        let hasMidCross14low: boolean = false;
+        for (let r2: number = crossTop14low; r2 < crossBot14low; r2++) {
+          let span14l: number = 0;
+          let maxSpan14l: number = 0;
+          for (let c2: number = 0; c2 < SIG_COLS; c2++) {
+            if (sig[r2 * SIG_COLS + c2] === 1) {
+              span14l++;
+              if (span14l > maxSpan14l) { maxSpan14l = span14l; }
+            } else {
+              span14l = 0;
+            }
+          }
+          if (maxSpan14l >= SIG_COLS * 0.40) { hasMidCross14low = true; break; }
+        }
+        if (!hasMidCross14low) {
+          g_lastPixelDiag = `lowInk4→1: noMidCross avgRowW=${avgRowWidth14low.toFixed(1)} ink=${inkCount}`;
+          g_lastConfidence = 0.50;
+          return 1;
+        }
+        if (isLikelyNot4(sig)) {
+          let best1Score2: number = -100000;
+          const tpls1b: DigitTemplate[] = g_templatesByDigit[1];
+          for (let ti: number = 0; ti < tpls1b.length; ti++) {
+            if (ti % 30 === 0) { await yieldThread(); }
+            const t: DigitTemplate = tpls1b[ti];
+            if (!templateMatchesInkFilter(t, inkCount)) { continue; }
+            const kb: Int8Array = t.keyBytes;
+            let tp2: number = 0;
+            for (let j: number = 0; j < sigInkLen; j++) {
+              if (kb[sigInkPos[j]] === 1) { tp2++; }
+            }
+            const match2: number = SIG_LEN - sigInkLen - t.inkCount + 2 * tp2;
+            const score: number = match2 - (SIG_LEN - match2) * TEMPLATE_MISMATCH_PENALTY;
+            if (score > best1Score2) { best1Score2 = score; }
+          }
+          const geoGate1: number = Math.floor(SIG_LEN * 0.55);
+          if (best1Score2 >= geoGate1) {
+            g_lastPixelDiag = `not4→1: score1=${best1Score2} ink=${inkCount} sig=${sigToCompactStr(sig)}`;
+            g_lastConfidence = 0.55;
+            return 1;
+          }
         }
       }
       if (lowBestDigit === 4 || lowBestDigit === 7) {
@@ -3739,6 +3801,13 @@ export async function recognizeDigit(sig: number[], inkCount: number): Promise<n
       g_lastPixelDiag = `69skip: s6=${score6.toFixed(0)} s9=${score9.toFixed(0)} gap=${scoreGap.toFixed(0)}>=${DISAMBIG_SCORE_GAP_SKIP} =>${r69skip}`;
       return r69skip;
     }
+    if (bestDigit === 6 && score5 >= score6 - DISAMBIG_SCORE_GAP_SKIP && score9 < score5) {
+      hilog.info(DOMAIN, TAG, '69skip: s6=%{public}.1f s5=%{public}.1f s9=%{public}.1f, 5/6 ambiguous, fall to 5/6 block', score6, score5, score9);
+    } else if (scoreGap >= DISAMBIG_SCORE_GAP_SKIP) {
+      const r69skip2: number = score6 > score9 ? 6 : 9;
+      g_lastPixelDiag = `69skip: s6=${score6.toFixed(0)} s9=${score9.toFixed(0)} s5=${score5.toFixed(0)} gap=${scoreGap.toFixed(0)}>=${DISAMBIG_SCORE_GAP_SKIP} =>${r69skip2}`;
+      return r69skip2;
+    }
 
     const iCentroid: number = sigCentroidRow;
     const ratio: number = sigTopBottom;
@@ -3768,8 +3837,12 @@ export async function recognizeDigit(sig: number[], inkCount: number): Promise<n
     const result69: number = vote6 === vote9 ? (score6 >= score9 ? 6 : 9) : (vote6 > vote9 ? 6 : 9);
     g_lastPixelDiag = `69disambig: s6=${score6.toFixed(0)} s9=${score9.toFixed(0)} gap=${scoreGap.toFixed(0)} hole=${qHole.toFixed(1)} cent=${iCentroid.toFixed(1)} ratio=${ratio.toFixed(2)} hog=${hogGrad.toFixed(2)} sw=${swRatio.toFixed(2)} v6=${vote6} v9=${vote9} =>${result69}`;
     hilog.info(DOMAIN, TAG, 'vote6=%{public}d vote9=%{public}d => %{public}d', vote6, vote9, result69);
-    if (vote6 === vote9) { return score6 >= score9 ? 6 : 9; }
-    return vote6 > vote9 ? 6 : 9;
+    if (result69 === 9) { return 9; }
+    if (result69 === 6 && score5 >= score6 - DISAMBIG_SCORE_GAP_SKIP) {
+      hilog.info(DOMAIN, TAG, '6/9→6 but score5=%{public}.1f close to score6=%{public}.1f, fall to 5/6', score5, score6);
+    } else {
+      return result69;
+    }
   }
 
   // 5/6 disambiguation
@@ -3777,9 +3850,6 @@ export async function recognizeDigit(sig: number[], inkCount: number): Promise<n
     const score5: number = digitBestScore[5];
     const score6d: number = digitBestScore[6];
     const hole56: number = holeCenterRow(sig);
-    if (hole56 >= 0 && hole56 > SIG_ROWS * 0.45) {
-      return 6;
-    }
     let topInkCols56: number = 0;
     let botInkCols56: number = 0;
     for (let c: number = 0; c < SIG_COLS; c++) {
@@ -3794,10 +3864,40 @@ export async function recognizeDigit(sig: number[], inkCount: number): Promise<n
       if (topHas) { topInkCols56++; }
       if (botHas) { botInkCols56++; }
     }
-    if (botInkCols56 > topInkCols56 + 2) {
+    const rightColStart56: number = Math.floor(SIG_COLS * 0.65);
+    let topRightInkRows56: number = 0;
+    let botRightInkRows56: number = 0;
+    const midRow56: number = Math.floor(SIG_ROWS * 0.45);
+    for (let r56: number = 0; r56 < SIG_ROWS; r56++) {
+      let hasRightInk: boolean = false;
+      for (let c56: number = rightColStart56; c56 < SIG_COLS; c56++) {
+        if (sig[r56 * SIG_COLS + c56] === 1) { hasRightInk = true; break; }
+      }
+      if (hasRightInk) {
+        if (r56 < midRow56) { topRightInkRows56++; } else { botRightInkRows56++; }
+      }
+    }
+    const topRightRatio56: number = topRightInkRows56 / midRow56;
+    let hBarCols56: number = 0;
+    const hBarRow56: number = Math.floor(SIG_ROWS * 0.15);
+    for (let c56b: number = 0; c56b < SIG_COLS; c56b++) {
+      if (sig[hBarRow56 * SIG_COLS + c56b] === 1) { hBarCols56++; }
+    }
+    if (topRightRatio56 >= 0.5 && hBarCols56 >= SIG_COLS * 0.3) {
+      g_lastPixelDiag = `5/6→5: topRightR=${topRightRatio56.toFixed(2)} hBar=${hBarCols56} hole=${hole56.toFixed(1)} topC=${topInkCols56} botC=${botInkCols56} s5=${score5.toFixed(0)} s6=${score6d.toFixed(0)}`;
+      return 5;
+    }
+    if (hole56 >= 0 && hole56 > SIG_ROWS * 0.45 && topRightRatio56 < 0.35) {
+      g_lastPixelDiag = `5/6→6: hole=${hole56.toFixed(1)} topRightR=${topRightRatio56.toFixed(2)} hBar=${hBarCols56} s5=${score5.toFixed(0)} s6=${score6d.toFixed(0)}`;
       return 6;
     }
-    return score5 >= score6d ? 5 : 6;
+    if (botInkCols56 > topInkCols56 + 2 && topRightRatio56 < 0.35) {
+      g_lastPixelDiag = `5/6→6: botC=${botInkCols56}>topC=${topInkCols56}+2 topRightR=${topRightRatio56.toFixed(2)} s5=${score5.toFixed(0)} s6=${score6d.toFixed(0)}`;
+      return 6;
+    }
+    const result56: number = score5 >= score6d ? 5 : 6;
+    g_lastPixelDiag = `5/6→${result56}: s5=${score5.toFixed(0)} s6=${score6d.toFixed(0)} hole=${hole56.toFixed(1)} topC=${topInkCols56} botC=${botInkCols56} topRightR=${topRightRatio56.toFixed(2)} hBar=${hBarCols56}`;
+    return result56;
   }
 
   // 5/9 disambiguation
@@ -3911,10 +4011,42 @@ export async function recognizeDigit(sig: number[], inkCount: number): Promise<n
   }
 
   if (bestDigit === 4 || bestDigit === 5) {
+    hilog.info(DOMAIN, TAG, 'DBG_45BLOCK: bestDigit=%{public}d s4=%{public}.0f s5=%{public}.0f', bestDigit, digitBestScore[4], digitBestScore[5]);
     const score4: number = digitBestScore[4];
     const score5: number = digitBestScore[5];
     if (score4 > score5) {
-      g_lastPixelDiag = `4/5→4: s4=${score4.toFixed(0)}>s5=${score5.toFixed(0)}`;
+      const botTop41: number = Math.floor(SIG_ROWS * 0.50);
+      let colSum41: number = 0;
+      let inkCnt41: number = 0;
+      for (let r: number = botTop41; r < SIG_ROWS; r++) {
+        for (let c: number = 0; c < SIG_COLS; c++) {
+          if (sig[r * SIG_COLS + c] === 1) { colSum41 += c; inkCnt41++; }
+        }
+      }
+      const colCentroid41: number = inkCnt41 > 0 ? colSum41 / inkCnt41 : SIG_COLS / 2;
+      if (colCentroid41 > SIG_COLS * 0.55) {
+        const urTop41: number = Math.floor(SIG_ROWS * 0.05);
+        const urBot41: number = Math.floor(SIG_ROWS * 0.40);
+        const urLeft41: number = Math.floor(SIG_COLS * 0.50);
+        let urInk41: number = 0;
+        let urTotal41: number = 0;
+        for (let r: number = urTop41; r < urBot41; r++) {
+          for (let c: number = urLeft41; c < SIG_COLS; c++) {
+            urTotal41++;
+            if (sig[r * SIG_COLS + c] === 1) { urInk41++; }
+          }
+        }
+        const urRatio41: number = urTotal41 > 0 ? urInk41 / urTotal41 : 0;
+        if (urRatio41 > 0.25) {
+          g_lastPixelDiag = `4/5→4(urInk): colCent=${colCentroid41.toFixed(1)} urR=${urRatio41.toFixed(2)} s4=${score4.toFixed(0)} s5=${score5.toFixed(0)}`;
+          return 4;
+        }
+        const score1check: number = digitBestScore[1];
+        g_lastPixelDiag = `4/5→1: colCent=${colCentroid41.toFixed(1)} urR=${urRatio41.toFixed(2)} s4=${score4.toFixed(0)} s5=${score5.toFixed(0)} s1=${score1check.toFixed(0)}`;
+        g_lastConfidence = score1check > 0 ? Math.min(score1check / (SIG_LEN + 200), 1) : 0.55;
+        return 1;
+      }
+      g_lastPixelDiag = `4/5→4: s4=${score4.toFixed(0)}>s5=${score5.toFixed(0)} colCent=${colCentroid41.toFixed(1)}`;
       return 4;
     }
     const topRow45: number = Math.floor(SIG_ROWS * 0.05);
@@ -3931,7 +4063,22 @@ export async function recognizeDigit(sig: number[], inkCount: number): Promise<n
       g_lastPixelDiag = `4/5→5: topSolid=${topSolidRows45} s4=${score4.toFixed(0)} s5=${score5.toFixed(0)}`;
       return 5;
     }
-    g_lastPixelDiag = `4/5→4: topSolid=${topSolidRows45} s4=${score4.toFixed(0)} s5=${score5.toFixed(0)}`;
+    const botTop41b: number = Math.floor(SIG_ROWS * 0.50);
+    let colSum41b: number = 0;
+    let inkCnt41b: number = 0;
+    for (let r2: number = botTop41b; r2 < SIG_ROWS; r2++) {
+      for (let c2: number = 0; c2 < SIG_COLS; c2++) {
+        if (sig[r2 * SIG_COLS + c2] === 1) { colSum41b += c2; inkCnt41b++; }
+      }
+    }
+    const colCentroid41b: number = inkCnt41b > 0 ? colSum41b / inkCnt41b : SIG_COLS / 2;
+    if (colCentroid41b > SIG_COLS * 0.55) {
+      const score1check2: number = digitBestScore[1];
+      g_lastPixelDiag = `4/5→1b: colCent=${colCentroid41b.toFixed(1)} s4=${score4.toFixed(0)} s5=${score5.toFixed(0)} s1=${score1check2.toFixed(0)}`;
+      g_lastConfidence = score1check2 > 0 ? Math.min(score1check2 / (SIG_LEN + 200), 1) : 0.55;
+      return 1;
+    }
+    g_lastPixelDiag = `4/5→4: topSolid=${topSolidRows45} s4=${score4.toFixed(0)} s5=${score5.toFixed(0)} colCent=${colCentroid41b.toFixed(1)}`;
     return 4;
   }
 
@@ -3941,10 +4088,11 @@ export async function recognizeDigit(sig: number[], inkCount: number): Promise<n
   // (b) cross-stroke detection: 4 has a continuous horizontal stroke in the
   //     middle band (40-65% down); 1 does not. A serif-1 may have wide ink
   //     in the upper portion but never a continuous mid-band cross-stroke.
+  let flipped4to1ByStructure: boolean = false;
   if (bestDigit === 4) {
     const score4b: number = digitBestScore[4];
     const score1b: number = digitBestScore[1];
-    if (score1b > 0) {
+    {
       const midTop14: number = Math.floor(SIG_ROWS * 0.25);
       const midBot14: number = Math.floor(SIG_ROWS * 0.75);
       let totalRowWidth14: number = 0;
@@ -3964,7 +4112,8 @@ export async function recognizeDigit(sig: number[], inkCount: number): Promise<n
       if (avgRowWidth14 <= 6) {
         g_lastPixelDiag = `4→1: avgRowW=${avgRowWidth14.toFixed(1)} s4=${score4b} s1=${score1b}`;
         bestDigit = 1;
-        bestScore = score1b;
+        bestScore = score1b > 0 ? score1b : score4b;
+        flipped4to1ByStructure = true;
       } else {
         const crossTop14: number = Math.floor(SIG_ROWS * 0.40);
         const crossBot14: number = Math.floor(SIG_ROWS * 0.65);
@@ -3984,10 +4133,33 @@ export async function recognizeDigit(sig: number[], inkCount: number): Promise<n
           if (maxSpan14 > maxMidSpan14) { maxMidSpan14 = maxSpan14; }
           if (maxSpan14 >= SIG_COLS * 0.40) { hasMidCross14 = true; break; }
         }
-        if (!hasMidCross14 && score4b - score1b < 200) {
+        if (!hasMidCross14) {
           g_lastPixelDiag = `4→1: avgRowW=${avgRowWidth14.toFixed(1)} noMidCross(maxSpan=${maxMidSpan14}) s4=${score4b} s1=${score1b}`;
           bestDigit = 1;
-          bestScore = score1b;
+          bestScore = score1b > 0 ? score1b : score4b;
+          flipped4to1ByStructure = true;
+        } else {
+          let widestRow14: number = -1;
+          let widestWidth14: number = 0;
+          for (let r2: number = 0; r2 < SIG_ROWS; r2++) {
+            let minCw: number = SIG_COLS;
+            let maxCw: number = -1;
+            for (let cw: number = 0; cw < SIG_COLS; cw++) {
+              if (sig[r2 * SIG_COLS + cw] === 1) {
+                if (cw < minCw) { minCw = cw; }
+                if (cw > maxCw) { maxCw = cw; }
+              }
+            }
+            const rowW14: number = maxCw >= minCw ? maxCw - minCw + 1 : 0;
+            if (rowW14 > widestWidth14) { widestWidth14 = rowW14; widestRow14 = r2; }
+          }
+          const widestRowRatio14: number = widestRow14 >= 0 ? widestRow14 / SIG_ROWS : 0.5;
+          if (widestRowRatio14 < 0.35) {
+            g_lastPixelDiag = `4→1: topWidest row=${widestRow14}(${widestRowRatio14.toFixed(2)}) w=${widestWidth14} s4=${score4b} s1=${score1b}`;
+            bestDigit = 1;
+            bestScore = score1b > 0 ? score1b : score4b;
+            flipped4to1ByStructure = true;
+          }
         }
       }
     }
@@ -3997,7 +4169,8 @@ export async function recognizeDigit(sig: number[], inkCount: number): Promise<n
   // misrecognized as "1". Key discriminator: "4" has a diagonal arm from
   // top-right to mid-left, creating top-right ink that "1" lacks.
   // Also "4" has a horizontal cross-stroke in the lower half.
-  if (bestDigit === 1) {
+  // Skip if we already flipped 4→1 via structural checks (no mid-band cross-stroke).
+  if (bestDigit === 1 && !flipped4to1ByStructure) {
     const score1c: number = digitBestScore[1];
     const score4d: number = digitBestScore[4];
     if (score4d > 0 && score4d >= score1c * 0.75) {
@@ -4270,12 +4443,48 @@ export async function recognizeDigit(sig: number[], inkCount: number): Promise<n
       }
     }
     if (bestDigit === 4 || bestDigit === 7) {
+      hilog.info(DOMAIN, TAG, 'DBG_STRIP: bestDigit=%{public}d score=%{public}.0f ink=%{public}d', bestDigit, bestScore, inkCount);
       const stripResult: number = tryStripLeftEdgeAs1(sig, inkCount, bestDigit, bestScore);
       const stripDiag: string = g_lastPixelDiag;
       if (stripResult === 1) { return 1; }
-      g_lastPixelDiag = `best=${bestDigit} score=${bestScore.toFixed(0)} ink=${inkCount} [${stripDiag}] sig=${sigToCompactStr(sig)}`;
+      if (bestDigit === 4) {
+        const botTop4f: number = Math.floor(SIG_ROWS * 0.50);
+        let colSum4f: number = 0;
+        let inkCnt4f: number = 0;
+        for (let r4f: number = botTop4f; r4f < SIG_ROWS; r4f++) {
+          for (let c4f: number = 0; c4f < SIG_COLS; c4f++) {
+            if (sig[r4f * SIG_COLS + c4f] === 1) { colSum4f += c4f; inkCnt4f++; }
+          }
+        }
+        const colCent4f: number = inkCnt4f > 0 ? colSum4f / inkCnt4f : SIG_COLS / 2;
+        if (colCent4f > SIG_COLS * 0.55) {
+          const s1f: number = digitBestScore[1];
+          g_lastPixelDiag = `4→1(stripPath): colCent=${colCent4f.toFixed(1)} s4=${digitBestScore[4].toFixed(0)} s1=${s1f.toFixed(0)} [${stripDiag}]`;
+          g_lastConfidence = s1f > 0 ? Math.min(s1f / (SIG_LEN + 200), 1) : 0.55;
+          return 1;
+        }
+        g_lastPixelDiag = `best=4 score=${bestScore.toFixed(0)} ink=${inkCount} colCent=${colCent4f.toFixed(1)} [${stripDiag}] sig=${sigToCompactStr(sig)}`;
+      } else {
+        g_lastPixelDiag = `best=${bestDigit} score=${bestScore.toFixed(0)} ink=${inkCount} [${stripDiag}] sig=${sigToCompactStr(sig)}`;
+      }
     } else {
       g_lastPixelDiag = `best=${bestDigit} score=${bestScore.toFixed(0)} ink=${inkCount}`;
+    }
+    if (bestDigit === 4) {
+      const botTopCc: number = Math.floor(SIG_ROWS * 0.50);
+      let colSumCc: number = 0;
+      let inkCntCc: number = 0;
+      for (let rCc: number = botTopCc; rCc < SIG_ROWS; rCc++) {
+        for (let cCc: number = 0; cCc < SIG_COLS; cCc++) {
+          if (sig[rCc * SIG_COLS + cCc] === 1) { colSumCc += cCc; inkCntCc++; }
+        }
+      }
+      const colCentCc: number = inkCntCc > 0 ? colSumCc / inkCntCc : SIG_COLS / 2;
+      if (colCentCc > SIG_COLS * 0.55) {
+        g_lastPixelDiag = `4→1(colCentCatchAll): colCent=${colCentCc.toFixed(1)} s4=${digitBestScore[4].toFixed(0)} s1=${digitBestScore[1].toFixed(0)}`;
+        g_lastConfidence = 0.55;
+        return 1;
+      }
     }
     return bestDigit;
   }

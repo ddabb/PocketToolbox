@@ -1,4 +1,4 @@
-import { OCRDebugInfo, OCRDebugStep, g_lastDebugVkRawText, g_lastDebugVkBlockCount, g_lastDebugVkBlockDetail, g_lastDebugVkOcrSize, g_lastDebugVkOcrError, g_lastDebugRawDigitPositions, g_lastDebugProbeInfo, g_lastDebugPixelBgInfo, g_lastDebugPixelBboxLocator, g_lastDebugPixelWarpInfo, g_lastDebugPixelCellStats, g_lastDebugPixelCellCoords, g_lastDebugFixDetails } from './SudokuOCRTypes';
+import { OCRDebugInfo, OCRDebugStep, g_lastDebugVkRawText, g_lastDebugVkBlockCount, g_lastDebugVkBlockDetail, g_lastDebugVkOcrSize, g_lastDebugVkOcrError, g_lastDebugRawDigitPositions, g_lastDebugProbeInfo, g_lastDebugPixelBgInfo, g_lastDebugPixelBboxLocator, g_lastDebugPixelWarpInfo, g_lastDebugPixelCellStats, g_lastDebugPixelCellCoords, g_lastDebugPixelCellDiags, g_lastDebugFixDetails } from './SudokuOCRTypes';
 import { getLastBboxDiag } from './SudokuPixel';
 
 export function formatGridStr(grid: number[] | null): string {
@@ -71,6 +71,7 @@ export function buildDebugInfo(
     pixelWarpInfo: g_lastDebugPixelWarpInfo,
     pixelCellStats: g_lastDebugPixelCellStats,
     pixelCellCoords: g_lastDebugPixelCellCoords,
+    pixelCellDiags: g_lastDebugPixelCellDiags,
     fixDetails: g_lastDebugFixDetails,
     bboxDiag: getLastBboxDiag()
   };
