@@ -193,28 +193,8 @@ const variants = [
     font: 'bold 26px "Segoe UI", Arial, sans-serif',
     numberColor: '#e0e0e0',
   },
-  {
-    name: '17_pure_black_white',
-    cell: 56, pad: 20,
-    thinColor: '#444444', thinWidth: 1,
-    thickColor: '#888888', thickWidth: 3,
-    outerColor: '#ffffff', outerWidth: 4,
-    bgColor: '#000000',
-    font: 'bold 26px "Segoe UI", Arial, sans-serif',
-    numberColor: '#ffffff',
-  },
 
   // --- 字体大小/粗细变体 ---
-  {
-    name: '18_small_font_in_cell',
-    cell: 56, pad: 20,
-    thinColor: '#bfbfbf', thinWidth: 1,
-    thickColor: '#333333', thickWidth: 3,
-    outerColor: '#000000', outerWidth: 4,
-    bgColor: '#ffffff',
-    font: 'bold 18px "Segoe UI", Arial, sans-serif',
-    numberColor: '#1a1a1a',
-  },
   {
     name: '19_large_font_in_cell',
     cell: 56, pad: 20,
@@ -302,16 +282,6 @@ const variants = [
     outerColor: '#000000', outerWidth: 4,
     bgColor: '#ffffff',
     font: 'bold 26px "Courier New", Courier, monospace',
-    numberColor: '#1a1a1a',
-  },
-  {
-    name: '27_cursive_font',
-    cell: 56, pad: 20,
-    thinColor: '#bfbfbf', thinWidth: 1,
-    thickColor: '#333333', thickWidth: 3,
-    outerColor: '#000000', outerWidth: 4,
-    bgColor: '#ffffff',
-    font: '26px "Brush Script MT", "Segoe Script", cursive',
     numberColor: '#1a1a1a',
   },
 

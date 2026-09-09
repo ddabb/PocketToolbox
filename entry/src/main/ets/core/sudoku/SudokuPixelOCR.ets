@@ -1,5 +1,5 @@
 import { OCRResult, CellCoordInfo, AdaptiveResizeParams,
-  g_lastPixelConfidence, g_lastCellCoords, g_cachedPixels, g_cachedImgW, g_cachedImgH,
+  g_lastPixelConfidence, g_lastRawInkPerCell, g_lastCellCoords, g_lastSecondBestDigit, g_cachedPixels, g_cachedImgW, g_cachedImgH,
   g_probeBbox, g_probeResizeW, g_probeResizeH,
   g_lastDebugPixelBgInfo, g_lastDebugPixelBboxLocator, g_lastDebugPixelWarpInfo,
   g_lastDebugPixelCellStats, g_lastDebugPixelCellCoords,
@@ -18,8 +18,41 @@ import { BoardBBox, BoardCorners, GridLines, bgColor, cellSigFromGray, cellSigFr
   MIN_CELL_INK_RATIO,
   resetChannelBgCache, resetGridLineCrop, isGridLineCropDetected, findPreciseGridLines,
   toGrayArray, validateCellCentering, warpPerspectiveGray, INK_THRESH, recognizeDigit,
-  ULTRA_LOW_INK_THRESH, getLastPixelDiag } from './SudokuPixel';
+  ULTRA_LOW_INK_THRESH, getLastPixelDiag, getLastSecondDigit } from './SudokuPixel';
 import { taskpool } from '@kit.ArkTS';
+
+function logDecodeProbe(pixelBytes: Uint8Array, width: number, height: number): void {
+  const hist: number[] = new Array<number>(256).fill(0);
+  let minG: number = 255;
+  let maxG: number = 0;
+  const pxCount: number = width * height;
+  for (let i: number = 0; i + 3 < pixelBytes.length; i += 4) {
+    const gRaw: number = (pixelBytes[i] * 299 + pixelBytes[i + 1] * 587 + pixelBytes[i + 2] * 114) / 1000;
+    const g: number = gRaw < 0 ? 0 : (gRaw > 255 ? 255 : gRaw | 0);
+    hist[g]++;
+    if (g < minG) { minG = g; }
+    if (g > maxG) { maxG = g; }
+  }
+  const pct = (p: number): number => {
+    const target: number = pxCount * p;
+    let acc: number = 0;
+    for (let v: number = 0; v < 256; v++) {
+      acc += hist[v];
+      if (acc >= target) { return v; }
+    }
+    return 255;
+  };
+  const sample = (x: number, y: number): string => {
+    const off: number = (y * width + x) * 4;
+    if (off < 0 || off + 3 >= pixelBytes.length) { return 'n/a'; }
+    return `(${x},${y})=${pixelBytes[off]},${pixelBytes[off + 1]},${pixelBytes[off + 2]},${pixelBytes[off + 3]}`;
+  };
+  const cx: number = width >> 1;
+  const cy: number = height >> 1;
+  const msg: string = `decodeProbe: ${width}x${height} gray[min=${minG} p5=${pct(0.05)} p50=${pct(0.5)} p95=${pct(0.95)} max=${maxG}] c1=${sample(2, 2)} c2=${sample(width - 3, 2)} c3=${sample(2, height - 3)} c4=${sample(width - 3, height - 3)} center=${sample(cx, cy)}`;
+  hilog.info(DOMAIN, TAG, '【解码探针】%{public}s', msg);
+  console.info(`[OCR_DBG] ${msg}`);
+}
 
 export async function tryPixelGridRecognition(imagePath: string, imageBuf: ArrayBuffer | null = null): Promise<OCRResult> {
   let pixelMap: image.PixelMap | null = null;
@@ -53,7 +86,8 @@ export async function tryPixelGridRecognition(imagePath: string, imageBuf: Array
     hilog.info(DOMAIN, TAG, 'Pixel: await createPixelMap()');
     pixelMap = await withTimeout<image.PixelMap | null>(imageSource.createPixelMap({
       desiredSize: { width: targetW, height: targetH },
-      desiredPixelFormat: image.PixelMapFormat.RGBA_8888
+      desiredPixelFormat: image.PixelMapFormat.RGBA_8888,
+      desiredDynamicRange: image.DecodingDynamicRange.SDR
     }), 5000, null);
     imageSource.release();
 
@@ -68,8 +102,9 @@ export async function tryPixelGridRecognition(imagePath: string, imageBuf: Array
     const height: number = imageInfo.size.height;
 
     const pixelBuf: ArrayBuffer = new ArrayBuffer(width * height * 4);
-    pixelMap.readPixelsToBuffer(pixelBuf);
+    pixelMap.readPixelsToBufferSync(pixelBuf);
     const pixelBytes: Uint8Array = new Uint8Array(pixelBuf);
+    logDecodeProbe(pixelBytes, width, height);
     setCachedPixels(pixelBytes);
     setCachedImgW(width);
     setCachedImgH(height);
@@ -269,6 +304,8 @@ export async function analyzePixelGridFromBuffer(pixels: Uint8Array, width: numb
           sigCount++;
           grid[r * 9 + c] = digit;
           g_lastPixelConfidence[r * 9 + c] = getLastConfidence();
+          g_lastSecondBestDigit[r * 9 + c] = getLastSecondDigit();
+          g_lastRawInkPerCell[r * 9 + c] = getLastRawInkRatio();
           if (digit > 0) { digitCount++; }
         }
       }
@@ -334,6 +371,8 @@ export async function analyzePixelGridFromBuffer(pixels: Uint8Array, width: numb
           if (sig !== null) {
             sigCount2++;
             g_lastPixelConfidence[r * 9 + c] = getLastConfidence();
+          g_lastSecondBestDigit[r * 9 + c] = getLastSecondDigit();
+          g_lastRawInkPerCell[r * 9 + c] = getLastRawInkRatio();
             if (digit > 0 && !validateCellCentering(gray, width, height, cLeft, cTop, cW, cH, bbox.isDark, bg)) {
               const fallbackW: number = (bbox.right - bbox.left) / 9;
               const fallbackH: number = (bbox.bottom - bbox.top) / 9;
@@ -345,6 +384,8 @@ export async function analyzePixelGridFromBuffer(pixels: Uint8Array, width: numb
               if (fallbackSig !== null) {
                 const fbDigit: number = await recognizeDigit(fallbackSig, countInk(fallbackSig));
                 g_lastPixelConfidence[r * 9 + c] = getLastConfidence();
+          g_lastSecondBestDigit[r * 9 + c] = getLastSecondDigit();
+          g_lastRawInkPerCell[r * 9 + c] = getLastRawInkRatio();
                 if (fbDigit > 0) {
                   grid[r * 9 + c] = fbDigit;
                   digitCount2++;
@@ -417,6 +458,8 @@ export async function analyzePixelGridFromBuffer(pixels: Uint8Array, width: numb
             sigCount3++;
             grid[r * 9 + c] = digit;
             g_lastPixelConfidence[r * 9 + c] = getLastConfidence();
+          g_lastSecondBestDigit[r * 9 + c] = getLastSecondDigit();
+          g_lastRawInkPerCell[r * 9 + c] = getLastRawInkRatio();
             if (digit > 0) { digitCount3++; }
           }
         }
@@ -627,11 +670,31 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
             sig = ultraSig;
             digit = await recognizeDigit(ultraSig, countInk(ultraSig));
           }
-          await yieldThread();
-        }
-        if (sig !== null) {
+            await yieldThread();
+          }
+          if (digit === 7 && sig !== null) {
+            const sigInk7w: number = countInk(sig);
+            if (sigInk7w < 200) {
+              const inkCols7w: number[] = new Array<number>(20).fill(0);
+              for (let i7w: number = 0; i7w < sig.length; i7w++) {
+                if (sig[i7w] === 1) { inkCols7w[i7w % 20]++; }
+              }
+              let nonZeroCols7w: number = 0;
+              let maxColInk7w: number = 0;
+              for (let ci7w: number = 0; ci7w < 20; ci7w++) {
+                if (inkCols7w[ci7w] > 0) { nonZeroCols7w++; }
+                if (inkCols7w[ci7w] > maxColInk7w) { maxColInk7w = inkCols7w[ci7w]; }
+              }
+              if (nonZeroCols7w <= 8 && maxColInk7w >= sigInk7w * 0.18) {
+                digit = 1;
+              }
+            }
+          }
+          if (sig !== null) {
           sigCount++;
           g_lastPixelConfidence[r * 9 + c] = getLastConfidence();
+          g_lastSecondBestDigit[r * 9 + c] = getLastSecondDigit();
+          g_lastRawInkPerCell[r * 9 + c] = getLastRawInkRatio();
           if (digit > 0 && warpGridLines !== null &&
             !validateCellCentering(warpedGray, outSize, outSize, cellL, cellT, cellW, cellH, warpIsDark, warpBg)) {
             const fbL: number = c * warpCellW;
@@ -642,6 +705,8 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
             if (fbSig !== null) {
               const fbDigit: number = await recognizeDigit(fbSig, countInk(fbSig));
               g_lastPixelConfidence[r * 9 + c] = getLastConfidence();
+          g_lastSecondBestDigit[r * 9 + c] = getLastSecondDigit();
+          g_lastRawInkPerCell[r * 9 + c] = getLastRawInkRatio();
               if (fbDigit > 0) {
                 grid[r * 9 + c] = fbDigit;
                 digitCount++;
@@ -750,6 +815,8 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
           if (sig !== null) {
             sigCount2++;
             g_lastPixelConfidence[r * 9 + c] = getLastConfidence();
+          g_lastSecondBestDigit[r * 9 + c] = getLastSecondDigit();
+          g_lastRawInkPerCell[r * 9 + c] = getLastRawInkRatio();
             if (digit > 0 && !validateCellCentering(gray, width, height, cLeft, cTop, cW, cH, bbox.isDark, bg)) {
               const fallbackW: number = (bbox.right - bbox.left) / 9;
               const fallbackH: number = (bbox.bottom - bbox.top) / 9;
@@ -761,6 +828,8 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
               if (fallbackSig !== null) {
                 const fbDigit: number = await recognizeDigit(fallbackSig, countInk(fallbackSig));
                 g_lastPixelConfidence[r * 9 + c] = getLastConfidence();
+          g_lastSecondBestDigit[r * 9 + c] = getLastSecondDigit();
+          g_lastRawInkPerCell[r * 9 + c] = getLastRawInkRatio();
                 if (fbDigit > 0) {
                   grid[r * 9 + c] = fbDigit;
                   digitCount2++;
@@ -861,6 +930,8 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
             sigCount3++;
             grid[r * 9 + c] = digit;
             g_lastPixelConfidence[r * 9 + c] = getLastConfidence();
+          g_lastSecondBestDigit[r * 9 + c] = getLastSecondDigit();
+          g_lastRawInkPerCell[r * 9 + c] = getLastRawInkRatio();
             if (digit > 0) { digitCount3++; }
             const aabbLeft: number = bbox.left + c * cellW;
             const aabbTop: number = bbox.top + r * cellH;

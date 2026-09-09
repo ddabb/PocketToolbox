@@ -354,7 +354,8 @@ export async function tryVisionKitRecognition(imagePath: string, imageBuf: Array
 
     const probePm: image.PixelMap | null = await withTimeout<image.PixelMap | null>(imageSource.createPixelMap({
       desiredSize: { width: probeW, height: probeH },
-      desiredPixelFormat: image.PixelMapFormat.RGBA_8888
+      desiredPixelFormat: image.PixelMapFormat.RGBA_8888,
+      desiredDynamicRange: image.DecodingDynamicRange.SDR
     }), 5000, null);
     hilog.info(DOMAIN, TAG, 'VK: createPixelMap(probe) %{public}s', probePm !== null ? 'OK' : 'null');
     if (probePm === null) {
@@ -372,7 +373,7 @@ export async function tryVisionKitRecognition(imagePath: string, imageBuf: Array
     const probeImgH: number = probeImgInfo.size.height;
 
     const probeBuf: ArrayBuffer = new ArrayBuffer(probeImgW * probeImgH * 4);
-    probePm.readPixelsToBuffer(probeBuf);
+    probePm.readPixelsToBufferSync(probeBuf);
     const probePixels: Uint8Array = new Uint8Array(probeBuf);
     probePm.release();
 
@@ -482,6 +483,7 @@ export async function tryVisionKitRecognition(imagePath: string, imageBuf: Array
       desiredRegion: { size: { width: origCropW, height: origCropH }, x: origCropL, y: origCropT },
       desiredSize: { width: finalW, height: finalH },
       desiredPixelFormat: image.PixelMapFormat.RGBA_8888,
+      desiredDynamicRange: image.DecodingDynamicRange.SDR,
       cropAndScaleStrategy: image.CropAndScaleStrategy.CROP_FIRST
     }), 5000, null);
     imageSource.release();
@@ -503,7 +505,7 @@ export async function tryVisionKitRecognition(imagePath: string, imageBuf: Array
     hilog.info(DOMAIN, TAG, '【VisionKit OCR图尺寸】%{public}dx%{public}d', imgW, imgH);
 
     const ocrBuf: ArrayBuffer = new ArrayBuffer(imgW * imgH * 4);
-    pixelMap.readPixelsToBuffer(ocrBuf);
+    pixelMap.readPixelsToBufferSync(ocrBuf);
     const ocrPx: Uint8Array = new Uint8Array(ocrBuf);
     let ocrBgSum: number = 0;
     const ocrBgStep: number = Math.max(1, Math.floor(imgW * imgH / 10000));

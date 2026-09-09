@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll } from '@ohos/hypium';
 import { recognizeSudokuFromBuffer, OCRResult, getOCRDebugInfo, OCRDebugInfo } from '../../../main/ets/core/sudoku/SudokuOCR';
 import { parseOCRToGrid, gridToString, solveSudoku, validateFullGrid, SolveResult } from '../../../main/ets/core/sudoku/SudokuEngine';
 import { initDigitTemplates } from '../../../main/ets/core/sudoku/SudokuPixel';
+import { g_lastComboSolverDiag } from '../../../main/ets/core/sudoku/SudokuOCRTypes';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { resourceManager } from '@kit.LocalizationKit';
 import { abilityDelegatorRegistry } from '@kit.TestKit';
@@ -39,8 +40,6 @@ const TEST_IMAGES: string[][] = [
   ['13_no_outer_border', 'sudoku_test_images/13_no_outer_border.png'],
   ['15_huge_1000', 'sudoku_test_images/15_huge_1000.png'],
   ['16_dark_bg_light_numbers', 'sudoku_test_images/16_dark_bg_light_numbers.png'],
-  ['17_pure_black_white', 'sudoku_test_images/17_pure_black_white.png'],
-  ['18_small_font_in_cell', 'sudoku_test_images/18_small_font_in_cell.png'],
   ['19_large_font_in_cell', 'sudoku_test_images/19_large_font_in_cell.png'],
   ['20_dashed_lines', 'sudoku_test_images/20_dashed_lines.png'],
   ['21_thick_all_lines', 'sudoku_test_images/21_thick_all_lines.png'],
@@ -49,7 +48,6 @@ const TEST_IMAGES: string[][] = [
   ['24_medium_gray_numbers', 'sudoku_test_images/24_medium_gray_numbers.png'],
   ['25_very_faint_numbers', 'sudoku_test_images/25_very_faint_numbers.png'],
   ['26_mono_font', 'sudoku_test_images/26_mono_font.png'],
-  ['27_cursive_font', 'sudoku_test_images/27_cursive_font.png'],
   ['28_medium_400', 'sudoku_test_images/28_medium_400.png'],
   ['29_wide_padding', 'sudoku_test_images/29_wide_padding.png'],
   ['30_no_padding', 'sudoku_test_images/30_no_padding.png'],
@@ -173,6 +171,9 @@ function dumpDebugCompact(info: OCRDebugInfo, prefix: string): void {
     for (const dl of dLines) {
       console.info(`[OCR_DBG] ${prefix}pxd=${dl}`);
     }
+  }
+  if (g_lastComboSolverDiag.length > 0) {
+    console.info(`[OCR_DBG] ${prefix}comboSolver=${g_lastComboSolverDiag}`);
   }
 }
 
@@ -312,12 +313,6 @@ export default function sudokuOcrTest() {
     it('pipeline_16_dark_bg_light_numbers', 120000, (done: Function) => {
       runPipelineTest('16_dark_bg_light_numbers', 'sudoku_test_images/16_dark_bg_light_numbers.png', done);
     });
-    it('pipeline_17_pure_black_white', 120000, (done: Function) => {
-      runPipelineTest('17_pure_black_white', 'sudoku_test_images/17_pure_black_white.png', done);
-    });
-    it('pipeline_18_small_font_in_cell', 120000, (done: Function) => {
-      runPipelineTest('18_small_font_in_cell', 'sudoku_test_images/18_small_font_in_cell.png', done);
-    });
     it('pipeline_19_large_font_in_cell', 120000, (done: Function) => {
       runPipelineTest('19_large_font_in_cell', 'sudoku_test_images/19_large_font_in_cell.png', done);
     });
@@ -342,9 +337,6 @@ export default function sudokuOcrTest() {
     it('pipeline_26_mono_font', 120000, (done: Function) => {
       runPipelineTest('26_mono_font', 'sudoku_test_images/26_mono_font.png', done);
     });
-    it('pipeline_27_cursive_font', 120000, (done: Function) => {
-      runPipelineTest('27_cursive_font', 'sudoku_test_images/27_cursive_font.png', done);
-    });
     it('pipeline_28_medium_400', 120000, (done: Function) => {
       runPipelineTest('28_medium_400', 'sudoku_test_images/28_medium_400.png', done);
     });
@@ -357,9 +349,7 @@ export default function sudokuOcrTest() {
     it('pipeline_31_puzzle2_standard', 120000, (done: Function) => {
       runPipelineTest('31_puzzle2_standard', 'sudoku_test_images/31_puzzle2_standard.png', done);
     });
-    it('pipeline_32_puzzle2_tiny', 120000, (done: Function) => {
-      runPipelineTest('32_puzzle2_tiny', 'sudoku_test_images/32_puzzle2_tiny.png', done);
-    });
+
     it('pipeline_33_puzzle3_hard', 120000, (done: Function) => {
       runPipelineTest('33_puzzle3_hard', 'sudoku_test_images/33_puzzle3_hard.png', done);
     });

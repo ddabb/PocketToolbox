@@ -9,7 +9,8 @@ import {
   g_vkFailed, g_vkInited,
   g_lastDebugRawDigits, g_perCellVkDiag, g_lastRecognizeDiag,
   setLastRecognizeDiag, setLastDebugFixDetails, setLastDebugConflicts,
-  setLastDebugLowConf, setLastDebugEmpty, setLastDebugFixCount, setPerPixelVkDiag
+  setLastDebugLowConf, setLastDebugEmpty, setLastDebugFixCount, setPerPixelVkDiag,
+  CellCoordInfo, g_lastCellCoords, g_lastRawInkPerCell, setLastComboSolverDiag, g_lastSecondBestDigit
 } from './SudokuOCRTypes';
 import {
   DOMAIN, TAG, yieldThread, withTimeout, computeAdaptiveResize,
@@ -25,10 +26,11 @@ import {
   EMPTY_FILL_PIXEL_CONF_NO_RAW_DIGITS, BG_DARK_THRESHOLD, PIXEL_MAX_DIM
 } from './SudokuOCRUtils';
 import { recognizeDigitVisionKit, recognizeDigitInWideRegion } from './SudokuVKOCR';
+import { solveSudoku, SolveResult } from './SudokuEngine';
 import {
   BoardBBox, bgColor, toGrayArray, findBoardBBox,
   getLastConfidence, getLastRawInkRatio, getLastPixelDiag,
-  getLastLocalBgInfo,
+  getLastLocalBgInfo, getLastSigMetrics, getLastSigQualityFail,
   resetLastPixelDiag, resetGridLineCrop, detectGridLineWidths,
   MIN_CELL_INK_RATIO, cellSigFromGray, cellSigFromGrayLowThresh,
   cellSigFromGrayThin, recognizeDigit, countInk, getLastBboxDiag,
@@ -172,6 +174,8 @@ async function recognizeDigitPixel(
           setLastRecognizeDiag(`retryThin: digit=${thinDigit} ink=${thinInk} diag=[${thinD}] rawInk=${ri.toFixed(4)}`);
           return thinDigit;
         }
+        const thinDf: string = getLastPixelDiag();
+        setLastRecognizeDiag(`retryThinFail: digit=0 ink=${thinInk} diag=[${thinDf}] rawInk=${ri.toFixed(4)}`);
       }
     }
     if (ri < MIN_CELL_INK_RATIO * 3) {
@@ -188,6 +192,8 @@ async function recognizeDigitPixel(
           setLastRecognizeDiag(`retryUltraLow: digit=${ultraDigit} ink=${ultraInk} diag=[${ultraD}] rawInk=${ri.toFixed(4)}`);
           return ultraDigit;
         }
+        const ultraDf: string = getLastPixelDiag();
+        setLastRecognizeDiag(`retryUltraLowFail: digit=0 ink=${ultraInk} diag=[${ultraDf}] rawInk=${ri.toFixed(4)}`);
       }
     }
     setLastRecognizeDiag(`sigNull diag=[${d}] rawInk=${ri.toFixed(4)}`);
@@ -289,11 +295,23 @@ export async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, im
     }
   }
 
+  const LOW_INK_CONFUSABLE_DIGITS: number[] = [1, 4, 7, 8];
+  const lowInkConfusableIndices: number[] = [];
+  for (let i: number = 0; i < 81; i++) {
+    if (grid[i] > 0 && LOW_INK_CONFUSABLE_DIGITS.indexOf(grid[i]) >= 0) {
+      const rawInkI: number = g_lastRawInkPerCell.length > i ? g_lastRawInkPerCell[i] : 0;
+      if (rawInkI < 0.040) {
+        lowInkConfusableIndices.push(i);
+      }
+    }
+  }
+
   const fixSet: Set<number> = new Set<number>();
   for (const idx of conflictIndices) { fixSet.add(idx); }
   for (const idx of lowConfIndices) { fixSet.add(idx); }
   for (const idx of confusableIndices) { fixSet.add(idx); }
   for (const idx of emptyIndices) { fixSet.add(idx); }
+  for (const idx of lowInkConfusableIndices) { fixSet.add(idx); }
 
   const allFixIndices: number[] = [];
   fixSet.forEach((idx: number) => { allFixIndices.push(idx); });
@@ -362,7 +380,8 @@ export async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, im
     pixelMap = await withTimeout<image.PixelMap | null>(
       imageSource.createPixelMap({
         desiredSize: { width: targetW, height: targetH },
-        desiredPixelFormat: image.PixelMapFormat.RGBA_8888
+          desiredPixelFormat: image.PixelMapFormat.RGBA_8888,
+          desiredDynamicRange: image.DecodingDynamicRange.SDR
       }), 5000, null);
     imageSource.release();
 
@@ -382,7 +401,7 @@ export async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, im
     imgH = info.size.height;
 
     const buffer: ArrayBuffer = new ArrayBuffer(imgW * imgH * 4);
-    pixelMap.readPixelsToBuffer(buffer);
+    pixelMap.readPixelsToBufferSync(buffer);
     pixels = new Uint8Array(buffer);
   }
 
@@ -456,6 +475,7 @@ export async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, im
   setPerPixelVkDiag({ cropFail: 0, noBlock: 0, noCenter: 0, found: 0, samples: [] });
   const fixDetailLines: string[] = [];
   const pixelConflictCandidates: PixelConflictCandidate[] = [];
+  const cellConfidence: number[] = new Array<number>(81).fill(1.0);
 
   for (const idx of allFixIndices) {
     const origDigit: number = grid[idx];
@@ -470,6 +490,7 @@ export async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, im
       pixelDigit = await recognizeDigitPixel(gray, imgW, cellLeft, cellTop, cellW, cellH, bbox.isDark, bg, row, col);
     }
     const pixelDiag: string = g_lastRecognizeDiag;
+    const pixelQ: string = pixelDigit !== null && pixelDigit > 0 ? ` q=[${getLastSigMetrics()}]` : '';
 
     let vkDigit: number | null = null;
     let vkCropInfo: string = 'skip';
@@ -521,6 +542,21 @@ export async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, im
     const vStr: string = vkDigit !== null && vkDigit > 0 ? `${vkDigit}` : '-';
     const pixelConf: number = pixelDigit !== null && pixelDigit > 0 ? getLastConfidence() : 0;
     const rawInkRatio: number = getLastRawInkRatio();
+    cellConfidence[idx] = pixelConf;
+
+    const pixelQualityFail: boolean = pixelDigit !== null && pixelDigit > 0 && getLastSigQualityFail();
+    if (pixelQualityFail && (vkDigit === null || vkDigit === 0)) {
+      if (origDigit > 0) {
+        grid[idx] = 0;
+        fixCount++;
+        hilog.info(DOMAIN, TAG, '【逐格修正详情】质量清除 %{public}s %{public}d→0', cellLabel, origDigit);
+        fixDetailLines.push(`质量清除${cellLabel} ${origDigit}→0 P=${pStr}${pixelQ} pxDiag=[${pixelDiag}] ${getLastLocalBgInfo()}`);
+        continue;
+      } else {
+        fixDetailLines.push(`质量拦P${cellLabel} P=${pStr}→null rawInk=${rawInkRatio.toFixed(4)}${pixelQ} pxDiag=[${pixelDiag}] ${getLastLocalBgInfo()}`);
+        pixelDigit = null;
+      }
+    }
 
     if (origDigit === 0) {
       let fillDigit: number | null = null;
@@ -638,18 +674,23 @@ export async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, im
             }
           }
           if (fallbackDigit === null && fillDigit > 0) {
-            const confusableSwaps: number[][] = [[6, 9], [9, 6], [5, 9], [9, 5], [5, 6], [6, 5], [5, 8], [8, 5], [1, 8], [8, 1], [1, 6], [6, 1], [7, 1], [1, 7], [2, 4], [4, 2], [3, 7], [7, 3]];
+            const confusableSwaps: number[][] = [[6, 9], [9, 6], [5, 9], [9, 5], [5, 6], [6, 5], [5, 8], [8, 5], [1, 8], [8, 1], [1, 4], [4, 1], [7, 1], [1, 7], [2, 4], [4, 2], [3, 7], [7, 3], [1, 6], [6, 1]];
+            let bestSwapFallback: number | null = null;
+            let bestSwapConflicts: number = 999;
             for (const pair of confusableSwaps) {
               if (fillDigit === pair[0]) {
                 grid[idx] = pair[1];
                 const swConflicts: number[] = findConflictCells(grid);
-                if (!swConflicts.some((ci: number) => ci === idx)) {
-                  fallbackDigit = pair[1];
-                  fallbackSource = `swap(${fillDigit}→${pair[1]})`;
-                  break;
+                if (!swConflicts.some((ci: number) => ci === idx) && swConflicts.length < bestSwapConflicts) {
+                  bestSwapFallback = pair[1];
+                  bestSwapConflicts = swConflicts.length;
                 }
                 grid[idx] = 0;
               }
+            }
+            if (bestSwapFallback !== null) {
+              fallbackDigit = bestSwapFallback;
+              fallbackSource = `swap(${fillDigit}→${bestSwapFallback})`;
             }
           }
           if (fallbackDigit !== null) {
@@ -681,7 +722,7 @@ export async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, im
           const probeTop: number | undefined = g_probeBbox?.top;
           fixDetailLines.push(`高墨VK全null${cellLabel} cell=(${cellLeft.toFixed(0)},${cellTop.toFixed(0)},${cellW.toFixed(0)}x${cellH.toFixed(0)}) board=(${boardL.toFixed(0)},${boardT.toFixed(0)}) probeBbox=(${probeLeft},${probeTop}) fitted=(${g_fittedBoardL.toFixed(0)},${g_fittedBoardT.toFixed(0)}) cellSize=(${cellW.toFixed(1)}x${cellH.toFixed(1)})`);
         }
-        fixDetailLines.push(`留空${cellLabel} V=${vStr} P=${pStr} ink=${pixelHasInk ? 1 : 0} rawInk=${rawInkRatio.toFixed(4)} pxDiag=[${pixelDiag}] ${getLastLocalBgInfo()} ${getLastLocalBgInfo()} crop=${vkCropInfo}`);
+        fixDetailLines.push(`留空${cellLabel} V=${vStr} P=${pStr} ink=${pixelHasInk ? 1 : 0} rawInk=${rawInkRatio.toFixed(4)} pxDiag=[${pixelDiag}]${pixelQ} ${getLastLocalBgInfo()} ${getLastLocalBgInfo()} crop=${vkCropInfo}`);
       }
       continue;
     }
@@ -810,14 +851,14 @@ export async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, im
         }
       }
 
-      fixDetailLines.push(`修正${cellLabel} ${origDigit}→${finalDigit} P=${pStr} V=${vStr} ${decision}${swapNote} pxDiag=[${pixelDiag}] ${getLastLocalBgInfo()}`);
+      fixDetailLines.push(`修正${cellLabel} ${origDigit}→${finalDigit} P=${pStr} V=${vStr} ${decision}${swapNote} pxDiag=[${pixelDiag}]${pixelQ} ${getLastLocalBgInfo()}`);
     } else if (finalDigit === null && (origDigit === 6 || origDigit === 9)) {
       const isConflict: boolean = conflictIndices.some((ci: number) => ci === idx);
       if (isConflict && rawInkRatio < MIN_CELL_INK_RATIO && pixelDigit === null) {
         grid[idx] = 0;
         fixCount++;
         hilog.info(DOMAIN, TAG, '【逐格修正详情】冲突无墨清除 %{public}s %{public}d→0', cellLabel, origDigit);
-        fixDetailLines.push(`清除${cellLabel} ${origDigit}→0 P=${pStr} V=${vStr} 冲突无墨 pxDiag=[${pixelDiag}] ${getLastLocalBgInfo()}`);
+        fixDetailLines.push(`清除${cellLabel} ${origDigit}→0 P=${pStr} V=${vStr} 冲突无墨 pxDiag=[${pixelDiag}]${pixelQ} ${getLastLocalBgInfo()}`);
       } else if (isConflict && rawInkRatio >= MIN_CELL_INK_RATIO) {
         const swapped: number = origDigit === 6 ? 9 : 6;
         grid[idx] = swapped;
@@ -825,14 +866,14 @@ export async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, im
         const swapConflict: boolean = afterSwap.some((ci: number) => ci === idx);
         if (swapConflict) {
           grid[idx] = origDigit;
-          fixDetailLines.push(`不变${cellLabel}=${origDigit} P=${pStr} V=${vStr} ${decision} 6/9冲突交换失败 pxDiag=[${pixelDiag}] ${getLastLocalBgInfo()}`);
+          fixDetailLines.push(`不变${cellLabel}=${origDigit} P=${pStr} V=${vStr} ${decision} 6/9冲突交换失败 pxDiag=[${pixelDiag}]${pixelQ} ${getLastLocalBgInfo()}`);
         } else {
           fixCount++;
           hilog.info(DOMAIN, TAG, '【逐格修正详情】6/9冲突交换 %{public}s %{public}d -> %{public}d', cellLabel, origDigit, swapped);
-          fixDetailLines.push(`修正${cellLabel} ${origDigit}→${swapped} P=${pStr} V=${vStr} 冲突6/9交换 pxDiag=[${pixelDiag}] ${getLastLocalBgInfo()}`);
+          fixDetailLines.push(`修正${cellLabel} ${origDigit}→${swapped} P=${pStr} V=${vStr} 冲突6/9交换 pxDiag=[${pixelDiag}]${pixelQ} ${getLastLocalBgInfo()}`);
         }
       } else {
-        fixDetailLines.push(`不变${cellLabel}=${origDigit} P=${pStr} V=${vStr} ${decision} pxDiag=[${pixelDiag}] ${getLastLocalBgInfo()}`);
+        fixDetailLines.push(`不变${cellLabel}=${origDigit} P=${pStr} V=${vStr} ${decision} pxDiag=[${pixelDiag}]${pixelQ} ${getLastLocalBgInfo()}`);
       }
     } else if (finalDigit === null && origDigit > 0) {
       const isConflict: boolean = conflictIndices.some((ci: number) => ci === idx);
@@ -840,7 +881,7 @@ export async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, im
         grid[idx] = 0;
         fixCount++;
         hilog.info(DOMAIN, TAG, '【逐格修正详情】冲突无墨清除 %{public}s %{public}d→0', cellLabel, origDigit);
-        fixDetailLines.push(`清除${cellLabel} ${origDigit}→0 P=${pStr} V=${vStr} 冲突无墨 pxDiag=[${pixelDiag}] ${getLastLocalBgInfo()}`);
+        fixDetailLines.push(`清除${cellLabel} ${origDigit}→0 P=${pStr} V=${vStr} 冲突无墨 pxDiag=[${pixelDiag}]${pixelQ} ${getLastLocalBgInfo()}`);
       } else if (isConflict && rawInkRatio >= MIN_CELL_INK_RATIO) {
         let swappedOk: boolean = false;
         let swapDigit: number = origDigit;
@@ -860,15 +901,15 @@ export async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, im
         if (swappedOk) {
           fixCount++;
           hilog.info(DOMAIN, TAG, '【逐格修正详情】冲突交换 %{public}s %{public}d -> %{public}d', cellLabel, origDigit, swapDigit);
-          fixDetailLines.push(`修正${cellLabel} ${origDigit}→${swapDigit} P=${pStr} V=${vStr} 冲突交换 pxDiag=[${pixelDiag}] ${getLastLocalBgInfo()}`);
+          fixDetailLines.push(`修正${cellLabel} ${origDigit}→${swapDigit} P=${pStr} V=${vStr} 冲突交换 pxDiag=[${pixelDiag}]${pixelQ} ${getLastLocalBgInfo()}`);
         } else {
-          fixDetailLines.push(`不变${cellLabel}=${origDigit} P=${pStr} V=${vStr} ${decision} 冲突交换失败 pxDiag=[${pixelDiag}] ${getLastLocalBgInfo()}`);
+          fixDetailLines.push(`不变${cellLabel}=${origDigit} P=${pStr} V=${vStr} ${decision} 冲突交换失败 pxDiag=[${pixelDiag}]${pixelQ} ${getLastLocalBgInfo()}`);
         }
       } else {
-        fixDetailLines.push(`不变${cellLabel}=${origDigit} P=${pStr} V=${vStr} ${decision} pxDiag=[${pixelDiag}] ${getLastLocalBgInfo()}`);
+        fixDetailLines.push(`不变${cellLabel}=${origDigit} P=${pStr} V=${vStr} ${decision} pxDiag=[${pixelDiag}]${pixelQ} ${getLastLocalBgInfo()}`);
       }
     } else {
-      fixDetailLines.push(`不变${cellLabel}=${origDigit} P=${pStr} V=${vStr} ${decision} pxDiag=[${pixelDiag}] ${getLastLocalBgInfo()}`);
+      fixDetailLines.push(`不变${cellLabel}=${origDigit} P=${pStr} V=${vStr} ${decision} pxDiag=[${pixelDiag}]${pixelQ} ${getLastLocalBgInfo()}`);
     }
     if (col === 8) { await yieldThread(); }
   }
@@ -943,28 +984,32 @@ export async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, im
       const cTop: number = boardT + row * cellH;
       const pxlDigit: number | null = await recognizeDigitPixel(gray, imgW, cLeft, cTop, cellW, cellH, bbox.isDark, bg, row, col);
       if (pxlDigit === null || pxlDigit === grid[i]) { continue; }
-      if (!isConfusablePair(grid[i], pxlDigit)) { continue; }
+      if (getLastSigQualityFail()) { continue; }
+      const pxlDigitVal: number = pxlDigit as number;
+      if (!isConfusablePair(grid[i], pxlDigitVal)) { continue; }
       const pxlConf: number = getLastConfidence();
       const isConflict: boolean = findConflictCells(grid).some((ci: number) => ci === i);
-      if (isConflict) {
+      if (isConflict && pxlConf > cellConfidence[i]) {
+        hilog.info(DOMAIN, TAG, 'fixAndFillGrid: 像素裁决候选(冲突) [%{public}d]=%{public}d→%{public}d pxlConf=%{public}.2f cellConf=%{public}.2f',
+          i, grid[i], pxlDigitVal, pxlConf, cellConfidence[i]);
         const beforeConf: number = findConflictCells(grid).length;
         const orig: number = grid[i];
-        grid[i] = pxlDigit;
+        grid[i] = pxlDigitVal;
         const afterConf: number = findConflictCells(grid).length;
         if (afterConf < beforeConf) {
-          hilog.info(DOMAIN, TAG, 'fixAndFillGrid: 像素裁决(冲突) [%{public}d]=%{public}d→%{public}d 冲突%{public}d→%{public}d',
-            i, orig, pxlDigit, beforeConf, afterConf);
+          hilog.info(DOMAIN, TAG, 'fixAndFillGrid: 像素裁决(冲突) [%{public}d]=%{public}d→%{public}d 冲突%{public}d→%{public}d pxlConf=%{public}.2f',
+            i, orig, pxlDigitVal, beforeConf, afterConf, pxlConf);
           pixelAdjFixCount++;
         } else {
           grid[i] = orig;
         }
-      } else if (pxlConf >= CONFUSABLE_PIXEL_OVERRIDE_CONF && pxlConf >= EXISTING_PIXEL_ONLY_OVERRIDE_CONF) {
+      } else if (pxlConf >= CONFUSABLE_PIXEL_OVERRIDE_CONF && pxlConf >= EXISTING_PIXEL_ONLY_OVERRIDE_CONF && pxlConf > cellConfidence[i]) {
         const orig: number = grid[i];
-        grid[i] = pxlDigit;
+        grid[i] = pxlDigitVal;
         const cellStillInConflict: boolean = findConflictCells(grid).some((ci: number) => ci === i);
         if (!cellStillInConflict) {
-          hilog.info(DOMAIN, TAG, 'fixAndFillGrid: 像素裁决(置信%{public}.2f) [%{public}d]=%{public}d→%{public}d',
-            pxlConf, i, orig, pxlDigit);
+          hilog.info(DOMAIN, TAG, 'fixAndFillGrid: 像素裁决(置信%{public}.2f>%{public}.2f) [%{public}d]=%{public}d→%{public}d',
+            pxlConf, cellConfidence[i], i, orig, pxlDigitVal);
           pixelAdjFixCount++;
         } else {
           grid[i] = orig;
@@ -978,36 +1023,207 @@ export async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, im
   }
 
   let remainingConflicts: number[] = findConflictCells(grid);
-  const conflictGuessSwaps: number[][] = [
-    [6, 9], [9, 6], [5, 9], [9, 5], [5, 6], [6, 5],
-    [5, 8], [8, 5], [1, 8], [8, 1], [1, 6], [6, 1],
-    [7, 1], [1, 7], [2, 4], [4, 2], [3, 7], [7, 3],
-    [1, 4], [4, 1], [2, 8], [8, 2], [3, 8], [8, 3],
-    [7, 9], [9, 7], [4, 9], [9, 4], [3, 5], [5, 3],
-  ];
-  let guessFixCount: number = 0;
-  for (const ci of remainingConflicts) {
-    await yieldThread();
-    const origVal: number = grid[ci];
-    if (origVal === 0) { continue; }
-    const beforeConf: number = findConflictCells(grid).length;
-    for (const pair of conflictGuessSwaps) {
-      if (origVal === pair[0]) {
-        grid[ci] = pair[1];
-        const afterSwap: number[] = findConflictCells(grid);
-        if (afterSwap.length < beforeConf && !afterSwap.some((ac: number) => ac === ci)) {
-          guessFixCount++;
-          hilog.info(DOMAIN, TAG, 'fixAndFillGrid: 冲突猜测交换(%{public}d,%{public}d) %{public}d→%{public}d 冲突%{public}d→%{public}d',
-            Math.floor(ci / 9), ci % 9, origVal, pair[1], beforeConf, afterSwap.length);
-          break;
+
+  // Brute-force search for confusable groups BEFORE combo-swap
+  {
+    const confusablePairsAll: number[][] = [[3, 8], [8, 3], [5, 8], [8, 5],
+      [7, 1], [1, 7], [8, 9], [9, 8], [1, 4], [4, 1], [9, 4], [4, 9],
+      [6, 9], [9, 6], [5, 6], [6, 5], [1, 2], [2, 1], [2, 8], [8, 2],
+      [1, 8], [8, 1], [3, 5], [5, 3], [3, 7], [7, 3]];
+    const ambiguousCells: number[] = [];
+    const ambiguousAlt: number[] = [];
+    const ambiguousSet: Set<number> = new Set<number>();
+    for (let si2: number = 0; si2 < 81; si2++) {
+      if (grid[si2] <= 0) { continue; }
+      if (cellConfidence[si2] < 0.90) {
+        for (const cp of confusablePairsAll) {
+          if (grid[si2] === cp[0]) {
+            if (!ambiguousSet.has(si2)) {
+              ambiguousCells.push(si2);
+              ambiguousAlt.push(cp[1]);
+              ambiguousSet.add(si2);
+            }
+            break;
+          }
         }
-        grid[ci] = origVal;
       }
     }
+    let comboDiag: string = `ambiguous=${ambiguousCells.length}:`;
+    for (let ai0: number = 0; ai0 < ambiguousCells.length; ai0++) {
+      comboDiag += ` (${Math.floor(ambiguousCells[ai0] / 9)},${ambiguousCells[ai0] % 9})${grid[ambiguousCells[ai0]]}→${ambiguousAlt[ai0]}`;
+    }
+    if (ambiguousCells.length < 2 || ambiguousCells.length > 20) {
+      setLastComboSolverDiag(comboDiag + ` skip(count)`);
+    }
+    if (ambiguousCells.length >= 2 && ambiguousCells.length <= 20) {
+      const comboCount: number = 1 << ambiguousCells.length;
+      const validCombos: number[] = [];
+      for (let combo: number = 0; combo < comboCount; combo++) {
+        const savedGrid: number[] = grid.slice(0);
+        for (let ai: number = 0; ai < ambiguousCells.length; ai++) {
+          if ((combo & (1 << ai)) !== 0) {
+            grid[ambiguousCells[ai]] = ambiguousAlt[ai];
+          }
+        }
+        const trial: SolveResult = solveSudoku(grid);
+        if (trial.solutionCount >= 1) {
+          validCombos.push(combo);
+        }
+        for (let ai2: number = 0; ai2 < ambiguousCells.length; ai2++) {
+          grid[ambiguousCells[ai2]] = savedGrid[ambiguousCells[ai2]];
+        }
+      }
+      if (validCombos.length === 1) {
+        const applyCombo: number = validCombos[0];
+        for (let ai3: number = 0; ai3 < ambiguousCells.length; ai3++) {
+          if ((applyCombo & (1 << ai3)) !== 0) {
+            const oldV: number = grid[ambiguousCells[ai3]];
+            grid[ambiguousCells[ai3]] = ambiguousAlt[ai3];
+            fixCount++;
+            hilog.info(DOMAIN, TAG, 'fixAndFillGrid: 组合求解交换(%{public}d,%{public}d) %{public}d→%{public}d',
+              Math.floor(ambiguousCells[ai3] / 9), ambiguousCells[ai3] % 9, oldV, ambiguousAlt[ai3]);
+          }
+        }
+        remainingConflicts = findConflictCells(grid);
+      } else if (validCombos.length > 1) {
+        comboDiag += ` multiValid=${validCombos.length}`;
+      } else {
+        comboDiag += ` noValid`;
+      }
+      setLastComboSolverDiag(comboDiag);
+    }
   }
-  if (guessFixCount > 0) {
-    fixCount += guessFixCount;
-    hilog.info(DOMAIN, TAG, 'fixAndFillGrid: 冲突猜测交换修正%{public}d个', guessFixCount);
+
+  remainingConflicts = findConflictCells(grid);
+  const conflictGuessSwaps: number[][] = [
+    [6, 9], [9, 6], [5, 9], [9, 5], [5, 6], [6, 5],
+    [5, 8], [8, 5], [1, 8], [8, 1], [1, 4], [4, 1],
+    [7, 1], [1, 7], [2, 4], [4, 2], [3, 7], [7, 3],
+    [1, 6], [6, 1], [2, 8], [8, 2], [3, 8], [8, 3],
+    [7, 9], [9, 7], [8, 9], [9, 8], [4, 9], [9, 4], [3, 5], [5, 3],
+  ];
+  if (remainingConflicts.length > 0 && remainingConflicts.length <= 10) {
+    interface SwapOption { idx: number; newVal: number; isOrig: boolean; }
+    const cellOptions: SwapOption[][] = [];
+    const cellOriginals: number[] = [];
+    for (const ci of remainingConflicts) {
+      const origVal: number = grid[ci];
+      if (origVal === 0) { continue; }
+      const options: SwapOption[] = [{ idx: ci, newVal: origVal, isOrig: true }];
+      for (const pair of conflictGuessSwaps) {
+        if (origVal === pair[0]) {
+          options.push({ idx: ci, newVal: pair[1], isOrig: false });
+        }
+      }
+      cellOptions.push(options);
+      cellOriginals.push(origVal);
+    }
+    if (cellOptions.length > 0 && cellOptions.length <= 10) {
+      const combos: number = cellOptions.reduce((acc: number, opts: SwapOption[]): number => acc * opts.length, 1);
+      if (combos <= 5000) {
+        const saved: number[] = [];
+        for (const ci of remainingConflicts) { saved.push(grid[ci]); }
+        let bestCombo: number[] = saved.slice();
+        let bestConf: number = remainingConflicts.length;
+        let bestHighConfSwaps: number = 999;
+        let bestSecondBestMatch: number = -1;
+        const indices: number[] = new Array<number>(cellOptions.length).fill(0);
+        let searching: boolean = true;
+        while (searching) {
+          for (let k: number = 0; k < cellOptions.length; k++) {
+            const ci: number = cellOptions[k][indices[k]].idx;
+            grid[ci] = cellOptions[k][indices[k]].newVal;
+          }
+          const trialConf: number = findConflictCells(grid).length;
+          let highConfSwaps: number = 0;
+          let veryHighConfSwaps: number = 0;
+          let secondBestMatch: number = 0;
+          for (let k: number = 0; k < cellOptions.length; k++) {
+            if (!cellOptions[k][indices[k]].isOrig && cellConfidence[cellOptions[k][indices[k]].idx] >= 0.70) {
+              highConfSwaps++;
+            }
+            if (!cellOptions[k][indices[k]].isOrig && cellConfidence[cellOptions[k][indices[k]].idx] >= 0.90) {
+              veryHighConfSwaps++;
+            }
+            if (!cellOptions[k][indices[k]].isOrig && cellOptions[k][indices[k]].newVal === g_lastSecondBestDigit[cellOptions[k][indices[k]].idx] && cellConfidence[cellOptions[k][indices[k]].idx] >= 0.60) {
+              secondBestMatch++;
+            }
+          }
+          if (veryHighConfSwaps > 0) {
+            for (let k: number = cellOptions.length - 1; k >= 0; k--) {
+              indices[k]++;
+              if (indices[k] < cellOptions[k].length) { break; }
+              indices[k] = 0;
+              if (k === 0) { searching = false; }
+            }
+            continue;
+          }
+          if (trialConf < bestConf || (trialConf === bestConf && highConfSwaps < bestHighConfSwaps) ||
+            (trialConf === bestConf && highConfSwaps === bestHighConfSwaps && secondBestMatch > bestSecondBestMatch)) {
+            bestConf = trialConf;
+            bestHighConfSwaps = highConfSwaps;
+            bestSecondBestMatch = secondBestMatch;
+            for (let k: number = 0; k < cellOptions.length; k++) {
+              bestCombo[k] = cellOptions[k][indices[k]].newVal;
+            }
+          }
+          for (let k: number = cellOptions.length - 1; k >= 0; k--) {
+            indices[k]++;
+            if (indices[k] < cellOptions[k].length) { break; }
+            indices[k] = 0;
+            if (k === 0) { searching = false; }
+          }
+        }
+        for (let k: number = 0; k < remainingConflicts.length; k++) { grid[remainingConflicts[k]] = saved[k]; }
+        let comboFixCount: number = 0;
+        for (let k: number = 0; k < remainingConflicts.length; k++) {
+          const ci: number = remainingConflicts[k];
+          if (saved[k] !== bestCombo[k]) {
+            hilog.info(DOMAIN, TAG, 'fixAndFillGrid: 组合交换(%{public}d,%{public}d) %{public}d→%{public}d conf=%{public}.2f',
+              Math.floor(ci / 9), ci % 9, saved[k], bestCombo[k], cellConfidence[ci]);
+            grid[ci] = bestCombo[k];
+            comboFixCount++;
+          }
+        }
+        if (comboFixCount > 0) {
+          fixCount += comboFixCount;
+          hilog.info(DOMAIN, TAG, 'fixAndFillGrid: 组合交换修正%{public}d个 冲突%{public}d→%{public}d',
+            comboFixCount, remainingConflicts.length, bestConf);
+        }
+      } else {
+        let guessFixCount: number = 0;
+        for (const ci of remainingConflicts) {
+          await yieldThread();
+          const origVal: number = grid[ci];
+          if (origVal === 0) { continue; }
+          const beforeConf: number = findConflictCells(grid).length;
+          let bestSwapVal: number = origVal;
+          let bestSwapConf: number = beforeConf;
+          if (cellConfidence[ci] >= 0.90) { continue; }
+          for (const pair of conflictGuessSwaps) {
+            if (origVal === pair[0]) {
+              grid[ci] = pair[1];
+              const afterSwap: number[] = findConflictCells(grid);
+              if (afterSwap.length < bestSwapConf && !afterSwap.some((ac: number) => ac === ci)) {
+                bestSwapVal = pair[1];
+                bestSwapConf = afterSwap.length;
+              }
+              grid[ci] = origVal;
+            }
+          }
+          if (bestSwapVal !== origVal) {
+            grid[ci] = bestSwapVal;
+            guessFixCount++;
+            hilog.info(DOMAIN, TAG, 'fixAndFillGrid: 冲突猜测交换(%{public}d,%{public}d) %{public}d→%{public}d 冲突%{public}d→%{public}d',
+              Math.floor(ci / 9), ci % 9, origVal, bestSwapVal, beforeConf, bestSwapConf);
+          }
+        }
+        if (guessFixCount > 0) {
+          fixCount += guessFixCount;
+          hilog.info(DOMAIN, TAG, 'fixAndFillGrid: 冲突猜测交换修正%{public}d个', guessFixCount);
+        }
+      }
+    }
   }
 
   remainingConflicts = findConflictCells(grid);
@@ -1034,37 +1250,6 @@ export async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, im
         Math.floor(ci / 9), ci % 9, origVal);
     }
     fixCount += finalClearNoInk.length;
-    remainingConflicts = findConflictCells(grid);
-  }
-
-  let conflictSwapRounds: number = 0;
-  while (remainingConflicts.length > 0 && conflictSwapRounds < 3) {
-    conflictSwapRounds++;
-    let swappedAny: boolean = false;
-    for (const ci of remainingConflicts) {
-      await yieldThread();
-      const origVal: number = grid[ci];
-      if (origVal === 0) { continue; }
-      const confusableSwaps: number[][] = [[6, 9], [9, 6], [5, 9], [9, 5], [5, 6], [6, 5], [5, 8], [8, 5], [1, 8], [8, 1], [1, 6], [6, 1], [7, 1], [1, 7], [2, 4], [4, 2], [3, 7], [7, 3], [1, 4], [4, 1], [2, 8], [8, 2], [3, 8], [8, 3], [7, 9], [9, 7], [4, 9], [9, 4], [3, 5], [5, 3]];
-      for (const pair of confusableSwaps) {
-        if (origVal === pair[0]) {
-          grid[ci] = pair[1];
-          const afterSwap: number[] = findConflictCells(grid);
-          if (afterSwap.length < remainingConflicts.length && !afterSwap.some((ac: number) => ac === ci)) {
-            fixCount++;
-            const r: number = Math.floor(ci / 9);
-            const c: number = ci % 9;
-            hilog.info(DOMAIN, TAG, 'fixAndFillGrid: 最终冲突交换(%{public}d,%{public}d) %{public}d→%{public}d 冲突%{public}d→%{public}d',
-              r, c, origVal, pair[1], remainingConflicts.length, afterSwap.length);
-            swappedAny = true;
-            break;
-          }
-          grid[ci] = origVal;
-        }
-      }
-      if (swappedAny) { break; }
-    }
-    if (!swappedAny) { break; }
     remainingConflicts = findConflictCells(grid);
   }
 
@@ -1097,6 +1282,47 @@ export async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, im
 
   if (remainingConflicts.length > 0) {
     hilog.info(DOMAIN, TAG, 'fixAndFillGrid: 最终冲突%{public}d个(无法交换)', remainingConflicts.length);
+  }
+
+  const solverSwaps: number[][] = [
+    [8, 9], [9, 8], [7, 9], [9, 7], [6, 9], [9, 6],
+    [5, 9], [9, 5], [5, 6], [6, 5], [5, 8], [8, 5],
+    [3, 8], [8, 3], [1, 8], [8, 1], [2, 8], [8, 2],
+    [3, 5], [5, 3], [1, 7], [7, 1], [1, 4], [4, 1],
+    [1, 6], [6, 1], [2, 4], [4, 2], [3, 7], [7, 3],
+    [4, 9], [9, 4], [1, 2], [2, 1],
+  ];
+  const solverResult = solveSudoku(grid);
+  if (solverResult.solutionCount !== 1 && fixCount > 0) {
+    const changedCells: number[] = [];
+    for (let si: number = 0; si < 81; si++) {
+      if (grid[si] > 0 && cellConfidence[si] < 0.90) {
+        changedCells.push(si);
+      }
+    }
+    if (changedCells.length > 0 && changedCells.length <= 15) {
+      let solverFixed: number = 0;
+      for (const ci of changedCells) {
+        const origVal: number = grid[ci];
+        if (origVal === 0) { continue; }
+        for (const pair of solverSwaps) {
+          if (origVal !== pair[0]) { continue; }
+          grid[ci] = pair[1];
+          const trialResult = solveSudoku(grid);
+          if (trialResult.solutionCount === 1) {
+            solverFixed++;
+            hilog.info(DOMAIN, TAG, 'fixAndFillGrid: 求解器唯一解交换(%{public}d,%{public}d) %{public}d→%{public}d',
+              Math.floor(ci / 9), ci % 9, origVal, pair[1]);
+            break;
+          }
+          grid[ci] = origVal;
+        }
+      }
+      if (solverFixed > 0) {
+        fixCount += solverFixed;
+        hilog.info(DOMAIN, TAG, 'fixAndFillGrid: 求解器修正%{public}d个', solverFixed);
+      }
+    }
   }
 
   if (pixelMap !== null) {

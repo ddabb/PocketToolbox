@@ -99,12 +99,18 @@ export interface AdaptiveResizeParams {
 }
 
 export let g_lastPixelConfidence: number[] = new Array<number>(81).fill(0);
+export let g_lastRawInkPerCell: number[] = new Array<number>(81).fill(0);
+export let g_lastSecondBestDigit: number[] = new Array<number>(81).fill(0);
+export let g_lastSecondBestScore: number[] = new Array<number>(81).fill(-100000);
 export let g_lastCellCoords: CellCoordInfo[] = [];
 export let g_debugInfo: OCRDebugInfo | null = null;
 export let g_lastDebugBbox: string = '';
 export let g_lastDebugResize: string = '';
 export let g_lastDebugRawDigits: number = 0;
 export let g_lastDebugRawDigitPositions: string = '';
+export let g_lastComboSolverDiag: string = '';
+
+export function setLastComboSolverDiag(v: string): void { g_lastComboSolverDiag = v; }
 export let g_lastDebugConflicts: number[] = [];
 export let g_probeBbox: BoardBBox | null = null;
 export let g_probeResizeW: number = 0;
