@@ -306,12 +306,24 @@ export async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, im
     }
   }
 
+  const HIGH_INK_SUSPICIOUS_RATIO: number = 0.60;
+  const highInkSuspiciousIndices: number[] = [];
+  for (let i: number = 0; i < 81; i++) {
+    if (grid[i] > 0) {
+      const rawInkHi: number = g_lastRawInkPerCell.length > i ? g_lastRawInkPerCell[i] : 0;
+      if (rawInkHi > HIGH_INK_SUSPICIOUS_RATIO) {
+        highInkSuspiciousIndices.push(i);
+      }
+    }
+  }
+
   const fixSet: Set<number> = new Set<number>();
   for (const idx of conflictIndices) { fixSet.add(idx); }
   for (const idx of lowConfIndices) { fixSet.add(idx); }
   for (const idx of confusableIndices) { fixSet.add(idx); }
   for (const idx of emptyIndices) { fixSet.add(idx); }
   for (const idx of lowInkConfusableIndices) { fixSet.add(idx); }
+  for (const idx of highInkSuspiciousIndices) { fixSet.add(idx); }
 
   const allFixIndices: number[] = [];
   fixSet.forEach((idx: number) => { allFixIndices.push(idx); });

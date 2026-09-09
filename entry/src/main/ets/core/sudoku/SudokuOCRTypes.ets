@@ -60,6 +60,7 @@ export interface CellCoordInfo {
   source: string;
   localBg: string;
   pxDiag: string;
+  sigMetrics?: string;
 }
 
 export interface PerCellVkDiag {

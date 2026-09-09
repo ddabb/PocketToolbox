@@ -18,7 +18,7 @@ import { BoardBBox, BoardCorners, GridLines, bgColor, cellSigFromGray, cellSigFr
   MIN_CELL_INK_RATIO,
   resetChannelBgCache, resetGridLineCrop, isGridLineCropDetected, findPreciseGridLines,
   toGrayArray, validateCellCentering, warpPerspectiveGray, INK_THRESH, recognizeDigit,
-  ULTRA_LOW_INK_THRESH, getLastPixelDiag, getLastSecondDigit } from './SudokuPixel';
+  ULTRA_LOW_INK_THRESH, getLastPixelDiag, getLastSecondDigit, getLastSigMetrics } from './SudokuPixel';
 import { taskpool } from '@kit.ArkTS';
 
 function logDecodeProbe(pixelBytes: Uint8Array, width: number, height: number): void {
@@ -736,7 +736,8 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
             imgW: outSize, imgH: outSize,
             source: warpGridLines !== null ? 'warp+grid' : 'warp',
             localBg: getLastLocalBgInfo(),
-            pxDiag: getLastPixelDiag()
+            pxDiag: getLastPixelDiag(),
+            sigMetrics: getLastSigMetrics()
           };
           g_lastCellCoords.push(coordInfo);
         }
@@ -858,7 +859,8 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
               imgW: width, imgH: height,
               source: 'gridLines',
               localBg: getLastLocalBgInfo(),
-              pxDiag: cellDiag
+              pxDiag: cellDiag,
+              sigMetrics: getLastSigMetrics()
             };
             g_lastCellCoords.push(coordInfo3);
           }
@@ -943,7 +945,8 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
               imgW: width, imgH: height,
               source: 'AABB',
               localBg: getLastLocalBgInfo(),
-              pxDiag: getLastPixelDiag()
+              pxDiag: getLastPixelDiag(),
+              sigMetrics: getLastSigMetrics()
             };
             g_lastCellCoords.push(coordInfo4);
           }
@@ -958,7 +961,7 @@ export async function analyzePixelGridFromBufferAsync(pixels: Uint8Array, width:
   let diagLines: string[] = [];
   for (let idx: number = 0; idx < g_lastCellCoords.length; idx++) {
     const ci: CellCoordInfo = g_lastCellCoords[idx];
-    coordLines.push(`R${ci.row}C${ci.col}:d=${ci.digit} conf=${ci.conf.toFixed(2)} ink=${ci.rawInk.toFixed(4)} src=${ci.source}`);
+    coordLines.push(`R${ci.row}C${ci.col}:d=${ci.digit} conf=${ci.conf.toFixed(2)} ink=${ci.rawInk.toFixed(4)} src=${ci.source}${ci.sigMetrics !== undefined && ci.sigMetrics.length > 0 ? ' q=[' + ci.sigMetrics + ']' : ''}`);
     if (ci.pxDiag.length > 0) {
       diagLines.push(`R${ci.row}C${ci.col}:d=${ci.digit} ${ci.pxDiag}`);
     }
