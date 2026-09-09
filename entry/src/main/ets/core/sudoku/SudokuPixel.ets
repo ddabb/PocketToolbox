@@ -4228,8 +4228,13 @@ export async function recognizeDigit(sig: number[], inkCount: number): Promise<n
           }
           g_lastPixelDiag = `lowInk7check: s1=${best1Score} s7=${digitBestScore[7]} topSolid=${topSolid7}/${topTotal7} topWide=${topWideRows7} ink=${inkCount}`;
           if (topSolid7 === 0 || topWideRows7 === 0) {
+            if (digitBestScore[3] > digitBestScore[7] - 20) {
+              g_lastPixelDiag = `lowInk7→3(close s3): s7=${digitBestScore[7].toFixed(0)} s3=${digitBestScore[3].toFixed(0)} s1=${best1Score.toFixed(0)} ink=${inkCount}`;
+              g_lastConfidence = 0.75;
+              return 3;
+            }
             if (digitBestScore[7] > best1Score + 100) {
-              g_lastPixelDiag = `lowInk7keep: noSolidTop s7>>s1 s7=${digitBestScore[7].toFixed(0)} s1=${best1Score.toFixed(0)} ink=${inkCount}`;
+              g_lastPixelDiag = `lowInk7keep: noSolidTop s7>>s1 s7=${digitBestScore[7].toFixed(0)} s1=${best1Score.toFixed(0)} s3=${digitBestScore[3].toFixed(0)} s9=${digitBestScore[9].toFixed(0)} ink=${inkCount} sig=${sigToCompactStr(sig)}`;
               const rawConf7lk: number = digitBestScore[7] / (SIG_LEN + 200);
               g_lastConfidence = rawConf7lk > 1 ? 1 : (rawConf7lk < 0 ? 0 : rawConf7lk);
               return 7;
@@ -4292,9 +4297,34 @@ export async function recognizeDigit(sig: number[], inkCount: number): Promise<n
         const sigDump: string = sigToCompactStr(sig);
         g_lastPixelDiag = `lowInk fallback: best=${lowBestDigit} score=${lowBestScore.toFixed(0)} recall=${lowBestRecall.toFixed(2)} gate=${lowMinScore} ink=${inkCount} [${stripDiag}] sig=${sigDump}`;
       } else {
-        g_lastPixelDiag = `lowInk fallback: best=${lowBestDigit} score=${lowBestScore.toFixed(0)} recall=${lowBestRecall.toFixed(2)} gate=${lowMinScore} ink=${inkCount}`;
+        const topDigits81: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+        topDigits81.sort((a: number, b: number): number => digitBestScore[b] - digitBestScore[a]);
+        let topStr81: string = '';
+        for (let ti81: number = 0; ti81 < 3 && ti81 < topDigits81.length; ti81++) {
+          topStr81 += `${topDigits81[ti81]}:${digitBestScore[topDigits81[ti81]].toFixed(0)} `;
+        }
+        g_lastPixelDiag = `lowInk fallback: best=${lowBestDigit} score=${lowBestScore.toFixed(0)} recall=${lowBestRecall.toFixed(2)} gate=${lowMinScore} ink=${inkCount} top=[${topStr81}] sig=${sigToCompactStr(sig)}`;
       }
       const rawConf: number = lowBestScore / (SIG_LEN + 200);
+      if (lowBestDigit === 3 && digitBestScore[8] > digitBestScore[3] - 60) {
+        let luInk81: number = 0;
+        for (let r81: number = Math.floor(SIG_ROWS * 0.15); r81 < Math.floor(SIG_ROWS * 0.45); r81++) {
+          for (let c81: number = Math.floor(SIG_COLS * 0.05); c81 < Math.floor(SIG_COLS * 0.25); c81++) {
+            if (sig[r81 * SIG_COLS + c81] === 1) { luInk81++; }
+          }
+        }
+        let ldInk81: number = 0;
+        for (let r82: number = Math.floor(SIG_ROWS * 0.60); r82 < Math.floor(SIG_ROWS * 0.90); r82++) {
+          for (let c82: number = 0; c82 < Math.floor(SIG_COLS * 0.25); c82++) {
+            if (sig[r82 * SIG_COLS + c82] === 1) { ldInk81++; }
+          }
+        }
+        if (luInk81 >= 3 && ldInk81 >= 3) {
+          g_lastPixelDiag = `lowInk3→8(leftArcFrag lu=${luInk81} ld=${ldInk81}): s3=${digitBestScore[3].toFixed(0)} s8=${digitBestScore[8].toFixed(0)} ink=${inkCount}`;
+          g_lastConfidence = 0.60;
+          return 8;
+        }
+      }
       g_lastConfidence = rawConf > 1 ? 1 : (rawConf < 0 ? 0 : rawConf);
       return lowBestDigit;
     }
@@ -4493,7 +4523,7 @@ export async function recognizeDigit(sig: number[], inkCount: number): Promise<n
     else { vote9 += 1; }
 
     const result69: number = vote6 === vote9 ? (score6 >= score9 ? 6 : 9) : (vote6 > vote9 ? 6 : 9);
-    g_lastPixelDiag = `69disambig: s6=${score6.toFixed(0)} s9=${score9.toFixed(0)} gap=${scoreGap.toFixed(0)} hole=${qHole.toFixed(1)} cent=${iCentroid.toFixed(1)} ratio=${ratio.toFixed(2)} hog=${hogGrad.toFixed(2)} sw=${swRatio.toFixed(2)} v6=${vote6} v9=${vote9} =>${result69}`;
+    g_lastPixelDiag = `69disambig: s6=${score6.toFixed(0)} s9=${score9.toFixed(0)} gap=${scoreGap.toFixed(0)} hole=${qHole.toFixed(1)} cent=${iCentroid.toFixed(1)} ratio=${ratio.toFixed(2)} hog=${hogGrad.toFixed(2)} sw=${swRatio.toFixed(2)} v6=${vote6} v9=${vote9} =>${result69} sig=${sigToCompactStr(sig)}`;
     hilog.info(DOMAIN, TAG, 'vote6=%{public}d vote9=%{public}d => %{public}d', vote6, vote9, result69);
     if (result69 === 9) { return 9; }
     if (result69 === 6 && score5 >= score6 - DISAMBIG_SCORE_GAP_SKIP) {

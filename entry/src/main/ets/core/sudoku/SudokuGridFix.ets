@@ -34,7 +34,7 @@ import {
   resetLastPixelDiag, resetGridLineCrop, detectGridLineWidths,
   MIN_CELL_INK_RATIO, cellSigFromGray, cellSigFromGrayLowThresh,
   cellSigFromGrayThin, recognizeDigit, countInk, getLastBboxDiag,
-  ULTRA_LOW_INK_THRESH
+  ULTRA_LOW_INK_THRESH, SIG_ROWS, SIG_COLS
 } from './SudokuPixel';
 
 export function findConflictCells(grid: number[]): number[] {
@@ -88,6 +88,7 @@ export function isConfusablePair(a: number, b: number): boolean {
   if ((a === 5 && b === 8) || (a === 8 && b === 5)) { return true; }
   if ((a === 2 && b === 4) || (a === 4 && b === 2)) { return true; }
   if ((a === 3 && b === 7) || (a === 7 && b === 3)) { return true; }
+  if ((a === 1 && b === 3) || (a === 3 && b === 1)) { return true; }
   return false;
 }
 
@@ -186,14 +187,45 @@ async function recognizeDigitPixel(
       if (ultraSig !== null) {
         sig = ultraSig;
         const ultraInk: number = countInk(ultraSig);
+        let ublkStats: string = '';
+        if (ultraInk >= SIG_ROWS * SIG_COLS * 0.6) {
+          const imgH86: number = Math.floor(gray.length / imgW);
+          const px0: number = Math.max(Math.floor(cellLeft), 0);
+          const py0: number = Math.max(Math.floor(cellTop), 0);
+          const px1: number = Math.min(Math.ceil(cellLeft + cellW), imgW);
+          const py1: number = Math.min(Math.ceil(cellTop + cellH), imgH86);
+          let gMin: number = 255;
+          let gMax: number = 0;
+          let gSum: number = 0;
+          let gCnt: number = 0;
+          for (let yy: number = py0; yy < py1; yy++) {
+            for (let xx: number = px0; xx < px1; xx++) {
+              const gv: number = gray[yy * imgW + xx];
+              if (gv < gMin) { gMin = gv; }
+              if (gv > gMax) { gMax = gv; }
+              gSum += gv;
+              gCnt++;
+            }
+          }
+          const gMean: number = gCnt > 0 ? gSum / gCnt : 0;
+          let gVar: number = 0;
+          for (let yy2: number = py0; yy2 < py1; yy2++) {
+            for (let xx2: number = px0; xx2 < px1; xx2++) {
+              const dv: number = gray[yy2 * imgW + xx2] - gMean;
+              gVar += dv * dv;
+            }
+          }
+          const gStd: number = Math.sqrt(gVar / (gCnt > 0 ? gCnt : 1));
+          ublkStats = ` ublk[min=${gMin.toFixed(0)} max=${gMax.toFixed(0)} mean=${gMean.toFixed(1)} std=${gStd.toFixed(1)}]`;
+        }
         const ultraDigit: number = await recognizeDigit(ultraSig, ultraInk);
         if (ultraDigit > 0) {
           const ultraD: string = getLastPixelDiag();
-          setLastRecognizeDiag(`retryUltraLow: digit=${ultraDigit} ink=${ultraInk} diag=[${ultraD}] rawInk=${ri.toFixed(4)}`);
+          setLastRecognizeDiag(`retryUltraLow: digit=${ultraDigit} ink=${ultraInk}${ublkStats} diag=[${ultraD}] rawInk=${ri.toFixed(4)}`);
           return ultraDigit;
         }
         const ultraDf: string = getLastPixelDiag();
-        setLastRecognizeDiag(`retryUltraLowFail: digit=0 ink=${ultraInk} diag=[${ultraDf}] rawInk=${ri.toFixed(4)}`);
+        setLastRecognizeDiag(`retryUltraLowFail: digit=0 ink=${ultraInk}${ublkStats} diag=[${ultraDf}] rawInk=${ri.toFixed(4)}`);
       }
     }
     setLastRecognizeDiag(`sigNull diag=[${d}] rawInk=${ri.toFixed(4)}`);
@@ -1288,6 +1320,67 @@ export async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, im
     }
     if (lowConfClear.length > 0) {
       fixCount += lowConfClear.length;
+      remainingConflicts = findConflictCells(grid);
+    }
+  }
+
+  if (gray.length > 0) {
+    const conflictSet: Set<number> = new Set<number>(remainingConflicts);
+    const solidClear: number[] = [];
+    for (let si: number = 0; si < 81; si++) {
+      if (grid[si] === 0 || conflictSet.has(si)) { continue; }
+      const siRawInk: number = g_lastRawInkPerCell[si];
+      if (siRawInk <= 0.75) { continue; }
+      await yieldThread();
+      const siRow: number = Math.floor(si / 9);
+      const siCol: number = si % 9;
+      const siLeft: number = boardL + siCol * cellW;
+      const siTop: number = boardT + siRow * cellH;
+      const solidSig: number[] | null = await cellSigFromGrayLowThresh(
+        gray, imgW, siLeft, siTop, cellW, cellH, bbox.isDark, bg, siRow, siCol,
+        ULTRA_LOW_INK_THRESH
+      );
+      if (solidSig === null) { continue; }
+      const solidInk: number = countInk(solidSig);
+      if (solidInk < SIG_ROWS * SIG_COLS * 0.6) { continue; }
+      let rowInkSum: number = 0;
+      let rowInkCnt: number = 0;
+      for (let rr: number = 0; rr < SIG_ROWS; rr++) {
+        let rowInk: number = 0;
+        for (let cc: number = 0; cc < SIG_COLS; cc++) {
+          rowInk += solidSig[rr * SIG_COLS + cc];
+        }
+        if (rowInk > 0) {
+          rowInkSum += rowInk;
+          rowInkCnt++;
+        }
+      }
+      if (rowInkCnt === 0) { continue; }
+      const rowInkMean: number = rowInkSum / rowInkCnt;
+      let rowInkVar: number = 0;
+      for (let rr2: number = 0; rr2 < SIG_ROWS; rr2++) {
+        let rowInk2: number = 0;
+        for (let cc2: number = 0; cc2 < SIG_COLS; cc2++) {
+          rowInk2 += solidSig[rr2 * SIG_COLS + cc2];
+        }
+        if (rowInk2 > 0) {
+          const dv2: number = rowInk2 - rowInkMean;
+          rowInkVar += dv2 * dv2;
+        }
+      }
+      const rowInkStd: number = Math.sqrt(rowInkVar / rowInkCnt);
+      if (rowInkStd < 2.0) {
+        solidClear.push(si);
+      }
+    }
+    if (solidClear.length > 0) {
+      for (const si of solidClear) {
+        const origVal: number = grid[si];
+        grid[si] = 0;
+        hilog.info(DOMAIN, TAG, 'fixAndFillGrid: 高墨实心块清除(%{public}d,%{public}d) %{public}d→0 rawInk=%{public}.4f',
+          Math.floor(si / 9), si % 9, origVal, g_lastRawInkPerCell[si]);
+      }
+      fixCount += solidClear.length;
       remainingConflicts = findConflictCells(grid);
     }
   }
