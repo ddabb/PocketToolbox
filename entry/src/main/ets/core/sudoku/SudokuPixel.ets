@@ -5242,7 +5242,8 @@ export async function recognizeDigit(sig: number[], inkCount: number): Promise<n
           }
           if (firstCenter71m >= 0 && lastCenter71m >= 0) {
             const totalShift71m: number = Math.abs(lastCenter71m - firstCenter71m);
-            if ((allIncreasing71m || allDecreasing71m) && totalShift71m >= SIG_COLS * 0.25 && inkCount < 250 && score7 - score1 < 100) {
+            const shiftNeed71m: number = score7 - score1 >= 50 ? SIG_COLS * 0.35 : SIG_COLS * 0.25;
+            if ((allIncreasing71m || allDecreasing71m) && totalShift71m >= shiftNeed71m && inkCount < 250 && score7 - score1 < 100) {
               g_lastPixelDiag = `7→1: monoShift=${totalShift71m.toFixed(1)} inc=${allIncreasing71m} dec=${allDecreasing71m} ink=${inkCount} s7=${score7} s1=${score1}`;
               return 1;
             }
@@ -5266,10 +5267,16 @@ export async function recognizeDigit(sig: number[], inkCount: number): Promise<n
               if (fSpan71 >= 5) { footWideRows71++; }
             }
           }
-          if (footWideRows71 >= 4 && footTotalRows71 >= 4 && inkCount < 250 && score7 - score1 < 100) {
-            g_lastPixelDiag = `7→1: footSerif wide=${footWideRows71}/${footTotalRows71} ink=${inkCount} s7=${score7} s1=${score1}`;
-            return 1;
+          if (footWideRows71 >= 4 && footTotalRows71 >= 4 && inkCount < 250) {
+            const gap71m: number = score7 - score1;
+            const shift71m: number = firstCenter71m >= 0 && lastCenter71m >= 0 ? Math.abs(lastCenter71m - firstCenter71m) : 99;
+            const mono7ish71m: boolean = (allIncreasing71m || allDecreasing71m) && shift71m >= SIG_COLS * 0.25;
+            if (gap71m < 50 || (gap71m < 100 && !mono7ish71m)) {
+              g_lastPixelDiag = `7→1: footSerif wide=${footWideRows71}/${footTotalRows71} ink=${inkCount} s7=${score7} s1=${score1}`;
+              return 1;
+            }
           }
+          g_lastPixelDiag = `71m no-flip: shift=${firstCenter71m >= 0 && lastCenter71m >= 0 ? Math.abs(lastCenter71m - firstCenter71m).toFixed(1) : 'x'} inc=${allIncreasing71m} dec=${allDecreasing71m} footWide=${footWideRows71}/${footTotalRows71} ink=${inkCount} s7=${score7} s1=${score1}`;
           return 7;
         }
         if (solidTopRows71 >= 2 && score1 > score7) {
