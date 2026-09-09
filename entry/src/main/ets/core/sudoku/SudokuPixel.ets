@@ -770,7 +770,7 @@ export function computeSigQualityMetrics(sig: number[]): void {
   const holes: number = countHoles(sig);
   const lrgRatio: number = largestComp / totalInk;
   g_lastSigMetrics = `comp=${compCount} lrg=${lrgRatio.toFixed(2)} holes=${holes} ink=${totalInk}`;
-  g_lastSigQualityFail = (compCount >= 6 || holes >= 6 || lrgRatio < 0.75) && g_lastLocalBgPeak < LOCAL_BG_CLEAN_PEAK;
+  g_lastSigQualityFail = (compCount >= 5 || holes >= 6 || lrgRatio < 0.75 || (holes >= 2 && compCount >= 3)) && g_lastLocalBgPeak < LOCAL_BG_CLEAN_PEAK;
 }
 
 export function inkCentroidRow(sig: number[]): number {
