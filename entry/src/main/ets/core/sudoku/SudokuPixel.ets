@@ -1919,21 +1919,32 @@ export function findBoxLongRun(
     }
   }
   let fallback: BoardBBox | null = null;
+  let latticeBest: BoardBBox | null = null;
   for (let i: number = 0; i < offsets.length; i++) {
     const abs: number = isDark ? bg + offsets[i] : bg - offsets[i];
     const r: BoardBBox | null = findBoxLongRunWithThresh(gray, W, H, isDark, abs);
     if (r === null) { continue; }
-    if (g_lastThreshWasLattice) { return r; }
+    if (g_lastThreshWasLattice) {
+      g_lastBboxDiag += `\n  → lattice held, scanning tighter thresholds`;
+      latticeBest = r;
+      continue;
+    }
     const bw: number = r.right - r.left + 1;
     const bh: number = r.bottom - r.top + 1;
     const asp: number = bh > 0 ? bw / bh : 0;
     if (asp >= LONGRAW_CONFIDENT_ASPECT_MIN && asp <= LONGRAW_CONFIDENT_ASPECT_MAX) {
-      return r;
-    }
-    if (fallback === null) {
+      if (latticeBest === null) {
+        return r;
+      }
+      g_lastBboxDiag += `\n  → raw confident but lattice candidate exists, keep scanning`;
+    } else if (fallback === null) {
       fallback = r;
       g_lastBboxDiag += `\n  → raw bbox aspect outside confident range, kept as fallback; scanning remaining thresholds for lattice`;
     }
+  }
+  if (latticeBest !== null) {
+    g_lastBboxDiag += `\n  → final lattice (tightest)`;
+    return latticeBest;
   }
   return fallback;
 }
