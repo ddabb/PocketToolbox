@@ -31,6 +31,7 @@ import {
   BoardBBox, bgColor, toGrayArray, findBoardBBox,
   getLastConfidence, getLastRawInkRatio, getLastPixelDiag,
   getLastLocalBgInfo, getLastSigMetrics, getLastSigQualityFail,
+  getLastSigCompCount, getLastSigLrgRatio, getLastSigHoles, getLastSigInk,
   resetLastPixelDiag, resetGridLineCrop, detectGridLineWidths,
   MIN_CELL_INK_RATIO, cellSigFromGray, cellSigFromGrayLowThresh,
   cellSigFromGrayThin, recognizeDigit, countInk, getLastBboxDiag,
@@ -591,6 +592,18 @@ export async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, im
     const pixelQualityFail: boolean = pixelDigit !== null && pixelDigit > 0 && getLastSigQualityFail();
     if (pixelQualityFail && (vkDigit === null || vkDigit === 0)) {
       if (origDigit > 0) {
+        const exComp: number = getLastSigCompCount();
+        const exLrg: number = getLastSigLrgRatio();
+        const exHoles: number = getLastSigHoles();
+        const exInk: number = getLastSigInk();
+        const exFirstInk: number = g_lastRawInkPerCell.length > idx ? g_lastRawInkPerCell[idx] : 0;
+        if (exComp < 5 && exLrg >= 0.75 && exHoles >= 6 && exInk < 265 && exFirstInk < 0.55) {
+          cellConfidence[idx] = Math.min(pixelConf, 0.85);
+          hilog.info(DOMAIN, TAG, '【逐格修正详情】质量豁免 %{public}s=%{public}d comp=%{public}d lrg=%{public}.2f holes=%{public}d ink=%{public}d firstInk=%{public}.4f',
+            cellLabel, origDigit, exComp, exLrg, exHoles, exInk, exFirstInk);
+          fixDetailLines.push(`质量豁免${cellLabel}=${origDigit} P=${pStr}${pixelQ} firstInk=${exFirstInk.toFixed(4)} pxDiag=[${pixelDiag}] ${getLastLocalBgInfo()}`);
+          continue;
+        }
         grid[idx] = 0;
         fixCount++;
         hilog.info(DOMAIN, TAG, '【逐格修正详情】质量清除 %{public}s %{public}d→0', cellLabel, origDigit);
@@ -1306,17 +1319,21 @@ export async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, im
       const ciLeft: number = boardL + ciCol * cellW;
       const ciTop: number = boardT + ciRow * cellH;
       const ciConf: number = g_lastPixelConfidence[ci];
+      const ciFirstInk: number = g_lastRawInkPerCell.length > ci ? g_lastRawInkPerCell[ci] : 0;
       await recognizeDigitPixel(gray, imgW, ciLeft, ciTop, cellW, cellH, bbox.isDark, bg, ciRow, ciCol);
       const ciRawInk: number = getLastRawInkRatio();
-      if (ciConf < 0.50 || ciRawInk > 0.75) {
+      hilog.info(DOMAIN, TAG, 'fixAndFillGrid: 冲突清洗检查(%{public}d,%{public}d)=%{public}d conf=%{public}.2f recInk=%{public}.4f firstInk=%{public}.4f',
+        ciRow, ciCol, grid[ci], ciConf, ciRawInk, ciFirstInk);
+      if (ciConf < 0.50 || ciRawInk > 0.75 || ciFirstInk > 0.60) {
         lowConfClear.push(ci);
       }
     }
     for (const ci of lowConfClear) {
       const origVal: number = grid[ci];
       grid[ci] = 0;
-      hilog.info(DOMAIN, TAG, 'fixAndFillGrid: 冲突低置信清除(%{public}d,%{public}d) %{public}d→0 conf=%{public}.2f',
-        Math.floor(ci / 9), ci % 9, origVal, g_lastPixelConfidence[ci]);
+      hilog.info(DOMAIN, TAG, 'fixAndFillGrid: 冲突低置信清除(%{public}d,%{public}d) %{public}d→0 conf=%{public}.2f firstInk=%{public}.4f',
+        Math.floor(ci / 9), ci % 9, origVal, g_lastPixelConfidence[ci],
+        g_lastRawInkPerCell.length > ci ? g_lastRawInkPerCell[ci] : 0);
     }
     if (lowConfClear.length > 0) {
       fixCount += lowConfClear.length;
@@ -1343,35 +1360,7 @@ export async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, im
       if (solidSig === null) { continue; }
       const solidInk: number = countInk(solidSig);
       if (solidInk < SIG_ROWS * SIG_COLS * 0.6) { continue; }
-      let rowInkSum: number = 0;
-      let rowInkCnt: number = 0;
-      for (let rr: number = 0; rr < SIG_ROWS; rr++) {
-        let rowInk: number = 0;
-        for (let cc: number = 0; cc < SIG_COLS; cc++) {
-          rowInk += solidSig[rr * SIG_COLS + cc];
-        }
-        if (rowInk > 0) {
-          rowInkSum += rowInk;
-          rowInkCnt++;
-        }
-      }
-      if (rowInkCnt === 0) { continue; }
-      const rowInkMean: number = rowInkSum / rowInkCnt;
-      let rowInkVar: number = 0;
-      for (let rr2: number = 0; rr2 < SIG_ROWS; rr2++) {
-        let rowInk2: number = 0;
-        for (let cc2: number = 0; cc2 < SIG_COLS; cc2++) {
-          rowInk2 += solidSig[rr2 * SIG_COLS + cc2];
-        }
-        if (rowInk2 > 0) {
-          const dv2: number = rowInk2 - rowInkMean;
-          rowInkVar += dv2 * dv2;
-        }
-      }
-      const rowInkStd: number = Math.sqrt(rowInkVar / rowInkCnt);
-      if (rowInkStd < 2.0) {
-        solidClear.push(si);
-      }
+      solidClear.push(si);
     }
     if (solidClear.length > 0) {
       for (const si of solidClear) {

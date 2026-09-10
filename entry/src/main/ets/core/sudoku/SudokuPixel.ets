@@ -417,6 +417,10 @@ let g_lastRawInkRatio: number = 0;
 let g_lastLocalBgInfo: string = '';
 let g_lastSigMetrics: string = '';
 let g_lastSigQualityFail: boolean = false;
+let g_lastSigCompCount: number = 0;
+let g_lastSigLrgRatio: number = 0;
+let g_lastSigHoles: number = 0;
+let g_lastSigInk: number = 0;
 let g_lastLocalBgPeak: number = 255;
 
 export function getLastBboxDiag(): string {
@@ -433,6 +437,22 @@ export function getLastSigMetrics(): string {
 
 export function getLastSigQualityFail(): boolean {
   return g_lastSigQualityFail;
+}
+
+export function getLastSigCompCount(): number {
+  return g_lastSigCompCount;
+}
+
+export function getLastSigLrgRatio(): number {
+  return g_lastSigLrgRatio;
+}
+
+export function getLastSigHoles(): number {
+  return g_lastSigHoles;
+}
+
+export function getLastSigInk(): number {
+  return g_lastSigInk;
 }
 
 export function getLastLocalBgPeak(): number {
@@ -733,6 +753,10 @@ export function computeSigQualityMetrics(sig: number[]): void {
   if (totalInk === 0) {
     g_lastSigMetrics = 'comp=0 lrg=0.00 holes=0 ink=0';
     g_lastSigQualityFail = true;
+    g_lastSigCompCount = 0;
+    g_lastSigLrgRatio = 0;
+    g_lastSigHoles = 0;
+    g_lastSigInk = 0;
     return;
   }
   const visited: boolean[] = new Array<boolean>(SIG_LEN).fill(false);
@@ -770,6 +794,10 @@ export function computeSigQualityMetrics(sig: number[]): void {
   const holes: number = countHoles(sig);
   const lrgRatio: number = largestComp / totalInk;
   g_lastSigMetrics = `comp=${compCount} lrg=${lrgRatio.toFixed(2)} holes=${holes} ink=${totalInk}`;
+  g_lastSigCompCount = compCount;
+  g_lastSigLrgRatio = lrgRatio;
+  g_lastSigHoles = holes;
+  g_lastSigInk = totalInk;
   g_lastSigQualityFail = (compCount >= 5 || holes >= 6 || lrgRatio < 0.75 || (holes >= 2 && compCount >= 3)) && g_lastLocalBgPeak < LOCAL_BG_CLEAN_PEAK;
 }
 
