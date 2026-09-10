@@ -95,10 +95,14 @@ struct SudokuSolverPage {
   private scroller: Scroller = new Scroller();
 
   aboutToAppear(): void {
-    const displayInfo = display.getDefaultDisplaySync();
-    const screenWidthVp: number = displayInfo.width / displayInfo.densityPixels;
-    const maxBoardVp: number = Math.min(screenWidthVp - 32, 400);
-    this.boardCellSize = Math.floor(maxBoardVp / 9);
+    try {
+      const displayInfo = display.getDefaultDisplaySync();
+      const screenWidthVp: number = displayInfo.width / displayInfo.densityPixels;
+      const maxBoardVp: number = Math.min(screenWidthVp - 32, 400);
+      this.boardCellSize = Math.floor(maxBoardVp / 9);
+    } catch (e) {
+      this.boardCellSize = 40;
+    }
 
     for (let i: number = 0; i < 81; i++) {
       this.candidates[i] = new Set<number>();

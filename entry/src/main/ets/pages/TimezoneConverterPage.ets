@@ -413,10 +413,10 @@ struct TimezoneConverterContent {
     return result;
   }
 
-  private onDateChange(value: DatePickerResult): void {
-    let y: string = (value.year ?? 2024).toString();
-    let m: string = ((value.month ?? 0) + 1).toString().padStart(2, '0');
-    let d: string = (value.day ?? 1).toString().padStart(2, '0');
+  private onDateChange(value: Date): void {
+    let y: string = value.getFullYear().toString();
+    let m: string = (value.getMonth() + 1).toString().padStart(2, '0');
+    let d: string = value.getDate().toString().padStart(2, '0');
     this.baseDate = y + '-' + m + '-' + d;
     this.recalcCityTimeInfos();
   }
@@ -612,7 +612,7 @@ struct TimezoneConverterContent {
             end: new Date('2030-12-31'),
             selected: new Date(this.baseDate + 'T00:00:00')
           })
-            .onChange((value: DatePickerResult) => {
+            .onDateChange((value: Date) => {
               this.onDateChange(value);
             })
         }

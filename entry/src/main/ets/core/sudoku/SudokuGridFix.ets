@@ -446,7 +446,13 @@ export async function fixAndFillGrid(ocrResult: OCRResult, imagePath: string, im
     imgH = info.size.height;
 
     const buffer: ArrayBuffer = new ArrayBuffer(imgW * imgH * 4);
-    pixelMap.readPixelsToBufferSync(buffer);
+    try {
+      pixelMap.readPixelsToBufferSync(buffer);
+    } catch (e) {
+      hilog.error(DOMAIN, TAG, '【步骤详情】readPixelsToBufferSync失败');
+      pixelMap.release();
+      return ocrResult;
+    }
     pixels = new Uint8Array(buffer);
   }
 

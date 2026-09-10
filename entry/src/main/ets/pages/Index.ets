@@ -29,6 +29,7 @@ import { StickinessUtil, CheckInData, ChallengeProgress, UserStats } from '../co
 import { ReadingListStore, ReadingList } from '../model/ReadingListModels';
 import { bundleManager } from '@kit.AbilityKit';
 import { ConverterCategory, UnitConverterData } from '../model/UnitModels';
+import { ToastUtil } from '../common/utils/ToastUtil';
 
 class ToolItem {
   id: string = '';
@@ -208,7 +209,7 @@ struct Index {
       this.checkInData = StickinessUtil.loadCheckIn(ctx);
       this.checkedInToday = true;
       this.mineCheckInData = StickinessUtil.loadCheckIn(ctx);
-      this.getUIContext().getPromptAction().showToast({ message: '签到成功！连续' + this.checkInData.streak.toString() + '天', duration: 1500 });
+      ToastUtil.show(this.getUIContext(), '签到成功！连续' + this.checkInData.streak.toString() + '天', 1500);
     }
   }
 

@@ -1,5 +1,6 @@
 import { ReadingListStore, ReadingList, ReadingItem } from '../model/ReadingListModels';
 import { promptAction } from '@kit.ArkUI';
+import { ToastUtil } from '../common/utils/ToastUtil';
 
 @Builder
 export function ReadingListPageBuilder() {
@@ -65,20 +66,20 @@ struct ReadingListContent {
   private addList(): void {
     let name: string = this.newListName.trim();
     if (!name) {
-      this.uiContext.getPromptAction().showToast({ message: '请输入清单名称', duration: 1000 });
+      ToastUtil.show(this.uiContext, '请输入清单名称', 1000);
       return;
     }
     ReadingListStore.addList(this.uiContext.getHostContext() as Context, name);
     this.newListName = '';
     this.showAddDialog = false;
     this.loadLists();
-    this.uiContext.getPromptAction().showToast({ message: '清单已创建', duration: 1000 });
+    ToastUtil.show(this.uiContext, '清单已创建', 1000);
   }
 
   private renameList(): void {
     let name: string = this.editName.trim();
     if (!name) {
-      this.uiContext.getPromptAction().showToast({ message: '请输入清单名称', duration: 1000 });
+      ToastUtil.show(this.uiContext, '请输入清单名称', 1000);
       return;
     }
     ReadingListStore.renameList(this.uiContext.getHostContext() as Context, this.editingListId, name);
@@ -87,7 +88,7 @@ struct ReadingListContent {
     this.showRenameDialog = false;
     this.listVersion++;
     this.loadLists();
-    this.uiContext.getPromptAction().showToast({ message: '已重命名', duration: 1000 });
+    ToastUtil.show(this.uiContext, '已重命名', 1000);
   }
 
   private deleteList(listId: string, listName: string): void {
@@ -102,7 +103,7 @@ struct ReadingListContent {
       if (result.index === 1) {
         ReadingListStore.removeList(this.uiContext.getHostContext() as Context, listId);
         this.loadLists();
-        this.uiContext.getPromptAction().showToast({ message: '已删除', duration: 1000 });
+        ToastUtil.show(this.uiContext, '已删除', 1000);
       }
     }).catch(() => {});
   }

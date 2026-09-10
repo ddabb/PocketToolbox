@@ -8,6 +8,7 @@ import { image } from '@kit.ImageKit';
 import { fileIo as fs, fileUri } from '@kit.CoreFileKit';
 import { common } from '@kit.AbilityKit';
 import { photoAccessHelper } from '@kit.MediaLibraryKit';
+import { ToastUtil } from '../common/utils/ToastUtil';
 
 @Component
 export struct ShareImageCard {
@@ -143,20 +144,29 @@ export struct ShareImageCard {
   }
 
   private async pixelMapToCache(uiContext: UIContext, pixelMap: image.PixelMap, prefix: string): Promise<string> {
-    let context: common.UIAbilityContext = uiContext.getHostContext() as common.UIAbilityContext;
-    let dir: string = context.cacheDir;
-    let fileName: string = prefix + '_' + Date.now() + '.png';
-    let filePath: string = dir + '/' + fileName;
-    let file: fs.File = fs.openSync(filePath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.TRUNC);
-    let packer: image.ImagePacker = image.createImagePacker();
-    let packOpts: image.PackingOption = { format: 'image/png', quality: 100 };
     try {
-      await packer.packToFile(pixelMap, file.fd, packOpts);
-    } finally {
-      fs.closeSync(file.fd);
-      packer.release();
+      let context: common.UIAbilityContext = uiContext.getHostContext() as common.UIAbilityContext;
+      let dir: string = context.cacheDir;
+      let fileName: string = prefix + '_' + Date.now() + '.png';
+      let filePath: string = dir + '/' + fileName;
+      let file: fs.File = fs.openSync(filePath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.TRUNC);
+      let packer: image.ImagePacker = image.createImagePacker();
+      let packOpts: image.PackingOption = { format: 'image/png', quality: 100 };
+      try {
+        await packer.packToFile(pixelMap, file.fd, packOpts);
+      } finally {
+        try {
+          fs.closeSync(file.fd);
+        } catch (closeErr) {
+          console.error('[ShareCard] closeSync failed: ' + (closeErr as BusinessError).message);
+        }
+        packer.release();
+      }
+      return filePath;
+    } catch (e) {
+      console.error('[ShareCard] pixelMapToCache failed: ' + (e as BusinessError).message);
+      throw e as Error;
     }
-    return filePath;
   }
 
   async doGenerate(): Promise<string> {
@@ -165,7 +175,7 @@ export struct ShareImageCard {
     try {
       let pixelMap: image.PixelMap | undefined = await this.takeSnapshot();
       if (!pixelMap) {
-        this.getUIContext().getPromptAction().showToast({ message: '截图失败', duration: 2000 });
+        ToastUtil.show(this.getUIContext(), '截图失败', 2000);
         this.isGenerating = false;
         return '';
       }
@@ -174,12 +184,12 @@ export struct ShareImageCard {
       result = await this.pixelMapToCache(uiCtx, pixelMap, 'share');
       this.generatedImageUri = result;
       if (!this.autoShare) {
-        uiCtx.getPromptAction().showToast({ message: '图片已生成', duration: 1000 });
+        ToastUtil.show(uiCtx, '图片已生成', 1000);
       }
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[ShareCard] generate failed: ' + err.code + ' ' + err.message);
-      this.getUIContext().getPromptAction().showToast({ message: '生成失败', duration: 2000 });
+      ToastUtil.show(this.getUIContext(), '生成失败', 2000);
     }
     this.isGenerating = false;
     return result;
@@ -192,12 +202,12 @@ export struct ShareImageCard {
       if (cachePath) {
         shareImageViaPanel(this.getUIContext(), cachePath);
       } else {
-        this.getUIContext().getPromptAction().showToast({ message: '生成图片失败，无法分享', duration: 2000 });
+        ToastUtil.show(this.getUIContext(), '生成图片失败，无法分享', 2000);
       }
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[ShareCard] generateAndShare failed: ' + err.code + ' ' + err.message);
-      this.getUIContext().getPromptAction().showToast({ message: '分享失败', duration: 2000 });
+      ToastUtil.show(this.getUIContext(), '分享失败', 2000);
     }
     this.isGenerating = false;
     this.onAutoShared();
@@ -205,7 +215,7 @@ export struct ShareImageCard {
 
   async doSave(): Promise<void> {
     if (!this.generatedImageUri) {
-      this.getUIContext().getPromptAction().showToast({ message: '请先生成图片', duration: 1500 });
+      ToastUtil.show(this.getUIContext(), '请先生成图片', 1500);
       return;
     }
     let uiCtx: UIContext = this.getUIContext();
@@ -226,12 +236,12 @@ export struct ShareImageCard {
         await fs.copyFile(srcFile.fd, desFile.fd);
         await fs.close(srcFile);
         await fs.close(desFile.fd);
-        uiCtx.getPromptAction().showToast({ message: '已保存到相册', duration: 1000 });
+        ToastUtil.show(uiCtx, '已保存到相册', 1000);
       }
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[ShareCard] save failed: ' + err.code + ' ' + err.message);
-      uiCtx.getPromptAction().showToast({ message: '保存失败', duration: 2000 });
+      ToastUtil.show(uiCtx, '保存失败', 2000);
     }
   }
 
@@ -241,7 +251,7 @@ export struct ShareImageCard {
       pixelMap = await this.takeSnapshot();
     }
     if (!pixelMap) {
-      this.getUIContext().getPromptAction().showToast({ message: '截图失败', duration: 2000 });
+      ToastUtil.show(this.getUIContext(), '截图失败', 2000);
       return;
     }
     let uiCtx: UIContext = this.getUIContext();
@@ -263,12 +273,12 @@ export struct ShareImageCard {
         await fs.copyFile(srcFile.fd, desFile.fd);
         await fs.close(srcFile);
         await fs.close(desFile.fd);
-        uiCtx.getPromptAction().showToast({ message: '已保存到相册', duration: 1000 });
+        ToastUtil.show(uiCtx, '已保存到相册', 1000);
       }
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[ShareCard] savePixelMap failed: ' + err.code + ' ' + err.message);
-      uiCtx.getPromptAction().showToast({ message: '保存失败', duration: 2000 });
+      ToastUtil.show(uiCtx, '保存失败', 2000);
     }
   }
 

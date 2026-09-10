@@ -8,6 +8,7 @@ import { PoemItem } from '../../model/PoetryModels';
 import { XiehouyuItem } from '../../model/XiehouyuModels';
 import { systemShare } from '@kit.ShareKit';
 import { uniformTypeDescriptor as utd } from '@kit.ArkData';
+import { ToastUtil } from './ToastUtil';
 
 const WEEKDAYS: string[] = ['日', '一', '二', '三', '四', '五', '六'];
 const TIANGAN: string[] = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
@@ -99,26 +100,35 @@ export function buildXiehouyuMarkdown(item: XiehouyuItem): string {
 }
 
 export async function generateShareImage(uiContext: UIContext, componentId: string, prefix: string): Promise<string> {
-  let snapshot = uiContext.getComponentSnapshot();
-  let pixelMap: image.PixelMap = await snapshot.get(componentId, { scale: 2, waitUntilRenderFinished: true });
-  let packer: image.ImagePacker = image.createImagePacker();
-  let packOpts: image.PackingOption = {
-    format: 'image/png',
-    quality: 100
-  };
-  let context: common.UIAbilityContext = uiContext.getHostContext() as common.UIAbilityContext;
-  let dir: string = context.cacheDir;
-  let fileName: string = prefix + '_' + Date.now() + '.png';
-  let filePath: string = dir + '/' + fileName;
-  let file: fs.File = fs.openSync(filePath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.TRUNC);
   try {
-    await packer.packToFile(pixelMap, file.fd, packOpts);
-  } finally {
-    fs.closeSync(file.fd);
-    packer.release();
-    pixelMap.release();
+    let snapshot = uiContext.getComponentSnapshot();
+    let pixelMap: image.PixelMap = await snapshot.get(componentId, { scale: 2, waitUntilRenderFinished: true });
+    let packer: image.ImagePacker = image.createImagePacker();
+    let packOpts: image.PackingOption = {
+      format: 'image/png',
+      quality: 100
+    };
+    let context: common.UIAbilityContext = uiContext.getHostContext() as common.UIAbilityContext;
+    let dir: string = context.cacheDir;
+    let fileName: string = prefix + '_' + Date.now() + '.png';
+    let filePath: string = dir + '/' + fileName;
+    let file: fs.File = fs.openSync(filePath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.TRUNC);
+    try {
+      await packer.packToFile(pixelMap, file.fd, packOpts);
+    } finally {
+      try {
+        fs.closeSync(file.fd);
+      } catch (closeErr) {
+        console.error('[ShareUtil] closeSync failed: ' + (closeErr as BusinessError).message);
+      }
+      packer.release();
+      pixelMap.release();
+    }
+    return file.path;
+  } catch (e) {
+    console.error('[ShareUtil] generateShareImage failed: ' + (e as BusinessError).message);
+    throw e as Error;
   }
-  return file.path;
 }
 
 export async function savePixelMapToAlbum(uiContext: UIContext, pixelMap: image.PixelMap): Promise<void> {
@@ -150,12 +160,12 @@ export async function savePixelMapToAlbum(uiContext: UIContext, pixelMap: image.
       await fs.copyFile(srcFile.fd, desFile.fd);
       fs.closeSync(srcFile);
       await fs.close(desFile.fd);
-      uiContext.getPromptAction().showToast({ message: '已保存到相册', duration: 1000 });
+      ToastUtil.show(uiContext, '已保存到相册', 1000);
     }
   } catch (e) {
     let err: BusinessError = e as BusinessError;
     console.error('[ShareUtil] savePixelMapToAlbum failed: ' + err.code + ' ' + err.message);
-    uiContext.getPromptAction().showToast({ message: '保存失败', duration: 2000 });
+    ToastUtil.show(uiContext, '保存失败', 2000);
   }
 }
 
@@ -179,6 +189,6 @@ export function shareImageViaPanel(uiContext: UIContext, cachePath: string): voi
   } catch (e) {
     let err: BusinessError = e as BusinessError;
     console.error('[ShareUtil] shareViaPanel failed: ' + err.code + ' ' + err.message);
-    uiContext.getPromptAction().showToast({ message: '分享失败', duration: 2000 });
+    ToastUtil.show(uiContext, '分享失败', 2000);
   }
 }

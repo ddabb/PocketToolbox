@@ -12,6 +12,7 @@ import { DOMAIN, TAG, yieldThread, withTimeout, computeAdaptiveResize,
   WARP_SIZE_MULTIPLIER, WARP_BG_SAMPLE_DIV } from './SudokuOCRUtils';
 import { image } from '@kit.ImageKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
+import { BusinessError } from '@kit.BasicServicesKit';
 import { BoardBBox, BoardCorners, GridLines, bgColor, cellSigFromGray, cellSigFromGrayLowThresh,
   cellSigFromGrayThin, countInk, detectBoardCorners, detectGridLineWidths, findBoardBBox,
   findBoxLongRun, getLastBboxDiag, getLastConfidence, getLastRawInkRatio, getLastLocalBgInfo,
@@ -102,7 +103,12 @@ export async function tryPixelGridRecognition(imagePath: string, imageBuf: Array
     const height: number = imageInfo.size.height;
 
     const pixelBuf: ArrayBuffer = new ArrayBuffer(width * height * 4);
-    pixelMap.readPixelsToBufferSync(pixelBuf);
+    try {
+      pixelMap.readPixelsToBufferSync(pixelBuf);
+    } catch (e) {
+      hilog.error(DOMAIN, TAG, 'Pixel: readPixelsToBufferSync failed: %{public}s', (e as BusinessError).message);
+      throw e as Error;
+    }
     const pixelBytes: Uint8Array = new Uint8Array(pixelBuf);
     logDecodeProbe(pixelBytes, width, height);
     setCachedPixels(pixelBytes);

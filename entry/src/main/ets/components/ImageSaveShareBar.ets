@@ -19,6 +19,7 @@ import { photoAccessHelper } from '@kit.MediaLibraryKit';
 import { systemShare } from '@kit.ShareKit';
 import { uniformTypeDescriptor as utd } from '@kit.ArkData';
 import { BusinessError } from '@kit.BasicServicesKit';
+import { ToastUtil } from '../common/utils/ToastUtil';
 
 @Component
 export struct ImageSaveShareBar {
@@ -52,14 +53,23 @@ export struct ImageSaveShareBar {
     let dir: string = ctx.cacheDir;
     let fileName: string = prefix + '_' + Date.now() + '.png';
     let filePath: string = dir + '/' + fileName;
-    let file: fs.File = fs.openSync(filePath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.TRUNC);
-    let packer: image.ImagePacker = image.createImagePacker();
-    let packOpts: image.PackingOption = { format: 'image/png', quality: 100 };
     try {
-      await packer.packToFile(pm, file.fd, packOpts);
-    } finally {
-      fs.closeSync(file.fd);
-      packer.release();
+      let file: fs.File = fs.openSync(filePath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.TRUNC);
+      let packer: image.ImagePacker = image.createImagePacker();
+      let packOpts: image.PackingOption = { format: 'image/png', quality: 100 };
+      try {
+        await packer.packToFile(pm, file.fd, packOpts);
+      } finally {
+        try {
+          fs.closeSync(file.fd);
+        } catch (closeErr) {
+          console.error('[ImageSaveShareBar] closeSync failed: ' + (closeErr as BusinessError).message);
+        }
+        packer.release();
+      }
+    } catch (e) {
+      console.error('[ImageSaveShareBar] packToCache failed: ' + (e as BusinessError).message);
+      throw e as Error;
     }
     return filePath;
   }
@@ -100,12 +110,12 @@ export struct ImageSaveShareBar {
         await fs.copyFile(src.fd, des.fd);
         fs.closeSync(src);
         await fs.close(des);
-        uiCtx.getPromptAction().showToast({ message: '已保存到相册', duration: 1000 });
+        ToastUtil.show(uiCtx, '已保存到相册', 1000);
       }
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[ImageSaveShareBar] saveToAlbum failed: ' + err.code + ' ' + err.message);
-      uiCtx.getPromptAction().showToast({ message: '保存失败', duration: 2000 });
+      ToastUtil.show(uiCtx, '保存失败', 2000);
     }
     this.isBusy = false;
   }
@@ -137,7 +147,7 @@ export struct ImageSaveShareBar {
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[ImageSaveShareBar] shareViaPanel failed: ' + err.code + ' ' + err.message);
-      uiCtx.getPromptAction().showToast({ message: '分享失败', duration: 2000 });
+      ToastUtil.show(uiCtx, '分享失败', 2000);
     }
     this.isBusy = false;
   }

@@ -10,8 +10,10 @@ import { display, promptAction } from '@kit.ArkUI';
 import { preferences } from '@kit.ArkData';
 import { DecorPatternUtil } from '../common/utils/DecorPatternUtil';
 import { shareImageViaPanel } from '../common/utils/ShareImageUtil';
+import { ClipboardUtil } from '../common/utils/ClipboardUtil';
 import { KeywordUtil } from '../common/utils/KeywordUtil';
 import { FontUtil } from '../common/utils/FontUtil';
+import { ToastUtil } from '../common/utils/ToastUtil';
 
 const PREF_NAME: string = 'md2png_settings';
 const KEY_HIGHLIGHT_CONFIG: string = 'highlight_config';
@@ -279,6 +281,12 @@ struct Md2PngContent {
 
   private async pasteFromClipboard(): Promise<void> {
     try {
+      let context: common.UIAbilityContext = this.getUIContext().getHostContext() as common.UIAbilityContext;
+      let granted: boolean = await ClipboardUtil.requestReadPermission(context);
+      if (!granted) {
+        ToastUtil.show(this.getUIContext(), '未获得剪贴板读取权限', 1500);
+        return;
+      }
       let systemPasteboard: pasteboard.SystemPasteboard = pasteboard.getSystemPasteboard();
       let pasteData: pasteboard.PasteData = await systemPasteboard.getData();
       if (pasteData.getPrimaryMimeType() === pasteboard.MIMETYPE_TEXT_PLAIN) {
@@ -286,9 +294,9 @@ struct Md2PngContent {
         if (text) {
           if (text.length > this.maxInputLength) {
             text = text.substring(0, this.maxInputLength);
-            this.getUIContext().getPromptAction().showToast({ message: '已粘贴（超出 ' + this.maxInputLength.toString() + ' 字符部分已截断）', duration: 2000 });
+            ToastUtil.show(this.getUIContext(), '已粘贴（超出 ' + this.maxInputLength.toString() + ' 字符部分已截断）', 2000);
           } else {
-            this.getUIContext().getPromptAction().showToast({ message: '已粘贴', duration: 1000 });
+            ToastUtil.show(this.getUIContext(), '已粘贴', 1000);
           }
           this.inputText = text;
         }
@@ -301,13 +309,13 @@ struct Md2PngContent {
   private fillMarkdownExample(): void {
     this.inputText = this.markdownExample;
     this.scheduleRegenerate();
-    this.getUIContext().getPromptAction().showToast({ message: '已填入 Markdown 示例', duration: 1000 });
+    ToastUtil.show(this.getUIContext(), '已填入 Markdown 示例', 1000);
   }
 
   private fillTextExample(): void {
     this.inputText = this.textExample;
     this.scheduleRegenerate();
-    this.getUIContext().getPromptAction().showToast({ message: '已填入文本示例', duration: 1000 });
+    ToastUtil.show(this.getUIContext(), '已填入文本示例', 1000);
   }
 
   private scheduleRegenerate(): void {
@@ -326,7 +334,7 @@ struct Md2PngContent {
     }
     for (let i = 0; i < this.highlightKeywords.length; i++) {
       if (this.highlightKeywords[i].word === kw) {
-        this.getUIContext().getPromptAction().showToast({ message: '该词已在高亮列表中', duration: 1000 });
+        ToastUtil.show(this.getUIContext(), '该词已在高亮列表中', 1000);
         this.customKeyword = '';
         return;
       }
@@ -437,6 +445,7 @@ struct Md2PngContent {
           this.showPositionPanel = false;
           this.positionPanelDirty = false;
         }
+      }).catch(() => {
       });
     } else {
       this.showPositionPanel = false;
@@ -719,7 +728,7 @@ struct Md2PngContent {
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[Md2Png] generate failed: ' + err.message);
-      this.getUIContext().getPromptAction().showToast({ message: '生成失败', duration: 2000 });
+      ToastUtil.show(this.getUIContext(), '生成失败', 2000);
     }
     this.isGenerating = false;
   }
@@ -806,7 +815,7 @@ struct Md2PngContent {
   private async saveToAlbum(): Promise<void> {
     let pixelMap: image.PixelMap | undefined = this.cachedPixelMap;
     if (!pixelMap) {
-      this.getUIContext().getPromptAction().showToast({ message: '请先生成图片', duration: 1500 });
+      ToastUtil.show(this.getUIContext(), '请先生成图片', 1500);
       return;
     }
     let uiCtx: UIContext = this.getUIContext();
@@ -839,12 +848,12 @@ struct Md2PngContent {
         await fs.copyFile(srcFile.fd, desFile.fd);
         await fs.close(srcFile);
         await fs.close(desFile.fd);
-        uiCtx.getPromptAction().showToast({ message: '已保存到相册', duration: 1000 });
+        ToastUtil.show(uiCtx, '已保存到相册', 1000);
       }
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[Md2Png] save failed: ' + err.code + ' ' + err.message);
-      uiCtx.getPromptAction().showToast({ message: '保存失败', duration: 2000 });
+      ToastUtil.show(uiCtx, '保存失败', 2000);
     }
   }
 
@@ -995,8 +1004,7 @@ struct Md2PngContent {
             let text: string = value;
             if (text.length > this.maxInputLength) {
               text = text.substring(0, this.maxInputLength);
-              this.getUIContext().getPromptAction()
-                .showToast({ message: '最多输入 ' + this.maxInputLength.toString() + ' 字符', duration: 1500 });
+              ToastUtil.show(this.getUIContext(), '最多输入 ' + this.maxInputLength.toString() + ' 字符', 1500);
             }
             this.inputText = text;
             this.scheduleRegenerate();

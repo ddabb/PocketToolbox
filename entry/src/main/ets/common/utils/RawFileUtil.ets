@@ -3,10 +3,15 @@ import { buffer } from '@kit.ArkTS';
 
 export class RawFileUtil {
   static readJson<T>(context: Context, path: string): T {
-    let content: Uint8Array = context.resourceManager.getRawFileContentSync(path);
-    let text: string = buffer.from(content.buffer).toString('utf-8');
+    let text: string = '';
+    try {
+      let content: Uint8Array = context.resourceManager.getRawFileContentSync(path);
+      text = buffer.from(content.buffer).toString('utf-8');
+    } catch (e) {
+      throw new Error('RawFile read failed: ' + path + ': ' + (e as Error).message);
+    }
     if (!text || text.trim().length === 0) {
-      throw new Error('RawFile empty after decode: ' + path + ', rawBytes=' + content.length.toString());
+      throw new Error('RawFile empty after decode: ' + path);
     }
     let trimmed: string = text.trim();
     if (trimmed.charCodeAt(0) === 0xFEFF) {

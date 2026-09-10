@@ -1,6 +1,7 @@
 import { image } from '@kit.ImageKit';
 import { textRecognition } from '@kit.CoreVisionKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
+import { BusinessError } from '@kit.BasicServicesKit';
 import {
   OCRResult, VisionKitGridResult, RawDigit, AdaptiveResizeParams,
   CellCoordInfo, PerCellVkDiag,
@@ -373,7 +374,12 @@ export async function tryVisionKitRecognition(imagePath: string, imageBuf: Array
     const probeImgH: number = probeImgInfo.size.height;
 
     const probeBuf: ArrayBuffer = new ArrayBuffer(probeImgW * probeImgH * 4);
-    probePm.readPixelsToBufferSync(probeBuf);
+    try {
+      probePm.readPixelsToBufferSync(probeBuf);
+    } catch (e) {
+      hilog.error(DOMAIN, TAG, 'VK: readPixelsToBufferSync(probe) failed: %{public}s', (e as BusinessError).message);
+      throw e as Error;
+    }
     const probePixels: Uint8Array = new Uint8Array(probeBuf);
     probePm.release();
 
@@ -505,7 +511,12 @@ export async function tryVisionKitRecognition(imagePath: string, imageBuf: Array
     hilog.info(DOMAIN, TAG, '【VisionKit OCR图尺寸】%{public}dx%{public}d', imgW, imgH);
 
     const ocrBuf: ArrayBuffer = new ArrayBuffer(imgW * imgH * 4);
-    pixelMap.readPixelsToBufferSync(ocrBuf);
+    try {
+      pixelMap.readPixelsToBufferSync(ocrBuf);
+    } catch (e) {
+      hilog.error(DOMAIN, TAG, 'VK: readPixelsToBufferSync(ocr) failed: %{public}s', (e as BusinessError).message);
+      throw e as Error;
+    }
     const ocrPx: Uint8Array = new Uint8Array(ocrBuf);
     let ocrBgSum: number = 0;
     const ocrBgStep: number = Math.max(1, Math.floor(imgW * imgH / 10000));

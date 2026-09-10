@@ -8,6 +8,7 @@ import { Md2PngTemplates } from '../model/Md2PngModels';
 import { AddToReadingListUtil, AddToListResult } from '../common/utils/AddToReadingListUtil';
 import { ReadingList, ReadingItem } from '../model/ReadingListModels';
 import { StickinessUtil } from '../common/utils/StickinessUtil';
+import { ToastUtil } from '../common/utils/ToastUtil';
 
 class DynastyQueryParam {
   dynasty: string = '';
@@ -65,7 +66,7 @@ export struct PoemContentContent {
   private copyPoem(): void {
     let text: string = '\u3010' + this.poemParam.n + '\u3011' + this.poetName + '\n' + this.poemParam.c;
     ClipboardUtil.copy(text);
-    this.uiContext.getPromptAction().showToast({ message: '已复制到剪贴板', duration: 1000 });
+    ToastUtil.show(this.uiContext, '已复制到剪贴板', 1000);
     console.info('[PoemContent] copied poem=' + this.poemParam.n);
   }
 
@@ -84,7 +85,7 @@ export struct PoemContentContent {
     }
       console.info('[PoemContent] tap poet=' + this.poetName + ', poems=' + detail.poems.length.toString());
     } else {
-      this.uiContext.getPromptAction().showToast({ message: '未找到诗人信息', duration: 1000 });
+      ToastUtil.show(this.uiContext, '未找到诗人信息', 1000);
       console.warn('[PoemContent] poet not found: ' + this.poetName);
     }
   }
@@ -109,7 +110,7 @@ export struct PoemContentContent {
       FavoritesUtil.remove(ctx, 'poem', this.poemParam.n);
       this.isFav = false;
       AppStorage.setOrCreate('PoemFavStatus', false);
-      this.uiContext.getPromptAction().showToast({ message: '已取消收藏', duration: 1000 });
+      ToastUtil.show(this.uiContext, '已取消收藏', 1000);
     } else {
       let item: FavoriteItem = new FavoriteItem();
       item.type = 'poem';
@@ -120,9 +121,9 @@ export struct PoemContentContent {
       this.isFav = true;
       AppStorage.setOrCreate('PoemFavStatus', true);
       if (res.truncated) {
-        this.uiContext.getPromptAction().showToast({ message: '收藏已达上限，最早一条已移除', duration: 2000 });
+        ToastUtil.show(this.uiContext, '收藏已达上限，最早一条已移除', 2000);
       } else {
-        this.uiContext.getPromptAction().showToast({ message: '已收藏', duration: 1000 });
+        ToastUtil.show(this.uiContext, '已收藏', 1000);
       }
     }
     FavoritesUtil.invalidateCache();
@@ -141,7 +142,7 @@ export struct PoemContentContent {
     let result: AddToListResult = AddToReadingListUtil.addToListWithCheck(
       this.uiContext.getHostContext() as Context, listId, 'poem', this.poemParam.n, subtitle, this.poemParam.c);
     this.showReadingListPicker = false;
-    this.uiContext.getPromptAction().showToast({ message: result.msg, duration: 1000 });
+    ToastUtil.show(this.uiContext, result.msg, 1000);
   }
 
   build() {

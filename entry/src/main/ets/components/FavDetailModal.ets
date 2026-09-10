@@ -6,6 +6,7 @@ import { ClipboardUtil } from '../common/utils/ClipboardUtil';
 import { ShareImageCard } from './ShareImageCard';
 import { buildPoemMarkdown, buildIdiomMarkdown, buildXiehouyuMarkdown } from '../common/utils/ShareImageUtil';
 import { Md2PngTemplates, ShareTemplateInfo } from '../model/Md2PngModels';
+import { ToastUtil } from '../common/utils/ToastUtil';
 
 @CustomDialog
 export struct FavDetailModal {
@@ -102,7 +103,7 @@ export struct FavDetailModal {
     }
     if (text) {
       ClipboardUtil.copy(text);
-      this.uiContext.getPromptAction().showToast({ message: '已复制到剪贴板', duration: 1000 });
+      ToastUtil.show(this.uiContext, '已复制到剪贴板', 1000);
     }
   }
 

@@ -6,6 +6,7 @@ import { DetailModal } from '../components/DetailModal';
 import { FavoritesUtil } from '../common/utils/FavoritesUtil';
 import { StickinessUtil } from '../common/utils/StickinessUtil';
 import { preferences } from '@kit.ArkData';
+import { ToastUtil } from '../common/utils/ToastUtil';
 
 class IdiomListDataSource implements IDataSource {
   private listeners: DataChangeListener[] = [];
@@ -179,7 +180,7 @@ struct IdiomQueryContent {
         this.handleMultipleFuzzy(fuzzy);
         return;
       } else {
-        this.uiContext.getPromptAction().showToast({ message: '该成语不在词库中', duration: 1000 });
+        ToastUtil.show(this.uiContext, '该成语不在词库中', 1000);
         return;
       }
     }
@@ -189,7 +190,7 @@ struct IdiomQueryContent {
   private querySolitaire(word: string): void {
     let result: SolitaireResult = this.viewModel.querySolitaire(word, this.queryMode);
     if (result.error) {
-      this.uiContext.getPromptAction().showToast({ message: result.error, duration: 1000 });
+      ToastUtil.show(this.uiContext, result.error, 1000);
       this.isReverseReady = !result.lastIndexLoading;
       return;
     }
@@ -223,7 +224,7 @@ struct IdiomQueryContent {
       this.detailDialogController.open();
       StickinessUtil.incrementBrowseCount(ctx);
     } else {
-      this.uiContext.getPromptAction().showToast({ message: '暂无详情', duration: 1000 });
+      ToastUtil.show(this.uiContext, '暂无详情', 1000);
     }
   }
 
@@ -247,13 +248,13 @@ struct IdiomQueryContent {
       lines.push(item.leftWord + ' \u2192 ' + item.rightWord);
     }
     ClipboardUtil.copy(lines.join('\n'));
-    this.uiContext.getPromptAction().showToast({ message: '已复制到剪贴板', duration: 1000 });
+    ToastUtil.show(this.uiContext, '已复制到剪贴板', 1000);
   }
 
   private toggleMode(): void {
     if (this.queryMode === 'forward') {
       if (!this.viewModel.isLastIndexReady()) {
-        this.uiContext.getPromptAction().showToast({ message: '逆查数据加载中，请稍候...', duration: 1000 });
+        ToastUtil.show(this.uiContext, '逆查数据加载中，请稍候...', 1000);
         return;
       }
       this.queryMode = 'reverse';

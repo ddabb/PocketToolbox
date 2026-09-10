@@ -1,4 +1,5 @@
 import { taskpool } from '@kit.ArkTS';
+import { BusinessError } from '@kit.BasicServicesKit';
 import { BitmapPlacer, WordSprite } from './BitmapPlacer';
 import { ShapeDef } from './ShapeDef';
 import { PlacedWord } from '../../model/WordItem';
@@ -86,5 +87,10 @@ function computePlacement(input: WordCloudInput): WordCloudResult {
 
 export async function runPlacementAsync(input: WordCloudInput): Promise<WordCloudResult> {
   let task: taskpool.Task = new taskpool.Task(computePlacement, input);
-  return await taskpool.execute(task, taskpool.Priority.HIGH) as WordCloudResult;
+  try {
+    return await taskpool.execute(task, taskpool.Priority.HIGH) as WordCloudResult;
+  } catch (e) {
+    console.error('[WordCloudTask] placement execute failed: ' + (e as BusinessError).message);
+    throw e as Error;
+  }
 }

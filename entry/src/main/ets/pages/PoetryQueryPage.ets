@@ -4,6 +4,7 @@ import { Constants } from '../common/constants/Constants';
 import { ErrorState } from '../components/ErrorState';
 import { preferences } from '@kit.ArkData';
 import { FavoritesUtil } from '../common/utils/FavoritesUtil';
+import { ToastUtil } from '../common/utils/ToastUtil';
 
 @Builder
 export function PoetryQueryPageBuilder(param?: Object) {
@@ -114,7 +115,7 @@ struct PoetryQueryContent {
     }
     this.refreshContent();
     if (this.isSearching && this.results.length === 0) {
-      this.uiContext.getPromptAction().showToast({ message: '未找到相关结果', duration: 1000 });
+      ToastUtil.show(this.uiContext, '未找到相关结果', 1000);
     }
   }
 
@@ -201,12 +202,12 @@ struct PoetryQueryContent {
             return;
           }
         }
-        this.uiContext.getPromptAction().showToast({ message: '未找到诗词详情', duration: 1000 });
+        ToastUtil.show(this.uiContext, '未找到诗词详情', 1000);
       } else {
-        this.uiContext.getPromptAction().showToast({ message: '未找到诗人信息', duration: 1000 });
+        ToastUtil.show(this.uiContext, '未找到诗人信息', 1000);
       }
     } else {
-      this.uiContext.getPromptAction().showToast({ message: '请搜索诗人姓名查看详情', duration: 1000 });
+      ToastUtil.show(this.uiContext, '请搜索诗人姓名查看详情', 1000);
     }
   }
 

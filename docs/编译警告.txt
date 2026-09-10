@@ -1,0 +1,246 @@
+WARN: ArkTS:WARN: For details about ArkTS syntax errors, see FAQs
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/common/utils/RawFileUtil.ets:6:31
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/common/utils/RawFileUtil.ets:7:24
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/PoetryQueryPage.ets:117:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/PoetryQueryPage.ets:204:9
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/PoetryQueryPage.ets:206:9
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/PoetryQueryPage.ets:209:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/common/utils/ClipboardUtil.ets:10:5
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/common/utils/ClipboardUtil.ets:15:49
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/common/utils/ClipboardUtil.ets:15:66
+ To use this API, you need to apply for the permissions: ohos.permission.READ_PASTEBOARD
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/common/utils/ClipboardUtil.ets:17:58
+ 'getRecordAt' has been deprecated.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/common/utils/ShareImageUtil.ets:103:40
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/common/utils/ShareImageUtil.ets:113:23
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/common/utils/ShareImageUtil.ets:115:11
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/common/utils/ShareImageUtil.ets:117:5
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/common/utils/ShareImageUtil.ets:158:5
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/common/utils/ShareImageUtil.ets:182:5
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/components/ShareImageCard.ets:150:25
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/components/ShareImageCard.ets:154:13
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/components/ShareImageCard.ets:156:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/components/ShareImageCard.ets:182:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/components/ShareImageCard.ets:200:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/components/ShareImageCard.ets:208:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/components/ShareImageCard.ets:234:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/components/ShareImageCard.ets:244:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/components/ShareImageCard.ets:271:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/components/DetailModal.ets:35:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/components/DetailModal.ets:45:9
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/components/DetailModal.ets:47:9
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/components/DetailModal.ets:82:5
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/IdiomQueryPage.ets:182:9
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/IdiomQueryPage.ets:192:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/IdiomQueryPage.ets:226:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/IdiomQueryPage.ets:250:5
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/IdiomQueryPage.ets:256:9
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/XiehouyuQueryPage.ets:297:5
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/XiehouyuQueryPage.ets:305:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/XiehouyuQueryPage.ets:315:9
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/XiehouyuQueryPage.ets:317:9
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/XiehouyuQueryPage.ets:837:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/XiehouyuQueryPage.ets:847:9
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/XiehouyuQueryPage.ets:849:9
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/XiehouyuQueryPage.ets:869:5
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/PoemContentPage.ets:68:5
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/PoemContentPage.ets:87:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/PoemContentPage.ets:112:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/PoemContentPage.ets:123:9
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/PoemContentPage.ets:125:9
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/PoemContentPage.ets:144:5
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/components/FavDetailModal.ets:105:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/UnitConverterPage.ets:215:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/BaseConverterPage.ets:116:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/TimezoneConverterPage.ets:615:14
+ 'onChange' has been deprecated.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/ReadingListPage.ets:68:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/ReadingListPage.ets:75:5
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/ReadingListPage.ets:81:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/ReadingListPage.ets:90:5
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/ReadingPlayerPage.ets:91:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/ReadingPlayerPage.ets:142:5
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/components/ImageSaveShareBar.ets:55:25
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/components/ImageSaveShareBar.ets:59:13
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/components/ImageSaveShareBar.ets:61:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/components/ImageSaveShareBar.ets:108:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/components/ImageSaveShareBar.ets:140:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/core/layout/WordCloudTask.ets:89:16
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/WordCloudPage.ets:839:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/WordCloudPage.ets:867:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/WordCloudPage.ets:875:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/WordCloudPage.ets:954:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/GcdLcmPage.ets:117:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/PrimeFactorPage.ets:196:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/core/sudoku/SudokuOCRUtils.ets:106:29
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/core/sudoku/SudokuGridFix.ets:449:5
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/SudokuSolverPage.ets:98:25
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/Md2PngPage.ets:283:68
+ To use this API, you need to apply for the permissions: ohos.permission.READ_PASTEBOARD
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/Md2PngPage.ets:304:5
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/Md2PngPage.ets:310:5
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/Md2PngPage.ets:329:9
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/Md2PngPage.ets:428:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/Md2PngPage.ets:722:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/Md2PngPage.ets:809:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/Md2PngPage.ets:847:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: F:/PocketToolbox/entry/src/main/ets/pages/Index.ets:211:7
+ Function may throw exceptions. Special handling is required.

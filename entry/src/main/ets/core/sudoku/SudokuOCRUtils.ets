@@ -1,6 +1,7 @@
 import { image } from '@kit.ImageKit';
 import { fileIo } from '@kit.CoreFileKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
+import { BusinessError } from '@kit.BasicServicesKit';
 import { AdaptiveResizeParams } from './SudokuOCRTypes';
 
 export const DOMAIN: number = 0xA03D00;
@@ -103,8 +104,13 @@ export function computeAdaptiveResize(origW: number, origH: number): AdaptiveRes
 }
 
 export function openImageSource(uri: string): image.ImageSource {
-  const file: fileIo.File = fileIo.openSync(uri, fileIo.OpenMode.READ_ONLY);
-  return image.createImageSource(file.fd);
+  try {
+    const file: fileIo.File = fileIo.openSync(uri, fileIo.OpenMode.READ_ONLY);
+    return image.createImageSource(file.fd);
+  } catch (e) {
+    hilog.error(DOMAIN, TAG, 'openImageSource failed: %{public}s', (e as BusinessError).message);
+    throw e as Error;
+  }
 }
 
 export function openImageSourceFromBuffer(buf: ArrayBuffer): image.ImageSource {

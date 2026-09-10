@@ -1,6 +1,7 @@
 import { ReadingListStore, ReadingList, ReadingItem } from '../model/ReadingListModels';
 import { TtsController, TtsState } from '../common/utils/TtsUtil';
 import { promptAction } from '@kit.ArkUI';
+import { ToastUtil } from '../common/utils/ToastUtil';
 
 class PlayerParamInfo {
   listId: string = '';
@@ -73,7 +74,7 @@ struct ReadingPlayerContent {
     let text: string = this.buildSpeakText(item);
     this.ttsController.speak(text).then((ok: boolean) => {
       if (!ok) {
-        this.uiContext.getPromptAction().showToast({ message: '朗读引擎初始化失败，请确认设备支持TTS', duration: 2500 });
+        ToastUtil.show(this.uiContext, '朗读引擎初始化失败，请确认设备支持TTS', 2500);
       }
     });
   }
@@ -88,7 +89,7 @@ struct ReadingPlayerContent {
       this.playCurrent();
     } else {
       this.currentIndex = this.currentList.items.length - 1;
-      this.uiContext.getPromptAction().showToast({ message: '全部朗读完毕', duration: 1500 });
+      ToastUtil.show(this.uiContext, '全部朗读完毕', 1500);
     }
   }
 
@@ -139,7 +140,7 @@ struct ReadingPlayerContent {
       this.currentList.id, itemId);
     this.ttsController.stop();
     this.loadList();
-    this.uiContext.getPromptAction().showToast({ message: '已移除', duration: 1000 });
+    ToastUtil.show(this.uiContext, '已移除', 1000);
   }
 
   private moveItemUp(index: number): void {

@@ -1,4 +1,5 @@
 import { pasteboard } from '@kit.BasicServicesKit';
+import { ToastUtil } from '../common/utils/ToastUtil';
 
 @Builder
 export function GcdLcmPageBuilder() {
@@ -112,9 +113,9 @@ struct GcdLcmContent {
       let systemPasteboard: pasteboard.SystemPasteboard = pasteboard.getSystemPasteboard();
       let pasteData: pasteboard.PasteData = pasteboard.createData(pasteboard.MIMETYPE_TEXT_PLAIN, lines.join('\n'));
       systemPasteboard.setData(pasteData);
-      this.getUIContext().getPromptAction().showToast({ message: '已复制转换结果', duration: 1000 });
+      ToastUtil.show(this.getUIContext(), '已复制转换结果', 1000);
     } catch (e) {
-      this.getUIContext().getPromptAction().showToast({ message: '复制失败', duration: 1000 });
+      ToastUtil.show(this.getUIContext(), '复制失败', 1000);
     }
   }
 

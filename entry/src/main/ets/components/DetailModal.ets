@@ -6,6 +6,7 @@ import { buildIdiomMarkdown } from '../common/utils/ShareImageUtil';
 import { Md2PngTemplates } from '../model/Md2PngModels';
 import { AddToReadingListUtil, AddToListResult } from '../common/utils/AddToReadingListUtil';
 import { ReadingList } from '../model/ReadingListModels';
+import { ToastUtil } from '../common/utils/ToastUtil';
 
 @CustomDialog
 export struct DetailModal {
@@ -32,7 +33,7 @@ export struct DetailModal {
     if (this.isFav) {
       FavoritesUtil.remove(ctx, 'idiom', this.detailItem!.word);
       this.isFav = false;
-      this.uiContext.getPromptAction().showToast({ message: '已取消收藏', duration: 1000 });
+      ToastUtil.show(this.uiContext, '已取消收藏', 1000);
     } else {
       let item: FavoriteItem = new FavoriteItem();
       item.type = 'idiom';
@@ -42,9 +43,9 @@ export struct DetailModal {
       let res: FavoriteAddResult = FavoritesUtil.add(ctx, item);
       this.isFav = true;
       if (res.truncated) {
-        this.uiContext.getPromptAction().showToast({ message: '收藏已达上限，最早一条已移除', duration: 2000 });
+        ToastUtil.show(this.uiContext, '收藏已达上限，最早一条已移除', 2000);
       } else {
-        this.uiContext.getPromptAction().showToast({ message: '已收藏', duration: 1000 });
+        ToastUtil.show(this.uiContext, '已收藏', 1000);
       }
     }
     FavoritesUtil.invalidateCache();
@@ -79,7 +80,7 @@ export struct DetailModal {
       this.uiContext.getHostContext() as Context, listId, 'idiom',
       this.detailItem!.word, this.detailItem!.pinyin, content);
     this.showReadingListPicker = false;
-    this.uiContext.getPromptAction().showToast({ message: result.msg, duration: 1000 });
+    ToastUtil.show(this.uiContext, result.msg, 1000);
   }
 
   build() {
@@ -137,7 +138,7 @@ export struct DetailModal {
                       .padding({ left: 8, right: 8, top: 2, bottom: 2 })
                       .onClick(() => {
                         ClipboardUtil.copy(this.detailItem!.explanation);
-                        this.uiContext.getPromptAction().showToast({ message: '已复制到剪贴板', duration: 1000 });
+                        ToastUtil.show(this.uiContext, '已复制到剪贴板', 1000);
                       })
                   }
                   .width('100%')
@@ -167,7 +168,7 @@ export struct DetailModal {
                       .padding({ left: 8, right: 8, top: 2, bottom: 2 })
                       .onClick(() => {
                         ClipboardUtil.copy(this.detailItem!.derivation);
-                        this.uiContext.getPromptAction().showToast({ message: '已复制到剪贴板', duration: 1000 });
+                        ToastUtil.show(this.uiContext, '已复制到剪贴板', 1000);
                       })
                   }
                   .width('100%')
@@ -236,7 +237,7 @@ export struct DetailModal {
                       all += '\n\u3010\u4F8B\u53E5\u3011' + this.detailItem!.example;
                     }
                     ClipboardUtil.copy(all);
-                    this.uiContext.getPromptAction().showToast({ message: '已复制到剪贴板', duration: 1000 });
+                    ToastUtil.show(this.uiContext, '已复制到剪贴板', 1000);
                   })
 
                 Text('分享图片')

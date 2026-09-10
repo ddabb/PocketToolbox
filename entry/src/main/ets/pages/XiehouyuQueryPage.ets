@@ -10,6 +10,7 @@ import { Md2PngTemplates } from '../model/Md2PngModels';
 import { AddToReadingListUtil, AddToListResult } from '../common/utils/AddToReadingListUtil';
 import { ReadingList } from '../model/ReadingListModels';
 import { StickinessUtil } from '../common/utils/StickinessUtil';
+import { ToastUtil } from '../common/utils/ToastUtil';
 
 class XiehouyuListDataSource implements IDataSource {
   private listeners: DataChangeListener[] = [];
@@ -294,7 +295,7 @@ struct XiehouyuQueryContent {
 
   private onCopyItem(item: XiehouyuItem): void {
     ClipboardUtil.copy(item.riddle + '——' + item.answer);
-    this.uiContext.getPromptAction().showToast({ message: '已复制到剪贴板', duration: 1000 });
+    ToastUtil.show(this.uiContext, '已复制到剪贴板', 1000);
   }
 
   private toggleFav(item: XiehouyuItem): void {
@@ -302,7 +303,7 @@ struct XiehouyuQueryContent {
     if (this.isFav) {
       FavoritesUtil.remove(ctx, 'xiehouyu', item.riddle);
       this.isFav = false;
-      this.uiContext.getPromptAction().showToast({ message: '已取消收藏', duration: 1000 });
+      ToastUtil.show(this.uiContext, '已取消收藏', 1000);
     } else {
       let fav: FavoriteItem = new FavoriteItem();
       fav.type = 'xiehouyu';
@@ -312,9 +313,9 @@ struct XiehouyuQueryContent {
       let res: FavoriteAddResult = FavoritesUtil.add(ctx, fav);
       this.isFav = true;
       if (res.truncated) {
-        this.uiContext.getPromptAction().showToast({ message: '收藏已达上限，最早一条已移除', duration: 2000 });
+        ToastUtil.show(this.uiContext, '收藏已达上限，最早一条已移除', 2000);
       } else {
-        this.uiContext.getPromptAction().showToast({ message: '已收藏', duration: 1000 });
+        ToastUtil.show(this.uiContext, '已收藏', 1000);
       }
     }
     FavoritesUtil.invalidateCache();
@@ -834,7 +835,7 @@ struct XiehouyuDetailModal {
     if (this.isFav) {
       FavoritesUtil.remove(ctx, 'xiehouyu', this.detailItem!.riddle);
       this.isFav = false;
-      this.uiContext.getPromptAction().showToast({ message: '已取消收藏', duration: 1000 });
+      ToastUtil.show(this.uiContext, '已取消收藏', 1000);
     } else {
       let fav: FavoriteItem = new FavoriteItem();
       fav.type = 'xiehouyu';
@@ -844,9 +845,9 @@ struct XiehouyuDetailModal {
       let res: FavoriteAddResult = FavoritesUtil.add(ctx, fav);
       this.isFav = true;
       if (res.truncated) {
-        this.uiContext.getPromptAction().showToast({ message: '收藏已达上限，最早一条已移除', duration: 2000 });
+        ToastUtil.show(this.uiContext, '收藏已达上限，最早一条已移除', 2000);
       } else {
-        this.uiContext.getPromptAction().showToast({ message: '已收藏', duration: 1000 });
+        ToastUtil.show(this.uiContext, '已收藏', 1000);
       }
     }
     FavoritesUtil.invalidateCache();
@@ -866,7 +867,7 @@ struct XiehouyuDetailModal {
       this.detailItem!.riddle, this.detailItem!.answer,
       this.detailItem!.riddle + '\u2014\u2014' + this.detailItem!.answer);
     this.showReadingListPicker = false;
-    this.uiContext.getPromptAction().showToast({ message: result.msg, duration: 1000 });
+    ToastUtil.show(this.uiContext, result.msg, 1000);
   }
 
   build() {
@@ -956,7 +957,7 @@ struct XiehouyuDetailModal {
                   .padding({ left: 16, right: 16, top: 8, bottom: 8 })
                   .onClick(() => {
                     ClipboardUtil.copy(this.detailItem!.riddle + '——' + this.detailItem!.answer);
-                    this.uiContext.getPromptAction().showToast({ message: '已复制到剪贴板', duration: 1000 });
+                    ToastUtil.show(this.uiContext, '已复制到剪贴板', 1000);
                   })
 
                 Text('分享图片')

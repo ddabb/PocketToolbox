@@ -39,6 +39,10 @@
     {
       "name": "permission_internet_reason",
       "value": "用于获取诗词、成语等数据内容"
+    },
+    {
+      "name": "permission_read_pasteboard_reason",
+      "value": "用于粘贴文本内容"
     }
   ]
 }

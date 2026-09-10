@@ -12,6 +12,7 @@ import { display } from '@kit.ArkUI';
 import { BusinessError } from '@kit.BasicServicesKit';
 import { image } from '@kit.ImageKit';
 import { LengthMetricsUnit } from '@kit.ArkUI';
+import { ToastUtil } from '../common/utils/ToastUtil';
 
 @Builder
 export function WordCloudPageBuilder() {
@@ -836,14 +837,14 @@ struct WordCloudContent {
 
   private async extractWordsToDirect(): Promise<void> {
     if (!this.directWordsText || this.directWordsText.trim().length === 0) {
-      this.uiContext.getPromptAction().showToast({ message: '请先输入或粘贴文本到上方编辑区', duration: 1500 });
+      ToastUtil.show(this.uiContext, '请先输入或粘贴文本到上方编辑区', 1500);
       return;
     }
     this.isExtracting = true;
     try {
       let wordEntries: Array<WordCountEntry> = await KeywordUtil.extractAllWords(this.directWordsText);
       if (wordEntries.length === 0) {
-        this.uiContext.getPromptAction().showToast({ message: '未提取到有效词语', duration: 2000 });
+        ToastUtil.show(this.uiContext, '未提取到有效词语', 2000);
         this.isExtracting = false;
         return;
       }
@@ -864,7 +865,7 @@ struct WordCloudContent {
       this.directWordsText = lines.join('\n');
       this.cloudWords = newWords;
     } catch (e) {
-      this.uiContext.getPromptAction().showToast({ message: '分词失败', duration: 2000 });
+      ToastUtil.show(this.uiContext, '分词失败', 2000);
     }
     this.isExtracting = false;
   }
@@ -872,7 +873,7 @@ struct WordCloudContent {
   private async generateWordCloud(): Promise<void> {
     console.info('[WordCloud] generateWordCloud START, cloudWords=' + this.cloudWords.length.toString());
     if (this.cloudWords.length === 0) {
-      this.uiContext.getPromptAction().showToast({ message: '请先提取或添加词语', duration: 1500 });
+      ToastUtil.show(this.uiContext, '请先提取或添加词语', 1500);
       return;
     }
     this.isGenerating = true;
@@ -951,7 +952,7 @@ struct WordCloudContent {
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[WordCloud] generate FAILED: code=' + err.code + ' msg=' + err.message);
-      this.uiContext.getPromptAction().showToast({ message: '生成失败', duration: 2000 });
+      ToastUtil.show(this.uiContext, '生成失败', 2000);
     }
 
     this.isGenerating = false;
