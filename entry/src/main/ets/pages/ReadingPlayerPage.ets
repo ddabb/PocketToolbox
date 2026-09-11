@@ -53,10 +53,26 @@ struct ReadingPlayerContent {
     ReadingListStore.invalidateCache();
     let list: ReadingList | null = ReadingListStore.getList(
       this.uiContext.getHostContext() as Context, this.playerParam.listId);
-    this.currentList = list;
-    if (list && list.items.length > 0) {
-      this.currentIndex = 0;
+    let previousId: string = '';
+    let previousItem: ReadingItem | null = this.getCurrentItem();
+    if (previousItem) {
+      previousId = previousItem.id;
     }
+    this.currentList = list;
+    if (!list || list.items.length === 0) {
+      this.currentIndex = -1;
+      return;
+    }
+    let restoredIndex: number = 0;
+    if (previousId !== '') {
+      for (let i = 0; i < list.items.length; i++) {
+        if (list.items[i].id === previousId) {
+          restoredIndex = i;
+          break;
+        }
+      }
+    }
+    this.currentIndex = restoredIndex;
   }
 
   private getCurrentItem(): ReadingItem | null {
