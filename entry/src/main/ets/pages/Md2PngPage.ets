@@ -4,13 +4,11 @@ import { fileIo as fs, WriteOptions, fileUri } from '@kit.CoreFileKit';
 import { photoAccessHelper } from '@kit.MediaLibraryKit';
 import { BusinessError } from '@kit.BasicServicesKit';
 import { common } from '@kit.AbilityKit';
-import { pasteboard } from '@kit.BasicServicesKit';
 import { Markdown, MarkdownController } from '@luvi/lv-markdown-in';
 import { display, promptAction } from '@kit.ArkUI';
 import { preferences } from '@kit.ArkData';
 import { DecorPatternUtil } from '../common/utils/DecorPatternUtil';
 import { shareImageViaPanel } from '../common/utils/ShareImageUtil';
-import { ClipboardUtil } from '../common/utils/ClipboardUtil';
 import { KeywordUtil } from '../common/utils/KeywordUtil';
 import { FontUtil } from '../common/utils/FontUtil';
 import { ToastUtil } from '../common/utils/ToastUtil';
@@ -277,33 +275,6 @@ struct Md2PngContent {
       }
     }
     return maxH;
-  }
-
-  private async pasteFromClipboard(): Promise<void> {
-    try {
-      let context: common.UIAbilityContext = this.getUIContext().getHostContext() as common.UIAbilityContext;
-      let granted: boolean = await ClipboardUtil.requestReadPermission(context);
-      if (!granted) {
-        ToastUtil.show(this.getUIContext(), '未获得剪贴板读取权限', 1500);
-        return;
-      }
-      let systemPasteboard: pasteboard.SystemPasteboard = pasteboard.getSystemPasteboard();
-      let pasteData: pasteboard.PasteData = await systemPasteboard.getData();
-      if (pasteData.getPrimaryMimeType() === pasteboard.MIMETYPE_TEXT_PLAIN) {
-        let text: string = pasteData.getPrimaryText();
-        if (text) {
-          if (text.length > this.maxInputLength) {
-            text = text.substring(0, this.maxInputLength);
-            ToastUtil.show(this.getUIContext(), '已粘贴（超出 ' + this.maxInputLength.toString() + ' 字符部分已截断）', 2000);
-          } else {
-            ToastUtil.show(this.getUIContext(), '已粘贴', 1000);
-          }
-          this.inputText = text;
-        }
-      }
-    } catch (e) {
-      console.error('[Md2Png] paste failed: ' + (e as BusinessError).message);
-    }
   }
 
   private fillMarkdownExample(): void {

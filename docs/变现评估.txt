@@ -1,0 +1,4 @@
+Ads Kit简介-Ads Kit（广告服务）-应用服务 - 华为HarmonyOS开发者  https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/ads-introduction
+自动续期订阅说明-自动续期订阅商品购买-商品购买-IAP Kit（应用内支付服务）-应用服务 - 华为HarmonyOS开发者  https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/iap-subscription-functions
+IAP Kit简介-IAP Kit（应用内支付服务）-应用服务 - 华为HarmonyOS开发者  https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/iap-introduction
+商户服务-管理中心 - 华为HarmonyOS开发者  https://developer.huawei.com/consumer/cn/doc/start/merchant-service-0000001053025967

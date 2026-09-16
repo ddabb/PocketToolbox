@@ -1,5 +1,6 @@
 import { ReadingListStore, ReadingList, ReadingItem } from '../model/ReadingListModels';
 import { TtsController, TtsState } from '../common/utils/TtsUtil';
+import { ReadingAvSession } from '../common/utils/ReadingAvSession';
 import { promptAction } from '@kit.ArkUI';
 import { ToastUtil } from '../common/utils/ToastUtil';
 
@@ -33,12 +34,14 @@ struct ReadingPlayerContent {
   @State showItemMenu: boolean = false;
   @State menuItemId: string = '';
   private ttsController: TtsController = new TtsController();
+  private avSessionHelper: ReadingAvSession = new ReadingAvSession();
   private uiContext: UIContext = this.getUIContext();
 
   aboutToAppear(): void {
     this.loadList();
     this.ttsController.onStateChange((state: TtsState) => {
       this.ttsState = state;
+      this.avSessionHelper.setPlaying(state === 'speaking');
     });
     this.ttsController.onComplete(() => {
       this.playNext();
@@ -47,6 +50,7 @@ struct ReadingPlayerContent {
 
   aboutToDisappear(): void {
     this.ttsController.shutdown();
+    this.avSessionHelper.stop();
   }
 
   private loadList(): void {
@@ -87,6 +91,20 @@ struct ReadingPlayerContent {
     if (!item) {
       return;
     }
+    this.avSessionHelper.start(this.uiContext.getHostContext() as Context, item.title,
+      (): void => {
+        this.playCurrent();
+      },
+      (): void => {
+        this.ttsController.stop();
+      },
+      (): void => {
+        this.ttsController.stop();
+        this.playNext();
+      },
+      (): void => {
+        this.playPrev();
+      });
     let text: string = this.buildSpeakText(item);
     this.ttsController.speak(text).then((ok: boolean) => {
       if (!ok) {

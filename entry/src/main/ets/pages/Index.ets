@@ -16,6 +16,7 @@ import { DailyChallengePageBuilder } from './DailyChallengePage';
 import { AchievementPageBuilder } from './AchievementPage';
 import { WordCloudPageBuilder } from './WordCloudPage';
 import { SudokuSolverPageBuilder } from './SudokuSolverPage';
+import { GifMakerPageBuilder } from './GifMakerPage';
 import { GcdLcmPageBuilder } from './GcdLcmPage';
 import { PrimeFactorPageBuilder } from './PrimeFactorPage';
 import { PoetryViewModel } from '../viewmodel/PoetryViewModel';
@@ -30,6 +31,7 @@ import { ReadingListStore, ReadingList } from '../model/ReadingListModels';
 import { bundleManager } from '@kit.AbilityKit';
 import { ConverterCategory, UnitConverterData } from '../model/UnitModels';
 import { ToastUtil } from '../common/utils/ToastUtil';
+import { VibrateUtil } from '../common/utils/VibrateUtil';
 
 class ToolItem {
   id: string = '';
@@ -148,6 +150,7 @@ struct Index {
     this.creativeTools = [
       new ToolItem('word_cloud', '词云生成', '粘贴文本，30秒出图', '', '#8b5cf6', 'WordCloudPage'),
       new ToolItem('md2png', '文字转图片', 'Markdown文本生成图片', '', '#9b59b6', 'Md2PngPage'),
+      new ToolItem('gif_maker', 'GIF 制作', '图片/视频合成、编辑动图', '', '#ec4899', 'GifMakerPage'),
       new ToolItem('sudoku_solver', '数独求解', '拍照识别，DLX算法秒解', 'creative_sudoku', '#6366f1', 'SudokuSolverPage')
     ];
   }
@@ -206,6 +209,7 @@ struct Index {
     let ctx: Context = this.getUIContext().getHostContext() as Context;
     let ok: boolean = StickinessUtil.doCheckIn(ctx);
     if (ok) {
+      VibrateUtil.success();
       this.checkInData = StickinessUtil.loadCheckIn(ctx);
       this.checkedInToday = true;
       this.mineCheckInData = StickinessUtil.loadCheckIn(ctx);
@@ -375,6 +379,8 @@ struct Index {
       PrimeFactorPageBuilder()
     } else if (name === 'SudokuSolverPage') {
       SudokuSolverPageBuilder()
+    } else if (name === 'GifMakerPage') {
+      GifMakerPageBuilder()
     }
   }
 
@@ -901,6 +907,28 @@ struct Index {
             .onClick(() => {
               this.mineStack.pushPathByName('XiehouyuQueryPage', null);
             })
+
+            Divider()
+              .color($r('app.color.border_color'))
+              .margin({ left: 46 })
+
+            Row() {
+              Text('\u2139\uFE0F')
+                .fontSize(20)
+                .margin({ right: 10 })
+              Text('关于')
+                .fontSize(15)
+                .fontColor($r('app.color.primary_text'))
+                .layoutWeight(1)
+              Text('\u203A')
+                .fontSize(18)
+                .fontColor($r('app.color.hint_text'))
+            }
+            .width('100%')
+            .padding({ left: 16, right: 16, top: 14, bottom: 14 })
+            .onClick(() => {
+              this.mineStack.pushPathByName('AboutPage', null);
+            })
           }
           .width('100%')
           .backgroundColor($r('app.color.card_background'))
@@ -1033,6 +1061,9 @@ struct Index {
             .fontSize(12)
             .fontColor($r('app.color.hint_text'))
             .margin({ top: 24, bottom: 16 })
+            .onClick(() => {
+              this.mineStack.pushPathByName('AboutPage', null);
+            })
         }
         .width('100%')
       }

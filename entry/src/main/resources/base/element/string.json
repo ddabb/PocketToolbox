@@ -41,8 +41,16 @@
       "value": "用于获取诗词、成语等数据内容"
     },
     {
-      "name": "permission_read_pasteboard_reason",
-      "value": "用于粘贴文本内容"
+      "name": "permission_vibrate_reason",
+      "value": "用于签到、挑战完成等关键操作的振动反馈"
+    },
+    {
+      "name": "permission_reminder_reason",
+      "value": "用于每日签到提醒的通知推送"
+    },
+    {
+      "name": "permission_keep_background_reason",
+      "value": "用于朗读内容的后台连续播放"
     }
   ]
 }

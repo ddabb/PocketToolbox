@@ -1,11 +1,12 @@
 import { describe, it, expect, beforeAll } from '@ohos/hypium';
-import { recognizeSudokuFromBuffer, OCRResult, getOCRDebugInfo, OCRDebugInfo } from '../../../main/ets/core/sudoku/SudokuOCR';
+import { recognizeSudokuFromBuffer, recognizeSudokuFromImage, OCRResult, getOCRDebugInfo, OCRDebugInfo } from '../../../main/ets/core/sudoku/SudokuOCR';
 import { parseOCRToGrid, gridToString, solveSudoku, validateFullGrid, SolveResult } from '../../../main/ets/core/sudoku/SudokuEngine';
 import { initDigitTemplates } from '../../../main/ets/core/sudoku/SudokuPixel';
 import { g_lastComboSolverDiag } from '../../../main/ets/core/sudoku/SudokuOCRTypes';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { resourceManager } from '@kit.LocalizationKit';
 import { abilityDelegatorRegistry } from '@kit.TestKit';
+import { fileIo } from '@kit.CoreFileKit';
 
 const DOMAIN: number = 0xA03D00;
 const TAG: string = 'OCR_TEST';
@@ -258,6 +259,83 @@ function runPipelineTest(name: string, rawfile: string, done: Function): void {
   });
 }
 
+function runAppPathTest(name: string, rawfile: string, done: Function): void {
+  const delegator: abilityDelegatorRegistry.AbilityDelegator = abilityDelegatorRegistry.getAbilityDelegator();
+  const ctx: Context = delegator.getAppContext();
+  let buf: ArrayBuffer;
+  try {
+    buf = loadRawFileBuf(ctx, rawfile);
+    console.info(`[OCR_TEST] === app_path: ${name} buf=${buf.byteLength} ===`);
+    hilog.info(DOMAIN, TAG, `=== app_path: ${name} buf=${buf.byteLength} ===`);
+  } catch (e) {
+    console.info(`[OCR_TEST] ${name}: loadRawFile FAILED: ${e}`);
+    try {
+      expect(false).assertTrue();
+    } catch (_e) { /* swallow assertion error */ }
+    done();
+    return;
+  }
+
+  const tmpPath: string = ctx.cacheDir + '/ocr_apppath_' + name + '.jpg';
+  try {
+    const f: fileIo.File = fileIo.openSync(tmpPath, fileIo.OpenMode.READ_WRITE | fileIo.OpenMode.CREATE | fileIo.OpenMode.TRUNC);
+    fileIo.writeSync(f.fd, buf);
+    fileIo.closeSync(f);
+    console.info(`[OCR_TEST] ${name}: wrote temp image to ${tmpPath}`);
+  } catch (e) {
+    console.info(`[OCR_TEST] ${name}: write temp FAILED: ${e}`);
+    try {
+      expect(false).assertTrue();
+    } catch (_e) { /* swallow assertion error */ }
+    done();
+    return;
+  }
+
+  recognizeSudokuFromImage(tmpPath).then((ocrResult: OCRResult) => {
+    try {
+      const dbg0: OCRDebugInfo | null = getOCRDebugInfo();
+      if (dbg0 !== null) { dumpDebugCompact(dbg0, `${name}:APPPATH `); }
+      if (!ocrResult.success || !ocrResult.grid) {
+        console.info(`[OCR_TEST] ${name}: APPPATH FAIL OCR_FAILED err="${ocrResult.error}"`);
+        hilog.info(DOMAIN, TAG, `${name}: APPPATH FAIL OCR_FAILED err="${ocrResult.error}"`);
+        try {
+          expect(ocrResult.success).assertTrue();
+        } catch (_e) { /* swallow */ }
+        done();
+        return;
+      }
+      const mr: MatchResult = computeMatch(ocrResult.grid, EXPECTED);
+      if (mr.givenAcc >= 1.0 && mr.falsePos === 0) {
+        console.info(`[OCR_TEST] ${name}: APPPATH PASS given:100% full:${(mr.fullAcc * 100).toFixed(0)}%`);
+        hilog.info(DOMAIN, TAG, `${name}: APPPATH PASS given:100% full:${(mr.fullAcc * 100).toFixed(0)}%`);
+      } else {
+        console.info(`[OCR_TEST] ${name}: APPPATH FAIL given:${(mr.givenAcc * 100).toFixed(0)}% full:${(mr.fullAcc * 100).toFixed(0)}% fp:${mr.falsePos} fn:${mr.falseNeg} diff=${mr.diffDetail}`);
+        hilog.info(DOMAIN, TAG, `${name}:\n${gridToAscii(ocrResult.grid)}`);
+        hilog.info(DOMAIN, TAG, `${name}: APPPATH FAIL given:${(mr.givenAcc * 100).toFixed(0)}% full:${(mr.fullAcc * 100).toFixed(0)}% fp:${mr.falsePos} fn:${mr.falseNeg} diff=${mr.diffDetail}`);
+        {
+          const gotStr: string = gridToAscii(ocrResult.grid);
+          const expStr: string = gridToAscii(EXPECTED);
+          hilog.info(DOMAIN, TAG, `${name}: got=\n${gotStr}expect=\n${expStr}`);
+          expect(gotStr).assertEqual(expStr);
+        }
+      }
+    } catch (innerErr) {
+      console.info(`[OCR_TEST] ${name}: APPPATH FAIL unexpected: ${innerErr}`);
+      try {
+        expect(false).assertTrue();
+      } catch (_e) { /* swallow */ }
+    }
+    done();
+  }).catch((err: Object) => {
+    console.info(`[OCR_TEST] ${name}: APPPATH FAIL exception: ${err}`);
+    hilog.error(DOMAIN, TAG, `${name}: APPPATH FAIL exception: ${err}`);
+    try {
+      expect(false).assertTrue();
+    } catch (_e) { /* swallow */ }
+    done();
+  });
+}
+
 export default function sudokuOcrTest() {
   describe('SudokuOCR_pipeline_full', () => {
     beforeAll(() => {
@@ -355,6 +433,9 @@ export default function sudokuOcrTest() {
     });
     it('pipeline_photos', 120000, (done: Function) => {
       runPipelineTest('photos', 'sudoku_test_images/photos.jpg', done);
+    });
+    it('pipeline_photos_app_path', 120000, (done: Function) => {
+      runAppPathTest('photos', 'sudoku_test_images/photos.jpg', done);
     });
   });
 

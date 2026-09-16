@@ -1,81 +1,83 @@
 {
-  "app": {
-    "signingConfigs": [
+  app: {
+    signingConfigs: [
       {
-        "name": "release",
-        "type": "HarmonyOS",
-        "material": {
-          "storeFile": "D:/keystore/toolbox.p12",
-          "storePassword": "0000001891DD17D359390814ACEBC3D3E069AA719C4E88F62D29AF0A054A300F353CEF40CD63423F",
-          "keyAlias": "toolbox",
-          "keyPassword": "0000001863BB2BA579ADF145AB1E2F018CFC3778C5E769F4D570F640AE501B5BC51F3F8ECD303C45",
-          "signAlg": "SHA256withECDSA",
-          "profile": "D:/keystore/Release .p7b",
-          "certpath": "D:/keystore/发布证书.cer"
-        }
+        name: 'release',
+        type: 'HarmonyOS',
+        material: {
+          storeFile: 'D:/keystore/toolbox.p12',
+          storePassword: '0000001891DD17D359390814ACEBC3D3E069AA719C4E88F62D29AF0A054A300F353CEF40CD63423F',
+          keyAlias: 'toolbox',
+          keyPassword: '0000001863BB2BA579ADF145AB1E2F018CFC3778C5E769F4D570F640AE501B5BC51F3F8ECD303C45',
+          signAlg: 'SHA256withECDSA',
+          profile: 'D:/keystore/Release .p7b',
+          certpath: 'D:/keystore/发布证书.cer',
+        },
       },
       {
-        "name": "debug",
-        "type": "HarmonyOS",
-        "material": {
-          "storeFile": "D:/keystore/debug.p12",
-          "storePassword": "00000018007A20EFD49DDEC56936DE8AABA286A8D8486707873CF73D51606707B791B8FA60A21B11",
-          "keyAlias": "debug",
-          "keyPassword": "0000001813D20CB87A92A23A5B8A96CB4F5576C3F72835F3B0330C41EB69B99577D53A4044B5FE74",
-          "signAlg": "SHA256withECDSA",
-          "profile": "D:/keystore/调试证书Debug.p7b",
-          "certpath": "D:/keystore/调试证书.cer"
-        }
-      }
+        name: 'debug',
+        type: 'HarmonyOS',
+        material: {
+          storeFile: 'D:/keystore/debug.p12',
+          storePassword: '00000018007A20EFD49DDEC56936DE8AABA286A8D8486707873CF73D51606707B791B8FA60A21B11',
+          keyAlias: 'debug',
+          keyPassword: '0000001813D20CB87A92A23A5B8A96CB4F5576C3F72835F3B0330C41EB69B99577D53A4044B5FE74',
+          signAlg: 'SHA256withECDSA',
+          profile: 'D:/keystore/调试证书Debug.p7b',
+          certpath: 'D:/keystore/调试证书.cer',
+        },
+      },
     ],
-    "products": [
+    products: [
       {
-        "name": "default",
-        "signingConfig": "debug",
-        "targetSdkVersion": "5.1.0(18)",
-        "compatibleSdkVersion": "5.1.0(18)",
-        "runtimeOS": "HarmonyOS",
-        "buildOption": {
-          "strictMode": {
-            "caseSensitiveCheck": true,
-            "useNormalizedOHMUrl": true
-          }
-        }
-      },      {
-        "name": "release",
-        "signingConfig": "release",
-        "targetSdkVersion": "5.1.0(18)",
-        "compatibleSdkVersion": "5.1.0(18)",
-        "runtimeOS": "HarmonyOS",
-        "buildOption": {
-          "strictMode": {
-            "caseSensitiveCheck": true,
-            "useNormalizedOHMUrl": true
-          }
-        }
-      }
-    ],
-    "buildModeSet": [
-      {
-        "name": "debug",
+        name: 'default',
+        signingConfig: 'debug',
+        targetSdkVersion: '5.1.0(18)',
+        compatibleSdkVersion: '5.1.0(18)',
+        runtimeOS: 'HarmonyOS',
+        buildOption: {
+          strictMode: {
+            caseSensitiveCheck: true,
+            useNormalizedOHMUrl: true,
+          },
+        },
       },
       {
-        "name": "release"
-      }
-    ]
+        name: 'release',
+        signingConfig: 'release',
+        targetSdkVersion: '5.1.0(18)',
+        compatibleSdkVersion: '5.1.0(18)',
+        runtimeOS: 'HarmonyOS',
+        buildOption: {
+          strictMode: {
+            caseSensitiveCheck: true,
+            useNormalizedOHMUrl: true,
+          },
+        },
+      },
+    ],
+    buildModeSet: [
+      {
+        name: 'debug',
+      },
+      {
+        name: 'release',
+      },
+    ],
   },
-  "modules": [
+  modules: [
     {
-      "name": "entry",
-      "srcPath": "./entry",
-      "targets": [
+      name: 'entry',
+      srcPath: './entry',
+      targets: [
         {
-          "name": "default",
-          "applyToProducts": [
-            "default", "release"
-          ]
-        }
-      ]
-    }
-  ]
+          name: 'default',
+          applyToProducts: [
+            'default',
+            'release',
+          ],
+        },
+      ],
+    },
+  ],
 }

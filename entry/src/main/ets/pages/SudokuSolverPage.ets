@@ -14,6 +14,7 @@ import {
   recognizeSudokuFromImage, OCRResult, getOCRDebugInfo, OCRDebugInfo, OCRDebugStep
 } from '../core/sudoku/SudokuOCR';
 import { initDigitTemplates } from '../core/sudoku/SudokuPixel';
+import { VibrateUtil } from '../common/utils/VibrateUtil';
 
 const SIZE: number = 9;
 const EMPTY: number = 0;
@@ -220,11 +221,13 @@ struct SudokuSolverPage {
     const result: SolveResult = solveSudoku(this.currentGrid);
 
     if (!result.success && result.solutionCount === -1) {
+      VibrateUtil.error();
       this.showMessage('当前棋盘存在冲突，请检查输入', 2);
       return;
     }
 
     if (result.success) {
+      VibrateUtil.success();
       for (let i: number = 0; i < 81; i++) {
         if (this.currentGrid[i] !== EMPTY) {
           this.fixedCells[i] = true;
@@ -239,6 +242,7 @@ struct SudokuSolverPage {
         this.showMessage('求解完成（提示：该题目有多个解）', 0);
       }
     } else {
+      VibrateUtil.error();
       this.showMessage('该数独无解，请检查输入是否正确', 2);
     }
   }

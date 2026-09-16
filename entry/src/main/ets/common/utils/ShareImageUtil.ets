@@ -192,3 +192,27 @@ export function shareImageViaPanel(uiContext: UIContext, cachePath: string): voi
     ToastUtil.show(uiContext, '分享失败', 2000);
   }
 }
+
+export function shareGifViaPanel(uiContext: UIContext, cachePath: string): void {
+  try {
+    let context: common.UIAbilityContext = uiContext.getHostContext() as common.UIAbilityContext;
+    let fileUriStr: string = fileUri.getUriFromPath(cachePath);
+    let utdTypeId: string = utd.getUniformDataTypeByFilenameExtension('.gif', utd.UniformDataType.IMAGE);
+    let shareData: systemShare.SharedData = new systemShare.SharedData({
+      utd: utdTypeId,
+      uri: fileUriStr,
+    });
+    let controller: systemShare.ShareController = new systemShare.ShareController(shareData);
+    controller.on('dismiss', () => {
+      console.info('[ShareUtil] gif share panel closed');
+    });
+    controller.show(context, {
+      previewMode: systemShare.SharePreviewMode.DETAIL,
+      selectionMode: systemShare.SelectionMode.SINGLE,
+    });
+  } catch (e) {
+    let err: BusinessError = e as BusinessError;
+    console.error('[ShareUtil] shareGifViaPanel failed: ' + err.code + ' ' + err.message);
+    ToastUtil.show(uiContext, '分享失败', 2000);
+  }
+}

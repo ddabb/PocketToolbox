@@ -1,5 +1,6 @@
 import { ChallengeQuestion, DailyChallengeUtil } from '../common/utils/DailyChallengeUtil';
 import { StickinessUtil, ChallengeProgress } from '../common/utils/StickinessUtil';
+import { VibrateUtil } from '../common/utils/VibrateUtil';
 
 @Builder
 export function DailyChallengePageBuilder() {
@@ -48,6 +49,9 @@ struct DailyChallengeContent {
     let correct: boolean = optIdx === this.questions[this.currentIdx].answerIndex;
     if (correct) {
       this.score = this.score + 20;
+      VibrateUtil.tap();
+    } else {
+      VibrateUtil.error();
     }
   }
 
@@ -58,6 +62,7 @@ struct DailyChallengeContent {
       this.currentIdx = this.currentIdx + 1;
     } else {
       this.finished = true;
+      VibrateUtil.success();
       let ctx: Context = this.uiContext.getHostContext() as Context;
       StickinessUtil.completeChallenge(ctx, this.score);
       this.progress = StickinessUtil.loadChallengeProgress(ctx);

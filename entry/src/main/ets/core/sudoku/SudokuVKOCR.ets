@@ -689,7 +689,12 @@ export async function tryVisionKitRecognition(imagePath: string, imageBuf: Array
     setVkInited(false);
     setVkFailed(true);
     hilog.error(DOMAIN, TAG, 'VK exception: %{public}s, setting g_vkFailed=true', `${_e}`);
-    textRecognition.release().catch((_ee: Object) => { /* ignore */ });
+    console.error(`[SudokuOCR] VK exception: ${_e}`);
+    try {
+      textRecognition.release().catch((_ee: Object) => { /* ignore */ });
+    } catch (_relErr) {
+      console.error(`[SudokuOCR] VK release failed: ${_relErr}`);
+    }
     const excRet: OCRResult = {
       success: false, grid: null, rawText: '',
       error: 'VisionKit unavailable',

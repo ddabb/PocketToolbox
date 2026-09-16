@@ -126,12 +126,13 @@ export async function recognizeSudokuFromBuffer(buf: ArrayBuffer, pixelOnly: boo
     return pixelResult;
   } catch (_err) {
     hilog.error(DOMAIN, TAG, '异常: %{public}s', `${_err}`);
-    hilog.error(DOMAIN, TAG, '异常: %{public}s', `${_err}`);
+    console.error(`[SudokuOCR] 异常(buffer): ${_err}`);
     return { success: false, grid: null, rawText: '', error: '图片处理异常，请尝试手动输入', confidence: null, debugInfo: null };
   }
 }
 
 export async function recognizeSudokuFromImage(imagePath: string): Promise<OCRResult> {
+  const pipelineStart: number = Date.now();
   setDebugInfo(null);
   setFittedBoardL(-1);
   setFittedBoardT(-1);
@@ -143,7 +144,14 @@ export async function recognizeSudokuFromImage(imagePath: string): Promise<OCRRe
     hilog.info(DOMAIN, TAG, '=== 识别调试信息 ===');
     hilog.info(DOMAIN, TAG, '【流水线】VisionKit+修正 (首次尝试)');
     steps.push({ step: '1. VisionKit识别', detail: '开始' });
-    const visionResult: OCRResult = await tryVisionKitRecognition(imagePath);
+    let visionResult: OCRResult;
+    try {
+      visionResult = await tryVisionKitRecognition(imagePath);
+    } catch (vkErr) {
+      console.error(`[SudokuOCR] VK阶段异常(降级为失败): ${vkErr}`);
+      hilog.error(DOMAIN, TAG, 'VK阶段异常: %{public}s', `${vkErr}`);
+      visionResult = { success: false, grid: null, rawText: '', error: 'VisionKit exception', confidence: null, debugInfo: null };
+    }
     hilog.info(DOMAIN, TAG, '【步骤详情】VisionKit识别 success=%{public}d error=%{public}s', visionResult.success ? 1 : 0, visionResult.error);
     if (visionResult.success && visionResult.grid) {
       const vkGrid: number[] = [...visionResult.grid];
@@ -169,6 +177,30 @@ export async function recognizeSudokuFromImage(imagePath: string): Promise<OCRRe
     steps.push({ step: '2. VisionKit失败', detail: visionResult.error });
     hilog.info(DOMAIN, TAG, '【步骤详情】VisionKit失败，转像素分析');
     const pixelResult: OCRResult = await tryPixelGridRecognition(imagePath);
+    const pixelDigits: number = pixelResult.grid !== null ? pixelResult.grid.filter((d: number) => d > 0).length : 0;
+    if (pixelResult.success && pixelResult.grid && pixelDigits > 0) {
+      steps.push({ step: '3. 像素分析结果', detail: `成功, ${pixelDigits}个数字` });
+      const pixelGrid: number[] = [...pixelResult.grid];
+      const corrected: OCRResult = await fixAndFillGrid(pixelResult, imagePath);
+      hilog.info(DOMAIN, TAG, '<<< fixAndFillGrid success=%{public}d elapsed=%{public}dms',
+        corrected.success ? 1 : 0, Date.now() - pipelineStart);
+      setDebugInfo(buildDebugInfo(
+        '像素分析+修正',
+        steps,
+        g_lastDebugBbox,
+        g_lastDebugResize,
+        0,
+        pixelGrid,
+        null,
+        corrected.grid,
+        g_lastDebugConflicts,
+        g_lastDebugLowConf,
+        g_lastDebugEmpty,
+        g_lastDebugFixCount,
+        corrected.confidence
+      ));
+      return corrected;
+    }
     setDebugInfo(buildDebugInfo(
       '像素分析',
       steps,
@@ -187,6 +219,7 @@ export async function recognizeSudokuFromImage(imagePath: string): Promise<OCRRe
     return pixelResult;
   } catch (_err) {
     hilog.error(DOMAIN, TAG, '异常: %{public}s', `${_err}`);
+    console.error(`[SudokuOCR] 异常(image path=${imagePath}): ${_err}`);
     return { success: false, grid: null, rawText: '', error: '图片处理异常，请尝试手动输入', confidence: null, debugInfo: null };
   }
 }

@@ -5,6 +5,10 @@ import { ErrorState } from '../components/ErrorState';
 import { preferences } from '@kit.ArkData';
 import { FavoritesUtil } from '../common/utils/FavoritesUtil';
 import { ToastUtil } from '../common/utils/ToastUtil';
+import { OcrUtil } from '../common/utils/OcrUtil';
+import { photoAccessHelper } from '@kit.MediaLibraryKit';
+import { image } from '@kit.ImageKit';
+import { fileIo } from '@kit.CoreFileKit';
 
 @Builder
 export function PoetryQueryPageBuilder(param?: Object) {
@@ -31,6 +35,9 @@ struct PoetryQueryContent {
   @State isSearching: boolean = false;
   @State searchHistory: string[] = [];
   @State loadingMore: boolean = false;
+  @State ocrSheetVisible: boolean = false;
+  @State ocrLines: string[] = [];
+  @State ocrLoading: boolean = false;
   initialDynasty: string = '';
   private viewModel: PoetryViewModel = PoetryViewModel.getInstance();
   private uiContext: UIContext = this.getUIContext();
@@ -168,6 +175,67 @@ struct PoetryQueryContent {
     this.refreshContent();
   }
 
+  private async onOcrPick(): Promise<void> {
+    if (this.ocrLoading) {
+      return;
+    }
+    try {
+      let selectOptions: photoAccessHelper.PhotoSelectOptions = new photoAccessHelper.PhotoSelectOptions();
+      selectOptions.MIMEType = photoAccessHelper.PhotoViewMIMETypes.IMAGE_TYPE;
+      selectOptions.maxSelectNumber = 1;
+      let picker: photoAccessHelper.PhotoViewPicker = new photoAccessHelper.PhotoViewPicker();
+      let result: photoAccessHelper.PhotoSelectResult = await picker.select(selectOptions);
+      if (result.photoUris.length === 0) {
+        return;
+      }
+      await this.runOcr(result.photoUris[0]);
+    } catch (e) {
+      console.info('[PoetryQuery] ocr pick cancelled');
+    }
+  }
+
+  private async runOcr(uri: string): Promise<void> {
+    this.ocrLoading = true;
+    let pixelMap: image.PixelMap | null = null;
+    let source: image.ImageSource | null = null;
+    let file: fileIo.File | null = null;
+    try {
+      file = fileIo.openSync(uri, fileIo.OpenMode.READ_ONLY);
+      source = image.createImageSource(file.fd);
+      pixelMap = await source.createPixelMap();
+      let lines: string[] = await OcrUtil.recognizeLines(pixelMap);
+      if (lines.length === 0) {
+        ToastUtil.show(this.uiContext, '未识别到文本', 1500);
+      } else {
+        this.ocrLines = lines;
+        this.ocrSheetVisible = true;
+      }
+    } catch (e) {
+      console.error('[PoetryQuery] ocr failed: ' + (e as Error).message);
+      ToastUtil.show(this.uiContext, '识别失败，请重试', 1500);
+    } finally {
+      if (pixelMap) {
+        pixelMap.release();
+      }
+      if (source) {
+        source.release();
+      }
+      if (file) {
+        try {
+          fileIo.closeSync(file);
+        } catch (e2) {
+        }
+      }
+      this.ocrLoading = false;
+    }
+  }
+
+  private onOcrLineTap(line: string): void {
+    this.ocrSheetVisible = false;
+    this.searchText = line;
+    this.onSearchSubmit();
+  }
+
   private onPoetTap(poet: PoetItem): void {
     console.info('[PoetryQuery] tap poet=' + poet.n + ', dynasty=' + poet.d + ', initial=' + poet.i);
     let detail: PoetDetail = this.viewModel.loadPoetDetail(
@@ -217,17 +285,93 @@ struct PoetryQueryContent {
   }
 
   build() {
-    Column() {
-      this.SearchBar()
-      if (!this.isSearching && this.searchHistory.length > 0) {
-        this.HistorySection()
+    Stack() {
+      Column() {
+        this.SearchBar()
+        if (!this.isSearching && this.searchHistory.length > 0) {
+          this.HistorySection()
+        }
+        this.DynastyTabs()
+        this.ContentArea()
       }
-      this.DynastyTabs()
-      this.ContentArea()
+      .width('100%')
+      .height('100%')
+      .backgroundColor($r('app.color.page_background'))
+
+      if (this.ocrSheetVisible) {
+        this.OcrSheetOverlay()
+      }
     }
     .width('100%')
     .height('100%')
-    .backgroundColor($r('app.color.page_background'))
+  }
+
+  @Builder
+  OcrSheetOverlay() {
+    Column() {
+      Blank()
+
+      Column() {
+        Row() {
+          Text('\uD83D\uDCF7')
+            .fontSize(16)
+            .margin({ right: 6 })
+          Text('识诗结果 · 点击一行搜索')
+            .fontSize(15)
+            .fontWeight(FontWeight.Medium)
+            .fontColor($r('app.color.primary_text'))
+            .layoutWeight(1)
+          Text('\u2715')
+            .fontSize(14)
+            .fontColor($r('app.color.tertiary_text'))
+            .width(28)
+            .height(28)
+            .textAlign(TextAlign.Center)
+            .onClick(() => {
+              this.ocrSheetVisible = false;
+            })
+        }
+        .width('100%')
+        .padding({ left: 16, right: 16, top: 14, bottom: 10 })
+
+        Divider().color($r('app.color.border_color'))
+
+        Scroll() {
+          Column() {
+            ForEach(this.ocrLines, (line: string) => {
+              Text(line)
+                .fontSize(14)
+                .fontColor($r('app.color.primary_text'))
+                .maxLines(2)
+                .textOverflow({ overflow: TextOverflow.Ellipsis })
+                .width('100%')
+                .padding({ left: 16, right: 16, top: 12, bottom: 12 })
+                .onClick(() => {
+                  this.onOcrLineTap(line);
+                })
+              if (this.ocrLines.indexOf(line) < this.ocrLines.length - 1) {
+                Divider().color($r('app.color.border_color')).margin({ left: 16 })
+              }
+            }, (line: string) => line)
+          }
+          .width('100%')
+        }
+        .scrollable(ScrollDirection.Vertical)
+        .constraintSize({ maxHeight: 360 })
+        .width('100%')
+        .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
+      }
+      .width('100%')
+      .backgroundColor($r('app.color.card_background'))
+      .borderRadius({ topLeft: 20, topRight: 20 })
+      .clip(true)
+    }
+    .width('100%')
+    .height('100%')
+    .backgroundColor('#99000000')
+    .onClick(() => {
+      this.ocrSheetVisible = false;
+    })
   }
 
   @Builder
@@ -285,6 +429,27 @@ struct PoetryQueryContent {
           .margin({ left: -32 })
           .onClick(() => {
             this.clearSearch();
+          })
+      }
+
+      if (this.ocrLoading) {
+        LoadingProgress()
+          .width(22)
+          .height(22)
+          .margin({ left: 10 })
+          .color($r('app.color.poetry_green'))
+      } else {
+        Text('\uD83D\uDCF7')
+          .fontSize(16)
+          .fontColor($r('app.color.poetry_green'))
+          .width(32)
+          .height(32)
+          .textAlign(TextAlign.Center)
+          .backgroundColor($r('app.color.poetry_green') + '18')
+          .borderRadius(16)
+          .margin({ left: 10 })
+          .onClick(() => {
+            this.onOcrPick();
           })
       }
 

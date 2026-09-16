@@ -4,14 +4,18 @@
 |---------|------|
 | 所属应用 | 口袋工具箱（PocketToolbox） |
 | 功能入口 | 首页 - 工具 - 创意工具分类 |
-| 文档版本 | v1.1（对标竞品补充稿） |
-| 编写日期 | 2026-09-11 |
+| 文档版本 | v1.5（第四阶段交付更新） |
+| 编写日期 | 2026-09-12 |
 | 目标环境 | HarmonyOS 6.1.0 及以上，API 6.1.1 (24)，中文环境 |
 
 | 版本 | 变更说明 |
 |------|---------|
 | v1.0 | 初稿：图片合成 GIF 基础需求 |
 | v1.1 | 对标已上线竞品，补充视频转 GIF、GIF 编辑、播放模式（倒放/来回）、贴纸文字、制作历史管理；新增测试策略（TDD）章节 |
+| v1.2 | 新增第 11 章实施进度：编码器核心（第一阶段）与图片合成链路（第二阶段）已交付，记录修复项与已知限制 |
+| v1.3 | 第二阶段补齐 F14 拖拽排序、F16 单帧旋转、F42 单帧时长覆盖；新增 composeFramePixels 贴图纯函数及测试 |
+| v1.4 | 第三阶段交付：GIF89a 解析器（TDD）+ 编辑 GIF（F30~F33）、视频转 GIF（F20~F24）；修复解析器 LZW KwKwK 解码缺陷 |
+| v1.5 | 第四阶段交付：贴纸与文字（F70~F75，叠加层模型/渲染器/预览画布盒 WYSIWYG/拖拽捏合手势/导出光栅化）+ 制作历史（F100~F104，沙箱存储/列表管理/占用与清空）；预览重构为顶左对齐画布盒 |
 
 ---
 
@@ -295,3 +299,70 @@
 | 第五阶段 | 性能优化（TaskPool、下采样）、P1 收尾、验收测试 |
 
 > TDD 与 UI 汇合点：第一阶段测试集在第二阶段集成时持续回归，UI 层按第 9 节验收清单驱动，两线在第五阶段汇合验收。
+
+---
+
+## 11. 实施进度
+
+### 11.1 第一阶段：编码器核心（已完成）
+
+- `entry/src/main/ets/core/gif/GifEncoder.ets`：纯 ArkTS GIF89a 编码器（无 UI / 无 @ohos 依赖，可在本地单测环境运行）。
+  - 15-bit 分桶直方图 + 中位切分量化（桶内保留精确色均值，平坦色内容可无损映射）；
+  - Floyd-Steinberg 抖动（可选，共享 15-bit 近邻缓存）；
+  - GIF LZW 压缩（码宽增长采用 giflib 约定：nextCode 达到 `2^codeSize + 1` 时加宽，与事实标准解码器同步；字典 4095 满时发 Clear 重置）；
+  - GIF89a 头/逻辑屏幕描述符/全局调色板/Netscape 循环块（播放 1 次不写块；N 次写值 N-1）/图形控制扩展/子块切分。
+- `entry/src/test/GifEncoder.test.ets`：hypium 测试套（含独立 LZW 解码器回环、结构断言、字典重置/随机数据回环），已注册进 `List.test.ets`。
+- 性能：480×360×8 帧全渐变最坏情况 Node 实测约 180ms（优化前 8.2s，量化改计数数组 + 共享近邻缓存后 45× 提速）。
+- 修复记录：编码器码宽增长时机错误（早一个条目，跨 512/1024 边界失步）、测试解码器漏 `prev = code` 更新。
+
+### 11.2 第二阶段：图片合成链路（已完成）
+
+- `entry/src/main/ets/pages/GifMakerPage.ets`：模式选择（图片合成可用；视频转 GIF / 编辑 GIF 显示"敬请期待"）、选图 2~30 张、帧缩略图列表（点选后左移/右移/倒序/删除）、参数区（帧时长 Slider+输入 0.05~2.0s、倍速 0.25x~4x、正放/倒放/来回、循环 无限/1/3/5/10 次、尺寸 原始/480P/720P、画质 标准/高清）、定时器预览（播放/暂停、帧计数、输出尺寸提示）、导出（主线程解码 + taskpool 编码、进度与取消、预计超 30MB 二次确认）、结果页（预览/大小/帧数/保存到相库 showAssetsCreationDialog/系统分享）。
+- `entry/src/main/ets/core/gif/GifExportTask.ets`：@Concurrent 编码任务（白底画布对齐、保持宽高比），支持取消。
+- `entry/src/main/ets/common/utils/ShareImageUtil.ets`：新增 `shareGifViaPanel`（按 .gif 扩展名解析 UTD 类型）。
+- 入口注册：`Index.ets` 新增路由 `GifMakerPage` 与"创意工具"卡片（GIF 制作）。
+- 已覆盖需求：F01~F03、F10~F16（F14 长按拖拽排序 + 左移/右移按钮双通道；F16 单帧 90° 旋转）、F40~F43（F42 单帧时长覆盖，留空跟随全局）、F50~F53、F60~F63、F80~F82、F90~F95；深色模式复用全局色彩资源。
+- 单帧旋转/单帧时长为第二阶段补充交付：旋转贴图提取为 `composeFramePixels` 纯函数（含 90/180/270 像素级映射测试），预览定时器改为逐帧 setTimeout 以支持单帧间隔。
+
+### 11.3 第三阶段：GIF 解析 / 视频抽帧（已完成）
+
+- `entry/src/main/ets/core/gif/GifParser.ets`：纯 ArkTS GIF89a 解析器（无 UI / 无 @ohos 依赖）。
+  - 文件头/逻辑屏幕/全局调色板、GCE 帧延迟与透明索引、Netscape 循环次数（值 0 → 无限，N → N 次，无块 → 1 次）、局部调色板、隔行帧 4 趟反交织、LZW 解码（Int32Array 栈/前缀/后缀表，码宽在 nextCode 达到 2^codeSize 时加宽，与编码器约定配套）、逐帧合成到白底不透明画布（disposal 2 清白 / disposal 3 还原上一画布）、损坏文件抛 Error 不崩溃；
+  - 附带 `resizeRgba`（双线性缩放，恒等尺寸短路）与 `swapBgraRgba`（视频帧 BGRA → RGBA）；
+  - 修复记录：LZW KwKwK 情形首次实现漏补"prev 展开后追加首字节"，由透明+disposal 组合用例暴露（`lzwEncode([0,0,0,0], 2)` 产生 KwKwK 码），修正后与参考解码器行为一致。
+- `entry/src/test/GifParser.test.ets`：hypium 测试套 15 例（手工拼字节最小 GIF、透明+disposal2、隔行反交织、编码器输出回环含循环次数/延迟/像素、损坏输入拒绝、缩放/通道交换），已注册进 `List.test.ets`；本地 Node harness 45/45 通过（编码器 30 + 解析器 15）。
+- `GifMakerPage.ets` 集成：
+  - **编辑 GIF（F30~F33）**：选择器取单文件 → 读字节校验 `GIF8` 头 → `parseGif` 拆帧（帧数 >30 保留前 30 并提示；<2 拒绝）→ 长边 >720 双线性下采样 → 逐帧建 RGBA PixelMap（`image.createPixelMap` + srcPixelFormat RGBA_8888）→ 帧时长按 delayCs×10ms 带入单帧时长（50~2000ms 内取 50ms 档，0/非法回退全局）、循环次数映射到 无限/1/3/5/10 档位 → 进入与图片合成一致的编辑流程；解析失败 Toast 明确提示；导入过程复用导出遮罩可取消。
+  - **视频转 GIF（F20~F24）**：选择器取视频 → `AVMetadataExtractor`（fdSrc）读时长 → 抓取缩略图 → 进入视频配置视图（缩略图、起始时间/截取时长 Slider，片段 ≤15s，起始+时长自动钳制在视频范围内、帧率 5/10/15/24fps 默认 10、预计帧数上限 30）→ `AVImageGenerator`（fdSrc）`fetchFrameByTime` 均匀抽帧（首帧探测尺寸，长边 >720 传 PixelMapParams 下采样；时间点钳制在时长内），帧格式 RGBA_8888 直用、BGRA_8888 经 `swapBgraRgba` 转换、其余报错；抽帧进度复用导出遮罩、逐帧可取消；完成后帧时长=1000/fps 取 50ms 档进入编辑流程。
+  - 像素帧与 URI 帧混用：`GifFrameItem.pixelMap`（可空）+ `frameSrc` 联合类型供 Image 显示；导出 `decodeFramePixels` 对像素帧走 readPixels（含 stride 行对齐处理）+ `resizeRgba` 降档，不重复解码；删除帧/重置编辑器/页面销毁时释放 PixelMap。
+
+### 11.4 第四阶段：贴纸与文字 / 制作历史（已完成）
+
+- **贴纸与文字（F70~F75）**：
+  - `entry/src/main/ets/core/gif/GifOverlayModel.ets`：叠加层纯模型（无 @ohos 依赖，可本地单测）。`OverlayItem`（kind 'text'|'sticker'、text、color '#RRGGBB'、fontPx 相对 480px 基准高度 12~72（文字）/12~160（贴纸）、x/y 归一化画布中心 0~1、rotation 度、稳定 id）；`overlayColorToArgb`（#RGB/#RRGGBB → 0xAARRGGBB，非法回退白）、`clampOverlayFont`/`clampOverlayPos`/`normalizeOverlayRotation`/`overlayFontPx`（按画布高度等比换算，WYSIWYG）。
+  - `entry/src/main/ets/core/gif/GifOverlayRenderer.ets`：`renderOverlaysIntoPixels` 用 `@ohos.graphics.drawing`（`new drawing.Canvas(pixelMap)` + `Font.setSize`/`TextBlob.makeFromString`/`Brush.setColor` + translate/rotate + drawTextBlob，基线偏移 (ascent+descent)/2 垂直居中）把叠加层光栅化到整帧 RGBA，stride 感知读回紧凑像素。
+  - `GifMakerPage.ets`：
+    - 预览重构为"画布盒"：白底盒按输出画布宽高比适配 (可用宽, 220)，帧按导出几何**顶左对齐**置于盒内（`frameBoxInPreview` 与 `composeFramePixels` 同一套缩放/旋转映射），叠加层按归一化坐标锚定盒中心，所见即所得；
+    - 叠加层组件 `OverlayAnchorView`（@ObjectLink ObservedOverlayItem + @Link boxW/boxH/selectedOverlayId）：单指拖动改 x/y（钳制 0~1）、双指捏合改字号与旋转，手势直接改 @ObjectLink 触发自刷新，组件按稳定 id 键值复用不被 ForEach 重建打断；点空白取消选中；手势结束回调刷新页面级编辑面板；
+    - 贴纸与文字面板：文字输入+添加、贴纸 emoji 网格（表情/装饰/气泡 三类共 36 个，点击添加于画布中心轻微错位）、已添加 chips 列表（点选/高亮）、选中编辑器（内容编辑、12 色预设色板 + #RRGGBB 自定义、字号 Slider、±15° 旋转微调、删除）；
+    - 导出：有叠加层时主线程逐帧 decode → `composeFramePixels` → `renderOverlaysIntoPixels`，以画布尺寸像素传入 taskpool（frameRotations 置 0 跳过二次合成），叠加层作用于全部帧（F74）。
+  - `entry/src/test/GifOverlayModel.test.ets`：hypium 测试套 9 例（颜色解析/回退、字号与坐标钳制、角度归一化、字号换算、字段构造），已注册进 `List.test.ets`；本地 Node harness 64/64 通过（编码器 30 + 解析器 15 + 叠加层模型 19）。
+- **制作历史（F100~F104）**：
+  - `entry/src/main/ets/core/gif/GifHistoryStore.ets`：沙箱 `filesDir/gif_history/` 成品文件 + 单一 `index.json` 索引；记录含 id/fileName/sizeBytes/exportedAt/宽高/帧数/参数摘要，最新在前，上限 50 条 FIFO 淘汰（同步删除文件）；loadRecords（util.TextDecoder UTF-8）/saveRecord（copyFileSync）/deleteRecord/clearAll/totalBytes/recordCount，异常吞掉返回空并打日志。
+  - `GifMakerPage.ets`：导出成功自动记录（F100，含 `480P · 0.50s/帧 · 1x · 正放 · 无限 · 高清` 参数摘要）；模式页新增"制作历史"入口卡片（条数+占用）；历史视图（F101/F102）：记录卡片（GIF 缩略图动图预览、宽高/帧数/大小/参数/时间）、预览大图视图、保存到相册、系统分享、单条删除（确认弹窗，F103 的批量删除/再编辑为 P2 不做）、头部占用空间 + 清空全部（确认弹窗）。
+  - `AboutPage.ets`：新增"GIF 制作历史"行（条数 + 占用空间 + 清空入口，F104），清空带确认弹窗。
+
+### 11.5 待实施（后续阶段）
+
+> 全部 P0/P1 需求（F01~F104 范围内）已交付；剩余为 P2 远期项（见 §3.12：批量删除历史、历史再编辑、单帧叠加等）。
+
+### 11.6 已知限制
+
+- "原始尺寸"档位当前长边上限 720px（内存安全；多帧 RGBA 像素缓冲最大约 80MB），480P/720P 档不受影响；后续可通过流式解码解除。
+- 各帧宽高比不一致时以最大帧为画布基准、白底留白对齐（F61 的"以最大帧尺寸为基准"）。
+- GIF 拆帧与视频抽帧在 UI 线程以 await 驱动（系统解码在原生层执行，逐帧让出事件循环），未迁移 taskpool；抽帧遮罩期间可取消，长片段表现待真机验收。
+- GIF 解析按白底不透明合成（与导出行为一致）；带透明背景的 GIF 重导出后背景为白色。
+- 视频抽帧为时间点采样（AV_IMAGE_QUERY_CLOSEST），帧间隔均匀但可能落在最近关键帧附近，与源视频逐帧存在细微时序误差。
+- 叠加层渲染依赖 `drawing.Font` 系统 emoji 字形：彩色 emoji 在部分设备上可能以单色轮廓渲染（无真机验证）；导出侧逐帧 `renderOverlaysIntoPixels` 在主线程执行（30 帧 480P 约多耗 1~2s，进度提示"合成中"）。
+- 历史记录的"参数摘要"为文本展示，不支持一键回填再编辑（F103 P2）；历史 GIF 文件存于应用沙箱，卸载应用即清除。
+- 预览画布盒内帧与叠加层为分别的组件叠加，逐帧切换时叠加层静止（与导出一致）；未做叠加层逐帧关键帧差异动画（P2）。
