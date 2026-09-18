@@ -131,42 +131,66 @@ export async function generateShareImage(uiContext: UIContext, componentId: stri
   }
 }
 
-export async function savePixelMapToAlbum(uiContext: UIContext, pixelMap: image.PixelMap): Promise<void> {
+/**
+ * 保存单张 PixelMap 到系统相册（经保存确认弹窗）。
+ * 返回 true=已保存；false=用户在弹窗中取消；失败抛出异常。
+ */
+export async function savePixelMapToAlbum(uiContext: UIContext, pixelMap: image.PixelMap): Promise<boolean> {
+  let context: common.UIAbilityContext = uiContext.getHostContext() as common.UIAbilityContext;
+  let dir: string = context.cacheDir;
+  let fileName: string = 'save_tmp_' + Date.now().toString(36) + '.png';
+  let filePath: string = dir + '/' + fileName;
+  let file: fs.File = fs.openSync(filePath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.TRUNC);
+  let packer: image.ImagePacker = image.createImagePacker();
+  let packOpts: image.PackingOption = { format: 'image/png', quality: 100 };
   try {
-    let context: common.UIAbilityContext = uiContext.getHostContext() as common.UIAbilityContext;
-    let dir: string = context.cacheDir;
-    let fileName: string = 'save_tmp_' + Date.now() + '.png';
-    let filePath: string = dir + '/' + fileName;
-    let file: fs.File = fs.openSync(filePath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.TRUNC);
-    let packer: image.ImagePacker = image.createImagePacker();
-    let packOpts: image.PackingOption = { format: 'image/png', quality: 100 };
-    try {
-      await packer.packToFile(pixelMap, file.fd, packOpts);
-    } finally {
-      fs.closeSync(file.fd);
-      packer.release();
-    }
-    let helper: photoAccessHelper.PhotoAccessHelper = photoAccessHelper.getPhotoAccessHelper(context);
-    let srcFileUri: string = fileUri.getUriFromPath(filePath);
-    let srcFileUris: Array<string> = [srcFileUri];
-    let photoCreationConfigs: Array<photoAccessHelper.PhotoCreationConfig> = [{
+    await packer.packToFile(pixelMap, file.fd, packOpts);
+  } finally {
+    fs.closeSync(file.fd);
+    packer.release();
+  }
+  return await saveFilesToAlbum(uiContext, [filePath]) > 0;
+}
+
+/**
+ * 批量保存多张沙箱图片文件到系统相册：单次保存确认弹窗处理全部文件。
+ * 返回实际保存张数；用户取消返回 0；失败抛出异常。
+ */
+export async function saveFilesToAlbum(uiContext: UIContext, filePaths: string[]): Promise<number> {
+  let context: common.UIAbilityContext = uiContext.getHostContext() as common.UIAbilityContext;
+  let helper: photoAccessHelper.PhotoAccessHelper = photoAccessHelper.getPhotoAccessHelper(context);
+  if (helper === undefined) {
+    console.error('[ShareUtil] saveFilesToAlbum failed: getPhotoAccessHelper returned undefined');
+    throw new Error('系统相册服务不可用');
+  }
+  let srcFileUris: string[] = [];
+  let photoCreationConfigs: Array<photoAccessHelper.PhotoCreationConfig> = [];
+  for (let i = 0; i < filePaths.length; i++) {
+    srcFileUris.push(fileUri.getUriFromPath(filePaths[i]));
+    photoCreationConfigs.push({
       fileNameExtension: 'png',
       photoType: photoAccessHelper.PhotoType.IMAGE,
-    }];
-    let desFileUris: Array<string> = await helper.showAssetsCreationDialog(srcFileUris, photoCreationConfigs);
-    if (desFileUris.length > 0) {
-      let srcFile: fs.File = fs.openSync(filePath, fs.OpenMode.READ_ONLY);
-      let desFile: fs.File = await fs.open(desFileUris[0], fs.OpenMode.READ_WRITE);
-      await fs.copyFile(srcFile.fd, desFile.fd);
-      fs.closeSync(srcFile);
-      await fs.close(desFile.fd);
-      ToastUtil.show(uiContext, '已保存到相册', 1000);
-    }
-  } catch (e) {
-    let err: BusinessError = e as BusinessError;
-    console.error('[ShareUtil] savePixelMapToAlbum failed: ' + err.code + ' ' + err.message);
-    ToastUtil.show(uiContext, '保存失败', 2000);
+    });
   }
+  let desFileUris: Array<string> = await helper.showAssetsCreationDialog(srcFileUris, photoCreationConfigs);
+  let saved: number = 0;
+  if (desFileUris.length > 0) {
+    for (let i = 0; i < desFileUris.length && i < filePaths.length; i++) {
+      let srcFile: fs.File = fs.openSync(filePaths[i], fs.OpenMode.READ_ONLY);
+      try {
+        let desFile: fs.File = await fs.open(desFileUris[i], fs.OpenMode.READ_WRITE);
+        try {
+          await fs.copyFile(srcFile.fd, desFile.fd);
+          saved++;
+        } finally {
+          await fs.close(desFile);
+        }
+      } finally {
+        fs.closeSync(srcFile.fd);
+      }
+    }
+  }
+  return saved;
 }
 
 export function shareImageViaPanel(uiContext: UIContext, cachePath: string): void {

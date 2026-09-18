@@ -17,6 +17,8 @@ import { AchievementPageBuilder } from './AchievementPage';
 import { WordCloudPageBuilder } from './WordCloudPage';
 import { SudokuSolverPageBuilder } from './SudokuSolverPage';
 import { GifMakerPageBuilder } from './GifMakerPage';
+import { CoverMakerPageBuilder } from './CoverMakerPage';
+import { CharCardPageBuilder } from './CharCardPage';
 import { GcdLcmPageBuilder } from './GcdLcmPage';
 import { PrimeFactorPageBuilder } from './PrimeFactorPage';
 import { PoetryViewModel } from '../viewmodel/PoetryViewModel';
@@ -150,7 +152,9 @@ struct Index {
     this.creativeTools = [
       new ToolItem('word_cloud', '词云生成', '粘贴文本，30秒出图', '', '#8b5cf6', 'WordCloudPage'),
       new ToolItem('md2png', '文字转图片', 'Markdown文本生成图片', '', '#9b59b6', 'Md2PngPage'),
-      new ToolItem('gif_maker', 'GIF 制作', '图片/视频合成、编辑动图', '', '#ec4899', 'GifMakerPage'),
+      new ToolItem('gzh_cover', '首图制作', '公众号封面 30 秒出图', '', '#2E6FD6', 'CoverMakerPage'),
+      new ToolItem('char_card', '生字卡', '田字格生字卡，一键注音', '', '#D8231A', 'CharCardPage'),
+      new ToolItem('gif_maker', 'GIF 制作', '图片/视频合成、编辑动图', 'creative_gif', '#ec4899', 'GifMakerPage'),
       new ToolItem('sudoku_solver', '数独求解', '拍照识别，DLX算法秒解', 'creative_sudoku', '#6366f1', 'SudokuSolverPage')
     ];
   }
@@ -353,8 +357,12 @@ struct Index {
       FavoritesPageBuilder()
     } else if (name === 'AboutPage') {
       AboutPageBuilder()
-    } else if (name === 'Md2PngPage') {
-      Md2PngPageBuilder()
+      } else if (name === 'Md2PngPage') {
+        Md2PngPageBuilder()
+      } else if (name === 'CoverMakerPage') {
+        CoverMakerPageBuilder()
+      } else if (name === 'CharCardPage') {
+        CharCardPageBuilder()
     } else if (name === 'UnitCategoryPage') {
       UnitCategoryPageBuilder()
     } else if (name === 'UnitConverterPage') {
@@ -658,6 +666,12 @@ struct Index {
                 .fontColor('#ffffff')
             } else if (tool.id === 'md2png') {
               Text('\uD83D\uDDBC\uFE0F')
+                .fontSize(24)
+            } else if (tool.id === 'gzh_cover') {
+              Text('\uD83D\uDCCF')
+                .fontSize(24)
+            } else if (tool.id === 'char_card') {
+              Text('\uD83D\uDCDD')
                 .fontSize(24)
             } else if (tool.icon) {
               Image($r('app.media.' + tool.icon))

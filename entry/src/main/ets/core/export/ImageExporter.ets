@@ -39,7 +39,7 @@ export class ImageExporter {
     return filePath;
   }
 
-  static async saveToAlbum(uiContext: UIContext, pixelMap: image.PixelMap): Promise<void> {
+  static async saveToAlbum(uiContext: UIContext, pixelMap: image.PixelMap): Promise<boolean> {
     return savePixelMapToAlbum(uiContext, pixelMap);
   }
 

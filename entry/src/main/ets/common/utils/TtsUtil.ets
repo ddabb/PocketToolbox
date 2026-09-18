@@ -7,10 +7,12 @@ export class TtsController {
   private engine: textToSpeech.TextToSpeechEngine | null = null;
   private stateCallback: ((state: TtsState) => void) | null = null;
   private completeCallback: (() => void) | null = null;
+  private errorCallback: ((code: number, message: string) => void) | null = null;
   private currentRequestId: string = '';
   private currentState: TtsState = 'idle';
   private initPromise: Promise<boolean> | null = null;
   private generation: number = 0;
+  private watchdogId: number = -1;
 
   onStateChange(callback: (state: TtsState) => void): void {
     this.stateCallback = callback;
@@ -18,6 +20,10 @@ export class TtsController {
 
   onComplete(callback: () => void): void {
     this.completeCallback = callback;
+  }
+
+  onTtsError(callback: (code: number, message: string) => void): void {
+    this.errorCallback = callback;
   }
 
   getState(): TtsState {
@@ -33,6 +39,24 @@ export class TtsController {
 
   private isCurrentRequest(requestId: string): boolean {
     return this.currentRequestId !== '' && requestId === this.currentRequestId;
+  }
+
+  private clearWatchdog(): void {
+    if (this.watchdogId >= 0) {
+      clearTimeout(this.watchdogId);
+      this.watchdogId = -1;
+    }
+  }
+
+  private failSpeak(code: number, message: string): void {
+    this.clearWatchdog();
+    this.currentRequestId = '';
+    if (this.currentState === 'speaking') {
+      this.updateState('idle');
+    }
+    if (this.errorCallback) {
+      this.errorCallback(code, message);
+    }
   }
 
   init(): Promise<boolean> {
@@ -63,6 +87,7 @@ export class TtsController {
         onStart: (requestId: string, response: textToSpeech.StartResponse) => {
           console.info('[TtsController] onStart: ' + requestId);
           if (this.isCurrentRequest(requestId)) {
+            this.clearWatchdog();
             this.updateState('speaking');
           }
         },
@@ -71,6 +96,7 @@ export class TtsController {
           if (!this.isCurrentRequest(requestId)) {
             return;
           }
+          this.clearWatchdog();
           this.currentRequestId = '';
           this.updateState('idle');
           if (response.type === 1 && this.completeCallback) {
@@ -80,6 +106,7 @@ export class TtsController {
         onStop: (requestId: string, response: textToSpeech.StopResponse) => {
           console.info('[TtsController] onStop: ' + requestId);
           if (this.isCurrentRequest(requestId)) {
+            this.clearWatchdog();
             this.currentRequestId = '';
             this.updateState('idle');
           }
@@ -88,9 +115,8 @@ export class TtsController {
         },
         onError: (requestId: string, errorCode: number, errorMessage: string) => {
           console.error('[TtsController] onError: ' + requestId + ', code=' + errorCode.toString() + ', msg=' + errorMessage);
-          if (this.isCurrentRequest(requestId)) {
-            this.currentRequestId = '';
-            this.updateState('idle');
+          if (this.isCurrentRequest(requestId) || this.currentState === 'speaking') {
+            this.failSpeak(errorCode, errorMessage);
           }
         }
       };
@@ -112,7 +138,7 @@ export class TtsController {
     if (!this.engine) {
       let ok: boolean = await this.init();
       if (!ok) {
-        this.updateState('idle');
+        this.failSpeak(-1, 'engine init failed');
         return false;
       }
       if (gen !== this.generation) {
@@ -138,12 +164,19 @@ export class TtsController {
         extraParams: speakExtraParam
       };
       this.engine!.speak(text, speakParams);
+      this.clearWatchdog();
+      this.watchdogId = setTimeout(() => {
+        this.watchdogId = -1;
+        if (this.currentState === 'speaking' && gen === this.generation) {
+          console.error('[TtsController] watchdog: no onStart within 6s');
+          this.failSpeak(0, 'TTS no response timeout');
+        }
+      }, 6000);
       return true;
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[TtsController] speak failed: ' + err.code.toString() + ' ' + err.message);
-      this.currentRequestId = '';
-      this.updateState('idle');
+      this.failSpeak(err.code, err.message);
       return false;
     }
   }
@@ -151,6 +184,7 @@ export class TtsController {
   stop(): void {
     this.generation++;
     this.currentRequestId = '';
+    this.clearWatchdog();
     if (this.engine) {
       try {
         this.engine.stop();
@@ -164,6 +198,7 @@ export class TtsController {
   shutdown(): void {
     this.generation++;
     this.currentRequestId = '';
+    this.clearWatchdog();
     if (this.engine) {
       try {
         this.engine.shutdown();

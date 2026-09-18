@@ -1,4 +1,5 @@
 import { UIContext } from '@kit.ArkUI';
+import { text } from '@kit.ArkGraphics2D';
 import { MarkdownController } from '@luvi/lv-markdown-in';
 import { TemplateInfo, Md2PngTemplates } from '../../model/Md2PngModels';
 
@@ -33,6 +34,11 @@ export class FontUtil {
       let entry: FontFileEntry = FontUtil.FONT_FILES[i];
       if (FontUtil.registered.has(entry.familyName)) {
         continue;
+      }
+      try {
+        text.FontCollection.getGlobalInstance().loadFontSync(entry.familyName, 'rawfile/' + entry.fileName);
+      } catch (e) {
+        console.error('[FontUtil] loadFontSync failed: ' + entry.familyName + ' ' + (e as Error).message);
       }
       try {
         font.registerFont({

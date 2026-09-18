@@ -46,6 +46,9 @@ struct ReadingPlayerContent {
     this.ttsController.onComplete(() => {
       this.playNext();
     });
+    this.ttsController.onTtsError((code: number, message: string) => {
+      ToastUtil.show(this.uiContext, '朗读失败(' + code.toString() + ')，请稍后重试', 2500);
+    });
   }
 
   aboutToDisappear(): void {
@@ -106,11 +109,7 @@ struct ReadingPlayerContent {
         this.playPrev();
       });
     let text: string = this.buildSpeakText(item);
-    this.ttsController.speak(text).then((ok: boolean) => {
-      if (!ok) {
-        ToastUtil.show(this.uiContext, '朗读引擎初始化失败，请确认设备支持TTS', 2500);
-      }
-    });
+    this.ttsController.speak(text);
   }
 
   private playNext(): void {

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <rect width="48" height="48" rx="12" fill="#ec4899"/>
+  <!-- back ghost frame: motion/previous frame -->
+  <rect x="12" y="8" width="27" height="22" rx="3.5" fill="none" stroke="white" stroke-width="1.8" opacity="0.4"/>
+  <!-- front frame -->
+  <rect x="8" y="16" width="27" height="22" rx="3.5" fill="#ec4899" stroke="white" stroke-width="2"/>
+  <!-- play triangle -->
+  <path d="M17.5 21.5 L17.5 32.5 L27 27 Z" fill="white"/>
+  <!-- motion speed lines -->
+  <g stroke="white" stroke-width="1.8" stroke-linecap="round" opacity="0.75">
+    <line x1="37.5" y1="21" x2="42" y2="21"/>
+    <line x1="39" y1="26" x2="43.5" y2="26"/>
+    <line x1="37.5" y1="31" x2="42" y2="31"/>
+  </g>
+</svg>
