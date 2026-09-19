@@ -7,6 +7,7 @@ struct DailyPoemWidgetCard {
   @LocalStorageProp('author') author: string = '';
   @LocalStorageProp('lines') lines: string = '';
   @LocalStorageProp('date') date: string = '';
+  @LocalStorageProp('poemJson') poemJson: string = '';
 
   build() {
     Column() {
@@ -60,7 +61,9 @@ struct DailyPoemWidgetCard {
       postCardAction(this, {
         'action': 'router',
         'abilityName': 'EntryAbility',
-        'params': {}
+        'params': {
+          'openPoem': this.poemJson
+        }
       });
     })
   }

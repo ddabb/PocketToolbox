@@ -232,6 +232,38 @@ struct Index {
   onPageShow(): void {
     this.loadFavCount();
     this.loadStickinessData();
+    this.handleWidgetOpenPoem();
+  }
+
+  // 桌面卡片点击深链：打开对应诗词详情页
+  private handleWidgetOpenPoem(): void {
+    let poemJson: string = (AppStorage.get('WidgetOpenPoem') ?? '') as string;
+    if (!poemJson) {
+      return;
+    }
+    AppStorage.delete('WidgetOpenPoem');
+    try {
+      let raw: Record<string, Object> = JSON.parse(poemJson) as Record<string, Object>;
+      let item: PoemItem = new PoemItem();
+      item.n = String(raw['n'] ?? '');
+      item.c = String(raw['c'] ?? '');
+      item.f = String(raw['f'] ?? '');
+      item.a = String(raw['a'] ?? '');
+      item.d = String(raw['d'] ?? '');
+      if (!item.n) {
+        return;
+      }
+      this.currentTab = 0;
+      let names: string[] = this.homeStack.getAllPathName();
+      if (names.length > 0 && names[names.length - 1] === 'PoemContentPage') {
+        this.homeStack.replacePathByName('PoemContentPage', item);
+      } else {
+        this.homeStack.pushPathByName('PoemContentPage', item);
+      }
+      console.info('[Index] widget openPoem: ' + item.n);
+    } catch (e) {
+      console.error('[Index] widget openPoem parse failed: ' + (e as Error).message);
+    }
   }
 
   private loadStickinessData(): void {

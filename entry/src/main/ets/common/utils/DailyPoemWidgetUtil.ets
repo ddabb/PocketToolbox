@@ -15,6 +15,7 @@ export class DailyPoemWidgetUtil {
     let title: string = '每日一诗';
     let author: string = '';
     let lines: string = '今日诗句加载中…';
+    let poemJson: string = '';
     try {
       let vm: PoetryViewModel = PoetryViewModel.getInstance();
       if (!vm.isDataLoaded()) {
@@ -33,6 +34,14 @@ export class DailyPoemWidgetUtil {
           title = poem.n;
           author = detail.name + ' \u00B7 ' + detail.dynasty;
           lines = DailyPoemWidgetUtil.extractLines(poem.c);
+          let poemParam: Record<string, string> = {
+            'n': poem.n,
+            'c': poem.c,
+            'f': poem.f,
+            'a': poem.a,
+            'd': poem.d
+          };
+          poemJson = JSON.stringify(poemParam);
         }
       }
     } catch (e) {
@@ -44,7 +53,8 @@ export class DailyPoemWidgetUtil {
       'title': title,
       'author': author,
       'lines': lines,
-      'date': date
+      'date': date,
+      'poemJson': poemJson
     };
     return data;
   }

@@ -42,6 +42,7 @@ export struct PoemContentContent {
   @State showCharPicker: boolean = false;
   @State pickerChars: string[] = [];
   @State selectedChars: string[] = [];
+  @State bookChars: string[] = [];
   @StorageLink('PoemFavStatus') @Watch('onFavStatusChange') favStatus: boolean = false;
   private uiContext: UIContext = this.getUIContext();
   private viewModel: PoetryViewModel = PoetryViewModel.getInstance();
@@ -140,6 +141,7 @@ export struct PoemContentContent {
 
   private openCharPicker(): void {
     this.pickerChars = CharBookUtil.extractChars(this.poemParam.c);
+    this.bookChars = CharBookUtil.load(this.uiContext.getHostContext() as Context);
     this.selectedChars = [];
     this.showCharPicker = true;
   }
@@ -418,7 +420,7 @@ export struct PoemContentContent {
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.primary_text'))
 
-        Text('点选诗文中的字，加入生字本后可在生字卡中一键导入')
+        Text('点选诗文中的字加入生字本，绿框为已收录，可在生字卡中一键导入')
           .fontSize(12)
           .fontColor($r('app.color.tertiary_text'))
           .margin({ top: 6, bottom: 14 })
@@ -433,6 +435,10 @@ export struct PoemContentContent {
                 .backgroundColor(this.selectedChars.indexOf(ch) >= 0 ?
                   $r('app.color.danger_red') : $r('app.color.page_background'))
                 .borderRadius(10)
+                .border({
+                  width: this.bookChars.indexOf(ch) >= 0 ? 1.5 : 0,
+                  color: $r('app.color.success_green')
+                })
                 .width(40)
                 .height(40)
                 .textAlign(TextAlign.Center)

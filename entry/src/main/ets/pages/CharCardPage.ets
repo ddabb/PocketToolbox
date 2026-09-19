@@ -49,6 +49,7 @@ struct CharCardContent {
   @State showCharBook: boolean = false;
   @State bookChars: string[] = [];
   @State bookSelected: string[] = [];
+  @State bookManage: boolean = false;
   previewVp: number = 300;
   snapshotScale: number = 1;
   batchChar: string = '';
@@ -111,7 +112,21 @@ struct CharCardContent {
   private openCharBook(): void {
     this.bookChars = CharBookUtil.load(this.context());
     this.bookSelected = [];
+    this.bookManage = false;
     this.showCharBook = true;
+  }
+
+  private removeBookChar(ch: string): void {
+    CharBookUtil.removeChar(this.context(), ch);
+    this.bookChars = CharBookUtil.load(this.context());
+    let next: string[] = [];
+    for (let i = 0; i < this.bookSelected.length; i++) {
+      if (this.bookSelected[i] !== ch) {
+        next.push(this.bookSelected[i]);
+      }
+    }
+    this.bookSelected = next;
+    ToastUtil.show(this.getUIContext(), '已删除「' + ch + '」', 1000);
   }
 
   private toggleBookChar(ch: string): void {
@@ -616,6 +631,19 @@ struct CharCardContent {
             .fontWeight(FontWeight.Bold)
             .fontColor(this.isDark ? '#E6E6E6' : '#222222')
             .layoutWeight(1)
+          if (this.bookChars.length > 0) {
+            Text(this.bookManage ? '完成' : '管理')
+              .fontSize(12)
+              .fontColor(this.accent())
+              .padding({ left: 10, right: 10, top: 5, bottom: 5 })
+              .backgroundColor('#1AD8231A')
+              .borderRadius(12)
+              .margin({ right: 8 })
+              .onClick(() => {
+                this.bookManage = !this.bookManage;
+                this.bookSelected = [];
+              })
+          }
           Text(this.bookChars.length.toString() + ' 字')
             .fontSize(12)
             .fontColor(this.labelColor())
@@ -623,7 +651,7 @@ struct CharCardContent {
         .width('100%')
         .alignItems(VerticalAlign.Center)
 
-        Text('从诗词页选取生字，点选后填入制作')
+        Text(this.bookManage ? '管理模式：点击生字即可删除' : '从诗词页选取生字，点选后填入制作')
           .fontSize(11)
           .fontColor(this.labelColor())
           .margin({ top: 4, bottom: 12 })
@@ -644,8 +672,13 @@ struct CharCardContent {
                   .height(38)
                   .textAlign(TextAlign.Center)
                   .margin(3)
+                  .opacity(this.bookManage ? 0.65 : 1)
                   .onClick(() => {
-                    this.toggleBookChar(ch);
+                    if (this.bookManage) {
+                      this.removeBookChar(ch);
+                    } else {
+                      this.toggleBookChar(ch);
+                    }
                   })
               }, (ch: string) => ch)
             }
@@ -681,6 +714,7 @@ struct CharCardContent {
             .borderRadius(20)
             .padding({ left: 20, right: 20, top: 9, bottom: 9 })
             .margin({ top: 14 })
+            .visibility(this.bookManage ? Visibility.None : Visibility.Visible)
             .onClick(() => {
               this.fillFromBook();
             })
