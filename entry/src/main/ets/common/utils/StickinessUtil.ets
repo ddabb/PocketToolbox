@@ -77,6 +77,7 @@ export class StickinessUtil {
   private static readonly KEY_STATS: string = 'stickiness_stats';
   private static readonly KEY_CHALLENGE: string = 'stickiness_challenge';
   private static readonly KEY_PREFS: string = 'stickiness_prefs';
+  private static readonly KEY_REVIEW_SHOWN: string = 'review_shown_records';
 
   private static readonly ACHIEVEMENT_DEFS: AchievementDef[] = [
     new AchievementDef('fav_10', '收藏新手', '累计收藏10项', '\u2665', '#e74c3c', 10, 'favTotal'),
@@ -482,6 +483,67 @@ export class StickinessUtil {
       StickinessUtil.saveContentPrefs(context, prefs2);
     }
   }
+
+  static loadReviewShown(context: Context): ReviewShownRecord[] {
+    try {
+      let prefs: preferences.Preferences = preferences.getPreferencesSync(context, { name: StickinessUtil.PREFS_NAME });
+      let json: string = prefs.getSync(StickinessUtil.KEY_REVIEW_SHOWN, '') as string;
+      if (!json) {
+        return [];
+      }
+      let raw: Object[] = JSON.parse(json) as Object[];
+      let arr: ReviewShownRecord[] = [];
+      for (let i = 0; i < raw.length; i++) {
+        let obj: Record<string, Object> = raw[i] as Record<string, Object>;
+        let rec: ReviewShownRecord = new ReviewShownRecord();
+        rec.title = (obj['title'] as string) || '';
+        rec.shownAt = (obj['shownAt'] as number) || 0;
+        if (rec.title) {
+          arr.push(rec);
+        }
+      }
+      return arr;
+    } catch (e) {
+      return [];
+    }
+  }
+
+  static saveReviewShown(context: Context, records: ReviewShownRecord[]): void {
+    try {
+      let prefs: preferences.Preferences = preferences.getPreferencesSync(context, { name: StickinessUtil.PREFS_NAME });
+      prefs.putSync(StickinessUtil.KEY_REVIEW_SHOWN, JSON.stringify(records));
+      prefs.flush();
+    } catch (e) {
+      console.error('[Stickiness] saveReviewShown failed: ' + (e as Error).message);
+    }
+  }
+
+  static recordReviewShown(context: Context, title: string): void {
+    let records: ReviewShownRecord[] = StickinessUtil.loadReviewShown(context);
+    for (let i = records.length - 1; i >= 0; i--) {
+      if (records[i].title === title) {
+        records.splice(i, 1);
+      }
+    }
+    let rec: ReviewShownRecord = new ReviewShownRecord();
+    rec.title = title;
+    rec.shownAt = new Date().getTime();
+    records.push(rec);
+    if (records.length > 7) {
+      records = records.slice(records.length - 7);
+    }
+    StickinessUtil.saveReviewShown(context, records);
+  }
+
+  static isRecentlyReviewShown(records: ReviewShownRecord[], title: string, withinDays: number): boolean {
+    let cutoff: number = new Date().getTime() - withinDays * 24 * 60 * 60 * 1000;
+    for (let i = 0; i < records.length; i++) {
+      if (records[i].title === title && records[i].shownAt > cutoff) {
+        return true;
+      }
+    }
+    return false;
+  }
 }
 
 export class ChallengeProgress {
@@ -493,4 +555,9 @@ export class ChallengeProgress {
 
 export class ContentPrefs {
   favDynasties: string[] = [];
+}
+
+export class ReviewShownRecord {
+  title: string = '';
+  shownAt: number = 0;
 }

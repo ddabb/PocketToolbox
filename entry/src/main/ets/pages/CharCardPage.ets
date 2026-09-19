@@ -14,6 +14,7 @@ import { CoverHistoryStore } from '../core/cover/CoverHistoryStore';
 import { CharCardPreview } from '../components/cover/CharCardPreview';
 import { FontUtil } from '../common/utils/FontUtil';
 import { ToastUtil } from '../common/utils/ToastUtil';
+import { CharBookUtil } from '../common/utils/CharBookUtil';
 import { savePixelMapToAlbum, saveFilesToAlbum, shareImageViaPanel } from '../common/utils/ShareImageUtil';
 
 const PREVIEW_ID: string = 'charcard_preview';
@@ -45,6 +46,9 @@ struct CharCardContent {
   @State batchTotal: number = 0;
   @State historyRecords: CoverHistoryRecord[] = [];
   @State isDark: boolean = false;
+  @State showCharBook: boolean = false;
+  @State bookChars: string[] = [];
+  @State bookSelected: string[] = [];
   previewVp: number = 300;
   snapshotScale: number = 1;
   batchChar: string = '';
@@ -102,6 +106,41 @@ struct CharCardContent {
   private resetPinyin(): void {
     this.pinyinLocked = false;
     this.pinyinText = CoverContentUtil.autoPinyin(this.cleanChars());
+  }
+
+  private openCharBook(): void {
+    this.bookChars = CharBookUtil.load(this.context());
+    this.bookSelected = [];
+    this.showCharBook = true;
+  }
+
+  private toggleBookChar(ch: string): void {
+    let next: string[] = [];
+    let found: boolean = false;
+    for (let i = 0; i < this.bookSelected.length; i++) {
+      if (this.bookSelected[i] === ch) {
+        found = true;
+      } else {
+        next.push(this.bookSelected[i]);
+      }
+    }
+    if (!found) {
+      next.push(ch);
+    }
+    this.bookSelected = next;
+  }
+
+  private fillFromBook(): void {
+    let source: string[] = this.bookSelected.length > 0 ? this.bookSelected : this.bookChars;
+    if (source.length === 0) {
+      return;
+    }
+    let chars: string[] = source.slice(0, CharCards.MAX_CHARS);
+    this.charsText = chars.join('');
+    this.pinyinLocked = false;
+    this.pinyinText = CoverContentUtil.autoPinyin(chars.join(''));
+    this.showCharBook = false;
+    ToastUtil.show(this.getUIContext(), '已从生字本填入 ' + chars.length.toString() + ' 个字', 1500);
   }
 
   private canExport(): boolean {
@@ -291,24 +330,32 @@ struct CharCardContent {
   // ---------- UI ----------
 
   build() {
-    Column() {
-      Scroll() {
-        Column({ space: 14 }) {
-          this.PreviewSection()
-          this.SizeChips()
-          this.StyleChips()
-          this.PaletteSection()
-          this.TextEditor()
-          this.HistorySection()
+    Stack() {
+      Column() {
+        Scroll() {
+          Column({ space: 14 }) {
+            this.PreviewSection()
+            this.SizeChips()
+            this.StyleChips()
+            this.PaletteSection()
+            this.TextEditor()
+            this.HistorySection()
+          }
+          .width('100%')
+          .padding({ left: 16, right: 16, top: 12, bottom: 16 })
         }
+        .layoutWeight(1)
+        .scrollBar(BarState.Off)
         .width('100%')
-        .padding({ left: 16, right: 16, top: 12, bottom: 16 })
-      }
-      .layoutWeight(1)
-      .scrollBar(BarState.Off)
-      .width('100%')
 
-      this.ExportBar()
+        this.ExportBar()
+      }
+      .width('100%')
+      .height('100%')
+
+      if (this.showCharBook) {
+        this.CharBookOverlay()
+      }
     }
     .width('100%')
     .height('100%')
@@ -482,9 +529,23 @@ struct CharCardContent {
   TextEditor() {
     Column({ space: 12 }) {
       Column({ space: 5 }) {
-        Text('生字（1-12 个汉字）')
-          .fontSize(12)
-          .fontColor(this.labelColor())
+        Row() {
+          Text('生字（1-12 个汉字）')
+            .fontSize(12)
+            .fontColor(this.labelColor())
+            .layoutWeight(1)
+          Text('生字本')
+            .fontSize(12)
+            .fontColor(this.accent())
+            .padding({ left: 10, right: 10, top: 5, bottom: 5 })
+            .backgroundColor('#1AD8231A')
+            .borderRadius(12)
+            .onClick(() => {
+              this.openCharBook();
+            })
+        }
+        .width('100%')
+        .alignItems(VerticalAlign.Center)
         TextInput({ text: this.charsText })
           .height(40)
           .fontSize(16)
@@ -543,6 +604,103 @@ struct CharCardContent {
       }
     }
     .width('100%')
+  }
+
+  @Builder
+  CharBookOverlay() {
+    Column() {
+      Column() {
+        Row() {
+          Text('生字本')
+            .fontSize(17)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(this.isDark ? '#E6E6E6' : '#222222')
+            .layoutWeight(1)
+          Text(this.bookChars.length.toString() + ' 字')
+            .fontSize(12)
+            .fontColor(this.labelColor())
+        }
+        .width('100%')
+        .alignItems(VerticalAlign.Center)
+
+        Text('从诗词页选取生字，点选后填入制作')
+          .fontSize(11)
+          .fontColor(this.labelColor())
+          .margin({ top: 4, bottom: 12 })
+
+        if (this.bookChars.length > 0) {
+          Scroll() {
+            Flex({ wrap: FlexWrap.Wrap }) {
+              ForEach(this.bookChars, (ch: string) => {
+                Text(ch)
+                  .fontSize(18)
+                  .fontWeight(FontWeight.Bold)
+                  .fontColor(this.bookSelected.indexOf(ch) >= 0 ? '#ffffff' :
+                    (this.isDark ? '#E6E6E6' : '#222222'))
+                  .backgroundColor(this.bookSelected.indexOf(ch) >= 0 ?
+                    this.accent() : this.chipBg())
+                  .borderRadius(10)
+                  .width(38)
+                  .height(38)
+                  .textAlign(TextAlign.Center)
+                  .margin(3)
+                  .onClick(() => {
+                    this.toggleBookChar(ch);
+                  })
+              }, (ch: string) => ch)
+            }
+            .width('100%')
+          }
+          .constraintSize({ maxHeight: '40%' })
+          .width('100%')
+        } else {
+          Text('生字本为空，可在「首页 → 诗词鉴赏」中点「描红选字」收藏生字')
+            .fontSize(12)
+            .fontColor(this.labelColor())
+            .textAlign(TextAlign.Center)
+            .margin({ top: 16, bottom: 16 })
+        }
+
+        Row({ space: 12 }) {
+          Text('取消')
+            .fontSize(14)
+            .fontColor(this.labelColor())
+            .backgroundColor(this.chipBg())
+            .borderRadius(20)
+            .padding({ left: 22, right: 22, top: 9, bottom: 9 })
+            .onClick(() => {
+              this.showCharBook = false;
+            })
+
+          Text(this.bookSelected.length > 0 ?
+            '填入所选(' + this.bookSelected.length.toString() + ')' : '全部填入')
+            .fontSize(14)
+            .fontWeight(FontWeight.Bold)
+            .fontColor('#ffffff')
+            .backgroundColor(this.bookChars.length > 0 ? this.accent() : this.lineColor())
+            .borderRadius(20)
+            .padding({ left: 20, right: 20, top: 9, bottom: 9 })
+            .margin({ top: 14 })
+            .onClick(() => {
+              this.fillFromBook();
+            })
+        }
+        .margin({ top: 8 })
+      }
+      .width('86%')
+      .padding(20)
+      .backgroundColor(this.isDark ? '#2A2A2C' : '#FFFFFF')
+      .borderRadius(20)
+      .shadow({ radius: 20, color: '#33000000', offsetY: 8 })
+    }
+    .width('100%')
+    .height('100%')
+    .justifyContent(FlexAlign.Center)
+    .alignItems(HorizontalAlign.Center)
+    .backgroundColor('#99000000')
+    .onClick(() => {
+      this.showCharBook = false;
+    })
   }
 
   @Builder

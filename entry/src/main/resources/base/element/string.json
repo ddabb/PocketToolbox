@@ -1,6 +1,22 @@
 {
   "string": [
     {
+      "name": "EntryFormAbility_label",
+      "value": "每日一诗卡片"
+    },
+    {
+      "name": "EntryFormAbility_desc",
+      "value": "解语珠玑每日一诗桌面卡片"
+    },
+    {
+      "name": "daily_poem_widget_name",
+      "value": "每日一诗"
+    },
+    {
+      "name": "daily_poem_widget_desc",
+      "value": "每天一首诗，点击卡片进入解语珠玑"
+    },
+    {
       "name": "module_desc",
       "value": "解语珠玑主模块"
     },

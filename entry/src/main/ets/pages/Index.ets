@@ -28,7 +28,9 @@ import { PoemItem, PoetDetail, PoetItem } from '../model/PoetryModels';
 import { IdiomDetailItem } from '../model/IdiomModels';
 import { XiehouyuItem } from '../model/XiehouyuModels';
 import { FavoritesUtil, FavoriteItem } from '../common/utils/FavoritesUtil';
-import { StickinessUtil, CheckInData, ChallengeProgress, UserStats } from '../common/utils/StickinessUtil';
+import { StickinessUtil, CheckInData, ChallengeProgress, UserStats, ReviewShownRecord } from '../common/utils/StickinessUtil';
+import { RecentToolsUtil } from '../common/utils/RecentToolsUtil';
+import { DailyPoemWidgetUtil } from '../common/utils/DailyPoemWidgetUtil';
 import { ReadingListStore, ReadingList } from '../model/ReadingListModels';
 import { bundleManager } from '@kit.AbilityKit';
 import { ConverterCategory, UnitConverterData } from '../model/UnitModels';
@@ -78,6 +80,9 @@ struct Index {
   @State mathTools: ToolItem[] = [];
   @State unitTools: ToolItem[] = [];
   @State creativeTools: ToolItem[] = [];
+  @State allTools: ToolItem[] = [];
+  @State recentToolIds: string[] = [];
+  @State toolSearchText: string = '';
   @State checkInData: CheckInData = new CheckInData();
   @State checkedInToday: boolean = false;
   @State challengeProgress: ChallengeProgress = new ChallengeProgress();
@@ -111,8 +116,10 @@ struct Index {
     AppStorage.setOrCreate('AppHostContext', this.getUIContext().getHostContext() as Context);
     AppStorage.setOrCreate('AppUIContext', this.getUIContext());
     this.buildToolItems();
+    this.loadRecentTools();
     setTimeout(() => {
       this.loadDailyContent();
+      DailyPoemWidgetUtil.updateAllForms(this.getUIContext().getHostContext() as Context);
     }, 0);
     this.loadFavCount();
     this.loadStickinessData();
@@ -150,13 +157,63 @@ struct Index {
     this.unitTools = unitTools;
 
     this.creativeTools = [
-      new ToolItem('word_cloud', '词云生成', '粘贴文本，30秒出图', '', '#8b5cf6', 'WordCloudPage'),
-      new ToolItem('md2png', '文字转图片', 'Markdown文本生成图片', '', '#9b59b6', 'Md2PngPage'),
-      new ToolItem('gzh_cover', '首图制作', '公众号封面 30 秒出图', '', '#2E6FD6', 'CoverMakerPage'),
-      new ToolItem('char_card', '生字卡', '田字格生字卡，一键注音', '', '#D8231A', 'CharCardPage'),
+      new ToolItem('word_cloud', '词云生成', '粘贴文本，30秒出图', 'creative_wordcloud', '#8b5cf6', 'WordCloudPage'),
+      new ToolItem('md2png', '文字转图片', 'Markdown文本生成图片', 'creative_md2png', '#9b59b6', 'Md2PngPage'),
+      new ToolItem('gzh_cover', '首图制作', '公众号封面 30 秒出图', 'creative_cover', '#2E6FD6', 'CoverMakerPage'),
+      new ToolItem('char_card', '生字卡', '田字格生字卡，一键注音', 'creative_charcard', '#D8231A', 'CharCardPage'),
       new ToolItem('gif_maker', 'GIF 制作', '图片/视频合成、编辑动图', 'creative_gif', '#ec4899', 'GifMakerPage'),
       new ToolItem('sudoku_solver', '数独求解', '拍照识别，DLX算法秒解', 'creative_sudoku', '#6366f1', 'SudokuSolverPage')
     ];
+
+    let all: ToolItem[] = [];
+    all = all.concat(this.creativeTools).concat(this.mathTools).concat(this.unitTools);
+    this.allTools = all;
+  }
+
+  private loadRecentTools(): void {
+    let ctx: Context = this.getUIContext().getHostContext() as Context;
+    this.recentToolIds = RecentToolsUtil.loadRecent(ctx);
+  }
+
+  private findToolById(id: string): ToolItem | null {
+    for (let i = 0; i < this.allTools.length; i++) {
+      if (this.allTools[i].id === id) {
+        return this.allTools[i];
+      }
+    }
+    return null;
+  }
+
+  private recentToolItems(): ToolItem[] {
+    let items: ToolItem[] = [];
+    for (let i = 0; i < this.recentToolIds.length && items.length < 4; i++) {
+      let t: ToolItem | null = this.findToolById(this.recentToolIds[i]);
+      if (t !== null) {
+        items.push(t);
+      }
+    }
+    return items;
+  }
+
+  private filteredTools(): ToolItem[] {
+    let kw: string = this.toolSearchText.trim();
+    if (!kw) {
+      return [];
+    }
+    let result: ToolItem[] = [];
+    for (let i = 0; i < this.allTools.length; i++) {
+      let t: ToolItem = this.allTools[i];
+      if (t.title.includes(kw) || t.subtitle.includes(kw)) {
+        result.push(t);
+      }
+    }
+    return result;
+  }
+
+  private openTool(stack: NavPathStack, tool: ToolItem): void {
+    let ctx: Context = this.getUIContext().getHostContext() as Context;
+    this.recentToolIds = RecentToolsUtil.recordUse(ctx, tool.id);
+    stack.pushPathByName(tool.page, tool.param);
   }
 
   private getUnitSubtitle(cat: ConverterCategory): string {
@@ -235,10 +292,21 @@ struct Index {
       }
     }
     let pool: FavoriteItem[] = poemFavs.length > 0 ? poemFavs : favs;
+    let shown: ReviewShownRecord[] = StickinessUtil.loadReviewShown(ctx);
+    let fresh: FavoriteItem[] = [];
+    for (let i = 0; i < pool.length; i++) {
+      if (!StickinessUtil.isRecentlyReviewShown(shown, pool[i].title, 7)) {
+        fresh.push(pool[i]);
+      }
+    }
+    if (fresh.length > 0) {
+      pool = fresh;
+    }
     let seed: number = new Date().getFullYear() * 10000 + (new Date().getMonth() + 1) * 100 + new Date().getDate();
     let idx: number = Math.floor(Math.abs(Math.sin(seed + 999) * 10000) % pool.length);
     this.reviewItem = pool[idx];
     this.reviewVisible = true;
+    StickinessUtil.recordReviewShown(ctx, pool[idx].title);
   }
 
   private loadFavCount(): void {
@@ -398,30 +466,27 @@ struct Index {
         TabContent() {
           this.HomeContent()
         }
-        .tabBar(this.TabBarItem(0, '\uD83C\uDFE0', '首页'))
+        .tabBar(this.TabBarItem(0, $r('app.media.tab_home'), '首页'))
 
         TabContent() {
           this.ToolContent()
         }
-        .tabBar(this.TabBarItem(1, '\uD83D\uDD27', '工具'))
+        .tabBar(this.TabBarItem(1, $r('app.media.tab_tools'), '工具'))
 
         TabContent() {
           this.MineContent()
         }
-        .tabBar(this.TabBarItem(2, '\uD83D\uDC64', '我的'))
+        .tabBar(this.TabBarItem(2, $r('app.media.tab_mine'), '我的'))
       }
       .barPosition(BarPosition.End)
       .scrollable(false)
       .onChange((index: number) => {
         this.currentTab = index;
         if (index === 0) {
-          this.homeStack.clear();
           AppStorage.setOrCreate('AppNavPathStack', this.homeStack);
         } else if (index === 1) {
-          this.toolStack.clear();
           AppStorage.setOrCreate('AppNavPathStack', this.toolStack);
         } else {
-          this.mineStack.clear();
           AppStorage.setOrCreate('AppNavPathStack', this.mineStack);
           this.loadFavCount();
           this.loadStickinessData();
@@ -433,10 +498,12 @@ struct Index {
   }
 
   @Builder
-  TabBarItem(index: number, icon: string, label: string) {
+  TabBarItem(index: number, icon: Resource, label: string) {
     Column() {
-      Text(icon)
-        .fontSize(22)
+      Image(icon)
+        .width(24)
+        .height(24)
+        .fillColor(this.currentTab === index ? $r('app.color.poetry_green') : $r('app.color.tertiary_text'))
       Text(label)
         .fontSize(11)
         .fontColor(this.currentTab === index ? $r('app.color.poetry_green') : $r('app.color.tertiary_text'))
@@ -446,6 +513,7 @@ struct Index {
     .height('100%')
     .justifyContent(FlexAlign.Center)
     .alignItems(HorizontalAlign.Center)
+    .accessibilityText(label)
   }
 
   @Builder
@@ -453,38 +521,30 @@ struct Index {
     Navigation(this.homeStack) {
       Scroll() {
         Column() {
-          Column() {
-            Text('\uD83D\uDCD6')
-              .fontSize(40)
-              .margin({ bottom: 6 })
+          Row() {
             Text('解语珠玑')
               .fontSize(22)
               .fontWeight(FontWeight.Bold)
               .fontColor($r('app.color.primary_text'))
+            Blank()
             Text('品读经典，感悟文字之美')
-              .fontSize(13)
+              .fontSize(11)
               .fontColor($r('app.color.tertiary_text'))
-              .margin({ top: 3 })
           }
           .width('100%')
-          .padding({ top: 8, bottom: 12 })
-          .alignItems(HorizontalAlign.Center)
+          .padding({ left: 16, right: 16, top: 12, bottom: 4 })
+
+          this.QuickToolsRow()
 
           this.CheckInAndChallengeCard()
 
           Row() {
             Column() {
-              Column() {
-                Text('\uD83C\uDF3C')
-                  .fontSize(28)
-              }
-              .width(44)
-              .height(44)
-              .borderRadius(12)
-              .backgroundColor('#2d7d4618')
-              .justifyContent(FlexAlign.Center)
-              .alignItems(HorizontalAlign.Center)
-              .margin({ bottom: 6 })
+              Image($r('app.media.home_poem'))
+                .width(44)
+                .height(44)
+                .borderRadius(12)
+                .margin({ bottom: 6 })
               Text('诗词查询')
                 .fontSize(14)
                 .fontWeight(FontWeight.Bold)
@@ -505,17 +565,11 @@ struct Index {
             })
 
             Column() {
-              Column() {
-                Text('\uD83D\uDCD6')
-                  .fontSize(28)
-              }
-              .width(44)
-              .height(44)
-              .borderRadius(12)
-              .backgroundColor('#2980b918')
-              .justifyContent(FlexAlign.Center)
-              .alignItems(HorizontalAlign.Center)
-              .margin({ bottom: 6 })
+              Image($r('app.media.home_idiom'))
+                .width(44)
+                .height(44)
+                .borderRadius(12)
+                .margin({ bottom: 6 })
               Text('成语查询')
                 .fontSize(14)
                 .fontWeight(FontWeight.Bold)
@@ -615,6 +669,48 @@ struct Index {
   }
 
   @Builder
+  QuickToolsRow() {
+    if (this.recentToolIds.length > 0) {
+      Column() {
+        Text('最近使用')
+          .fontSize(12)
+          .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.tertiary_text'))
+          .width('100%')
+          .margin({ bottom: 6 })
+        Scroll() {
+          Row({ space: 8 }) {
+            ForEach(this.recentToolItems(), (tool: ToolItem) => {
+              Row({ space: 5 }) {
+                Image($r('app.media.' + tool.icon))
+                  .width(22)
+                  .height(22)
+                  .borderRadius(6)
+                Text(tool.title)
+                  .fontSize(12)
+                  .fontColor($r('app.color.primary_text'))
+                  .maxLines(1)
+              }
+              .padding({ left: 8, right: 12, top: 6, bottom: 6 })
+              .backgroundColor($r('app.color.card_background'))
+              .borderRadius(16)
+              .onClick(() => {
+                this.openTool(this.homeStack, tool);
+              })
+            }, (tool: ToolItem) => tool.id)
+          }
+        }
+        .scrollable(ScrollDirection.Horizontal)
+        .scrollBar(BarState.Off)
+        .edgeEffect(EdgeEffect.Spring)
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, top: 8 })
+      .alignItems(HorizontalAlign.Start)
+    }
+  }
+
+  @Builder
   ToolSectionTitle(title: string, paddingTop: number) {
     Text(title)
       .fontSize(15)
@@ -646,63 +742,7 @@ struct Index {
         .padding({ top: 8, bottom: 12 })
         .alignItems(HorizontalAlign.Center)
         .onClick(() => {
-          this.toolStack.pushPathByName(tool.page, tool.param);
-        })
-      }, (tool: ToolItem) => tool.id)
-    }
-    .width('100%')
-    .padding({ left: 8, right: 8 })
-  }
-
-  @Builder
-  CreativeToolGrid(tools: ToolItem[]) {
-    Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
-      ForEach(tools, (tool: ToolItem) => {
-        Column() {
-          Column() {
-            if (tool.id === 'word_cloud') {
-              Text('\u2601')
-                .fontSize(24)
-                .fontColor('#ffffff')
-            } else if (tool.id === 'md2png') {
-              Text('\uD83D\uDDBC\uFE0F')
-                .fontSize(24)
-            } else if (tool.id === 'gzh_cover') {
-              Text('\uD83D\uDCCF')
-                .fontSize(24)
-            } else if (tool.id === 'char_card') {
-              Text('\uD83D\uDCDD')
-                .fontSize(24)
-            } else if (tool.icon) {
-              Image($r('app.media.' + tool.icon))
-                .width(48)
-                .height(48)
-                .borderRadius(12)
-            } else {
-              Text('\u2753')
-                .fontSize(24)
-            }
-          }
-          .width(56)
-          .height(56)
-          .borderRadius(14)
-          .backgroundColor(tool.color)
-          .justifyContent(FlexAlign.Center)
-          .alignItems(HorizontalAlign.Center)
-
-          Text(tool.title)
-            .fontSize(12)
-            .fontColor($r('app.color.primary_text'))
-            .margin({ top: 6 })
-            .maxLines(1)
-            .textOverflow({ overflow: TextOverflow.Ellipsis })
-            .constraintSize({ maxWidth: 72 })
-        }
-        .width('25%')
-        .padding({ top: 8, bottom: 12 })
-        .alignItems(HorizontalAlign.Center)
-        .onClick(() => {
-          this.toolStack.pushPathByName(tool.page, tool.param);
+          this.openTool(this.toolStack, tool);
         })
       }, (tool: ToolItem) => tool.id)
     }
@@ -715,31 +755,59 @@ struct Index {
     Navigation(this.toolStack) {
       Scroll() {
         Column() {
-          Column() {
-            Text('\uD83D\uDD27')
-              .fontSize(40)
-              .margin({ bottom: 6 })
+          Row() {
             Text('工具箱')
               .fontSize(22)
               .fontWeight(FontWeight.Bold)
               .fontColor($r('app.color.primary_text'))
+            Blank()
             Text('实用计算与换算工具集')
-              .fontSize(13)
+              .fontSize(11)
               .fontColor($r('app.color.tertiary_text'))
-              .margin({ top: 3 })
           }
           .width('100%')
-          .padding({ top: 8, bottom: 12 })
-          .alignItems(HorizontalAlign.Center)
+          .padding({ left: 16, right: 16, top: 12, bottom: 4 })
 
-          this.ToolSectionTitle('创意工具', 0)
-          this.CreativeToolGrid(this.creativeTools)
+          TextInput({ placeholder: '搜索工具', text: this.toolSearchText })
+            .onChange((value: string) => {
+              this.toolSearchText = value;
+            })
+            .height(40)
+            .fontSize(13)
+            .placeholderFont({ size: 13 })
+            .placeholderColor($r('app.color.hint_text'))
+            .backgroundColor($r('app.color.card_background'))
+            .borderRadius(20)
+            .padding({ left: 16, right: 16 })
+            .margin({ left: 16, right: 16, top: 8 })
 
-          this.ToolSectionTitle('数学计算', 8)
-          this.ImageToolGrid(this.mathTools)
+          if (this.toolSearchText.trim().length > 0) {
+            this.ToolSectionTitle('搜索结果', 12)
+            if (this.filteredTools().length === 0) {
+              Text('没有找到相关工具')
+                .fontSize(12)
+                .fontColor($r('app.color.tertiary_text'))
+                .width('100%')
+                .textAlign(TextAlign.Center)
+                .padding({ top: 24, bottom: 24 })
+            } else {
+              this.ImageToolGrid(this.filteredTools())
+            }
+          } else {
+            if (this.recentToolIds.length > 0) {
+              this.ToolSectionTitle('最近使用', 12)
+              this.ImageToolGrid(this.recentToolItems())
+            }
 
-          this.ToolSectionTitle('单位换算', 8)
-          this.ImageToolGrid(this.unitTools)
+            this.ToolSectionTitle('创意工具', 8)
+            this.ImageToolGrid(this.creativeTools)
+
+            this.ToolSectionTitle('数学计算', 8)
+            this.ImageToolGrid(this.mathTools)
+
+            this.ToolSectionTitle('单位换算', 8)
+            this.ImageToolGrid(this.unitTools)
+          }
         }
         .width('100%')
         .padding({ bottom: 16 })
@@ -761,28 +829,26 @@ struct Index {
     Navigation(this.mineStack) {
       Scroll() {
         Column() {
-          Column() {
+          Row() {
             Image($r('app.media.foreground'))
-              .width(52)
-              .height(52)
-              .borderRadius(12)
-              .margin({ bottom: 6 })
+              .width(28)
+              .height(28)
+              .borderRadius(8)
             Text('解语珠玑')
-              .fontSize(20)
+              .fontSize(22)
               .fontWeight(FontWeight.Bold)
               .fontColor($r('app.color.primary_text'))
-
+              .margin({ left: 8 })
           }
           .width('100%')
-          .padding({ top: 8, bottom: 12 })
-          .alignItems(HorizontalAlign.Center)
+          .padding({ left: 16, top: 12, bottom: 4 })
 
           Row() {
             Column() {
               Text(this.mineCheckInData.totalDays.toString())
                 .fontSize(22)
                 .fontWeight(FontWeight.Bold)
-                .fontColor('#27ae60')
+                .fontColor($r('app.color.success_green'))
               Text('累计签到')
                 .fontSize(11)
                 .fontColor($r('app.color.tertiary_text'))
@@ -960,7 +1026,7 @@ struct Index {
                 .layoutWeight(1)
               Text(this.mineCheckInData.lastDate === StickinessUtil.todayStr() ? '\u2713 已签到' : '未签到')
                 .fontSize(14)
-                .fontColor(this.mineCheckInData.lastDate === StickinessUtil.todayStr() ? '#27ae60' : $r('app.color.idiom_orange'))
+                .fontColor(this.mineCheckInData.lastDate === StickinessUtil.todayStr() ? $r('app.color.success_green') : $r('app.color.idiom_orange'))
             }
             .width('100%')
             .padding({ left: 16, right: 16, top: 14, bottom: 14 })
@@ -1004,7 +1070,7 @@ struct Index {
                 .layoutWeight(1)
               Text(this.mineChallengeProgress.completed && this.mineChallengeProgress.date === StickinessUtil.todayStr() ? '已完成' : '未完成')
                 .fontSize(14)
-                .fontColor(this.mineChallengeProgress.completed && this.mineChallengeProgress.date === StickinessUtil.todayStr() ? '#27ae60' : $r('app.color.tertiary_text'))
+                .fontColor(this.mineChallengeProgress.completed && this.mineChallengeProgress.date === StickinessUtil.todayStr() ? $r('app.color.success_green') : $r('app.color.tertiary_text'))
             }
             .width('100%')
             .padding({ left: 16, right: 16, top: 14, bottom: 14 })
@@ -1370,7 +1436,7 @@ struct Index {
         if (this.checkedInToday) {
           Text('\u2713 已签到')
             .fontSize(14)
-            .fontColor('#27ae60')
+            .fontColor($r('app.color.success_green'))
             .fontWeight(FontWeight.Bold)
           Text('连续' + this.checkInData.streak.toString() + '天')
             .fontSize(11)
@@ -1420,7 +1486,7 @@ struct Index {
         if (this.challengeProgress.completed && this.challengeProgress.date === StickinessUtil.todayStr()) {
           Text('已完成')
             .fontSize(14)
-            .fontColor('#27ae60')
+            .fontColor($r('app.color.success_green'))
             .fontWeight(FontWeight.Bold)
           Text('得分 ' + this.challengeProgress.score.toString())
             .fontSize(11)

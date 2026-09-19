@@ -9,6 +9,7 @@ import { AddToReadingListUtil, AddToListResult } from '../common/utils/AddToRead
 import { ReadingList, ReadingItem } from '../model/ReadingListModels';
 import { StickinessUtil } from '../common/utils/StickinessUtil';
 import { ToastUtil } from '../common/utils/ToastUtil';
+import { CharBookUtil } from '../common/utils/CharBookUtil';
 
 class DynastyQueryParam {
   dynasty: string = '';
@@ -38,6 +39,9 @@ export struct PoemContentContent {
   @State shareMdText: string = '';
   @State showReadingListPicker: boolean = false;
   @State readingLists: ReadingList[] = [];
+  @State showCharPicker: boolean = false;
+  @State pickerChars: string[] = [];
+  @State selectedChars: string[] = [];
   @StorageLink('PoemFavStatus') @Watch('onFavStatusChange') favStatus: boolean = false;
   private uiContext: UIContext = this.getUIContext();
   private viewModel: PoetryViewModel = PoetryViewModel.getInstance();
@@ -132,6 +136,38 @@ export struct PoemContentContent {
   private openReadingListPicker(): void {
     this.readingLists = AddToReadingListUtil.getLists(this.uiContext.getHostContext() as Context);
     this.showReadingListPicker = true;
+  }
+
+  private openCharPicker(): void {
+    this.pickerChars = CharBookUtil.extractChars(this.poemParam.c);
+    this.selectedChars = [];
+    this.showCharPicker = true;
+  }
+
+  private togglePickChar(ch: string): void {
+    let next: string[] = [];
+    let found: boolean = false;
+    for (let i = 0; i < this.selectedChars.length; i++) {
+      if (this.selectedChars[i] === ch) {
+        found = true;
+      } else {
+        next.push(this.selectedChars[i]);
+      }
+    }
+    if (!found) {
+      next.push(ch);
+    }
+    this.selectedChars = next;
+  }
+
+  private confirmAddToCharBook(): void {
+    let added: number = CharBookUtil.addChars(this.uiContext.getHostContext() as Context, this.selectedChars);
+    this.showCharPicker = false;
+    if (added > 0) {
+      ToastUtil.show(this.uiContext, '已加入生字本 ' + added.toString() + ' 个字', 1500);
+    } else {
+      ToastUtil.show(this.uiContext, '所选字已在生字本中', 1500);
+    }
   }
 
   private addToReadingList(listId: string): void {
@@ -251,6 +287,22 @@ export struct PoemContentContent {
             .justifyContent(FlexAlign.Center)
             .margin({ top: 24 })
 
+            Row({ space: 6 }) {
+              Text('\u63CF\u7EA2')
+                .fontSize(13)
+                .fontColor('#ffffff')
+              Text('\u9009\u53D6\u751F\u5B57\u52A0\u5165\u751F\u5B57\u672C')
+                .fontSize(13)
+                .fontColor('#ffffff')
+            }
+            .backgroundColor($r('app.color.danger_red'))
+            .borderRadius(16)
+            .padding({ left: 20, right: 20, top: 8, bottom: 8 })
+            .margin({ top: 12 })
+            .onClick(() => {
+              this.openCharPicker();
+            })
+
             if (this.showShareCard) {
               ShareImageCard({
                 mdText: this.shareMdText,
@@ -277,6 +329,10 @@ export struct PoemContentContent {
 
       if (this.showReadingListPicker) {
         this.ReadingListPickerOverlay()
+      }
+
+      if (this.showCharPicker) {
+        this.CharPickerOverlay()
       }
     }
     .width('100%')
@@ -350,6 +406,87 @@ export struct PoemContentContent {
     .backgroundColor('#99000000')
     .onClick(() => {
       this.showReadingListPicker = false;
+    })
+  }
+
+  @Builder
+  CharPickerOverlay() {
+    Column() {
+      Column() {
+        Text('选取生字')
+          .fontSize(18)
+          .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.primary_text'))
+
+        Text('点选诗文中的字，加入生字本后可在生字卡中一键导入')
+          .fontSize(12)
+          .fontColor($r('app.color.tertiary_text'))
+          .margin({ top: 6, bottom: 14 })
+
+        Scroll() {
+          Flex({ wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Center }) {
+            ForEach(this.pickerChars, (ch: string) => {
+              Text(ch)
+                .fontSize(18)
+                .fontWeight(FontWeight.Bold)
+                .fontColor(this.selectedChars.indexOf(ch) >= 0 ? '#ffffff' : $r('app.color.primary_text'))
+                .backgroundColor(this.selectedChars.indexOf(ch) >= 0 ?
+                  $r('app.color.danger_red') : $r('app.color.page_background'))
+                .borderRadius(10)
+                .width(40)
+                .height(40)
+                .textAlign(TextAlign.Center)
+                .margin(4)
+                .onClick(() => {
+                  this.togglePickChar(ch);
+                })
+            }, (ch: string) => ch)
+          }
+          .width('100%')
+        }
+        .constraintSize({ maxHeight: '40%' })
+        .width('100%')
+
+        Row({ space: 12 }) {
+          Text('取消')
+            .fontSize(15)
+            .fontColor($r('app.color.tertiary_text'))
+            .backgroundColor($r('app.color.border_color'))
+            .borderRadius(20)
+            .padding({ left: 24, right: 24, top: 9, bottom: 9 })
+            .onClick(() => {
+              this.showCharPicker = false;
+            })
+
+          Text('加入生字本(' + this.selectedChars.length.toString() + ')')
+            .fontSize(15)
+            .fontWeight(FontWeight.Bold)
+            .fontColor('#ffffff')
+            .backgroundColor(this.selectedChars.length > 0 ? $r('app.color.danger_red') : $r('app.color.border_color'))
+            .borderRadius(20)
+            .padding({ left: 20, right: 20, top: 9, bottom: 9 })
+            .margin({ top: 16 })
+            .onClick(() => {
+              if (this.selectedChars.length > 0) {
+                this.confirmAddToCharBook();
+              }
+            })
+        }
+        .margin({ top: 8 })
+      }
+      .width('88%')
+      .padding(20)
+      .backgroundColor($r('app.color.card_background'))
+      .borderRadius(20)
+      .shadow({ radius: 20, color: '#33000000', offsetY: 8 })
+    }
+    .width('100%')
+    .height('100%')
+    .justifyContent(FlexAlign.Center)
+    .alignItems(HorizontalAlign.Center)
+    .backgroundColor('#99000000')
+    .onClick(() => {
+      this.showCharPicker = false;
     })
   }
 }

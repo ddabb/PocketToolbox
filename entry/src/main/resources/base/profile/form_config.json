@@ -1,0 +1,16 @@
+{
+  "forms": [
+    {
+      "name": "DailyPoemWidget",
+      "displayName": "$string:daily_poem_widget_name",
+      "description": "$string:daily_poem_widget_desc",
+      "src": "./ets/widget/pages/DailyPoemWidgetCard.ets",
+      "uiSyntax": "arkts",
+      "isDefault": true,
+      "supportDimensions": ["2*4"],
+      "defaultDimension": "2*4",
+      "updateEnabled": true,
+      "updateDuration": 48
+    }
+  ]
+}
