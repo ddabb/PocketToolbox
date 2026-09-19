@@ -12,6 +12,9 @@ import { CharCards, CharCardCharMode, CharCardGridType, CharCardSize } from '../
 import { CoverContentUtil } from '../core/cover/CoverContentUtil';
 import { CoverHistoryStore } from '../core/cover/CoverHistoryStore';
 import { CharCardPreview } from '../components/cover/CharCardPreview';
+import { PaletteSection } from '../components/template/PaletteSection';
+import { ChipRow } from '../components/template/ChipRow';
+import { ChipOption } from '../core/template/UnifiedTemplateModels';
 import { FontUtil } from '../common/utils/FontUtil';
 import { ToastUtil } from '../common/utils/ToastUtil';
 import { CharBookUtil } from '../common/utils/CharBookUtil';
@@ -56,6 +59,24 @@ struct CharCardContent {
   /** 焦点守卫：拼音框仅在聚焦时才把 onChange 视为手动编辑（防止程序化 text 更新误触发锁定） */
   pinyinFocused: boolean = false;
   private darkListener: mediaquery.MediaQueryListener | null = null;
+  /** 配色/选项数据（静态，构建一次） */
+  private paletteList: CoverPalette[] = CharCards.palettes();
+  private sizeOptions: ChipOption[] = [
+    ChipOption.of(CharCardSize.SQUARE, CharCardSize.label(CharCardSize.SQUARE)),
+    ChipOption.of(CharCardSize.PRACTICE, CharCardSize.label(CharCardSize.PRACTICE)),
+  ];
+  private gridOptions: ChipOption[] = [
+    ChipOption.of(CharCardGridType.TIAN, CharCardGridType.label(CharCardGridType.TIAN)),
+    ChipOption.of(CharCardGridType.MI, CharCardGridType.label(CharCardGridType.MI)),
+  ];
+  private modeOptions: ChipOption[] = [
+    ChipOption.of(CharCardCharMode.READ, CharCardCharMode.label(CharCardCharMode.READ)),
+    ChipOption.of(CharCardCharMode.TRACE, CharCardCharMode.label(CharCardCharMode.TRACE)),
+  ];
+  private pinyinOptions: ChipOption[] = [
+    ChipOption.of('on', '显示'),
+    ChipOption.of('off', '隐藏'),
+  ];
 
   aboutToAppear(): void {
     FontUtil.registerAll(this.getUIContext());
@@ -352,7 +373,15 @@ struct CharCardContent {
             this.PreviewSection()
             this.SizeChips()
             this.StyleChips()
-            this.PaletteSection()
+            PaletteSection({
+              palettes: this.paletteList,
+              selectedIndex: this.paletteIndex,
+              accentColor: this.accent(),
+              labelColor: this.labelColor(),
+              onSelect: (idx: number) => {
+                this.paletteIndex = idx;
+              },
+            })
             this.TextEditor()
             this.HistorySection()
           }
@@ -410,134 +439,69 @@ struct CharCardContent {
 
   @Builder
   SizeChips() {
-    Row({ space: 8 }) {
-      Text('尺寸')
-        .fontSize(12)
-        .fontColor(this.labelColor())
-      ForEach([CharCardSize.SQUARE, CharCardSize.PRACTICE], (kind: string) => {
-        Text(CharCardSize.label(kind))
-          .fontSize(13)
-          .padding({ left: 14, right: 14, top: 7, bottom: 7 })
-          .backgroundColor(this.sizeKind === kind ? this.accent() : this.chipBg())
-          .fontColor(this.sizeKind === kind ? '#FFFFFF' : this.chipText())
-          .borderRadius(14)
-          .onClick(() => {
-            this.sizeKind = kind;
-          })
-      }, (kind: string) => kind)
-    }
-    .width('100%')
-    .alignItems(VerticalAlign.Center)
+    ChipRow({
+      label: '尺寸',
+      labelColor: this.labelColor(),
+      options: this.sizeOptions,
+      selected: this.sizeKind,
+      accent: this.accent(),
+      chipBg: this.chipBg(),
+      chipText: this.chipText(),
+      onSelect: (value: string) => {
+        this.sizeKind = value;
+      },
+    })
   }
 
   @Builder
   StyleChips() {
     Column({ space: 10 }) {
-      Row({ space: 8 }) {
-        Text('格型')
-          .fontSize(12)
-          .fontColor(this.labelColor())
-          .width(30)
-        ForEach([CharCardGridType.TIAN, CharCardGridType.MI], (kind: string) => {
-          Text(CharCardGridType.label(kind))
-            .fontSize(13)
-            .padding({ left: 14, right: 14, top: 7, bottom: 7 })
-            .backgroundColor(this.gridType === kind ? this.accent() : this.chipBg())
-            .fontColor(this.gridType === kind ? '#FFFFFF' : this.chipText())
-            .borderRadius(14)
-            .onClick(() => {
-              this.gridType = kind;
-            })
-        }, (kind: string) => kind)
+      Row() {
+        ChipRow({
+          label: '格型',
+          labelWidth: 30,
+          labelColor: this.labelColor(),
+          options: this.gridOptions,
+          selected: this.gridType,
+          accent: this.accent(),
+          chipBg: this.chipBg(),
+          chipText: this.chipText(),
+          onSelect: (value: string) => {
+            this.gridType = value;
+          },
+        })
         Blank()
-        Text('字色')
-          .fontSize(12)
-          .fontColor(this.labelColor())
-        ForEach([CharCardCharMode.READ, CharCardCharMode.TRACE], (mode: string) => {
-          Text(CharCardCharMode.label(mode))
-            .fontSize(13)
-            .padding({ left: 14, right: 14, top: 7, bottom: 7 })
-            .backgroundColor(this.charMode === mode ? this.accent() : this.chipBg())
-            .fontColor(this.charMode === mode ? '#FFFFFF' : this.chipText())
-            .borderRadius(14)
-            .onClick(() => {
-              this.charMode = mode;
-            })
-        }, (mode: string) => mode)
+        ChipRow({
+          label: '字色',
+          labelColor: this.labelColor(),
+          options: this.modeOptions,
+          selected: this.charMode,
+          accent: this.accent(),
+          chipBg: this.chipBg(),
+          chipText: this.chipText(),
+          onSelect: (value: string) => {
+            this.charMode = value;
+          },
+        })
       }
       .width('100%')
       .alignItems(VerticalAlign.Center)
 
-      Row({ space: 8 }) {
-        Text('拼音')
-          .fontSize(12)
-          .fontColor(this.labelColor())
-          .width(30)
-        Text('显示')
-          .fontSize(13)
-          .padding({ left: 14, right: 14, top: 7, bottom: 7 })
-          .backgroundColor(this.pinyinOn ? this.accent() : this.chipBg())
-          .fontColor(this.pinyinOn ? '#FFFFFF' : this.chipText())
-          .borderRadius(14)
-          .onClick(() => {
-            this.pinyinOn = true;
-          })
-        Text('隐藏')
-          .fontSize(13)
-          .padding({ left: 14, right: 14, top: 7, bottom: 7 })
-          .backgroundColor(!this.pinyinOn ? this.accent() : this.chipBg())
-          .fontColor(!this.pinyinOn ? '#FFFFFF' : this.chipText())
-          .borderRadius(14)
-          .onClick(() => {
-            this.pinyinOn = false;
-          })
-      }
-      .width('100%')
-      .alignItems(VerticalAlign.Center)
+      ChipRow({
+        label: '拼音',
+        labelWidth: 30,
+        labelColor: this.labelColor(),
+        options: this.pinyinOptions,
+        selected: this.pinyinOn ? 'on' : 'off',
+        accent: this.accent(),
+        chipBg: this.chipBg(),
+        chipText: this.chipText(),
+        onSelect: (value: string) => {
+          this.pinyinOn = value === 'on';
+        },
+      })
     }
     .width('100%')
-  }
-
-  @Builder
-  PaletteSection() {
-    Column({ space: 10 }) {
-      Text('配色方案')
-        .fontSize(12)
-        .fontColor(this.labelColor())
-      Flex({ wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
-        ForEach(CharCards.palettes(), (p: CoverPalette, idx: number) => {
-          Stack() {
-            Column()
-              .width(38)
-              .height(38)
-              .borderRadius(19)
-              .backgroundColor(p.bg)
-            Column()
-              .width(14)
-              .height(14)
-              .borderRadius(2)
-              .backgroundColor(p.accent)
-            Column()
-              .width(44)
-              .height(44)
-              .borderRadius(22)
-              .border({
-                width: this.paletteIndex === idx ? 2 : 0,
-                color: this.accent(),
-              })
-          }
-          .width(44)
-          .height(44)
-          .margin(6)
-          .onClick(() => {
-            this.paletteIndex = idx;
-          })
-        }, (p: CoverPalette, idx: number) => p.name + idx.toString())
-      }
-      .width('100%')
-    }
-    .width('100%')
-    .alignItems(HorizontalAlign.Start)
   }
 
   @Builder

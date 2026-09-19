@@ -6,11 +6,12 @@ import { image } from '@kit.ImageKit';
 import { fileIo as fs } from '@kit.CoreFileKit';
 import { common } from '@kit.AbilityKit';
 import { BusinessError } from '@kit.BasicServicesKit';
-import { CoverContent, CoverHistoryRecord, CoverPalette, CoverSlot, CoverTemplate } from '../model/CoverModels';
+import { CoverContent, CoverHistoryRecord, CoverSlot, CoverTemplate } from '../model/CoverModels';
 import { CoverFont, CoverSeries, CoverTemplates } from '../core/cover/CoverTemplates';
 import { CoverContentUtil } from '../core/cover/CoverContentUtil';
 import { CoverHistoryStore } from '../core/cover/CoverHistoryStore';
 import { CoverPreview } from '../components/cover/CoverPreview';
+import { PaletteSection } from '../components/template/PaletteSection';
 import { FontUtil } from '../common/utils/FontUtil';
 import { ToastUtil } from '../common/utils/ToastUtil';
 import { savePixelMapToAlbum, shareImageViaPanel } from '../common/utils/ShareImageUtil';
@@ -694,44 +695,15 @@ struct CoverMakerContent {
   @Builder
   StyleEditor() {
     Column({ space: 16 }) {
-      Column({ space: 10 }) {
-        Text('配色方案')
-          .fontSize(12)
-          .fontColor(this.labelColor())
-        Flex({ wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
-          ForEach(this.currentTemplate().palettes, (p: CoverPalette, idx: number) => {
-            Stack() {
-              Column()
-                .width(38)
-                .height(38)
-                .borderRadius(19)
-                .backgroundColor(p.bg)
-              Column()
-                .width(14)
-                .height(14)
-                .borderRadius(7)
-                .backgroundColor(p.accent)
-              Column()
-                .width(44)
-                .height(44)
-                .borderRadius(22)
-                .border({
-                  width: this.paletteIndex === idx ? 2 : 0,
-                  color: '#2E6FD6',
-                })
-            }
-            .width(44)
-            .height(44)
-            .margin(6)
-            .onClick(() => {
-              this.paletteIndex = idx;
-            })
-          }, (p: CoverPalette, idx: number) => p.name + idx.toString())
-        }
-        .width('100%')
-      }
-      .width('100%')
-      .alignItems(HorizontalAlign.Start)
+      PaletteSection({
+        palettes: this.currentTemplate().palettes,
+        selectedIndex: this.paletteIndex,
+        accentColor: '#2E6FD6',
+        labelColor: this.labelColor(),
+        onSelect: (idx: number) => {
+          this.paletteIndex = idx;
+        },
+      })
 
       Column({ space: 10 }) {
         Text('字体')

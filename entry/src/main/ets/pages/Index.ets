@@ -21,6 +21,7 @@ import { CoverMakerPageBuilder } from './CoverMakerPage';
 import { CharCardPageBuilder } from './CharCardPage';
 import { GcdLcmPageBuilder } from './GcdLcmPage';
 import { PrimeFactorPageBuilder } from './PrimeFactorPage';
+import { registerUnifiedTemplateSets } from '../core/template/UnifiedTemplateSets';
 import { PoetryViewModel } from '../viewmodel/PoetryViewModel';
 import { IdiomViewModel } from '../viewmodel/IdiomViewModel';
 import { XiehouyuViewModel } from '../viewmodel/XiehouyuViewModel';
@@ -115,6 +116,7 @@ struct Index {
     AppStorage.setOrCreate('AppNavPathStack', this.homeStack);
     AppStorage.setOrCreate('AppHostContext', this.getUIContext().getHostContext() as Context);
     AppStorage.setOrCreate('AppUIContext', this.getUIContext());
+    registerUnifiedTemplateSets();
     this.buildToolItems();
     this.loadRecentTools();
     setTimeout(() => {
