@@ -251,6 +251,7 @@ export struct PoemContentContent {
                 .backgroundColor(this.isFav ? $r('app.color.danger_red') + '18' : $r('app.color.poetry_green') + '18')
                 .borderRadius(16)
                 .padding({ left: 20, right: 20, top: 8, bottom: 8 })
+                .accessibilityText(this.isFav ? '取消收藏' : '收藏')
                 .onClick(() => {
                   this.toggleFav();
                 })
@@ -261,6 +262,7 @@ export struct PoemContentContent {
                 .backgroundColor($r('app.color.poetry_green') + '18')
                 .borderRadius(16)
                 .padding({ left: 20, right: 20, top: 8, bottom: 8 })
+                .accessibilityText('加入朗读清单')
                 .onClick(() => {
                   this.openReadingListPicker();
                 })

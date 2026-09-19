@@ -360,6 +360,21 @@ struct Index {
     this.loadDailyPoem(this.getDailySeed() + this.poemOffset);
   }
 
+  private backToDailyPoem(): void {
+    this.poemOffset = 0;
+    this.loadDailyPoem(this.getDailySeed());
+  }
+
+  private backToDailyIdiom(): void {
+    this.idiomOffset = 0;
+    this.loadDailyIdiom(this.getDailySeed());
+  }
+
+  private backToDailyXiehouyu(): void {
+    this.xiehouyuOffset = 0;
+    this.loadDailyXiehouyu(this.getDailySeed());
+  }
+
   private refreshIdiom(): void {
     this.idiomOffset = Math.floor(Math.random() * 100000);
     this.loadDailyIdiom(this.getDailySeed() + this.idiomOffset);
@@ -726,6 +741,7 @@ struct Index {
               .padding({ left: 8, right: 12, top: 6, bottom: 6 })
               .backgroundColor($r('app.color.card_background'))
               .borderRadius(16)
+              .accessibilityText('最近使用：' + tool.title)
               .onClick(() => {
                 this.openTool(this.homeStack, tool);
               })
@@ -773,6 +789,7 @@ struct Index {
         .width('25%')
         .padding({ top: 8, bottom: 12 })
         .alignItems(HorizontalAlign.Center)
+        .accessibilityText(tool.title + '，' + tool.subtitle)
         .onClick(() => {
           this.openTool(this.toolStack, tool);
         })
@@ -1203,9 +1220,23 @@ struct Index {
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.poetry_green'))
         Blank()
+        if (this.poemOffset > 0) {
+          Text('今日')
+            .fontSize(10)
+            .fontColor($r('app.color.poetry_green'))
+            .backgroundColor($r('app.color.poetry_green') + '18')
+            .borderRadius(10)
+            .padding({ left: 7, right: 7, top: 3, bottom: 3 })
+            .margin({ right: 6 })
+            .accessibilityText('回到今日推荐')
+            .onClick(() => {
+              this.backToDailyPoem();
+            })
+        }
         Text('\uD83D\uDD04')
           .fontSize(this.DAILY_LOADING_SIZE + 1)
           .fontColor($r('app.color.poetry_green'))
+          .accessibilityText('换一首')
           .onClick(() => {
             this.refreshPoem();
           })
@@ -1250,9 +1281,23 @@ struct Index {
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.idiom_blue'))
         Blank()
+        if (this.idiomOffset > 0) {
+          Text('今日')
+            .fontSize(10)
+            .fontColor($r('app.color.idiom_blue'))
+            .backgroundColor($r('app.color.idiom_blue') + '18')
+            .borderRadius(10)
+            .padding({ left: 7, right: 7, top: 3, bottom: 3 })
+            .margin({ right: 6 })
+            .accessibilityText('回到今日推荐')
+            .onClick(() => {
+              this.backToDailyIdiom();
+            })
+        }
         Text('\uD83D\uDD04')
           .fontSize(this.DAILY_LOADING_SIZE)
           .fontColor($r('app.color.idiom_blue'))
+          .accessibilityText('换一个成语')
           .onClick(() => {
             this.refreshIdiom();
           })
@@ -1292,9 +1337,23 @@ struct Index {
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.idiom_orange'))
         Blank()
+        if (this.xiehouyuOffset > 0) {
+          Text('今日')
+            .fontSize(10)
+            .fontColor($r('app.color.idiom_orange'))
+            .backgroundColor($r('app.color.idiom_orange') + '18')
+            .borderRadius(10)
+            .padding({ left: 7, right: 7, top: 3, bottom: 3 })
+            .margin({ right: 6 })
+            .accessibilityText('回到今日推荐')
+            .onClick(() => {
+              this.backToDailyXiehouyu();
+            })
+        }
         Text('\uD83D\uDD04')
           .fontSize(this.DAILY_LOADING_SIZE)
           .fontColor($r('app.color.idiom_orange'))
+          .accessibilityText('换一条歇后语')
           .onClick(() => {
             this.refreshXiehouyu();
           })
