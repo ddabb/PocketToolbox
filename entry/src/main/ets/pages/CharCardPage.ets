@@ -673,7 +673,7 @@ struct CharCardContent {
             '填入所选(' + this.bookSelected.length.toString() + ')' : '全部填入')
             .fontSize(14)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#ffffff')
+            .fontColor(this.bookChars.length > 0 ? '#FFFFFF' : this.chipText())
             .backgroundColor(this.bookChars.length > 0 ? this.accent() : this.lineColor())
             .borderRadius(20)
             .padding({ left: 20, right: 20, top: 9, bottom: 9 })

@@ -219,12 +219,12 @@ struct DailyChallengeContent {
                 .width(24)
                 .height(24)
                 .borderRadius(12)
-                .backgroundColor('#27ae60')
+                .backgroundColor('#15803D')
                 .textAlign(TextAlign.Center)
                 .margin({ right: 8 })
               Text('回答正确！+20分')
                 .fontSize(15)
-                .fontColor('#27ae60')
+                .fontColor('#15803D')
                 .fontWeight(FontWeight.Bold)
             }
           } else {
@@ -235,12 +235,12 @@ struct DailyChallengeContent {
                 .width(24)
                 .height(24)
                 .borderRadius(12)
-                .backgroundColor('#e74c3c')
+                .backgroundColor('#C0392B')
                 .textAlign(TextAlign.Center)
                 .margin({ right: 8 })
               Text('正确答案：' + this.questions[this.currentIdx].options[this.questions[this.currentIdx].answerIndex])
                 .fontSize(15)
-                .fontColor('#e74c3c')
+                .fontColor('#C0392B')
                 .fontWeight(FontWeight.Bold)
             }
           }
@@ -248,7 +248,7 @@ struct DailyChallengeContent {
           Text(this.getNextButtonText())
             .fontSize(16)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#ffffff')
+            .fontColor($r('app.color.on_accent_text'))
             .backgroundColor($r('app.color.poetry_green'))
             .borderRadius(22)
             .padding({ left: 36, right: 36, top: 12, bottom: 12 })
@@ -281,7 +281,7 @@ struct DailyChallengeContent {
       return '#ffffff';
     }
     if (index === this.selectedIdx) {
-      return '#e74c3c';
+      return '#C0392B';
     }
     return $r('app.color.tertiary_text');
   }
@@ -291,7 +291,7 @@ struct DailyChallengeContent {
       return $r('app.color.poetry_green') + '18';
     }
     if (index === this.questions[this.currentIdx].answerIndex) {
-      return '#27ae60';
+      return '#15803D';
     }
     if (index === this.selectedIdx) {
       return '#e74c3c18';
@@ -304,10 +304,10 @@ struct DailyChallengeContent {
       return $r('app.color.primary_text');
     }
     if (index === this.questions[this.currentIdx].answerIndex) {
-      return '#27ae60';
+      return '#15803D';
     }
     if (index === this.selectedIdx) {
-      return '#e74c3c';
+      return '#C0392B';
     }
     return $r('app.color.tertiary_text');
   }
@@ -330,10 +330,10 @@ struct DailyChallengeContent {
       return undefined;
     }
     if (index === this.questions[this.currentIdx].answerIndex) {
-      return { width: 1.5, color: '#27ae60', style: BorderStyle.Solid };
+      return { width: 1.5, color: '#15803D', style: BorderStyle.Solid };
     }
     if (index === this.selectedIdx) {
-      return { width: 1.5, color: '#e74c3c', style: BorderStyle.Solid };
+      return { width: 1.5, color: '#C0392B', style: BorderStyle.Solid };
     }
     return undefined;
   }

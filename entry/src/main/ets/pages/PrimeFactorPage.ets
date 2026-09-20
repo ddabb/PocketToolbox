@@ -274,7 +274,7 @@ struct PrimeFactorContent {
                   Text(factor.value.toString())
                     .fontSize(22)
                     .fontWeight(FontWeight.Bold)
-                    .fontColor(Color.White)
+                    .fontColor($r('app.color.on_accent_text'))
                     .padding({ left: 12, right: 12, top: 8, bottom: 8 })
                     .backgroundColor($r('app.color.idiom_blue'))
                     .borderRadius(10)
@@ -332,7 +332,7 @@ struct PrimeFactorContent {
 
             Button('复制结果')
               .fontSize(13)
-              .fontColor(Color.White)
+              .fontColor($r('app.color.on_accent_text'))
               .backgroundColor($r('app.color.idiom_blue'))
               .borderRadius(8)
               .height(32)

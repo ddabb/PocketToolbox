@@ -269,7 +269,7 @@ export struct PoemContentContent {
 
               Text('复制')
                 .fontSize(14)
-                .fontColor('#ffffff')
+                .fontColor($r('app.color.on_accent_text'))
                 .backgroundColor($r('app.color.poetry_green'))
                 .borderRadius(16)
                 .padding({ left: 24, right: 24, top: 8, bottom: 8 })
@@ -279,7 +279,7 @@ export struct PoemContentContent {
 
               Text('分享图片')
                 .fontSize(14)
-                .fontColor('#ffffff')
+                .fontColor($r('app.color.on_accent_text'))
                 .backgroundColor($r('app.color.poetry_green'))
                 .borderRadius(16)
                 .padding({ left: 20, right: 20, top: 8, bottom: 8 })
@@ -294,10 +294,10 @@ export struct PoemContentContent {
             Row({ space: 6 }) {
               Text('\u63CF\u7EA2')
                 .fontSize(13)
-                .fontColor('#ffffff')
+                .fontColor($r('app.color.on_accent_text'))
               Text('\u9009\u53D6\u751F\u5B57\u52A0\u5165\u751F\u5B57\u672C')
                 .fontSize(13)
-                .fontColor('#ffffff')
+                .fontColor($r('app.color.on_accent_text'))
             }
             .backgroundColor($r('app.color.danger_red'))
             .borderRadius(16)
@@ -310,7 +310,7 @@ export struct PoemContentContent {
             if (this.showShareCard) {
               ShareImageCard({
                 mdText: this.shareMdText,
-                accentColor: '#6b8e6b',
+                accentColor: '#4A7C6F',
                 bgColor: '#fdf8f0',
                 cardId: 'poem_share_card',
                 theme: Md2PngTemplates.getPoetryTemplate(),
@@ -469,7 +469,7 @@ export struct PoemContentContent {
           Text('加入生字本(' + this.selectedChars.length.toString() + ')')
             .fontSize(15)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#ffffff')
+            .fontColor(this.selectedChars.length > 0 ? $r('app.color.on_accent_text') : $r('app.color.tertiary_text'))
             .backgroundColor(this.selectedChars.length > 0 ? $r('app.color.danger_red') : $r('app.color.border_color'))
             .borderRadius(20)
             .padding({ left: 20, right: 20, top: 9, bottom: 9 })

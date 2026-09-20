@@ -248,7 +248,7 @@ struct ReadingListContent {
           Text('+ 新建清单')
             .fontSize(16)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#ffffff')
+            .fontColor($r('app.color.on_accent_text'))
             .backgroundColor($r('app.color.poetry_green'))
             .borderRadius(24)
             .padding({ left: 32, right: 32, top: 12, bottom: 12 })
@@ -313,7 +313,7 @@ struct ReadingListContent {
 
           Text('创建')
             .fontSize(15)
-            .fontColor('#ffffff')
+            .fontColor($r('app.color.on_accent_text'))
             .backgroundColor($r('app.color.poetry_green'))
             .borderRadius(22)
             .padding({ left: 28, right: 28, top: 10, bottom: 10 })
@@ -375,7 +375,7 @@ struct ReadingListContent {
 
           Text('保存')
             .fontSize(15)
-            .fontColor('#ffffff')
+            .fontColor($r('app.color.on_accent_text'))
             .backgroundColor($r('app.color.poetry_green'))
             .borderRadius(22)
             .padding({ left: 28, right: 28, top: 10, bottom: 10 })

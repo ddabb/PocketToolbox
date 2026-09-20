@@ -60,7 +60,7 @@ export struct FavDetailModal {
     if (this.favItem!.type === 'poem' && this.poemData) {
       this.shareMdText = buildPoemMarkdown(this.poemData!);
       this.shareTheme = Md2PngTemplates.getPoetryTemplate();
-      this.shareAccent = '#6b8e6b';
+      this.shareAccent = '#4A7C6F';
       this.shareBg = '#fdf8f0';
     } else if (this.favItem!.type === 'idiom' && this.idiomData) {
       this.shareMdText = buildIdiomMarkdown(this.idiomData!);
@@ -70,7 +70,7 @@ export struct FavDetailModal {
     } else if (this.favItem!.type === 'xiehouyu' && this.xiehouyuData) {
       this.shareMdText = buildXiehouyuMarkdown(this.xiehouyuData!);
       this.shareTheme = Md2PngTemplates.getXiehouyuTemplate();
-      this.shareAccent = '#e67e22';
+      this.shareAccent = '#C2410C';
       this.shareBg = '#fffbf0';
     } else {
       return;
@@ -155,7 +155,7 @@ export struct FavDetailModal {
 
                 Text('分享图片')
                   .fontSize(14)
-                  .fontColor('#ffffff')
+                  .fontColor($r('app.color.on_accent_text'))
                   .backgroundColor(this.favItem!.type === 'poem' ? $r('app.color.poetry_green') :
                   this.favItem!.type === 'idiom' ? $r('app.color.idiom_blue') : $r('app.color.idiom_orange'))
                   .borderRadius(12)

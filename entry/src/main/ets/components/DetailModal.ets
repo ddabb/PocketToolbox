@@ -242,7 +242,7 @@ export struct DetailModal {
 
                 Text('分享图片')
                   .fontSize(14)
-                  .fontColor('#ffffff')
+                  .fontColor($r('app.color.on_accent_text'))
                   .backgroundColor($r('app.color.idiom_blue'))
                   .borderRadius(12)
                   .padding({ left: 16, right: 16, top: 8, bottom: 8 })

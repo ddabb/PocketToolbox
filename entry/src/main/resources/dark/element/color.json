@@ -26,7 +26,7 @@
     },
     {
       "name": "hint_text",
-      "value": "#808080"
+      "value": "#8c8c8c"
     },
     {
       "name": "border_color",
@@ -55,6 +55,10 @@
     {
       "name": "error_red",
       "value": "#ef5350"
+    },
+    {
+      "name": "on_accent_text",
+      "value": "#1a1a1a"
     },
     {
       "name": "poetry_card_bg",

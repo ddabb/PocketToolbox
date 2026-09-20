@@ -506,10 +506,10 @@ struct TimezoneConverterContent {
               Text((info.isNight ? '\uD83C\uDF19' : info.isWorkTime ? '\u2600\uFE0F' : '\uD83C\uDF06') + ' ' + info.cityName)
                 .fontSize(15)
                 .fontWeight(FontWeight.Bold)
-                .fontColor($r('app.color.primary_text'))
+                .fontColor(info.isNight ? '#FFFFFF' : $r('app.color.primary_text'))
               Text(info.country + ' UTC' + this.getOffsetText(info.offset))
                 .fontSize(12)
-                .fontColor($r('app.color.tertiary_text'))
+                .fontColor(info.isNight ? '#C0C0C0' : $r('app.color.tertiary_text'))
                 .margin({ top: 2 })
             }
             .alignItems(HorizontalAlign.Start)
@@ -519,10 +519,10 @@ struct TimezoneConverterContent {
               Text(info.localTime)
                 .fontSize(20)
                 .fontWeight(FontWeight.Bold)
-                .fontColor($r('app.color.primary_text'))
+                .fontColor(info.isNight ? '#FFFFFF' : $r('app.color.primary_text'))
               Text(info.localDate)
                 .fontSize(12)
-                .fontColor($r('app.color.tertiary_text'))
+                .fontColor(info.isNight ? '#C0C0C0' : $r('app.color.tertiary_text'))
                 .margin({ top: 2 })
             }
             .alignItems(HorizontalAlign.End)
@@ -530,8 +530,8 @@ struct TimezoneConverterContent {
             Column() {
               Text(info.isWorkTime ? '工作时间' : '非工作时间')
                 .fontSize(11)
-                .fontColor(info.isWorkTime ? '#27ae60' : '#e67e22')
-                .backgroundColor((info.isWorkTime ? '#27ae60' : '#e67e22') + '18')
+                .fontColor(info.isWorkTime ? '#15803D' : '#C2410C')
+                .backgroundColor((info.isWorkTime ? '#15803D' : '#C2410C') + '18')
                 .borderRadius(8)
                 .padding({ left: 6, right: 6, top: 2, bottom: 2 })
             }
@@ -539,7 +539,7 @@ struct TimezoneConverterContent {
 
             Text('\u00D7')
               .fontSize(18)
-              .fontColor($r('app.color.hint_text'))
+              .fontColor(info.isNight ? '#C0C0C0' : $r('app.color.hint_text'))
               .margin({ left: 8 })
               .onClick(() => {
                 this.removeSelectedCity(info.cityName);
@@ -896,7 +896,7 @@ struct TimezoneConverterContent {
               Column() {
                 Text('\u26A0\uFE0F 城市数据加载失败')
                   .fontSize(14)
-                  .fontColor('#e74c3c')
+                  .fontColor('#C0392B')
                   .margin({ top: 24, bottom: 8 })
                 Text('请尝试重新进入页面或重启应用')
                   .fontSize(12)
@@ -960,7 +960,7 @@ struct TimezoneConverterContent {
               })
             Button('确定')
               .fontSize(14)
-              .fontColor(Color.White)
+              .fontColor($r('app.color.on_accent_text'))
               .backgroundColor($r('app.color.idiom_blue'))
               .borderRadius(20)
               .height(40)

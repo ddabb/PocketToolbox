@@ -408,7 +408,7 @@ struct IdiomQueryContent {
 
       Text(this.queryMode === 'forward' ? '顺查' : '逆查')
         .fontSize(12)
-        .fontColor('#ffffff')
+        .fontColor($r('app.color.on_accent_text'))
         .backgroundColor(this.queryMode === 'forward' ? $r('app.color.idiom_blue') : $r('app.color.idiom_orange'))
         .borderRadius(10)
         .padding({ left: 10, right: 10, top: 6, bottom: 6 })
@@ -419,7 +419,7 @@ struct IdiomQueryContent {
 
       Text('查询')
         .fontSize(12)
-        .fontColor('#ffffff')
+        .fontColor($r('app.color.on_accent_text'))
         .backgroundColor($r('app.color.poetry_green'))
         .borderRadius(10)
         .padding({ left: 10, right: 10, top: 6, bottom: 6 })
@@ -541,7 +541,7 @@ struct IdiomQueryContent {
                 if (item.canContinue) {
                   Text(item.actionText)
                     .fontSize(12)
-                    .fontColor('#ffffff')
+                    .fontColor($r('app.color.on_accent_text'))
                     .backgroundColor($r('app.color.danger_red'))
                     .borderRadius(10)
                     .padding({ left: 8, right: 8, top: 3, bottom: 3 })
@@ -722,7 +722,7 @@ struct IdiomQueryContent {
 
         Text('搜索')
         .fontSize(12)
-        .fontColor('#ffffff')
+        .fontColor($r('app.color.on_accent_text'))
         .backgroundColor($r('app.color.idiom_blue'))
           .borderRadius(10)
           .padding({ left: 10, right: 10, top: 6, bottom: 6 })

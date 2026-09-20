@@ -22,11 +22,11 @@
     },
     {
       "name": "tertiary_text",
-      "value": "#999999"
+      "value": "#6e6e6e"
     },
     {
       "name": "hint_text",
-      "value": "#bbbbbb"
+      "value": "#6e6e6e"
     },
     {
       "name": "border_color",
@@ -38,23 +38,27 @@
     },
     {
       "name": "idiom_blue",
-      "value": "#2980b9"
+      "value": "#21689e"
     },
     {
       "name": "idiom_orange",
-      "value": "#bf5b04"
+      "value": "#b35403"
     },
     {
       "name": "danger_red",
-      "value": "#e74c3c"
+      "value": "#c0392b"
     },
     {
       "name": "success_green",
-      "value": "#27ae60"
+      "value": "#15803d"
     },
     {
       "name": "error_red",
-      "value": "#ff4d4f"
+      "value": "#dc2626"
+    },
+    {
+      "name": "on_accent_text",
+      "value": "#ffffff"
     },
     {
       "name": "poetry_card_bg",

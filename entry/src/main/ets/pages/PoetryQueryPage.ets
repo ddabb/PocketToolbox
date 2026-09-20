@@ -455,7 +455,7 @@ struct PoetryQueryContent {
 
       Text('搜索')
         .fontSize(14)
-        .fontColor('#ffffff')
+        .fontColor($r('app.color.on_accent_text'))
         .backgroundColor($r('app.color.poetry_green'))
         .borderRadius(16)
         .padding({ left: 16, right: 16, top: 8, bottom: 8 })

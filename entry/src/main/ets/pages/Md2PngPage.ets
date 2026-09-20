@@ -1266,7 +1266,7 @@ struct Md2PngContent {
             if (this.editingWordSource === 'manual') {
               Button('移除该词')
                 .fontSize(13)
-                .fontColor('#dc2626')
+                .fontColor('#B91C1C')
                 .backgroundColor('rgba(220,38,38,0.12)')
                 .borderRadius(16)
                 .height(32)
@@ -1282,7 +1282,7 @@ struct Md2PngContent {
             Button('确定')
               .fontSize(15)
               .fontWeight(FontWeight.Bold)
-              .fontColor('#ffffff')
+              .fontColor($r('app.color.on_accent_text'))
               .backgroundColor($r('app.color.idiom_blue'))
               .borderRadius(20)
               .height(40)
@@ -1444,11 +1444,11 @@ struct Md2PngContent {
         Button('分享')
           .fontSize(15)
           .fontWeight(FontWeight.Bold)
-          .fontColor(this.currentAccentColor)
+          .fontColor($r('app.color.idiom_blue'))
           .backgroundColor(Color.Transparent)
           .border({
             width: 1,
-            color: this.currentAccentColor,
+            color: $r('app.color.idiom_blue'),
             style: BorderStyle.Solid
           })
           .borderRadius(22)
@@ -1461,8 +1461,8 @@ struct Md2PngContent {
         Button('保存图片')
           .fontSize(15)
           .fontWeight(FontWeight.Bold)
-          .fontColor('#ffffff')
-          .backgroundColor(this.currentAccentColor)
+          .fontColor($r('app.color.on_accent_text'))
+          .backgroundColor($r('app.color.idiom_blue'))
           .borderRadius(22)
           .height(44)
           .layoutWeight(1)

@@ -426,7 +426,7 @@ struct XiehouyuQueryContent {
 
         Text('搜索')
           .fontSize(12)
-          .fontColor('#ffffff')
+          .fontColor($r('app.color.on_accent_text'))
           .backgroundColor($r('app.color.idiom_orange'))
           .borderRadius(10)
           .padding({ left: 10, right: 10, top: 6, bottom: 6 })
@@ -760,7 +760,7 @@ struct XiehouyuQueryContent {
           Row({ space: 10 }) {
             Text('提交答案')
               .fontSize(14)
-              .fontColor('#ffffff')
+              .fontColor($r('app.color.on_accent_text'))
               .backgroundColor($r('app.color.idiom_orange'))
               .borderRadius(20)
               .padding({ left: 24, right: 24, top: 8, bottom: 8 })
@@ -770,7 +770,7 @@ struct XiehouyuQueryContent {
 
             Text(this.revealAnswer ? '隐藏答案' : '查看答案')
               .fontSize(14)
-              .fontColor('#ffffff')
+              .fontColor($r('app.color.on_accent_text'))
               .backgroundColor($r('app.color.tertiary_text'))
               .borderRadius(20)
               .padding({ left: 20, right: 20, top: 8, bottom: 8 })
@@ -780,7 +780,7 @@ struct XiehouyuQueryContent {
 
             Text('下一题')
               .fontSize(14)
-              .fontColor('#ffffff')
+              .fontColor($r('app.color.on_accent_text'))
               .backgroundColor($r('app.color.poetry_green'))
               .borderRadius(20)
               .padding({ left: 20, right: 20, top: 8, bottom: 8 })
@@ -962,7 +962,7 @@ struct XiehouyuDetailModal {
 
                 Text('分享图片')
                   .fontSize(14)
-                  .fontColor('#ffffff')
+                  .fontColor($r('app.color.on_accent_text'))
                   .backgroundColor($r('app.color.idiom_orange'))
                   .borderRadius(12)
                   .padding({ left: 16, right: 16, top: 8, bottom: 8 })
@@ -978,7 +978,7 @@ struct XiehouyuDetailModal {
               if (this.modalShowShare) {
                 ShareImageCard({
                   mdText: this.modalShareMd,
-                  accentColor: '#e67e22',
+                  accentColor: '#C2410C',
                   bgColor: '#fffbf0',
                   cardId: 'xiehouyu_share_card',
                   theme: Md2PngTemplates.getXiehouyuTemplate(),

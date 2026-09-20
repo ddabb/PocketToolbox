@@ -433,7 +433,7 @@ struct CoverMakerContent {
       if (this.titleTooLong()) {
         Text('文案偏长，建议精简（当前标题 ' + this.content.title.length.toString() + ' 字）')
           .fontSize(11)
-          .fontColor('#E5484D')
+          .fontColor('#C0392B')
       }
     }
     .width('100%')
@@ -546,7 +546,7 @@ struct CoverMakerContent {
             .layoutWeight(1)
           Text('换一句')
             .fontSize(13)
-            .fontColor('#2E6FD6')
+            .fontColor($r('app.color.idiom_blue'))
             .padding({ left: 14, right: 14, top: 7, bottom: 7 })
             .backgroundColor('#1A2E6FD6')
             .borderRadius(14)
@@ -646,7 +646,7 @@ struct CoverMakerContent {
               .layoutWeight(1)
             Text('恢复自动')
               .fontSize(12)
-              .fontColor('#2E6FD6')
+              .fontColor($r('app.color.idiom_blue'))
               .padding({ left: 10, right: 10, top: 6, bottom: 6 })
               .backgroundColor('#1A2E6FD6')
               .borderRadius(12)
@@ -676,7 +676,7 @@ struct CoverMakerContent {
               .layoutWeight(1)
             Text('恢复自动')
               .fontSize(12)
-              .fontColor('#2E6FD6')
+              .fontColor($r('app.color.idiom_blue'))
               .padding({ left: 10, right: 10, top: 6, bottom: 6 })
               .backgroundColor('#1A2E6FD6')
               .borderRadius(12)

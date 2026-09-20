@@ -139,7 +139,7 @@ struct AchievementContent {
                   .width(28)
                   .height(28)
                   .borderRadius(14)
-                  .backgroundColor('#27ae60')
+                  .backgroundColor('#15803D')
                   .textAlign(TextAlign.Center)
               } else {
                 Column() {

@@ -8,7 +8,7 @@ import { TemplateInfo, Md2PngTemplates } from '../model/Md2PngModels';
 import { WordCloudView } from '../components/WordCloudView';
 import { ImageSaveShareBar } from '../components/ImageSaveShareBar';
 import { runPlacementAsync, WordInput, WordCloudInput } from '../core/layout/WordCloudTask';
-import { display } from '@kit.ArkUI';
+import { display, mediaquery } from '@kit.ArkUI';
 import { BusinessError } from '@kit.BasicServicesKit';
 import { image } from '@kit.ImageKit';
 import { LengthMetricsUnit } from '@kit.ArkUI';
@@ -44,7 +44,9 @@ struct WordCloudContent {
   @State rawSourceText: string = '';
   @State showWordsDialog: boolean = false;
   @State showSettingsDialog: boolean = false;
+  @State isDark: boolean = false;
   private uiContext: UIContext = this.getUIContext();
+  private darkListener: mediaquery.MediaQueryListener | null = null;
   private palettes: PaletteColor[] = Palette.getAll();
   private templates: TemplateInfo[] = Md2PngTemplates.getAll();
   private lastWeightedItems: WeightedItem[] = [];
@@ -79,6 +81,16 @@ struct WordCloudContent {
   aboutToAppear(): void {
     FontUtil.registerAll(this.uiContext);
     this.calcCanvasSize();
+    this.darkListener = mediaquery.matchMediaSync('(prefers-color-scheme: dark)');
+    this.isDark = this.darkListener.matches;
+    this.darkListener.on('change', (result: mediaquery.MediaQueryResult) => {
+      this.isDark = result.matches;
+    });
+  }
+
+  aboutToDisappear(): void {
+    this.darkListener?.off('change');
+    this.darkListener = null;
   }
 
   private calcCanvasSize(): void {
@@ -139,7 +151,7 @@ struct WordCloudContent {
           Button('示例')
             .fontSize(13)
             .fontColor(Color.White)
-            .backgroundColor('#07c160')
+            .backgroundColor('#15803D')
             .borderRadius(16)
             .height(32)
             .onClick(() => { this.loadExample(); })
@@ -220,7 +232,7 @@ struct WordCloudContent {
 
         if (this.placedWords.length > 0) {
           ImageSaveShareBar({
-            accentColor: this.getAccentColor(),
+            accentColor: '#2563EB',
             onPmForSave: (): image.PixelMap => this.renderExportPixelMap(),
             onPmForShare: (): image.PixelMap => this.renderExportPixelMap(),
           })
@@ -262,10 +274,10 @@ struct WordCloudContent {
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.primary_text'))
         Blank()
-        Button('完成')
-          .fontSize(14)
-          .fontColor(Color.White)
-          .backgroundColor(this.getAccentColor())
+            Button('完成')
+            .fontSize(14)
+            .fontColor($r('app.color.on_accent_text'))
+            .backgroundColor(this.getAccentColor())
           .borderRadius(18)
           .height(32)
           .padding({ left: 16, right: 16 })
@@ -302,15 +314,15 @@ struct WordCloudContent {
                 .padding({ top: 1, bottom: 1 })
                 Text(tpl.name)
                   .fontSize(11)
-                  .fontColor(this.currentPaletteIndex === index ? this.getTemplateAccent(index) : $r('app.color.tertiary_text'))
+                  .fontColor(this.currentPaletteIndex === index ? this.getAccentColor() : $r('app.color.tertiary_text'))
                   .margin({ top: 5 })
               }
               .padding({ left: 9, right: 9, top: 6, bottom: 6 })
               .borderRadius(10)
-              .backgroundColor(this.currentPaletteIndex === index ? this.getTemplateAccent(index) + '15' : Color.Transparent)
+              .backgroundColor(this.currentPaletteIndex === index ? this.getAccentColor() + '15' : Color.Transparent)
               .border({
                 width: this.currentPaletteIndex === index ? 1.5 : 0,
-                color: this.getTemplateAccent(index),
+                color: this.getAccentColor(),
                 style: BorderStyle.Solid
               })
               .alignItems(HorizontalAlign.Center)
@@ -433,7 +445,7 @@ struct WordCloudContent {
             .width(44).height(14).borderRadius(5)
             .margin({ right: 4, bottom: 3 })
             .border({ width: this.currentPaletteIndex === index ? 1.5 : 0,
-              color: this.getTemplateAccent(index) })
+              color: this.getAccentColor() })
             .onClick(() => { this.currentPaletteIndex = index; this.refreshColors(); })
           })
         }
@@ -579,7 +591,7 @@ struct WordCloudContent {
 
         Button('添加')
           .fontSize(13)
-          .fontColor(Color.White)
+          .fontColor($r('app.color.on_accent_text'))
           .backgroundColor(this.getAccentColor())
           .borderRadius(18)
           .height(32)
@@ -634,7 +646,7 @@ struct WordCloudContent {
         Button('示例')
           .fontSize(14)
           .fontColor(Color.White)
-          .backgroundColor('#07c160')
+          .backgroundColor('#15803D')
           .borderRadius(20)
           .height(36)
           .onClick(() => {
@@ -985,11 +997,7 @@ struct WordCloudContent {
   }
 
   private getAccentColor(): string {
-    return this.templates[this.currentPaletteIndex].accentColor;
-  }
-
-  private getTemplateAccent(index: number): string {
-    return this.templates[index].accentColor;
+    return this.isDark ? '#8AB4F8' : '#2563EB';
   }
 
   private renderExportPixelMap(): image.PixelMap {

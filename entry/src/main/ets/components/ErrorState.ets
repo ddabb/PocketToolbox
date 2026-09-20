@@ -36,7 +36,7 @@ export struct ErrorState {
       if (this.showButton) {
         Button(this.buttonText)
         .fontSize(14)
-        .fontColor('#ffffff')
+        .fontColor($r('app.color.on_accent_text'))
         .backgroundColor($r('app.color.error_red'))
           .borderRadius(8)
           .width(140)

@@ -648,12 +648,12 @@ struct SudokuSolverPage {
 
   getMessageColor(): string {
     if (this.messageType === 1) {
-      return '#16a34a';
+      return '#15803D';
     }
     if (this.messageType === 2) {
-      return '#dc2626';
+      return '#B91C1C';
     }
-    return '#6366f1';
+    return '#4F46E5';
   }
 
   getCellBg(row: number, col: number): ResourceColor {
@@ -689,15 +689,15 @@ struct SudokuSolverPage {
   getCellTextColor(row: number, col: number): ResourceColor {
     const idx: number = row * SIZE + col;
     if (this.conflictCells[idx]) {
-      return '#dc2626';
+      return '#B91C1C';
     }
     if (this.fixedCells[idx]) {
       if (this.editMode) {
-        return '#f59e0b';
+        return '#B45309';
       }
       return $r('app.color.primary_text');
     }
-    return '#6366f1';
+    return '#4F46E5';
   }
 
   getCellBorderWidth(row: number, col: number): EdgeWidths {
@@ -791,7 +791,7 @@ struct SudokuSolverPage {
       if (this.editMode) {
         Text('\u2714 完成')
           .fontSize(13)
-          .fontColor('#16a34a')
+          .fontColor('#15803D')
           .padding({ left: 10, right: 10, top: 4, bottom: 4 })
           .borderRadius(12)
           .backgroundColor('#f0fdf4')
@@ -803,7 +803,7 @@ struct SudokuSolverPage {
         if (this.hasUserInput || this.currentGrid.some((d: number) => d > 0)) {
           Text('\u270F 修改')
             .fontSize(13)
-            .fontColor('#6366f1')
+            .fontColor('#4F46E5')
             .padding({ left: 10, right: 10, top: 4, bottom: 4 })
             .borderRadius(12)
             .backgroundColor('#eef2ff')
@@ -828,7 +828,7 @@ struct SudokuSolverPage {
             Text('清空棋盘').fontSize(12)
           }
         }
-        .fontColor('#ef4444')
+        .fontColor('#DC2626')
         .backgroundColor('#fef2f2')
         .borderRadius(14)
         .height(34)
@@ -844,7 +844,7 @@ struct SudokuSolverPage {
             Text('复制棋盘').fontSize(12)
           }
         }
-        .fontColor('#0ea5e9')
+        .fontColor('#0369A1')
         .backgroundColor('#f0f9ff')
         .borderRadius(14)
         .height(34)
@@ -875,7 +875,7 @@ struct SudokuSolverPage {
           }
         }
         .fontColor(Color.White)
-        .backgroundColor('#6366f1')
+        .backgroundColor('#4F46E5')
         .borderRadius(14)
         .height(34)
         .enabled(!this.recognizing)
@@ -908,7 +908,7 @@ struct SudokuSolverPage {
         Flex({ wrap: FlexWrap.Wrap, justifyContent: FlexAlign.SpaceBetween }) {
           Text('示例1')
             .fontSize(12)
-            .fontColor('#6366f1')
+            .fontColor('#4F46E5')
             .backgroundColor('#eef2ff')
             .borderRadius(12)
             .padding({ left: 12, right: 12, top: 5, bottom: 5 })
@@ -917,7 +917,7 @@ struct SudokuSolverPage {
 
           Text('示例2')
             .fontSize(12)
-            .fontColor('#6366f1')
+            .fontColor('#4F46E5')
             .backgroundColor('#eef2ff')
             .borderRadius(12)
             .padding({ left: 12, right: 12, top: 5, bottom: 5 })
@@ -926,7 +926,7 @@ struct SudokuSolverPage {
 
           Text('示例3')
             .fontSize(12)
-            .fontColor('#6366f1')
+            .fontColor('#4F46E5')
             .backgroundColor('#eef2ff')
             .borderRadius(12)
             .padding({ left: 12, right: 12, top: 5, bottom: 5 })
@@ -935,7 +935,7 @@ struct SudokuSolverPage {
 
           Text('清空')
             .fontSize(12)
-            .fontColor('#ef4444')
+            .fontColor('#DC2626')
             .backgroundColor('#fef2f2')
             .borderRadius(12)
             .padding({ left: 12, right: 12, top: 5, bottom: 5 })
@@ -976,7 +976,7 @@ struct SudokuSolverPage {
             .fontSize(14)
             .fontWeight(FontWeight.Bold)
             .fontColor(Color.White)
-            .backgroundColor('#6366f1')
+            .backgroundColor('#4F46E5')
             .borderRadius(14)
             .height(40)
             .layoutWeight(1)
@@ -1046,7 +1046,7 @@ struct SudokuSolverPage {
     .height(this.boardCellSize)
     .border({
       width: this.getCellBorderWidth(row, col),
-      color: this.lowConfidenceCells[row * SIZE + col] ? '#f97316' : '#94a3b8',
+      color: this.lowConfidenceCells[row * SIZE + col] ? '#C2410C' : '#64748B',
       style: BorderStyle.Solid
     })
     .onClick(() => { this.handleCellClick(row, col); })
@@ -1059,7 +1059,7 @@ struct SudokuSolverPage {
         if (this.candidates[idx].has(d)) {
           Text(d.toString())
             .fontSize(this.boardCellSize * 0.18)
-            .fontColor('#94a3b8')
+            .fontColor('#64748B')
             .width(this.boardCellSize * 0.3)
             .height(this.boardCellSize * 0.3)
             .textAlign(TextAlign.Center)
@@ -1096,7 +1096,7 @@ struct SudokuSolverPage {
             if (this.getDigitCount(num) >= 9) {
               Text('\u2713')
                 .fontSize(10)
-                .fontColor('#22c55e')
+                .fontColor('#15803D')
                 .fontWeight(FontWeight.Bold)
                 .margin({ top: 2 })
             }
@@ -1111,8 +1111,8 @@ struct SudokuSolverPage {
       Row({ space: 8 }) {
         Button(this.candidateMode ? '\u270E 候选中' : '\u270E 候选数')
           .fontSize(11)
-          .fontColor(this.candidateMode ? Color.White : '#6366f1')
-          .backgroundColor(this.candidateMode ? '#6366f1' : '#eef2ff')
+          .fontColor(this.candidateMode ? Color.White : '#4F46E5')
+          .backgroundColor(this.candidateMode ? '#4F46E5' : '#eef2ff')
           .borderRadius(10)
           .height(28)
           .layoutWeight(1)
@@ -1120,7 +1120,7 @@ struct SudokuSolverPage {
 
         Button('\u232B 擦除')
           .fontSize(11)
-          .fontColor('#ef4444')
+          .fontColor('#DC2626')
           .backgroundColor('#fef2f2')
           .borderRadius(10)
           .height(28)
@@ -1155,7 +1155,7 @@ struct SudokuSolverPage {
         .fontSize(14)
         .fontWeight(FontWeight.Bold)
         .fontColor(Color.White)
-        .backgroundColor('#6366f1')
+        .backgroundColor('#4F46E5')
         .borderRadius(20)
         .height(40)
         .layoutWeight(1)
@@ -1164,7 +1164,7 @@ struct SudokuSolverPage {
 
       Button('\u{1F4A1} 提示')
         .fontSize(14)
-        .fontColor('#6366f1')
+        .fontColor('#4F46E5')
         .backgroundColor('#eef2ff')
         .borderRadius(20)
         .height(40)
@@ -1184,7 +1184,7 @@ struct SudokuSolverPage {
           Text('复制识别日志').fontSize(12)
         }
       }
-      .fontColor('#6366f1')
+      .fontColor('#4F46E5')
       .backgroundColor('#eef2ff')
       .borderRadius(14)
       .height(34)
@@ -1195,7 +1195,7 @@ struct SudokuSolverPage {
           Blank()
           Button() { Text('收起').fontSize(11) }
             .height(24)
-            .fontColor('#6366f1')
+            .fontColor('#4F46E5')
             .backgroundColor(Color.Transparent)
             .onClick(() => { this.debugExpanded = false; })
         }
@@ -1230,7 +1230,7 @@ struct SudokuSolverPage {
             Text(name)
               .fontSize(13)
               .fontWeight(this.currentDifficulty === index ? FontWeight.Bold : FontWeight.Normal)
-              .fontColor(this.currentDifficulty === index ? '#6366f1' : $r('app.color.tertiary_text'))
+              .fontColor(this.currentDifficulty === index ? '#4F46E5' : $r('app.color.tertiary_text'))
               .padding({ left: 14, right: 14, top: 7, bottom: 7 })
               .borderRadius(16)
               .backgroundColor(
