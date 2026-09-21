@@ -71,6 +71,10 @@
     {
       "name": "xiehouyu_card_bg",
       "value": "#2d2217"
+    },
+    {
+      "name": "tab_selected_bg",
+      "value": "#595959"
     }
   ]
 }

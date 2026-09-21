@@ -75,6 +75,10 @@
     {
       "name": "unit_active_bg",
       "value": "#e8f8f0"
+    },
+    {
+      "name": "tab_selected_bg",
+      "value": "#333333"
     }
   ]
 }

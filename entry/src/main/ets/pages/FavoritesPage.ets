@@ -88,7 +88,7 @@ struct FavoritesContent {
         Text('全部')
           .fontSize(14)
           .fontColor(this.activeTab === 'all' ? '#ffffff' : $r('app.color.secondary_text'))
-          .backgroundColor(this.activeTab === 'all' ? $r('app.color.primary_text') : $r('app.color.border_color'))
+          .backgroundColor(this.activeTab === 'all' ? $r('app.color.tab_selected_bg') : $r('app.color.border_color'))
           .borderRadius(12)
           .padding({ left: 16, right: 16, top: 6, bottom: 6 })
           .onClick(() => {
