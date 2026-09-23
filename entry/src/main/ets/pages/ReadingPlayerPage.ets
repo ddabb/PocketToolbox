@@ -1,5 +1,5 @@
 import { ReadingListStore, ReadingList, ReadingItem } from '../model/ReadingListModels';
-import { TtsController, TtsState } from '../common/utils/TtsUtil';
+import { TtsController, TtsState, splitToSegments } from '../common/utils/TtsUtil';
 import { ReadingAvSession } from '../common/utils/ReadingAvSession';
 import { promptAction } from '@kit.ArkUI';
 import { ToastUtil } from '../common/utils/ToastUtil';
@@ -96,10 +96,18 @@ struct ReadingPlayerContent {
     }
     this.avSessionHelper.start(this.uiContext.getHostContext() as Context, item.title,
       (): void => {
-        this.playCurrent();
+        if (this.ttsState === 'paused') {
+          this.ttsController.resume();
+        } else {
+          this.playCurrent();
+        }
       },
       (): void => {
-        this.ttsController.stop();
+        if (this.ttsState === 'speaking') {
+          this.ttsController.pause();
+        } else if (this.ttsState === 'paused') {
+          this.ttsController.resume();
+        }
       },
       (): void => {
         this.ttsController.stop();
@@ -109,7 +117,8 @@ struct ReadingPlayerContent {
         this.playPrev();
       });
     let text: string = this.buildSpeakText(item);
-    this.ttsController.speak(text);
+    let segments: string[] = splitToSegments(text);
+    this.ttsController.speakSegmented(segments);
   }
 
   private playNext(): void {
@@ -136,7 +145,9 @@ struct ReadingPlayerContent {
 
   private togglePlay(): void {
     if (this.ttsState === 'speaking') {
-      this.ttsController.stop();
+      this.ttsController.pause();
+    } else if (this.ttsState === 'paused') {
+      this.ttsController.resume();
     } else {
       this.playCurrent();
     }
@@ -318,7 +329,7 @@ struct ReadingPlayerContent {
                     .fontSize(14)
                     .fontColor($r('app.color.poetry_green'))
                     .margin({ right: 4 })
-                  Text(this.ttsState === 'speaking' ? '朗读中' : '点击朗读')
+                  Text(this.ttsState === 'speaking' ? '朗读中' : this.ttsState === 'paused' ? '已暂停' : '点击朗读')
                     .fontSize(12)
                     .fontColor($r('app.color.poetry_green'))
                 }
@@ -374,7 +385,7 @@ struct ReadingPlayerContent {
             this.playPrev();
           })
 
-        Text(this.ttsState === 'speaking' ? '\u23F8' : '\u25B6')
+        Text(this.ttsState === 'speaking' ? '\u23F8' : this.ttsState === 'paused' ? '\u25B6' : '\u25B6')
           .fontSize(40)
           .fontColor($r('app.color.poetry_green'))
           .width(64)

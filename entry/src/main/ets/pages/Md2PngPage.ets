@@ -408,8 +408,8 @@ struct Md2PngContent {
         title: '放弃修改？',
         message: '当前的位置选择尚未保存，是否放弃修改？',
         buttons: [
-          { text: '继续编辑', color: '#666666' },
-          { text: '放弃', color: '#dc2626' },
+          { text: '继续编辑', color: $r('app.color.secondary_text') },
+          { text: '放弃', color: $r('app.color.error_red') },
         ]
       }).then((result: promptAction.ShowDialogSuccessResponse) => {
         if (result.index === 1) {
@@ -1266,8 +1266,8 @@ struct Md2PngContent {
             if (this.editingWordSource === 'manual') {
               Button('移除该词')
                 .fontSize(13)
-                .fontColor('#B91C1C')
-                .backgroundColor('rgba(220,38,38,0.12)')
+                .fontColor($r('app.color.error_red'))
+                .backgroundColor($r('app.color.danger_bg'))
                 .borderRadius(16)
                 .height(32)
                 .layoutWeight(1)

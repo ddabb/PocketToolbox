@@ -150,8 +150,8 @@ struct WordCloudContent {
         Row({ space: 6 }) {
           Button('示例')
             .fontSize(13)
-            .fontColor(Color.White)
-            .backgroundColor('#15803D')
+            .fontColor($r('app.color.on_accent_text'))
+            .backgroundColor($r('app.color.success_green'))
             .borderRadius(16)
             .height(32)
             .onClick(() => { this.loadExample(); })
@@ -167,8 +167,8 @@ struct WordCloudContent {
           Button(this.isExtracting ? '分词中...' : '从文本提取')
             .fontSize(13)
             .fontWeight(FontWeight.Bold)
-            .fontColor(Color.White)
-            .backgroundColor('#2563eb')
+            .fontColor($r('app.color.on_accent_text'))
+            .backgroundColor($r('app.color.brand_blue'))
             .borderRadius(16)
             .height(32)
             .enabled(!this.isExtracting)
@@ -232,7 +232,7 @@ struct WordCloudContent {
 
         if (this.placedWords.length > 0) {
           ImageSaveShareBar({
-            accentColor: '#2563EB',
+            accentColor: $r('app.color.brand_blue'),
             onPmForSave: (): image.PixelMap => this.renderExportPixelMap(),
             onPmForShare: (): image.PixelMap => this.renderExportPixelMap(),
           })
@@ -319,7 +319,7 @@ struct WordCloudContent {
               }
               .padding({ left: 9, right: 9, top: 6, bottom: 6 })
               .borderRadius(10)
-              .backgroundColor(this.currentPaletteIndex === index ? this.getAccentColor() + '15' : Color.Transparent)
+              .backgroundColor(this.currentPaletteIndex === index ? $r('app.color.brand_blue_tint') : Color.Transparent)
               .border({
                 width: this.currentPaletteIndex === index ? 1.5 : 0,
                 color: this.getAccentColor(),
@@ -358,7 +358,7 @@ struct WordCloudContent {
               }
               .padding({ left: 9, right: 9, top: 6, bottom: 6 })
               .borderRadius(10)
-              .backgroundColor(this.currentShapeIndex === index ? this.getAccentColor() + '15' : Color.Transparent)
+              .backgroundColor(this.currentShapeIndex === index ? $r('app.color.brand_blue_tint') : Color.Transparent)
               .border({
                 width: this.currentShapeIndex === index ? 1.5 : 0,
                 color: this.getAccentColor(),
@@ -395,7 +395,7 @@ struct WordCloudContent {
               }
               .padding({ left: 10, right: 10, top: 7, bottom: 7 })
               .borderRadius(10)
-              .backgroundColor(this.currentFontIndex === index ? this.getAccentColor() + '15' : Color.Transparent)
+              .backgroundColor(this.currentFontIndex === index ? $r('app.color.brand_blue_tint') : Color.Transparent)
               .border({
                 width: this.currentFontIndex === index ? 1.5 : 0,
                 color: this.getAccentColor(),
@@ -523,8 +523,8 @@ struct WordCloudContent {
       Button(this.isGenerating ? '生成中...' : '生成词云')
         .fontSize(14)
         .fontWeight(FontWeight.Bold)
-        .fontColor(Color.White)
-        .backgroundColor('#2563eb')
+        .fontColor($r('app.color.on_accent_text'))
+        .backgroundColor($r('app.color.brand_blue'))
         .borderRadius(18)
         .height(38)
         .width('100%')
@@ -550,8 +550,8 @@ struct WordCloudContent {
         Blank()
         Button('完成')
           .fontSize(14)
-          .fontColor(Color.White)
-          .backgroundColor('#2563eb')
+          .fontColor($r('app.color.on_accent_text'))
+          .backgroundColor($r('app.color.brand_blue'))
           .borderRadius(18)
           .height(32)
           .padding({ left: 16, right: 16 })
@@ -629,7 +629,7 @@ struct WordCloudContent {
                 .fontColor($r('app.color.tertiary_text'))
                 .margin({ left: 2 })
             }
-            .backgroundColor(this.getAccentColor() + '14')
+            .backgroundColor($r('app.color.brand_blue_tint'))
             .borderRadius(14)
             .padding({ left: 10, right: 10, top: 5, bottom: 5 })
             .margin({ right: 6, bottom: 6 })
@@ -645,8 +645,8 @@ struct WordCloudContent {
       Row({ space: 8 }) {
         Button('示例')
           .fontSize(14)
-          .fontColor(Color.White)
-          .backgroundColor('#15803D')
+          .fontColor($r('app.color.on_accent_text'))
+          .backgroundColor($r('app.color.success_green'))
           .borderRadius(20)
           .height(36)
           .onClick(() => {
@@ -996,8 +996,8 @@ struct WordCloudContent {
     this.placedWords = [...this.placedWords];
   }
 
-  private getAccentColor(): string {
-    return this.isDark ? '#8AB4F8' : '#2563EB';
+  private getAccentColor(): ResourceColor {
+    return $r('app.color.brand_blue');
   }
 
   private renderExportPixelMap(): image.PixelMap {

@@ -105,12 +105,7 @@ struct XiehouyuQueryContent {
   @State shareMdText: string = '';
   private viewModel: XiehouyuViewModel = XiehouyuViewModel.getInstance();
   private uiContext: UIContext = this.getUIContext();
-  private detailDialogController: CustomDialogController = new CustomDialogController({
-    builder: XiehouyuDetailModal({ detailItem: this.detailItem, isFav: this.isFav }),
-    autoCancel: true,
-    alignment: DialogAlignment.Center,
-    customStyle: true
-  });
+  private detailDialogController: CustomDialogController | null = null;
 
   aboutToAppear(): void {
     this.loadHistory();
@@ -289,6 +284,12 @@ struct XiehouyuQueryContent {
     this.detailItem = item;
     let ctx: Context = this.uiContext.getHostContext() as Context;
     this.isFav = FavoritesUtil.isFavorite(ctx, 'xiehouyu', item.riddle);
+    this.detailDialogController = new CustomDialogController({
+      builder: XiehouyuDetailModal({ detailItem: this.detailItem, isFav: this.isFav }),
+      autoCancel: true,
+      alignment: DialogAlignment.Center,
+      customStyle: true
+    });
     this.detailDialogController.open();
     StickinessUtil.incrementBrowseCount(ctx);
   }
@@ -368,7 +369,7 @@ struct XiehouyuQueryContent {
     Row() {
       Text('搜索查询')
         .fontSize(14)
-        .fontColor(this.activeTab === 'search' ? '#ffffff' : $r('app.color.secondary_text'))
+        .fontColor(this.activeTab === 'search' ? $r('app.color.on_accent_text') : $r('app.color.secondary_text'))
         .backgroundColor(this.activeTab === 'search' ? $r('app.color.idiom_orange') : $r('app.color.border_color'))
         .borderRadius(12)
         .padding({ left: 14, right: 14, top: 6, bottom: 6 })
@@ -378,7 +379,7 @@ struct XiehouyuQueryContent {
 
       Text('分类浏览')
         .fontSize(14)
-        .fontColor(this.activeTab === 'browse' ? '#ffffff' : $r('app.color.secondary_text'))
+        .fontColor(this.activeTab === 'browse' ? $r('app.color.on_accent_text') : $r('app.color.secondary_text'))
         .backgroundColor(this.activeTab === 'browse' ? $r('app.color.idiom_orange') : $r('app.color.border_color'))
         .borderRadius(12)
         .padding({ left: 14, right: 14, top: 6, bottom: 6 })
@@ -390,7 +391,7 @@ struct XiehouyuQueryContent {
 
       Text('猜谜玩法')
         .fontSize(14)
-        .fontColor(this.activeTab === 'guess' ? '#ffffff' : $r('app.color.secondary_text'))
+        .fontColor(this.activeTab === 'guess' ? $r('app.color.on_accent_text') : $r('app.color.secondary_text'))
         .backgroundColor(this.activeTab === 'guess' ? $r('app.color.idiom_orange') : $r('app.color.border_color'))
         .borderRadius(12)
         .padding({ left: 14, right: 14, top: 6, bottom: 6 })
@@ -563,7 +564,7 @@ struct XiehouyuQueryContent {
           ForEach(this.categories, (cat: XiehouyuCategory) => {
             Text(cat.label)
               .fontSize(13)
-              .fontColor(this.activeCategory === cat.key ? '#ffffff' : $r('app.color.primary_text'))
+              .fontColor(this.activeCategory === cat.key ? $r('app.color.on_accent_text') : $r('app.color.primary_text'))
               .backgroundColor(this.activeCategory === cat.key ? $r('app.color.idiom_orange') : $r('app.color.card_background'))
               .borderRadius(8)
               .padding({ left: 10, right: 10, top: 5, bottom: 5 })

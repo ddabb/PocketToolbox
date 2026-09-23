@@ -530,8 +530,8 @@ struct TimezoneConverterContent {
             Column() {
               Text(info.isWorkTime ? '工作时间' : '非工作时间')
                 .fontSize(11)
-                .fontColor(info.isWorkTime ? '#15803D' : '#C2410C')
-                .backgroundColor((info.isWorkTime ? '#15803D' : '#C2410C') + '18')
+                .fontColor(info.isWorkTime ? $r('app.color.success_green') : $r('app.color.warning_orange'))
+                .backgroundColor(info.isWorkTime ? $r('app.color.success_tint') : $r('app.color.warning_orange_tint'))
                 .borderRadius(8)
                 .padding({ left: 6, right: 6, top: 2, bottom: 2 })
             }
@@ -547,7 +547,8 @@ struct TimezoneConverterContent {
           }
           .width('100%')
           .padding({ left: 16, right: 16, top: 12, bottom: 12 })
-          .backgroundColor(info.isNight ? '#2c3e50' : info.isWorkTime ? '#f0f7f0' : '#fdf2e9')
+          .backgroundColor(info.isNight ? '#2c3e50' :
+            info.isWorkTime ? $r('app.color.success_bg') : $r('app.color.warning_bg'))
           .borderRadius(10)
           .margin({ left: 16, right: 16, top: 6 })
           .alignItems(VerticalAlign.Center)
@@ -804,8 +805,8 @@ struct TimezoneConverterContent {
             .margin({ right: 8 })
           Text(info.isWorkTime ? '工作时间' : '加班时间')
             .fontSize(11)
-            .fontColor(info.isWorkTime ? '#27ae60' : '#e67e22')
-            .backgroundColor((info.isWorkTime ? '#27ae60' : '#e67e22') + '18')
+            .fontColor(info.isWorkTime ? $r('app.color.success_green') : $r('app.color.warning_orange'))
+            .backgroundColor(info.isWorkTime ? $r('app.color.success_tint') : $r('app.color.warning_orange_tint'))
             .borderRadius(6)
             .padding({ left: 6, right: 6, top: 2, bottom: 2 })
         }
@@ -816,13 +817,13 @@ struct TimezoneConverterContent {
       Row() {
         Text(this.meetingSuggestion)
           .fontSize(13)
-          .fontColor(this.meetingSuggestionType === 0 ? '#27ae60' :
-            this.meetingSuggestionType === 2 ? '#e74c3c' : '#e67e22')
+          .fontColor(this.meetingSuggestionType === 0 ? $r('app.color.success_green') :
+            this.meetingSuggestionType === 2 ? $r('app.color.danger_red') : $r('app.color.warning_orange'))
       }
       .width('100%')
       .padding(12)
-      .backgroundColor(this.meetingSuggestionType === 0 ? '#f0f7f0' :
-        this.meetingSuggestionType === 2 ? '#fde8e8' : '#fdf2e9')
+      .backgroundColor(this.meetingSuggestionType === 0 ? $r('app.color.success_bg') :
+        this.meetingSuggestionType === 2 ? $r('app.color.danger_bg') : $r('app.color.warning_bg'))
       .borderRadius(8)
       .margin({ top: 8 })
     }
@@ -896,7 +897,7 @@ struct TimezoneConverterContent {
               Column() {
                 Text('\u26A0\uFE0F 城市数据加载失败')
                   .fontSize(14)
-                  .fontColor('#C0392B')
+                  .fontColor($r('app.color.danger_red'))
                   .margin({ top: 24, bottom: 8 })
                 Text('请尝试重新进入页面或重启应用')
                   .fontSize(12)

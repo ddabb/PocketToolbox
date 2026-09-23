@@ -433,7 +433,7 @@ export struct PoemContentContent {
               Text(ch)
                 .fontSize(18)
                 .fontWeight(FontWeight.Bold)
-                .fontColor(this.selectedChars.indexOf(ch) >= 0 ? '#ffffff' : $r('app.color.primary_text'))
+                .fontColor(this.selectedChars.indexOf(ch) >= 0 ? $r('app.color.on_accent_text') : $r('app.color.primary_text'))
                 .backgroundColor(this.selectedChars.indexOf(ch) >= 0 ?
                   $r('app.color.danger_red') : $r('app.color.page_background'))
                 .borderRadius(10)

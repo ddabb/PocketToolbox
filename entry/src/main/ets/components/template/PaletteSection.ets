@@ -11,9 +11,9 @@ import { CoverPalette } from '../../model/CoverModels';
 export struct PaletteSection {
   @Prop palettes: CoverPalette[] = [];
   @Prop selectedIndex: number = 0;
-  /** 选中描边色（生字卡 #D8231A / 首图 #2E6FD6） */
-  @Prop accentColor: string = '#D8231A';
-  @Prop labelColor: string = '#666666';
+  /** 选中描边色（生字卡/首图品牌色资源） */
+  @Prop accentColor: ResourceColor = '#D8231A';
+  @Prop labelColor: ResourceColor = '#666666';
   @Prop title: string = '配色方案';
   onSelect: (index: number) => void = () => {
   };

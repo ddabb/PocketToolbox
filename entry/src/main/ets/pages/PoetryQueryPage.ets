@@ -475,7 +475,7 @@ struct PoetryQueryContent {
         ForEach(this.dynasties, (dynasty: string) => {
           Text(dynasty)
             .fontSize(13)
-            .fontColor(this.activeDynasty === dynasty ? '#ffffff' : $r('app.color.secondary_text'))
+            .fontColor(this.activeDynasty === dynasty ? $r('app.color.on_accent_text') : $r('app.color.secondary_text'))
             .backgroundColor(this.activeDynasty === dynasty ? $r('app.color.poetry_green') : $r('app.color.border_color'))
             .borderRadius(12)
             .padding({ left: 12, right: 12, top: 5, bottom: 5 })

@@ -135,11 +135,11 @@ struct AchievementContent {
               if (item.unlocked) {
                 Text('\u2713')
                   .fontSize(16)
-                  .fontColor('#ffffff')
+                  .fontColor($r('app.color.on_accent_text'))
                   .width(28)
                   .height(28)
                   .borderRadius(14)
-                  .backgroundColor('#15803D')
+                  .backgroundColor($r('app.color.success_green'))
                   .textAlign(TextAlign.Center)
               } else {
                 Column() {

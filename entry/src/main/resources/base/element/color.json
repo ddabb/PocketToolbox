@@ -79,6 +79,134 @@
     {
       "name": "tab_selected_bg",
       "value": "#333333"
+    },
+    {
+      "name": "brand_blue",
+      "value": "#2E6FD6"
+    },
+    {
+      "name": "brand_blue_tint",
+      "value": "#1A2E6FD6"
+    },
+    {
+      "name": "char_accent_red",
+      "value": "#D8231A"
+    },
+    {
+      "name": "char_accent_tint",
+      "value": "#1AD8231A"
+    },
+    {
+      "name": "primary_indigo",
+      "value": "#4F46E5"
+    },
+    {
+      "name": "primary_indigo_bg",
+      "value": "#eef2ff"
+    },
+    {
+      "name": "primary_indigo_bg_soft",
+      "value": "#eef4ff"
+    },
+    {
+      "name": "warning_orange",
+      "value": "#c2410c"
+    },
+    {
+      "name": "warning_orange_tint",
+      "value": "#1Ac2410c"
+    },
+    {
+      "name": "warning_amber",
+      "value": "#b45309"
+    },
+    {
+      "name": "warning_bg",
+      "value": "#fef3c7"
+    },
+    {
+      "name": "success_bg",
+      "value": "#f0fdf4"
+    },
+    {
+      "name": "success_tint",
+      "value": "#1A15803d"
+    },
+    {
+      "name": "danger_bg",
+      "value": "#fef2f2"
+    },
+    {
+      "name": "danger_tint",
+      "value": "#1Ac0392b"
+    },
+    {
+      "name": "info_sky",
+      "value": "#0369a1"
+    },
+    {
+      "name": "info_bg",
+      "value": "#f0f9ff"
+    },
+    {
+      "name": "slate_text",
+      "value": "#64748b"
+    },
+    {
+      "name": "slate_dim_text",
+      "value": "#cbd5e1"
+    },
+    {
+      "name": "board_border",
+      "value": "#334155"
+    },
+    {
+      "name": "border_soft",
+      "value": "#e2e8f0"
+    },
+    {
+      "name": "sudoku_selected_bg",
+      "value": "#c7d2fe"
+    },
+    {
+      "name": "sudoku_zone_bg_a",
+      "value": "#fef9c3"
+    },
+    {
+      "name": "sudoku_zone_bg_b",
+      "value": "#fefce8"
+    },
+    {
+      "name": "sudoku_peer_bg",
+      "value": "#ddd6fe"
+    },
+    {
+      "name": "board_cell_bg",
+      "value": "#ffffff"
+    },
+    {
+      "name": "board_cell_bg_alt",
+      "value": "#f8fafc"
+    },
+    {
+      "name": "editor_input_bg",
+      "value": "#F5F5F5"
+    },
+    {
+      "name": "editor_label_text",
+      "value": "#666666"
+    },
+    {
+      "name": "editor_chip_bg",
+      "value": "#F2F2F2"
+    },
+    {
+      "name": "editor_chip_text",
+      "value": "#333333"
+    },
+    {
+      "name": "editor_line",
+      "value": "#E5E5E5"
     }
   ]
 }

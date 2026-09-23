@@ -18,8 +18,12 @@ export class CoverHistoryStore {
 
   static ensureDir(context: common.Context, dirName: string = CoverHistoryStore.DIR_COVER): void {
     let dir: string = CoverHistoryStore.dir(context, dirName);
-    if (!fs.accessSync(dir)) {
-      fs.mkdirSync(dir, true);
+    try {
+      if (!fs.accessSync(dir)) {
+        fs.mkdirSync(dir, true);
+      }
+    } catch (e) {
+      console.error('[CoverHistory] ensureDir failed: ' + (e as BusinessError).message);
     }
   }
 

@@ -10,14 +10,14 @@ import { ChipOption } from '../../core/template/UnifiedTemplateModels';
 @Component
 export struct ChipRow {
   @Prop label: string = '';
-  @Prop labelColor: string = '#666666';
+  @Prop labelColor: ResourceColor = '#666666';
   /** 标签固定宽度（0 = 自适应），用于多行标签对齐 */
   @Prop labelWidth: number = 0;
   @Prop options: ChipOption[] = [];
   @Prop selected: string = '';
-  @Prop accent: string = '#D8231A';
-  @Prop chipBg: string = '#F2F2F2';
-  @Prop chipText: string = '#333333';
+  @Prop accent: ResourceColor = '#D8231A';
+  @Prop chipBg: ResourceColor = '#F2F2F2';
+  @Prop chipText: ResourceColor = '#333333';
   onSelect: (value: string) => void = () => {
   };
 
@@ -32,7 +32,7 @@ export struct ChipRow {
           .fontSize(13)
           .padding({ left: 14, right: 14, top: 7, bottom: 7 })
           .backgroundColor(this.selected === opt.value ? this.accent : this.chipBg)
-          .fontColor(this.selected === opt.value ? '#FFFFFF' : this.chipText)
+          .fontColor(this.selected === opt.value ? $r('app.color.on_accent_text') : this.chipText)
           .borderRadius(14)
           .onClick(() => {
             this.onSelect(opt.value);

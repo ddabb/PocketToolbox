@@ -77,12 +77,7 @@ struct IdiomQueryContent {
   private letterDataSource: IdiomListDataSource = new IdiomListDataSource();
   private viewModel: IdiomViewModel = IdiomViewModel.getInstance();
   private uiContext: UIContext = this.getUIContext();
-  private detailDialogController: CustomDialogController = new CustomDialogController({
-    builder: DetailModal({ detailItem: this.detailItem }),
-    autoCancel: true,
-    alignment: DialogAlignment.Center,
-    customStyle: true
-  });
+  private detailDialogController: CustomDialogController | null = null;
 
   aboutToAppear(): void {
     this.viewModel.setContext(this.uiContext.getHostContext() as Context);
@@ -99,6 +94,12 @@ struct IdiomQueryContent {
         let detail: IdiomDetailItem | null = this.viewModel.findIdiomDetail(ctx, this.initialWord);
         if (detail) {
           this.detailItem = detail;
+          this.detailDialogController = new CustomDialogController({
+            builder: DetailModal({ detailItem: this.detailItem }),
+            autoCancel: true,
+            alignment: DialogAlignment.Center,
+            customStyle: true
+          });
           this.detailDialogController.open();
           StickinessUtil.incrementBrowseCount(ctx);
         }
@@ -221,6 +222,12 @@ struct IdiomQueryContent {
     let detail: IdiomDetailItem | null = this.viewModel.findIdiomDetail(ctx, word);
     if (detail) {
       this.detailItem = detail;
+      this.detailDialogController = new CustomDialogController({
+        builder: DetailModal({ detailItem: this.detailItem }),
+        autoCancel: true,
+        alignment: DialogAlignment.Center,
+        customStyle: true
+      });
       this.detailDialogController.open();
       StickinessUtil.incrementBrowseCount(ctx);
     } else {
@@ -326,7 +333,7 @@ struct IdiomQueryContent {
     Row() {
       Text('拼音搜索')
         .fontSize(14)
-        .fontColor(this.activeTab === 'pinyin' ? '#ffffff' : $r('app.color.secondary_text'))
+        .fontColor(this.activeTab === 'pinyin' ? $r('app.color.on_accent_text') : $r('app.color.secondary_text'))
         .backgroundColor(this.activeTab === 'pinyin' ? $r('app.color.idiom_blue') : $r('app.color.border_color'))
         .borderRadius(12)
         .padding({ left: 14, right: 14, top: 6, bottom: 6 })
@@ -336,7 +343,7 @@ struct IdiomQueryContent {
 
       Text('接龙查询')
         .fontSize(14)
-        .fontColor(this.activeTab === 'solitaire' ? '#ffffff' : $r('app.color.secondary_text'))
+        .fontColor(this.activeTab === 'solitaire' ? $r('app.color.on_accent_text') : $r('app.color.secondary_text'))
         .backgroundColor(this.activeTab === 'solitaire' ? $r('app.color.idiom_blue') : $r('app.color.border_color'))
         .borderRadius(12)
         .padding({ left: 14, right: 14, top: 6, bottom: 6 })
@@ -347,7 +354,7 @@ struct IdiomQueryContent {
 
       Text('按字浏览')
         .fontSize(14)
-        .fontColor(this.activeTab === 'browse' ? '#ffffff' : $r('app.color.secondary_text'))
+        .fontColor(this.activeTab === 'browse' ? $r('app.color.on_accent_text') : $r('app.color.secondary_text'))
         .backgroundColor(this.activeTab === 'browse' ? $r('app.color.idiom_blue') : $r('app.color.border_color'))
         .borderRadius(12)
         .padding({ left: 14, right: 14, top: 6, bottom: 6 })
@@ -587,7 +594,7 @@ struct IdiomQueryContent {
           ForEach(this.firstLetters, (letter: string) => {
             Text(letter.toUpperCase())
             .fontSize(13)
-            .fontColor(this.activeLetter === letter ? '#ffffff' : $r('app.color.secondary_text'))
+            .fontColor(this.activeLetter === letter ? $r('app.color.on_accent_text') : $r('app.color.secondary_text'))
             .backgroundColor(this.activeLetter === letter ? $r('app.color.idiom_blue') : $r('app.color.border_color'))
               .borderRadius(8)
               .width(28)

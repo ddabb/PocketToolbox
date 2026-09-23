@@ -87,11 +87,17 @@ struct CharCardContent {
     listener.on('change', (result: mediaquery.MediaQueryResult) => {
       this.isDark = result.matches;
     });
-    let d: display.Display = display.getDefaultDisplaySync();
-    let density: number = d.densityPixels;
-    let availVp: number = d.width / density - 32;
-    this.previewVp = Math.min(CharCards.DESIGN_W / density, availVp);
-    this.snapshotScale = CharCards.EXPORT_W / (this.previewVp * density);
+    try {
+      let d: display.Display = display.getDefaultDisplaySync();
+      let density: number = d.densityPixels;
+      let availVp: number = d.width / density - 32;
+      this.previewVp = Math.min(CharCards.DESIGN_W / density, availVp);
+      this.snapshotScale = CharCards.EXPORT_W / (this.previewVp * density);
+    } catch (e) {
+      console.error('[CharCard] getDefaultDisplaySync failed: ' + (e as Error).message);
+      this.previewVp = 360;
+      this.snapshotScale = 2.5;
+    }
     this.pinyinText = CoverContentUtil.autoPinyin(CharCards.cleanChars(this.charsText));
     this.historyRecords = CoverHistoryStore.loadRecords(this.context(), HISTORY_DIR);
   }
@@ -231,22 +237,40 @@ struct CharCardContent {
   private async snapshotToFile(context: common.UIAbilityContext, tag: string): Promise<string> {
     let uiCtx: UIContext = this.getUIContext();
     let snapshot = uiCtx.getComponentSnapshot();
-    let pixelMap: image.PixelMap =
-      await snapshot.get(PREVIEW_ID, { scale: this.snapshotScale, waitUntilRenderFinished: true });
-    return this.pixelMapToFile(context, pixelMap, tag);
+    let pixelMap: image.PixelMap;
+    try {
+      pixelMap = await snapshot.get(PREVIEW_ID, { scale: this.snapshotScale, waitUntilRenderFinished: true });
+    } catch (e) {
+      console.error('[CharCard] snapshot.get failed: ' + (e as BusinessError).message);
+      throw new Error('[CharCard] snapshot.get failed');
+    }
+    return await this.pixelMapToFile(context, pixelMap, tag);
   }
 
-  /** PixelMap -> PNG 文件（缓存目录），返回文件路径 */
   private async pixelMapToFile(context: common.UIAbilityContext, pixelMap: image.PixelMap,
     tag: string): Promise<string> {
     let packer: image.ImagePacker = image.createImagePacker();
     let fileName: string = 'card_' + Date.now().toString(36) + '_' + tag + '.png';
     let filePath: string = context.cacheDir + '/' + fileName;
-    let file: fs.File = fs.openSync(filePath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.TRUNC);
+    let file: fs.File;
+    try {
+      file = fs.openSync(filePath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.TRUNC);
+    } catch (e) {
+      packer.release();
+      console.error('[CharCard] fs.openSync failed: ' + (e as BusinessError).message);
+      throw new Error('[CharCard] fs.openSync failed');
+    }
     try {
       await packer.packToFile(pixelMap, file.fd, { format: 'image/png', quality: 100 });
+    } catch (e) {
+      console.error('[CharCard] packToFile failed: ' + (e as BusinessError).message);
+      throw new Error('[CharCard] packToFile failed');
     } finally {
-      fs.closeSync(file.fd);
+      try {
+        fs.closeSync(file.fd);
+      } catch (e) {
+        console.error('[CharCard] closeSync failed: ' + (e as BusinessError).message);
+      }
       packer.release();
     }
     return filePath;
@@ -339,28 +363,28 @@ struct CharCardContent {
 
   // ---------- 主题色 ----------
 
-  private inputBg(): string {
-    return this.isDark ? '#2A2A2C' : '#F5F5F5';
+  private inputBg(): ResourceColor {
+    return $r('app.color.editor_input_bg');
   }
 
-  private labelColor(): string {
-    return this.isDark ? '#AAAAAA' : '#666666';
+  private labelColor(): ResourceColor {
+    return $r('app.color.editor_label_text');
   }
 
-  private chipBg(): string {
-    return this.isDark ? '#333336' : '#F2F2F2';
+  private chipBg(): ResourceColor {
+    return $r('app.color.editor_chip_bg');
   }
 
-  private chipText(): string {
-    return this.isDark ? '#E0E0E0' : '#333333';
+  private chipText(): ResourceColor {
+    return $r('app.color.editor_chip_text');
   }
 
-  private lineColor(): string {
-    return this.isDark ? '#3A3A3C' : '#E5E5E5';
+  private lineColor(): ResourceColor {
+    return $r('app.color.editor_line');
   }
 
-  private accent(): string {
-    return '#D8231A';
+  private accent(): ResourceColor {
+    return $r('app.color.char_accent_red');
   }
 
   // ---------- UI ----------
@@ -517,7 +541,7 @@ struct CharCardContent {
             .fontSize(12)
             .fontColor(this.accent())
             .padding({ left: 10, right: 10, top: 5, bottom: 5 })
-            .backgroundColor('#1AD8231A')
+            .backgroundColor($r('app.color.char_accent_tint'))
             .borderRadius(12)
             .onClick(() => {
               this.openCharBook();
@@ -568,7 +592,7 @@ struct CharCardContent {
                 .fontSize(12)
                 .fontColor(this.accent())
                 .padding({ left: 10, right: 10, top: 9, bottom: 9 })
-                .backgroundColor('#1AD8231A')
+                .backgroundColor($r('app.color.char_accent_tint'))
                 .borderRadius(12)
                 .onClick(() => {
                   this.resetPinyin();
@@ -593,14 +617,14 @@ struct CharCardContent {
           Text('生字本')
             .fontSize(17)
             .fontWeight(FontWeight.Bold)
-            .fontColor(this.isDark ? '#E6E6E6' : '#222222')
+            .fontColor($r('app.color.primary_text'))
             .layoutWeight(1)
           if (this.bookChars.length > 0) {
             Text(this.bookManage ? '完成' : '管理')
               .fontSize(12)
               .fontColor(this.accent())
               .padding({ left: 10, right: 10, top: 5, bottom: 5 })
-              .backgroundColor('#1AD8231A')
+              .backgroundColor($r('app.color.char_accent_tint'))
               .borderRadius(12)
               .margin({ right: 8 })
               .onClick(() => {
@@ -627,8 +651,8 @@ struct CharCardContent {
                 Text(ch)
                   .fontSize(18)
                   .fontWeight(FontWeight.Bold)
-                  .fontColor(this.bookSelected.indexOf(ch) >= 0 ? '#ffffff' :
-                    (this.isDark ? '#E6E6E6' : '#222222'))
+                  .fontColor(this.bookSelected.indexOf(ch) >= 0 ? $r('app.color.on_accent_text') :
+                    $r('app.color.primary_text'))
                   .backgroundColor(this.bookSelected.indexOf(ch) >= 0 ?
                     this.accent() : this.chipBg())
                   .borderRadius(10)
@@ -673,7 +697,7 @@ struct CharCardContent {
             '填入所选(' + this.bookSelected.length.toString() + ')' : '全部填入')
             .fontSize(14)
             .fontWeight(FontWeight.Bold)
-            .fontColor(this.bookChars.length > 0 ? '#FFFFFF' : this.chipText())
+            .fontColor(this.bookChars.length > 0 ? $r('app.color.on_accent_text') : this.chipText())
             .backgroundColor(this.bookChars.length > 0 ? this.accent() : this.lineColor())
             .borderRadius(20)
             .padding({ left: 20, right: 20, top: 9, bottom: 9 })
@@ -687,7 +711,7 @@ struct CharCardContent {
       }
       .width('86%')
       .padding(20)
-      .backgroundColor(this.isDark ? '#2A2A2C' : '#FFFFFF')
+      .backgroundColor($r('app.color.card_background'))
       .borderRadius(20)
       .shadow({ radius: 20, color: '#33000000', offsetY: 8 })
     }
@@ -802,7 +826,7 @@ struct CharCardContent {
           .width('100%')
           .height(42)
           .fontSize(14)
-          .backgroundColor('#1AD8231A')
+          .backgroundColor($r('app.color.char_accent_tint'))
           .fontColor(this.accent())
           .enabled(!this.exporting && !this.batchRunning)
           .onClick(() => {

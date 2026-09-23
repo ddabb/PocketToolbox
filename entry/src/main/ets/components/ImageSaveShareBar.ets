@@ -24,7 +24,7 @@ import { ToastUtil } from '../common/utils/ToastUtil';
 @Component
 export struct ImageSaveShareBar {
   /** 主题强调色，用于按钮背景 */
-  @Prop accentColor: string = '#2563eb';
+  @Prop accentColor: ResourceColor = '#2563eb';
   /** 是否正在执行保存/分享操作 */
   @State isBusy: boolean = false;
 
@@ -157,7 +157,7 @@ export struct ImageSaveShareBar {
       Button('保存图片')
         .fontSize(13)
         .fontWeight(FontWeight.Bold)
-        .fontColor(Color.White)
+        .fontColor($r('app.color.on_accent_text'))
         .backgroundColor(this.accentColor)
         .borderRadius(19)
         .height(38)
@@ -170,7 +170,7 @@ export struct ImageSaveShareBar {
       Button('分享')
         .fontSize(13)
         .fontWeight(FontWeight.Bold)
-        .fontColor(Color.White)
+        .fontColor($r('app.color.on_accent_text'))
         .backgroundColor(this.accentColor)
         .borderRadius(19)
         .height(38)

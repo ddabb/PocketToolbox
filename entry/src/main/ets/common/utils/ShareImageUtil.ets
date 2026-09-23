@@ -140,15 +140,33 @@ export async function savePixelMapToAlbum(uiContext: UIContext, pixelMap: image.
   let dir: string = context.cacheDir;
   let fileName: string = 'save_tmp_' + Date.now().toString(36) + '.png';
   let filePath: string = dir + '/' + fileName;
-  let file: fs.File = fs.openSync(filePath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.TRUNC);
   let packer: image.ImagePacker = image.createImagePacker();
   let packOpts: image.PackingOption = { format: 'image/png', quality: 100 };
+  let file: fs.File;
+  try {
+    file = fs.openSync(filePath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.TRUNC);
+  } catch (e) {
+    packer.release();
+    console.error('[ShareImage] openSync failed: ' + (e as BusinessError).message);
+    return false;
+  }
   try {
     await packer.packToFile(pixelMap, file.fd, packOpts);
-  } finally {
-    fs.closeSync(file.fd);
+  } catch (e) {
+    console.error('[ShareImage] packToFile failed: ' + (e as BusinessError).message);
+    try {
+      fs.closeSync(file.fd);
+    } catch (_) {
+    }
     packer.release();
+    return false;
   }
+  try {
+    fs.closeSync(file.fd);
+  } catch (e) {
+    console.error('[ShareImage] closeSync failed: ' + (e as BusinessError).message);
+  }
+  packer.release();
   return await saveFilesToAlbum(uiContext, [filePath]) > 0;
 }
 
@@ -172,21 +190,53 @@ export async function saveFilesToAlbum(uiContext: UIContext, filePaths: string[]
       photoType: photoAccessHelper.PhotoType.IMAGE,
     });
   }
-  let desFileUris: Array<string> = await helper.showAssetsCreationDialog(srcFileUris, photoCreationConfigs);
+  let desFileUris: Array<string>;
+  try {
+    desFileUris = await helper.showAssetsCreationDialog(srcFileUris, photoCreationConfigs);
+  } catch (e) {
+    console.error('[ShareImage] showAssetsCreationDialog failed: ' + (e as BusinessError).message);
+    return 0;
+  }
   let saved: number = 0;
   if (desFileUris.length > 0) {
     for (let i = 0; i < desFileUris.length && i < filePaths.length; i++) {
-      let srcFile: fs.File = fs.openSync(filePaths[i], fs.OpenMode.READ_ONLY);
+      let srcFile: fs.File;
       try {
-        let desFile: fs.File = await fs.open(desFileUris[i], fs.OpenMode.READ_WRITE);
+        srcFile = fs.openSync(filePaths[i], fs.OpenMode.READ_ONLY);
+      } catch (e) {
+        console.error('[ShareImage] openSync srcFile failed: ' + (e as BusinessError).message);
+        continue;
+      }
+      try {
+        let desFile: fs.File;
+        try {
+          desFile = await fs.open(desFileUris[i], fs.OpenMode.READ_WRITE);
+        } catch (e) {
+          console.error('[ShareImage] open desFile failed: ' + (e as BusinessError).message);
+          try {
+            fs.closeSync(srcFile.fd);
+          } catch (_) {
+          }
+          continue;
+        }
         try {
           await fs.copyFile(srcFile.fd, desFile.fd);
           saved++;
+        } catch (e) {
+          console.error('[ShareImage] copyFile failed: ' + (e as BusinessError).message);
         } finally {
-          await fs.close(desFile);
+          try {
+            await fs.close(desFile);
+          } catch (e) {
+            console.error('[ShareImage] close desFile failed: ' + (e as BusinessError).message);
+          }
         }
       } finally {
-        fs.closeSync(srcFile.fd);
+        try {
+          fs.closeSync(srcFile.fd);
+        } catch (e) {
+          console.error('[ShareImage] closeSync srcFile failed: ' + (e as BusinessError).message);
+        }
       }
     }
   }

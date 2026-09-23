@@ -286,13 +286,13 @@ struct PrimeFactorContent {
                 Row() {
                   Text(this.displayNumber + ' 本身就是质数，无需分解')
                     .fontSize(13)
-                    .fontColor('#92400e')
+                    .fontColor($r('app.color.warning_amber'))
                     .fontWeight(FontWeight.Medium)
                 }
                 .width('100%')
                 .justifyContent(FlexAlign.Center)
                 .padding({ left: 12, right: 12, top: 8, bottom: 8 })
-                .backgroundColor('#fef3c7')
+                .backgroundColor($r('app.color.warning_bg'))
                 .borderRadius(10)
                 .margin({ top: 8 })
               }

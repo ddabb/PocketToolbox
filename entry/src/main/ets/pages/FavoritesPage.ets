@@ -20,6 +20,7 @@ struct FavoritesContent {
   @State detailItem: FavoriteItem | null = null;
   private uiContext: UIContext = this.getUIContext();
   private detailDialogController: CustomDialogController | null = null;
+
   private getNavPathStack(): NavPathStack {
     return AppStorage.get('AppNavPathStack') as NavPathStack;
   }
@@ -87,7 +88,7 @@ struct FavoritesContent {
       Row({ space: 8 }) {
         Text('全部')
           .fontSize(14)
-          .fontColor(this.activeTab === 'all' ? '#ffffff' : $r('app.color.secondary_text'))
+          .fontColor(this.activeTab === 'all' ? $r('app.color.on_accent_text') : $r('app.color.secondary_text'))
           .backgroundColor(this.activeTab === 'all' ? $r('app.color.tab_selected_bg') : $r('app.color.border_color'))
           .borderRadius(12)
           .padding({ left: 16, right: 16, top: 6, bottom: 6 })
@@ -98,7 +99,7 @@ struct FavoritesContent {
 
         Text('诗词')
           .fontSize(14)
-          .fontColor(this.activeTab === 'poem' ? '#ffffff' : $r('app.color.secondary_text'))
+          .fontColor(this.activeTab === 'poem' ? $r('app.color.on_accent_text') : $r('app.color.secondary_text'))
           .backgroundColor(this.activeTab === 'poem' ? $r('app.color.poetry_green') : $r('app.color.border_color'))
           .borderRadius(12)
           .padding({ left: 16, right: 16, top: 6, bottom: 6 })
@@ -109,7 +110,7 @@ struct FavoritesContent {
 
         Text('成语')
           .fontSize(14)
-          .fontColor(this.activeTab === 'idiom' ? '#ffffff' : $r('app.color.secondary_text'))
+          .fontColor(this.activeTab === 'idiom' ? $r('app.color.on_accent_text') : $r('app.color.secondary_text'))
           .backgroundColor(this.activeTab === 'idiom' ? $r('app.color.idiom_blue') : $r('app.color.border_color'))
           .borderRadius(12)
           .padding({ left: 16, right: 16, top: 6, bottom: 6 })
@@ -120,7 +121,7 @@ struct FavoritesContent {
 
         Text('歇后语')
           .fontSize(14)
-          .fontColor(this.activeTab === 'xiehouyu' ? '#ffffff' : $r('app.color.secondary_text'))
+          .fontColor(this.activeTab === 'xiehouyu' ? $r('app.color.on_accent_text') : $r('app.color.secondary_text'))
           .backgroundColor(this.activeTab === 'xiehouyu' ? $r('app.color.idiom_orange') : $r('app.color.border_color'))
           .borderRadius(12)
           .padding({ left: 16, right: 16, top: 6, bottom: 6 })

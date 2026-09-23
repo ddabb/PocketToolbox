@@ -56,11 +56,17 @@ struct CoverMakerContent {
       this.isDark = result.matches;
     });
     let uiCtx: UIContext = this.getUIContext();
-    let d: display.Display = display.getDefaultDisplaySync();
-    let density: number = d.densityPixels;
-    let availVp: number = d.width / density - 32;
-    this.previewVp = Math.min(900 / density, availVp);
-    this.snapshotScale = 900 / (this.previewVp * density);
+    try {
+      let d: display.Display = display.getDefaultDisplaySync();
+      let density: number = d.densityPixels;
+      let availVp: number = d.width / density - 32;
+      this.previewVp = Math.min(900 / density, availVp);
+      this.snapshotScale = 900 / (this.previewVp * density);
+    } catch (e) {
+      console.error('[CoverMaker] getDefaultDisplaySync failed: ' + (e as Error).message);
+      this.previewVp = 360;
+      this.snapshotScale = 2.5;
+    }
     this.selectTemplate(CoverTemplates.getById('A1'));
     let context = uiCtx.getHostContext() as common.UIAbilityContext;
     this.historyRecords = CoverHistoryStore.loadRecords(context);
@@ -329,6 +335,10 @@ struct CoverMakerContent {
       let file: fs.File = fs.openSync(filePath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.TRUNC);
       try {
         await packer.packToFile(pixelMap, file.fd, { format: 'image/png', quality: 100 });
+      } catch (e) {
+        let err: BusinessError = e as BusinessError;
+        console.error('[Cover] packToFile failed: ' + err.message);
+        throw new Error(err.message);
       } finally {
         fs.closeSync(file.fd);
         packer.release();
@@ -356,24 +366,24 @@ struct CoverMakerContent {
 
   // ---------- 主题色 ----------
 
-  private inputBg(): string {
-    return this.isDark ? '#2A2A2C' : '#F5F5F5';
+  private inputBg(): ResourceColor {
+    return $r('app.color.editor_input_bg');
   }
 
-  private labelColor(): string {
-    return this.isDark ? '#AAAAAA' : '#666666';
+  private labelColor(): ResourceColor {
+    return $r('app.color.editor_label_text');
   }
 
-  private chipBg(): string {
-    return this.isDark ? '#333336' : '#F2F2F2';
+  private chipBg(): ResourceColor {
+    return $r('app.color.editor_chip_bg');
   }
 
-  private chipText(): string {
-    return this.isDark ? '#E0E0E0' : '#333333';
+  private chipText(): ResourceColor {
+    return $r('app.color.editor_chip_text');
   }
 
-  private lineColor(): string {
-    return this.isDark ? '#3A3A3C' : '#E5E5E5';
+  private lineColor(): ResourceColor {
+    return $r('app.color.editor_line');
   }
 
   // ---------- UI ----------
@@ -433,7 +443,7 @@ struct CoverMakerContent {
       if (this.titleTooLong()) {
         Text('文案偏长，建议精简（当前标题 ' + this.content.title.length.toString() + ' 字）')
           .fontSize(11)
-          .fontColor('#C0392B')
+          .fontColor($r('app.color.danger_red'))
       }
     }
     .width('100%')
@@ -447,8 +457,8 @@ struct CoverMakerContent {
           Text(name)
             .fontSize(13)
             .padding({ left: 14, right: 14, top: 6, bottom: 6 })
-            .backgroundColor(this.seriesFilter === name ? '#2E6FD6' : this.chipBg())
-            .fontColor(this.seriesFilter === name ? '#FFFFFF' : this.chipText())
+            .backgroundColor(this.seriesFilter === name ? $r('app.color.brand_blue') : this.chipBg())
+            .fontColor(this.seriesFilter === name ? $r('app.color.on_accent_text') : this.chipText())
             .borderRadius(14)
             .onClick(() => {
               this.seriesFilter = name;
@@ -490,7 +500,7 @@ struct CoverMakerContent {
             .borderRadius(6)
             .border({
               width: this.currentTemplateId === t.id ? 2 : 1,
-              color: this.currentTemplateId === t.id ? '#2E6FD6' : this.lineColor(),
+              color: this.currentTemplateId === t.id ? $r('app.color.brand_blue') : this.lineColor(),
             })
             .onClick(() => {
               this.selectTemplate(t);
@@ -498,7 +508,7 @@ struct CoverMakerContent {
 
             Text(t.series + ' · ' + t.id)
               .fontSize(9)
-              .fontColor(this.currentTemplateId === t.id ? '#2E6FD6' : this.labelColor())
+              .fontColor(this.currentTemplateId === t.id ? $r('app.color.brand_blue') : this.labelColor())
           }
           .alignItems(HorizontalAlign.Center)
         }
@@ -517,7 +527,7 @@ struct CoverMakerContent {
       Text('文字')
         .fontSize(14)
         .fontWeight(this.editorTab === 0 ? FontWeight.Bold : FontWeight.Normal)
-        .fontColor(this.editorTab === 0 ? '#2E6FD6' : this.labelColor())
+        .fontColor(this.editorTab === 0 ? $r('app.color.brand_blue') : this.labelColor())
         .padding({ left: 16, right: 16, top: 8, bottom: 8 })
         .onClick(() => {
           this.editorTab = 0;
@@ -525,7 +535,7 @@ struct CoverMakerContent {
       Text('样式')
         .fontSize(14)
         .fontWeight(this.editorTab === 1 ? FontWeight.Bold : FontWeight.Normal)
-        .fontColor(this.editorTab === 1 ? '#2E6FD6' : this.labelColor())
+        .fontColor(this.editorTab === 1 ? $r('app.color.brand_blue') : this.labelColor())
         .padding({ left: 16, right: 16, top: 8, bottom: 8 })
         .onClick(() => {
           this.editorTab = 1;
@@ -548,7 +558,7 @@ struct CoverMakerContent {
             .fontSize(13)
             .fontColor($r('app.color.idiom_blue'))
             .padding({ left: 14, right: 14, top: 7, bottom: 7 })
-            .backgroundColor('#1A2E6FD6')
+            .backgroundColor($r('app.color.brand_blue_tint'))
             .borderRadius(14)
             .onClick(() => {
               this.changeQuote();
@@ -595,22 +605,22 @@ struct CoverMakerContent {
             Column({ space: 2 }) {
               Text(ch)
                 .fontSize(16)
-                .fontColor(this.pyEditIndex === idx ? '#2E6FD6' : this.chipText())
+                .fontColor(this.pyEditIndex === idx ? $r('app.color.brand_blue') : this.chipText())
               Text(this.pySyllables()[idx])
                 .fontSize(11)
                 .maxFontSize(11)
                 .minFontSize(7)
                 .heightAdaptivePolicy(TextHeightAdaptivePolicy.MIN_FONT_SIZE_FIRST)
-                .fontColor(this.pyEditIndex === idx ? '#2E6FD6' : this.labelColor())
+                .fontColor(this.pyEditIndex === idx ? $r('app.color.brand_blue') : this.labelColor())
                 .maxLines(1)
             }
             .layoutWeight(1)
             .padding({ top: 6, bottom: 6 })
             .borderRadius(8)
-            .backgroundColor(this.pyEditIndex === idx ? '#1A2E6FD6' : this.inputBg())
+            .backgroundColor(this.pyEditIndex === idx ? $r('app.color.brand_blue_tint') : this.inputBg())
             .border({
               width: this.pyEditIndex === idx ? 1 : 0,
-              color: '#2E6FD6',
+              color: $r('app.color.brand_blue'),
             })
             .onClick(() => {
               this.pyEditIndex = this.pyEditIndex === idx ? -1 : idx;
@@ -625,9 +635,11 @@ struct CoverMakerContent {
             ForEach(this.pyCandidatesFor(this.pyEditIndex), (cand: string) => {
               Text(cand)
                 .fontSize(13)
-                .fontColor(cand === this.pySyllables()[this.pyEditIndex] ? '#FFFFFF' : '#2E6FD6')
+                .fontColor(cand === this.pySyllables()[this.pyEditIndex] ? $r('app.color.on_accent_text') :
+                  $r('app.color.brand_blue'))
                 .padding({ left: 12, right: 12, top: 6, bottom: 6 })
-                .backgroundColor(cand === this.pySyllables()[this.pyEditIndex] ? '#2E6FD6' : '#1A2E6FD6')
+                .backgroundColor(cand === this.pySyllables()[this.pyEditIndex] ?
+                  $r('app.color.brand_blue') : $r('app.color.brand_blue_tint'))
                 .borderRadius(13)
                 .margin(4)
                 .onClick(() => {
@@ -648,7 +660,7 @@ struct CoverMakerContent {
               .fontSize(12)
               .fontColor($r('app.color.idiom_blue'))
               .padding({ left: 10, right: 10, top: 6, bottom: 6 })
-              .backgroundColor('#1A2E6FD6')
+              .backgroundColor($r('app.color.brand_blue_tint'))
               .borderRadius(12)
               .onClick(() => {
                 this.resetPinyin();
@@ -678,7 +690,7 @@ struct CoverMakerContent {
               .fontSize(12)
               .fontColor($r('app.color.idiom_blue'))
               .padding({ left: 10, right: 10, top: 6, bottom: 6 })
-              .backgroundColor('#1A2E6FD6')
+              .backgroundColor($r('app.color.brand_blue_tint'))
               .borderRadius(12)
               .onClick(() => {
                 this.resetPinyin();
@@ -698,7 +710,7 @@ struct CoverMakerContent {
       PaletteSection({
         palettes: this.currentTemplate().palettes,
         selectedIndex: this.paletteIndex,
-        accentColor: '#2E6FD6',
+        accentColor: $r('app.color.brand_blue'),
         labelColor: this.labelColor(),
         onSelect: (idx: number) => {
           this.paletteIndex = idx;
@@ -715,8 +727,8 @@ struct CoverMakerContent {
               .fontSize(13)
               .fontFamily(f)
               .padding({ left: 14, right: 14, top: 7, bottom: 7 })
-              .backgroundColor(this.fontIndex === idx ? '#2E6FD6' : this.chipBg())
-              .fontColor(this.fontIndex === idx ? '#FFFFFF' : this.chipText())
+              .backgroundColor(this.fontIndex === idx ? $r('app.color.brand_blue') : this.chipBg())
+              .fontColor(this.fontIndex === idx ? $r('app.color.on_accent_text') : this.chipText())
               .borderRadius(14)
               .margin(4)
               .onClick(() => {
@@ -794,7 +806,7 @@ struct CoverMakerContent {
         .layoutWeight(1)
         .height(44)
         .fontSize(15)
-        .backgroundColor('#2E6FD6')
+        .backgroundColor($r('app.color.brand_blue'))
         .enabled(this.canExport() && !this.exporting)
         .onClick(() => {
           this.doExport(true);
