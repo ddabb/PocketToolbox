@@ -20,13 +20,17 @@ struct ReadingListContent {
   @State showAddDialog: boolean = false;
   @State showRenameDialog: boolean = false;
   @State newListName: string = '';
-  @State listVersion: number = 0;
+  @StorageLink('ReadingDataVersion') @Watch('onReadingDataChanged') readingDataVersion: number = 0;
   private uiContext: UIContext = this.getUIContext();
   private getNavPathStack(): NavPathStack {
     return AppStorage.get('AppNavPathStack') as NavPathStack;
   }
 
   aboutToAppear(): void {
+    this.loadLists();
+  }
+
+  onReadingDataChanged(): void {
     this.loadLists();
   }
 
@@ -86,7 +90,6 @@ struct ReadingListContent {
     this.editName = '';
     this.editingListId = '';
     this.showRenameDialog = false;
-    this.listVersion++;
     this.loadLists();
     ToastUtil.show(this.uiContext, '已重命名', 1000);
   }
@@ -219,7 +222,7 @@ struct ReadingListContent {
                   this.openList(list.id);
                 })
               }
-            }, (list: ReadingList) => list.id + '_' + list.name + '_' + this.listVersion.toString())
+            }, (list: ReadingList) => list.id + '_' + list.name + '_' + list.updatedAt.toString())
           }
           .width('100%')
           .layoutWeight(1)

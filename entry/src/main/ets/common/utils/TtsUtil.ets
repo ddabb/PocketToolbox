@@ -4,7 +4,9 @@ import { BusinessError } from '@kit.BasicServicesKit';
 export type TtsState = 'idle' | 'speaking' | 'paused';
 
 export class TtsController {
+  private static readonly INIT_TIMEOUT_MS: number = 8000;
   private engine: textToSpeech.TextToSpeechEngine | null = null;
+  private engineTask: Promise<boolean> | null = null;
   private stateCallback: ((state: TtsState) => void) | null = null;
   private completeCallback: (() => void) | null = null;
   private errorCallback: ((code: number, message: string) => void) | null = null;
@@ -65,12 +67,51 @@ export class TtsController {
       return Promise.resolve(true);
     }
     if (this.initPromise === null) {
+      console.info('[TtsController] init: creating doInit');
       this.initPromise = this.doInit();
     }
     return this.initPromise;
   }
 
   private async doInit(): Promise<boolean> {
+    console.info('[TtsController] doInit enter');
+    let task: Promise<boolean> | null = this.engineTask;
+    if (task === null) {
+      this.engineTask = this.createEngineWithListener();
+      task = this.engineTask;
+    }
+    if (task === null) {
+      this.initPromise = null;
+      return false;
+    }
+    let finalTask: Promise<boolean> = task;
+    return new Promise<boolean>((resolve: (value: boolean) => void) => {
+      let settled: boolean = false;
+      let timerId: number = setTimeout(() => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        console.error('[TtsController] init timed out after ' + TtsController.INIT_TIMEOUT_MS.toString() + 'ms');
+        this.initPromise = null;
+        resolve(false);
+      }, TtsController.INIT_TIMEOUT_MS);
+      finalTask.then((ok: boolean) => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        clearTimeout(timerId);
+        console.info('[TtsController] engine task settled: ' + ok.toString());
+        if (!ok) {
+          this.initPromise = null;
+        }
+        resolve(ok);
+      });
+    });
+  }
+
+  private async createEngineWithListener(): Promise<boolean> {
     try {
       let extraParam: Record<string, Object> = {
         'style': 'interaction-broadcast',
@@ -97,9 +138,12 @@ export class TtsController {
           if (!this.isCurrentRequest(requestId)) {
             return;
           }
+          if (response.type === 0) {
+            return;
+          }
           this.clearWatchdog();
           this.currentRequestId = '';
-          if (response.type === 1 && this.segmentedMode) {
+          if (this.segmentedMode) {
             this.segmentIndex++;
             if (this.segmentIndex < this.segments.length) {
               this.startSpeak(this.segments[this.segmentIndex]);
@@ -107,7 +151,7 @@ export class TtsController {
             }
           }
           this.updateState('idle');
-          if (response.type === 1 && this.completeCallback) {
+          if (this.completeCallback) {
             this.completeCallback();
           }
         },
@@ -134,12 +178,14 @@ export class TtsController {
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[TtsController] init failed: ' + err.code.toString() + ' ' + err.message);
+      this.engineTask = null;
       this.initPromise = null;
       return false;
     }
   }
 
   async speakSegmented(segments: string[]): Promise<boolean> {
+    console.info('[TtsController] speakSegmented called, segments=' + segments.length.toString());
     if (segments.length === 0) {
       return false;
     }
@@ -165,7 +211,7 @@ export class TtsController {
       this.currentRequestId = 'req_' + Date.now().toString() + '_' +
         Math.floor(Math.random() * 1000000).toString();
       let speakExtraParam: Record<string, Object> = {
-        'queueMode': 0,
+        'queueMode': 1,
         'speed': 1,
         'volume': 2,
         'pitch': 1,
@@ -263,6 +309,7 @@ export class TtsController {
       }
       this.engine = null;
     }
+    this.engineTask = null;
     this.initPromise = null;
     this.updateState('idle');
   }

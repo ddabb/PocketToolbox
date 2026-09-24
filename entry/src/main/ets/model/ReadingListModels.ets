@@ -47,9 +47,15 @@ export class ReadingListStore {
   private static readonly PREFS_NAME: string = 'reading_lists';
   private static readonly KEY: string = 'reading_lists_data';
   private static cached: ReadingList[] | null = null;
+  private static dataVersion: number = 0;
 
   static invalidateCache(): void {
     ReadingListStore.cached = null;
+  }
+
+  private static bumpDataVersion(): void {
+    ReadingListStore.dataVersion++;
+    AppStorage.setOrCreate('ReadingDataVersion', ReadingListStore.dataVersion);
   }
 
   static load(context: Context): ReadingList[] {
@@ -104,6 +110,7 @@ export class ReadingListStore {
       prefs.putSync(ReadingListStore.KEY, JSON.stringify(lists));
       prefs.flush();
       ReadingListStore.cached = lists;
+      ReadingListStore.bumpDataVersion();
     } catch (e) {
       console.error('[ReadingList] save failed: ' + (e as Error).message);
     }

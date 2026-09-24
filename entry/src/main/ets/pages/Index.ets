@@ -93,6 +93,7 @@ struct Index {
   @State mineUserStats: UserStats = new UserStats();
   @State mineCheckInData: CheckInData = new CheckInData();
   @State mineChallengeProgress: ChallengeProgress = new ChallengeProgress();
+  @StorageLink('ReadingDataVersion') @Watch('onReadingDataChanged') readingDataVersion: number = 0;
   private poetryVm: PoetryViewModel = PoetryViewModel.getInstance();
   private idiomVm: IdiomViewModel = IdiomViewModel.getInstance();
   private xiehouyuVm: XiehouyuViewModel = XiehouyuViewModel.getInstance();
@@ -291,6 +292,16 @@ struct Index {
       }
     }
     StickinessUtil.syncFavStats(ctx, poemCount, idiomCount, xiehouyuCount);
+    this.refreshMineReadingStats();
+  }
+
+  onReadingDataChanged(): void {
+    this.refreshMineReadingStats();
+  }
+
+  private refreshMineReadingStats(): void {
+    let ctx: Context = this.getUIContext().getHostContext() as Context;
+    ReadingListStore.invalidateCache();
     let readingItemCount: number = 0;
     let readingLists: ReadingList[] = ReadingListStore.load(ctx);
     for (let i = 0; i < readingLists.length; i++) {
