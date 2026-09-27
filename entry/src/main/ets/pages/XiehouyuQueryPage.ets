@@ -8,7 +8,7 @@ import { ShareImageCard } from '../components/ShareImageCard';
 import { buildXiehouyuMarkdown } from '../common/utils/ShareImageUtil';
 import { Md2PngTemplates } from '../model/Md2PngModels';
 import { AddToReadingListUtil, AddToListResult } from '../common/utils/AddToReadingListUtil';
-import { ReadingList } from '../model/ReadingListModels';
+import { ReadingList, ReadingListStore } from '../model/ReadingListModels';
 import { StickinessUtil } from '../common/utils/StickinessUtil';
 import { ToastUtil } from '../common/utils/ToastUtil';
 
@@ -826,6 +826,8 @@ struct XiehouyuDetailModal {
   @State modalShareMd: string = '';
   @State showReadingListPicker: boolean = false;
   @State readingLists: ReadingList[] = [];
+  @State showCreateInPicker: boolean = false;
+  @State newListName: string = '';
   private uiContext: UIContext = this.getUIContext();
 
   private toggleFav(): void {
@@ -856,7 +858,21 @@ struct XiehouyuDetailModal {
 
   private openReadingListPicker(): void {
     this.readingLists = AddToReadingListUtil.getLists(this.uiContext.getHostContext() as Context);
+    this.showCreateInPicker = false;
+    this.newListName = '';
     this.showReadingListPicker = true;
+  }
+
+  private createListAndAdd(): void {
+    let name: string = this.newListName.trim();
+    if (!name) {
+      ToastUtil.show(this.uiContext, '请输入清单名称', 1000);
+      return;
+    }
+    let list: ReadingList = ReadingListStore.addList(this.uiContext.getHostContext() as Context, name);
+    this.newListName = '';
+    this.showCreateInPicker = false;
+    this.addToReadingList(list.id);
   }
 
   private addToReadingList(listId: string): void {
@@ -1014,7 +1030,7 @@ struct XiehouyuDetailModal {
   ReadingListPickerOverlay() {
     Column() {
       Column() {
-        Text('加入朗读清单')
+        Text(this.showCreateInPicker ? '新建朗读清单' : '加入朗读清单')
           .fontSize(18)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.primary_text'))
@@ -1046,11 +1062,59 @@ struct XiehouyuDetailModal {
           }
           .width('100%')
           .constraintSize({ maxHeight: '50%' })
-        } else {
+        } else if (!this.showCreateInPicker) {
           Text('暂无朗读清单，请先创建')
             .fontSize(14)
             .fontColor($r('app.color.tertiary_text'))
-            .margin({ top: 20, bottom: 20 })
+            .margin({ top: 20, bottom: 12 })
+
+          Text('+ 新建清单')
+            .fontSize(15)
+            .fontColor($r('app.color.on_accent_text'))
+            .backgroundColor($r('app.color.poetry_green'))
+            .borderRadius(22)
+            .padding({ left: 28, right: 28, top: 10, bottom: 10 })
+            .margin({ bottom: 8 })
+            .onClick(() => {
+              this.showCreateInPicker = true;
+            })
+        } else {
+          TextInput({ placeholder: '输入清单名称，如：每日诗词', text: this.newListName })
+            .width('100%')
+            .height(44)
+            .fontSize(15)
+            .fontColor($r('app.color.primary_text'))
+            .placeholderColor($r('app.color.hint_text'))
+            .backgroundColor($r('app.color.page_background'))
+            .borderRadius(12)
+            .padding({ left: 16, right: 16 })
+            .margin({ top: 12 })
+            .onChange((value: string) => {
+              this.newListName = value;
+            })
+
+          Row({ space: 12 }) {
+            Text('取消')
+              .fontSize(15)
+              .fontColor($r('app.color.tertiary_text'))
+              .backgroundColor($r('app.color.border_color'))
+              .borderRadius(22)
+              .padding({ left: 28, right: 28, top: 10, bottom: 10 })
+              .onClick(() => {
+                this.showCreateInPicker = false;
+              })
+
+            Text('创建')
+              .fontSize(15)
+              .fontColor($r('app.color.on_accent_text'))
+              .backgroundColor($r('app.color.poetry_green'))
+              .borderRadius(22)
+              .padding({ left: 28, right: 28, top: 10, bottom: 10 })
+              .onClick(() => {
+                this.createListAndAdd();
+              })
+          }
+          .margin({ top: 16 })
         }
 
         Text('取消')
