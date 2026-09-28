@@ -2,17 +2,20 @@ import { textToSpeech } from '@kit.CoreSpeechKit';
 import { BusinessError } from '@kit.BasicServicesKit';
 
 export type TtsState = 'idle' | 'speaking' | 'paused';
+export type TtsErrorKind = 'init' | 'speak';
 
 export class TtsController {
-  private static readonly INIT_TIMEOUT_MS: number = 8000;
+  private static readonly INIT_TIMEOUT_MS: number = 5000;
   private engine: textToSpeech.TextToSpeechEngine | null = null;
   private engineTask: Promise<boolean> | null = null;
   private stateCallback: ((state: TtsState) => void) | null = null;
   private completeCallback: (() => void) | null = null;
-  private errorCallback: ((code: number, message: string) => void) | null = null;
+  private errorCallback: ((code: number, message: string, kind: TtsErrorKind) => void) | null = null;
+  private segmentCallback: ((index: number, total: number) => void) | null = null;
   private currentRequestId: string = '';
   private currentState: TtsState = 'idle';
   private initPromise: Promise<boolean> | null = null;
+  private initFailed: boolean = false;
   private generation: number = 0;
   private watchdogId: number = -1;
   private segments: string[] = [];
@@ -27,8 +30,12 @@ export class TtsController {
     this.completeCallback = callback;
   }
 
-  onTtsError(callback: (code: number, message: string) => void): void {
+  onTtsError(callback: (code: number, message: string, kind: TtsErrorKind) => void): void {
     this.errorCallback = callback;
+  }
+
+  onSegmentChange(callback: (index: number, total: number) => void): void {
+    this.segmentCallback = callback;
   }
 
   getState(): TtsState {
@@ -53,18 +60,27 @@ export class TtsController {
     }
   }
 
-  private failSpeak(code: number, message: string): void {
+  private failSpeak(code: number, message: string, kind: TtsErrorKind): void {
     this.clearWatchdog();
     this.currentRequestId = '';
     this.updateState('idle');
     if (this.errorCallback) {
-      this.errorCallback(code, message);
+      this.errorCallback(code, message, kind);
+    }
+  }
+
+  private notifySegmentChange(): void {
+    if (this.segmentCallback && this.segmentedMode) {
+      this.segmentCallback(this.segmentIndex, this.segments.length);
     }
   }
 
   init(): Promise<boolean> {
     if (this.engine) {
       return Promise.resolve(true);
+    }
+    if (this.initFailed) {
+      return Promise.resolve(false);
     }
     if (this.initPromise === null) {
       console.info('[TtsController] init: creating doInit');
@@ -94,6 +110,7 @@ export class TtsController {
         settled = true;
         console.error('[TtsController] init timed out after ' + TtsController.INIT_TIMEOUT_MS.toString() + 'ms');
         this.initPromise = null;
+        this.initFailed = true;
         resolve(false);
       }, TtsController.INIT_TIMEOUT_MS);
       finalTask.then((ok: boolean) => {
@@ -167,12 +184,13 @@ export class TtsController {
         onError: (requestId: string, errorCode: number, errorMessage: string) => {
           console.error('[TtsController] onError: ' + requestId + ', code=' + errorCode.toString() + ', msg=' + errorMessage);
           if (this.isCurrentRequest(requestId) || this.currentState === 'speaking') {
-            this.failSpeak(errorCode, errorMessage);
+            this.failSpeak(errorCode, errorMessage, 'speak');
           }
         }
       };
       engine.setListener(listener);
       this.engine = engine;
+      this.initFailed = false;
       console.info('[TtsController] init success');
       return true;
     } catch (e) {
@@ -193,7 +211,7 @@ export class TtsController {
     if (!this.engine) {
       let ok: boolean = await this.init();
       if (!ok) {
-        this.failSpeak(-1, 'engine init failed');
+        this.failSpeak(-1, 'engine init failed', 'init');
         return false;
       }
       if (gen !== this.generation) {
@@ -226,19 +244,20 @@ export class TtsController {
       };
       this.engine!.speak(text, speakParams);
       this.clearWatchdog();
+      this.notifySegmentChange();
       let gen: number = this.generation;
       this.watchdogId = setTimeout(() => {
         this.watchdogId = -1;
         if (this.currentRequestId !== '' && gen === this.generation) {
           console.error('[TtsController] watchdog: no onStart within 6s');
-          this.failSpeak(0, 'TTS no response timeout');
+          this.failSpeak(0, 'TTS no response timeout', 'speak');
         }
       }, 6000);
       return true;
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[TtsController] speak failed: ' + err.code.toString() + ' ' + err.message);
-      this.failSpeak(err.code, err.message);
+      this.failSpeak(err.code, err.message, 'speak');
       return false;
     }
   }
@@ -270,7 +289,7 @@ export class TtsController {
     if (!this.engine) {
       let ok: boolean = await this.init();
       if (!ok) {
-        this.failSpeak(-1, 'engine init failed');
+        this.failSpeak(-1, 'engine init failed', 'init');
         return false;
       }
     }
@@ -311,8 +330,37 @@ export class TtsController {
     }
     this.engineTask = null;
     this.initPromise = null;
+    this.initFailed = false;
     this.updateState('idle');
   }
+}
+
+const SEGMENT_SUB_SPLIT_THRESHOLD: number = 15;
+
+function splitLongSegment(segment: string): string[] {
+  if (segment.length <= SEGMENT_SUB_SPLIT_THRESHOLD) {
+    return [segment];
+  }
+  let subs: string[] = [];
+  let current: string = '';
+  for (let i: number = 0; i < segment.length; i++) {
+    let ch: string = segment[i];
+    current += ch;
+    if (ch === '\uFF0C') {
+      subs.push(current);
+      current = '';
+    }
+  }
+  let tail: string = current.trim();
+  if (tail.length > 0) {
+    if (subs.length > 0 && tail.length <= 3) {
+      let last: number = subs.length - 1;
+      subs[last] = subs[last] + tail;
+    } else {
+      subs.push(tail);
+    }
+  }
+  return subs;
 }
 
 export function splitToSegments(text: string): string[] {
@@ -324,14 +372,20 @@ export function splitToSegments(text: string): string[] {
     if (ch === '\n' || ch === '\u3002' || ch === '\uFF01' || ch === '\uFF1F' || ch === '\uFF1B') {
       let trimmed: string = current.trim();
       if (trimmed.length > 0) {
-        result.push(trimmed);
+        let subs: string[] = splitLongSegment(trimmed);
+        for (let j: number = 0; j < subs.length; j++) {
+          result.push(subs[j]);
+        }
       }
       current = '';
     }
   }
   let remaining: string = current.trim();
   if (remaining.length > 0) {
-    result.push(remaining);
+    let subs: string[] = splitLongSegment(remaining);
+    for (let j: number = 0; j < subs.length; j++) {
+      result.push(subs[j]);
+    }
   }
   return result;
 }

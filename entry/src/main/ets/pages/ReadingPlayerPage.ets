@@ -1,7 +1,8 @@
 import { ReadingListStore, ReadingList, ReadingItem } from '../model/ReadingListModels';
-import { TtsController, TtsState, splitToSegments } from '../common/utils/TtsUtil';
+import { TtsController, TtsState, TtsErrorKind, splitToSegments } from '../common/utils/TtsUtil';
 import { ReadingAvSession } from '../common/utils/ReadingAvSession';
-import { promptAction } from '@kit.ArkUI';
+import { window } from '@kit.ArkUI';
+import { BusinessError } from '@kit.BasicServicesKit';
 import { ToastUtil } from '../common/utils/ToastUtil';
 
 class PlayerParamInfo {
@@ -33,6 +34,10 @@ struct ReadingPlayerContent {
   @State ttsState: TtsState = 'idle';
   @State showItemMenu: boolean = false;
   @State menuItemId: string = '';
+  @State currentSegments: string[] = [];
+  @State currentSegmentIndex: number = -1;
+  private segmentItemId: string = '';
+  private segmentScroller: Scroller = new Scroller();
   private ttsController: TtsController = new TtsController();
   private avSessionHelper: ReadingAvSession = new ReadingAvSession();
   private uiContext: UIContext = this.getUIContext();
@@ -42,18 +47,62 @@ struct ReadingPlayerContent {
     this.ttsController.onStateChange((state: TtsState) => {
       this.ttsState = state;
       this.avSessionHelper.setPlaying(state === 'speaking');
+      this.setKeepScreenOn(state === 'speaking');
+    });
+    this.ttsController.onSegmentChange((index: number, total: number) => {
+      this.onSegmentChanged(index);
     });
     this.ttsController.onComplete(() => {
       this.playNext();
     });
-    this.ttsController.onTtsError((code: number, message: string) => {
-      ToastUtil.show(this.uiContext, '朗读失败(' + code.toString() + ')，请稍后重试', 2500);
+    this.ttsController.onTtsError((code: number, message: string, kind: TtsErrorKind) => {
+      if (kind === 'init') {
+        ToastUtil.show(this.uiContext, '当前设备暂不支持朗读', 2500);
+      } else {
+        ToastUtil.show(this.uiContext, '朗读失败(' + code.toString() + ')，请稍后重试', 2500);
+      }
     });
   }
 
   aboutToDisappear(): void {
+    this.setKeepScreenOn(false);
     this.ttsController.shutdown();
     this.avSessionHelper.stop();
+  }
+
+  private setKeepScreenOn(keep: boolean): void {
+    window.getLastWindow(this.uiContext.getHostContext() as Context)
+      .then((win: window.Window) => {
+        return win.setWindowKeepScreenOn(keep);
+      })
+      .catch((err: BusinessError) => {
+        console.error('[ReadingPlayer] setKeepScreenOn failed: ' + err.message);
+      });
+  }
+
+  private onSegmentChanged(index: number): void {
+    this.currentSegmentIndex = index;
+    if (index > 0) {
+      this.segmentScroller.scrollToIndex(index, true, ScrollAlign.CENTER);
+    }
+  }
+
+  private isSegmentActive(segIndex: number): boolean {
+    return segIndex === this.currentSegmentIndex &&
+      (this.ttsState === 'speaking' || this.ttsState === 'paused');
+  }
+
+  private getStatusText(): string {
+    if (this.ttsState === 'speaking') {
+      if (this.currentSegments.length > 0 && this.currentSegmentIndex >= 0) {
+        return '朗读中 ' + (this.currentSegmentIndex + 1).toString() + '/' + this.currentSegments.length.toString();
+      }
+      return '朗读中';
+    }
+    if (this.ttsState === 'paused') {
+      return '已暂停';
+    }
+    return '点击朗读';
   }
 
   private loadList(): void {
@@ -118,6 +167,9 @@ struct ReadingPlayerContent {
       });
     let text: string = this.buildSpeakText(item);
     let segments: string[] = splitToSegments(text);
+    this.segmentItemId = item.id;
+    this.currentSegments = segments;
+    this.currentSegmentIndex = segments.length > 0 ? 0 : -1;
     this.ttsController.speakSegmented(segments);
   }
 
@@ -312,11 +364,36 @@ struct ReadingPlayerContent {
 
             if (this.currentIndex === index && item.content) {
               Column() {
-                Text(item.content)
-                  .fontSize(14)
-                  .fontColor($r('app.color.secondary_text'))
-                  .lineHeight(24)
+                if (this.segmentItemId === item.id && this.currentSegments.length > 0) {
+                  List({ space: 4, scroller: this.segmentScroller }) {
+                    ForEach(this.currentSegments, (seg: string, segIndex: number) => {
+                      ListItem() {
+                        Text(seg)
+                          .fontSize(14)
+                          .fontWeight(this.isSegmentActive(segIndex) ? FontWeight.Bold : FontWeight.Normal)
+                          .fontColor(this.isSegmentActive(segIndex) ?
+                            $r('app.color.poetry_green') : $r('app.color.secondary_text'))
+                          .backgroundColor(this.isSegmentActive(segIndex) ?
+                            $r('app.color.poetry_green') + '14' : Color.Transparent)
+                          .borderRadius(6)
+                          .lineHeight(24)
+                          .width('100%')
+                          .padding({ left: 8, right: 8, top: 3, bottom: 3 })
+                      }
+                    }, (seg: string, segIndex: number) => segIndex.toString())
+                  }
                   .width('100%')
+                  .constraintSize({ maxHeight: 240 })
+                  .edgeEffect(EdgeEffect.Fade)
+                  .nestedScroll({ scrollForward: NestedScrollMode.SELF_FIRST, scrollBackward: NestedScrollMode.SELF_FIRST })
+                  .padding({ top: 6, bottom: 4 })
+                } else {
+                  Text(item.content)
+                    .fontSize(14)
+                    .fontColor($r('app.color.secondary_text'))
+                    .lineHeight(24)
+                    .width('100%')
+                }
               }
               .width('100%')
               .padding({ top: 10, bottom: 4, left: 22 })
@@ -329,7 +406,7 @@ struct ReadingPlayerContent {
                     .fontSize(14)
                     .fontColor($r('app.color.poetry_green'))
                     .margin({ right: 4 })
-                  Text(this.ttsState === 'speaking' ? '朗读中' : this.ttsState === 'paused' ? '已暂停' : '点击朗读')
+                  Text(this.getStatusText())
                     .fontSize(12)
                     .fontColor($r('app.color.poetry_green'))
                 }
