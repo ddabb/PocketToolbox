@@ -35,6 +35,7 @@ export struct PoemContentContent {
   @Prop poemParam: PoemItem = new PoemItem();
   @State poetName: string = '';
   @State isFav: boolean = false;
+  @State inReadingList: boolean = false;
   @State showShareCard: boolean = false;
   @State shareMdText: string = '';
   @State showReadingListPicker: boolean = false;
@@ -55,6 +56,8 @@ export struct PoemContentContent {
   aboutToAppear(): void {
     this.poetName = this.poemParam.a || '';
     this.isFav = FavoritesUtil.isFavorite(this.uiContext.getHostContext() as Context, 'poem', this.poemParam.n);
+    this.inReadingList = AddToReadingListUtil.isInAnyList(
+      this.uiContext.getHostContext() as Context, 'poem', this.poemParam.n);
     AppStorage.setOrCreate('PoemFavStatus', this.isFav);
     StickinessUtil.incrementBrowseCount(this.uiContext.getHostContext() as Context);
     console.info('[PoemContent] poem=' + this.poemParam.n + ', poet=' + this.poetName);
@@ -196,7 +199,24 @@ export struct PoemContentContent {
     let result: AddToListResult = AddToReadingListUtil.addToListWithCheck(
       this.uiContext.getHostContext() as Context, listId, 'poem', this.poemParam.n, subtitle, this.poemParam.c);
     this.showReadingListPicker = false;
-    ToastUtil.show(this.uiContext, result.msg, 1000);
+    if (result.success) {
+      this.inReadingList = true;
+    }
+    ToastUtil.show(this.uiContext, result.msg, 1500);
+  }
+
+  @Builder
+  ReadingListButton() {
+    Text('\uD83D\uDCD6')
+      .fontSize(14)
+      .fontColor($r('app.color.poetry_green'))
+      .backgroundColor($r('app.color.poetry_green') + '18')
+      .borderRadius(16)
+      .padding({ left: 20, right: 20, top: 8, bottom: 8 })
+      .accessibilityText(this.inReadingList ? '已在朗读清单中' : '加入朗读清单')
+      .onClick(() => {
+        this.openReadingListPicker();
+      })
   }
 
   build() {
@@ -272,16 +292,17 @@ export struct PoemContentContent {
                   this.toggleFav();
                 })
 
-              Text('\uD83D\uDCD6')
-                .fontSize(14)
-                .fontColor($r('app.color.poetry_green'))
-                .backgroundColor($r('app.color.poetry_green') + '18')
-                .borderRadius(16)
-                .padding({ left: 20, right: 20, top: 8, bottom: 8 })
-                .accessibilityText('加入朗读清单')
-                .onClick(() => {
-                  this.openReadingListPicker();
-                })
+              if (this.inReadingList) {
+                Badge({
+                  value: '',
+                  position: BadgePosition.RightTop,
+                  style: { badgeSize: 8, badgeColor: $r('app.color.danger_red') }
+                }) {
+                  this.ReadingListButton()
+                }
+              } else {
+                this.ReadingListButton()
+              }
 
               Text('复制')
                 .fontSize(14)

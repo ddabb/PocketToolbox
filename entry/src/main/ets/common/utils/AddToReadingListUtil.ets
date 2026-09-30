@@ -25,10 +25,28 @@ export class AddToReadingListUtil {
     subtitle: string, content: string): AddToListResult {
     let item: ReadingItem = ReadingItem.create(type, title, subtitle, content);
     let ok: boolean = ReadingListStore.addItemToList(context, listId, item);
-    if (ok) {
-      return new AddToListResult(true, '已添加到朗读清单');
-    } else {
-      return new AddToListResult(false, '该内容已在清单中');
+    let listName: string = '';
+    let list: ReadingList | null = ReadingListStore.getList(context, listId);
+    if (list) {
+      listName = list.name;
     }
+    if (ok) {
+      return new AddToListResult(true, '已加入「' + listName + '」');
+    } else {
+      return new AddToListResult(false, '已在「' + listName + '」中');
+    }
+  }
+
+  static isInAnyList(context: Context, type: string, title: string): boolean {
+    let lists: ReadingList[] = ReadingListStore.load(context);
+    for (let i: number = 0; i < lists.length; i++) {
+      let items: ReadingItem[] = lists[i].items;
+      for (let j: number = 0; j < items.length; j++) {
+        if (items[j].type === type && items[j].title === title) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }

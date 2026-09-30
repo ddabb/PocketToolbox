@@ -3,7 +3,11 @@ import { TtsController, TtsState, TtsErrorKind, splitToSegments } from '../commo
 import { ReadingAvSession } from '../common/utils/ReadingAvSession';
 import { window } from '@kit.ArkUI';
 import { BusinessError } from '@kit.BasicServicesKit';
+import { preferences } from '@kit.ArkData';
 import { ToastUtil } from '../common/utils/ToastUtil';
+
+const SPEED_PREFS_NAME: string = 'reading_settings';
+const SPEED_KEY: string = 'reading_speed';
 
 class PlayerParamInfo {
   listId: string = '';
@@ -36,6 +40,9 @@ struct ReadingPlayerContent {
   @State menuItemId: string = '';
   @State currentSegments: string[] = [];
   @State currentSegmentIndex: number = -1;
+  @State speedValue: number = 1;
+  @State showSpeedPanel: boolean = false;
+  private prevSpeed: number = 1;
   private segmentItemId: string = '';
   private segmentScroller: Scroller = new Scroller();
   private ttsController: TtsController = new TtsController();
@@ -44,6 +51,8 @@ struct ReadingPlayerContent {
 
   aboutToAppear(): void {
     this.loadList();
+    this.speedValue = this.loadSpeed();
+    this.ttsController.setSpeed(this.speedValue);
     this.ttsController.onStateChange((state: TtsState) => {
       this.ttsState = state;
       this.avSessionHelper.setPlaying(state === 'speaking');
@@ -78,6 +87,63 @@ struct ReadingPlayerContent {
       .catch((err: BusinessError) => {
         console.error('[ReadingPlayer] setKeepScreenOn failed: ' + err.message);
       });
+  }
+
+  private loadSpeed(): number {
+    try {
+      let prefs: preferences.Preferences = preferences.getPreferencesSync(
+        this.uiContext.getHostContext() as Context, { name: SPEED_PREFS_NAME });
+      return prefs.getSync(SPEED_KEY, 1) as number;
+    } catch (e) {
+      return 1;
+    }
+  }
+
+  private saveSpeed(value: number): void {
+    try {
+      let prefs: preferences.Preferences = preferences.getPreferencesSync(
+        this.uiContext.getHostContext() as Context, { name: SPEED_PREFS_NAME });
+      prefs.putSync(SPEED_KEY, value);
+      prefs.flush();
+    } catch (e) {
+      console.error('[ReadingPlayer] save speed failed: ' + (e as Error).message);
+    }
+  }
+
+  private formatSpeedLabel(v: number): string {
+    let s: string = v.toFixed(2).replace(/0+$/, '');
+    if (s.endsWith('.')) {
+      s = s.substring(0, s.length - 1) + '.0';
+    }
+    return s + 'x';
+  }
+
+  private openSpeedPanel(): void {
+    this.prevSpeed = this.speedValue;
+    this.showSpeedPanel = true;
+  }
+
+  private cancelSpeed(): void {
+    this.speedValue = this.prevSpeed;
+    this.showSpeedPanel = false;
+  }
+
+  private applySpeed(): void {
+    let v: number = Math.round(this.speedValue * 100) / 100;
+    this.speedValue = v;
+    this.saveSpeed(v);
+    this.ttsController.setSpeed(v);
+    this.showSpeedPanel = false;
+    if (this.ttsState === 'speaking' && this.currentSegmentIndex >= 0) {
+      this.ttsController.startFrom(this.currentSegmentIndex);
+    }
+  }
+
+  private playFromSegment(segIndex: number): void {
+    let ok: boolean = this.ttsController.startFrom(segIndex);
+    if (!ok) {
+      this.playCurrent();
+    }
   }
 
   private onSegmentChanged(index: number): void {
@@ -324,6 +390,10 @@ struct ReadingPlayerContent {
       if (this.showItemMenu) {
         this.ItemMenuOverlay()
       }
+
+      if (this.showSpeedPanel) {
+        this.SpeedPanelOverlay()
+      }
     }
     .width('100%')
     .height('100%')
@@ -380,6 +450,9 @@ struct ReadingPlayerContent {
                           .width('100%')
                           .padding({ left: 8, right: 8, top: 3, bottom: 3 })
                       }
+                      .onClick(() => {
+                        this.playFromSegment(segIndex);
+                      })
                     }, (seg: string, segIndex: number) => segIndex.toString())
                   }
                   .width('100%')
@@ -486,12 +559,89 @@ struct ReadingPlayerContent {
       .width('100%')
       .justifyContent(FlexAlign.Center)
       .margin({ top: 8, bottom: 8 })
+
+      Text('语速 ' + this.formatSpeedLabel(this.speedValue))
+        .fontSize(12)
+        .fontColor($r('app.color.poetry_green'))
+        .backgroundColor($r('app.color.poetry_green') + '18')
+        .borderRadius(12)
+        .padding({ left: 14, right: 14, top: 4, bottom: 4 })
+        .margin({ bottom: 4 })
+        .onClick(() => {
+          this.openSpeedPanel();
+        })
     }
     .width('100%')
     .padding({ top: 12, bottom: 24 })
     .backgroundColor($r('app.color.card_background'))
     .borderRadius({ topLeft: 20, topRight: 20 })
     .shadow({ radius: 10, color: '#1a000000', offsetY: -2 })
+  }
+
+  @Builder
+  SpeedPanelOverlay() {
+    Column() {
+      Column() {
+        Text('朗读语速')
+          .fontSize(16)
+          .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.primary_text'))
+          .margin({ bottom: 12 })
+
+        Text(this.formatSpeedLabel(this.speedValue))
+          .fontSize(28)
+          .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.poetry_green'))
+          .margin({ bottom: 12 })
+
+        Slider({ value: this.speedValue, min: 0.5, max: 2, step: 0.05, style: SliderStyle.OutSet })
+          .width('100%')
+          .onChange((value: number, mode: SliderChangeMode) => {
+            this.speedValue = value;
+          })
+
+        Row({ space: 12 }) {
+          Text('取消')
+            .fontSize(15)
+            .fontColor($r('app.color.tertiary_text'))
+            .layoutWeight(1)
+            .textAlign(TextAlign.Center)
+            .padding({ top: 8, bottom: 8 })
+            .backgroundColor($r('app.color.page_background'))
+            .borderRadius(10)
+            .onClick(() => {
+              this.cancelSpeed();
+            })
+
+          Text('确定')
+            .fontSize(15)
+            .fontWeight(FontWeight.Medium)
+            .fontColor($r('app.color.on_accent_text'))
+            .layoutWeight(1)
+            .textAlign(TextAlign.Center)
+            .padding({ top: 8, bottom: 8 })
+            .backgroundColor($r('app.color.poetry_green'))
+            .borderRadius(10)
+            .onClick(() => {
+              this.applySpeed();
+            })
+        }
+        .width('100%')
+        .margin({ top: 16 })
+      }
+      .width('75%')
+      .padding({ left: 20, right: 20, top: 20, bottom: 20 })
+      .backgroundColor($r('app.color.card_background'))
+      .borderRadius(16)
+    }
+    .width('100%')
+    .height('100%')
+    .justifyContent(FlexAlign.Center)
+    .alignItems(HorizontalAlign.Center)
+    .backgroundColor('#99000000')
+    .onClick(() => {
+      this.cancelSpeed();
+    })
   }
 
   @Builder

@@ -33,10 +33,13 @@ import { StickinessUtil, CheckInData, ChallengeProgress, UserStats, ReviewShownR
 import { RecentToolsUtil } from '../common/utils/RecentToolsUtil';
 import { DailyPoemWidgetUtil } from '../common/utils/DailyPoemWidgetUtil';
 import { ReadingListStore, ReadingList } from '../model/ReadingListModels';
-import { bundleManager } from '@kit.AbilityKit';
+import { bundleManager, common, Want } from '@kit.AbilityKit';
 import { ConverterCategory, UnitConverterData } from '../model/UnitModels';
 import { ToastUtil } from '../common/utils/ToastUtil';
+import { ClipboardUtil } from '../common/utils/ClipboardUtil';
 import { VibrateUtil } from '../common/utils/VibrateUtil';
+
+const FEEDBACK_EMAIL: string = '1011888891@qq.com';
 
 class ToolItem {
   id: string = '';
@@ -217,6 +220,18 @@ struct Index {
     let ctx: Context = this.getUIContext().getHostContext() as Context;
     this.recentToolIds = RecentToolsUtil.recordUse(ctx, tool.id);
     stack.pushPathByName(tool.page, tool.param);
+  }
+
+  private onFeedbackTap(): void {
+    let ctx: common.UIAbilityContext = this.getUIContext().getHostContext() as common.UIAbilityContext;
+    let want: Want = {
+      action: 'ohos.want.action.sendToData',
+      uri: 'mailto:' + FEEDBACK_EMAIL + '?subject=' + encodeURIComponent('解语珠玑意见反馈')
+    };
+    ctx.startAbility(want).catch(() => {
+      ClipboardUtil.copy(FEEDBACK_EMAIL);
+      ToastUtil.show(this.getUIContext(), '未找到邮件应用，反馈邮箱已复制', 1500);
+    });
   }
 
   private getUnitSubtitle(cat: ConverterCategory): string {
@@ -1048,6 +1063,28 @@ struct Index {
             .padding({ left: 16, right: 16, top: 14, bottom: 14 })
             .onClick(() => {
               this.mineStack.pushPathByName('XiehouyuQueryPage', null);
+            })
+
+            Divider()
+              .color($r('app.color.border_color'))
+              .margin({ left: 46 })
+
+            Row() {
+              Text('\uD83D\uDCAC')
+                .fontSize(20)
+                .margin({ right: 10 })
+              Text('意见反馈')
+                .fontSize(15)
+                .fontColor($r('app.color.primary_text'))
+                .layoutWeight(1)
+              Text('\u203A')
+                .fontSize(18)
+                .fontColor($r('app.color.hint_text'))
+            }
+            .width('100%')
+            .padding({ left: 16, right: 16, top: 14, bottom: 14 })
+            .onClick(() => {
+              this.onFeedbackTap();
             })
 
             Divider()

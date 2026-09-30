@@ -21,6 +21,41 @@ export class TtsController {
   private segments: string[] = [];
   private segmentIndex: number = 0;
   private segmentedMode: boolean = false;
+  private speed: number = 1;
+
+  setSpeed(speed: number): void {
+    let clamped: number = speed;
+    if (clamped < 0.5) {
+      clamped = 0.5;
+    }
+    if (clamped > 2) {
+      clamped = 2;
+    }
+    this.speed = clamped;
+  }
+
+  getSpeed(): number {
+    return this.speed;
+  }
+
+  startFrom(index: number): boolean {
+    if (!this.segmentedMode || index < 0 || index >= this.segments.length || !this.engine) {
+      return false;
+    }
+    if (this.currentState === 'speaking') {
+      this.generation++;
+      this.currentRequestId = '';
+      this.clearWatchdog();
+      try {
+        this.engine.stop();
+      } catch (e) {
+        console.error('[TtsController] startFrom stop failed: ' + (e as Error).message);
+      }
+    }
+    this.segmentIndex = index;
+    this.updateState('speaking');
+    return this.startSpeak(this.segments[index]);
+  }
 
   onStateChange(callback: (state: TtsState) => void): void {
     this.stateCallback = callback;
@@ -230,7 +265,7 @@ export class TtsController {
         Math.floor(Math.random() * 1000000).toString();
       let speakExtraParam: Record<string, Object> = {
         'queueMode': 1,
-        'speed': 1,
+        'speed': this.speed,
         'volume': 2,
         'pitch': 1,
         'languageContext': 'zh-CN',

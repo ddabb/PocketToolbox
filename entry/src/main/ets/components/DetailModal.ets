@@ -13,6 +13,7 @@ export struct DetailModal {
   controller: CustomDialogController;
   @State detailItem: IdiomDetailItem | null = null;
   @State isFav: boolean = false;
+  @State inReadingList: boolean = false;
   @State showShareCard: boolean = false;
   @State shareMdText: string = '';
   @State showReadingListPicker: boolean = false;
@@ -22,6 +23,8 @@ export struct DetailModal {
   aboutToAppear(): void {
     if (this.detailItem) {
       this.isFav = FavoritesUtil.isFavorite(this.uiContext.getHostContext() as Context, 'idiom', this.detailItem!.word);
+      this.inReadingList = AddToReadingListUtil.isInAnyList(
+        this.uiContext.getHostContext() as Context, 'idiom', this.detailItem!.word);
     }
   }
 
@@ -80,7 +83,24 @@ export struct DetailModal {
       this.uiContext.getHostContext() as Context, listId, 'idiom',
       this.detailItem!.word, this.detailItem!.pinyin, content);
     this.showReadingListPicker = false;
-    ToastUtil.show(this.uiContext, result.msg, 1000);
+    if (result.success) {
+      this.inReadingList = true;
+    }
+    ToastUtil.show(this.uiContext, result.msg, 1500);
+  }
+
+  @Builder
+  ReadingListButton() {
+    Text('\uD83D\uDCD6')
+      .fontSize(14)
+      .fontColor($r('app.color.idiom_blue'))
+      .backgroundColor($r('app.color.idiom_blue') + '18')
+      .borderRadius(12)
+      .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+      .accessibilityText(this.inReadingList ? '已在朗读清单中' : '加入朗读清单')
+      .onClick(() => {
+        this.openReadingListPicker();
+      })
   }
 
   build() {
@@ -212,15 +232,17 @@ export struct DetailModal {
                     this.toggleFav();
                   })
 
-                Text('\uD83D\uDCD6')
-                  .fontSize(14)
-                  .fontColor($r('app.color.idiom_blue'))
-                  .backgroundColor($r('app.color.idiom_blue') + '18')
-                  .borderRadius(12)
-                  .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-                  .onClick(() => {
-                    this.openReadingListPicker();
-                  })
+                if (this.inReadingList) {
+                  Badge({
+                    value: '',
+                    position: BadgePosition.RightTop,
+                    style: { badgeSize: 8, badgeColor: $r('app.color.danger_red') }
+                  }) {
+                    this.ReadingListButton()
+                  }
+                } else {
+                  this.ReadingListButton()
+                }
 
                 Text('复制全部')
                   .fontSize(14)
