@@ -1,11 +1,12 @@
 import { ConverterCategory, UnitConverterData } from '../model/UnitModels';
+import { StrUtil } from '../common/utils/StrUtil';
 
 @Builder
 export function UnitCategoryPageBuilder(param?: Object) {
   NavDestination() {
     UnitCategoryContent()
   }
-  .title('单位转换')
+  .title($r('app.string.unitcat_title'))
   .backButtonIcon($r('sys.symbol.chevron_left'))
   .menus([])
 }
@@ -15,6 +16,7 @@ struct UnitCategoryContent {
   private getNavPathStack(): NavPathStack {
     return AppStorage.get('AppNavPathStack') as NavPathStack;
   }
+  private uiContext: UIContext = this.getUIContext();
   @State categories: ConverterCategory[] = UnitConverterData.getCategories();
 
   build() {
@@ -68,22 +70,24 @@ struct UnitCategoryContent {
     .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
   }
 
-  private getSubtitle(cat: ConverterCategory): string {
+  private getSubtitle(cat: ConverterCategory): ResourceStr {
     if (cat.isBase) {
-      return '二进制、八进制、十六进制、Base64';
+      return $r('app.string.unitcat_base_sub');
     }
     if (cat.isTimezone) {
-      return '全球城市时区对照与会议协调';
+      return $r('app.string.tool_timezone_sub');
     }
     if (cat.isTemperature) {
-      return '摄氏度、华氏度、开尔文等';
+      return $r('app.string.unit_temp_subtitle');
     }
     let names: string[] = [];
     let count: number = Math.min(cat.units.length, 4);
     for (let i = 0; i < count; i++) {
       names.push(cat.units[i].name);
     }
-    let suffix: string = cat.units.length > 4 ? '等' + cat.units.length.toString() + '个单位' : '';
+    let suffix: string = cat.units.length > 4
+      ? StrUtil.text(this.uiContext.getHostContext() as Context, $r('app.string.unitcat_units_more', cat.units.length))
+      : '';
     return names.join('、') + suffix;
   }
 

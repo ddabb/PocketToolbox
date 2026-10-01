@@ -17,6 +17,7 @@ import { ChipRow } from '../components/template/ChipRow';
 import { ChipOption } from '../core/template/UnifiedTemplateModels';
 import { FontUtil } from '../common/utils/FontUtil';
 import { ToastUtil } from '../common/utils/ToastUtil';
+import { StrUtil } from '../common/utils/StrUtil';
 import { CharBookUtil } from '../common/utils/CharBookUtil';
 import { savePixelMapToAlbum, saveFilesToAlbum, shareImageViaPanel } from '../common/utils/ShareImageUtil';
 
@@ -28,7 +29,7 @@ export function CharCardPageBuilder() {
   NavDestination() {
     CharCardContent()
   }
-  .title('生字卡')
+  .title($r('app.string.tool_charcard_title'))
   .backButtonIcon($r('sys.symbol.chevron_left'))
   .menus([])
 }
@@ -74,8 +75,8 @@ struct CharCardContent {
     ChipOption.of(CharCardCharMode.TRACE, CharCardCharMode.label(CharCardCharMode.TRACE)),
   ];
   private pinyinOptions: ChipOption[] = [
-    ChipOption.of('on', '显示'),
-    ChipOption.of('off', '隐藏'),
+    ChipOption.of('on', $r('app.string.char_pinyin_show')),
+    ChipOption.of('off', $r('app.string.char_pinyin_hide')),
   ];
 
   aboutToAppear(): void {
@@ -153,7 +154,7 @@ struct CharCardContent {
       }
     }
     this.bookSelected = next;
-    ToastUtil.show(this.getUIContext(), '已删除「' + ch + '」', 1000);
+    ToastUtil.show(this.getUIContext(), $r('app.string.char_book_removed', ch), 1000);
   }
 
   private toggleBookChar(ch: string): void {
@@ -182,7 +183,7 @@ struct CharCardContent {
     this.pinyinLocked = false;
     this.pinyinText = CoverContentUtil.autoPinyin(chars.join(''));
     this.showCharBook = false;
-    ToastUtil.show(this.getUIContext(), '已从生字本填入 ' + chars.length.toString() + ' 个字', 1500);
+    ToastUtil.show(this.getUIContext(), $r('app.string.char_filled_from_book', chars.length), 1500);
   }
 
   private canExport(): boolean {
@@ -225,7 +226,7 @@ struct CharCardContent {
     } catch (e) {
       console.error('[CharCard] restore failed: ' + (e as Error).message);
     }
-    ToastUtil.show(this.getUIContext(), '已恢复', 1200);
+    ToastUtil.show(this.getUIContext(), $r('app.string.char_restored'), 1200);
   }
 
   private clearHistory(): void {
@@ -296,14 +297,14 @@ struct CharCardContent {
           await snapshot.get(PREVIEW_ID, { scale: this.snapshotScale, waitUntilRenderFinished: true });
         let ok: boolean = await savePixelMapToAlbum(uiCtx, pixelMap);
         pixelMap.release();
-        ToastUtil.show(uiCtx, ok ? '已保存到相册' : '已取消保存', 1500);
+        ToastUtil.show(uiCtx, ok ? $r('app.string.md2_saved_to_album') : $r('app.string.char_save_cancelled'), 1500);
       } else {
         shareImageViaPanel(this.getUIContext(), filePath);
       }
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[CharCard] export failed: ' + err.code + ' ' + err.message);
-      ToastUtil.show(this.getUIContext(), '导出失败：' + err.message, 2000);
+      ToastUtil.show(this.getUIContext(), $r('app.string.char_export_failed', err.message), 2000);
     }
     this.exporting = false;
   }
@@ -340,14 +341,14 @@ struct CharCardContent {
       }
       let saved: number = await saveFilesToAlbum(uiCtx, batchFiles);
       if (saved > 0) {
-        ToastUtil.show(uiCtx, '已保存 ' + saved.toString() + ' 张到相册', 1800);
+        ToastUtil.show(uiCtx, $r('app.string.char_saved_count', saved), 1800);
       } else {
-        ToastUtil.show(uiCtx, '已取消导出', 1500);
+        ToastUtil.show(uiCtx, $r('app.string.char_export_cancelled'), 1500);
       }
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[CharCard] batch export failed: ' + err.code + ' ' + err.message);
-      ToastUtil.show(this.getUIContext(), '导出失败：' + err.message, 2000);
+      ToastUtil.show(this.getUIContext(), $r('app.string.char_export_failed', err.message), 2000);
     } finally {
       for (let i = 0; i < batchFiles.length; i++) {
         try {
@@ -453,8 +454,9 @@ struct CharCardContent {
       .width('100%')
       .justifyContent(FlexAlign.Center)
 
-      Text(CharCardSize.label(this.sizeKind) + ' · ' +
-        CharCards.EXPORT_W.toString() + ' × ' + CharCards.exportHeight(this.sizeKind).toString())
+      Text($r('app.string.char_export_size',
+        StrUtil.text(this.context(), CharCardSize.label(this.sizeKind)),
+        CharCards.EXPORT_W, CharCards.exportHeight(this.sizeKind)))
         .fontSize(11)
         .fontColor(this.labelColor())
     }
@@ -464,7 +466,7 @@ struct CharCardContent {
   @Builder
   SizeChips() {
     ChipRow({
-      label: '尺寸',
+      label: StrUtil.text(this.context(), $r('app.string.char_label_size')),
       labelColor: this.labelColor(),
       options: this.sizeOptions,
       selected: this.sizeKind,
@@ -482,7 +484,7 @@ struct CharCardContent {
     Column({ space: 10 }) {
       Row() {
         ChipRow({
-          label: '格型',
+          label: StrUtil.text(this.context(), $r('app.string.char_label_grid')),
           labelWidth: 30,
           labelColor: this.labelColor(),
           options: this.gridOptions,
@@ -496,7 +498,7 @@ struct CharCardContent {
         })
         Blank()
         ChipRow({
-          label: '字色',
+          label: StrUtil.text(this.context(), $r('app.string.char_label_mode')),
           labelColor: this.labelColor(),
           options: this.modeOptions,
           selected: this.charMode,
@@ -512,7 +514,7 @@ struct CharCardContent {
       .alignItems(VerticalAlign.Center)
 
       ChipRow({
-        label: '拼音',
+        label: StrUtil.text(this.context(), $r('app.string.char_label_pinyin')),
         labelWidth: 30,
         labelColor: this.labelColor(),
         options: this.pinyinOptions,
@@ -533,11 +535,11 @@ struct CharCardContent {
     Column({ space: 12 }) {
       Column({ space: 5 }) {
         Row() {
-          Text('生字（1-12 个汉字）')
+          Text($r('app.string.char_chars_label'))
             .fontSize(12)
             .fontColor(this.labelColor())
             .layoutWeight(1)
-          Text('生字本')
+          Text($r('app.string.char_book_title'))
             .fontSize(12)
             .fontColor(this.accent())
             .padding({ left: 10, right: 10, top: 5, bottom: 5 })
@@ -564,7 +566,7 @@ struct CharCardContent {
 
       if (this.pinyinOn) {
         Column({ space: 5 }) {
-          Text(this.pinyinLocked ? '拼音（已手动锁定）' : '拼音（自动生成，可修改）')
+          Text(this.pinyinLocked ? $r('app.string.char_pinyin_locked_label') : $r('app.string.char_pinyin_auto_label'))
             .fontSize(12)
             .fontColor(this.labelColor())
           Row({ space: 8 }) {
@@ -588,7 +590,7 @@ struct CharCardContent {
                 }
               })
             if (this.pinyinLocked) {
-              Text('恢复自动')
+              Text($r('app.string.char_pinyin_auto'))
                 .fontSize(12)
                 .fontColor(this.accent())
                 .padding({ left: 10, right: 10, top: 9, bottom: 9 })
@@ -614,13 +616,13 @@ struct CharCardContent {
     Column() {
       Column() {
         Row() {
-          Text('生字本')
+          Text($r('app.string.char_book_title'))
             .fontSize(17)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.primary_text'))
             .layoutWeight(1)
           if (this.bookChars.length > 0) {
-            Text(this.bookManage ? '完成' : '管理')
+            Text(this.bookManage ? $r('app.string.char_book_done') : $r('app.string.char_book_manage'))
               .fontSize(12)
               .fontColor(this.accent())
               .padding({ left: 10, right: 10, top: 5, bottom: 5 })
@@ -632,14 +634,14 @@ struct CharCardContent {
                 this.bookSelected = [];
               })
           }
-          Text(this.bookChars.length.toString() + ' 字')
+          Text($r('app.string.char_count_unit', this.bookChars.length))
             .fontSize(12)
             .fontColor(this.labelColor())
         }
         .width('100%')
         .alignItems(VerticalAlign.Center)
 
-        Text(this.bookManage ? '管理模式：点击生字即可删除' : '从诗词页选取生字，点选后填入制作')
+        Text(this.bookManage ? $r('app.string.char_book_manage_hint') : $r('app.string.char_book_pick_hint'))
           .fontSize(11)
           .fontColor(this.labelColor())
           .margin({ top: 4, bottom: 12 })
@@ -675,7 +677,7 @@ struct CharCardContent {
           .constraintSize({ maxHeight: '40%' })
           .width('100%')
         } else {
-          Text('生字本为空，可在「首页 → 诗词鉴赏」中点「描红选字」收藏生字')
+          Text($r('app.string.char_book_empty_hint'))
             .fontSize(12)
             .fontColor(this.labelColor())
             .textAlign(TextAlign.Center)
@@ -683,7 +685,7 @@ struct CharCardContent {
         }
 
         Row({ space: 12 }) {
-          Text('取消')
+          Text($r('app.string.char_cancel'))
             .fontSize(14)
             .fontColor(this.labelColor())
             .backgroundColor(this.chipBg())
@@ -694,7 +696,7 @@ struct CharCardContent {
             })
 
           Text(this.bookSelected.length > 0 ?
-            '填入所选(' + this.bookSelected.length.toString() + ')' : '全部填入')
+            $r('app.string.char_fill_selected', this.bookSelected.length) : $r('app.string.char_fill_all'))
             .fontSize(14)
             .fontWeight(FontWeight.Bold)
             .fontColor(this.bookChars.length > 0 ? $r('app.color.on_accent_text') : this.chipText())
@@ -730,11 +732,11 @@ struct CharCardContent {
     if (this.historyRecords.length > 0) {
       Column({ space: 8 }) {
         Row() {
-          Text('最近制作')
+          Text($r('app.string.char_recent'))
             .fontSize(12)
             .fontColor(this.labelColor())
             .layoutWeight(1)
-          Text('清空')
+          Text($r('app.string.char_clear'))
             .fontSize(12)
             .fontColor(this.labelColor())
             .padding(6)
@@ -797,7 +799,7 @@ struct CharCardContent {
   ExportBar() {
     Column({ space: 8 }) {
       Row({ space: 12 }) {
-        Button(this.exporting ? '导出中…' : '保存到相册')
+        Button(this.exporting ? $r('app.string.char_exporting') : $r('app.string.char_save_album'))
           .layoutWeight(1)
           .height(44)
           .fontSize(15)
@@ -806,7 +808,7 @@ struct CharCardContent {
           .onClick(() => {
             this.doExport(true);
           })
-        Button('分享')
+        Button($r('app.string.md2_share'))
           .layoutWeight(1)
           .height(44)
           .fontSize(15)
@@ -821,8 +823,8 @@ struct CharCardContent {
 
       if (this.cleanChars().length >= 2) {
         Button(this.batchRunning ?
-          '导出中 ' + this.batchProgress.toString() + ' / ' + this.batchTotal.toString() :
-          '全部导出（每字一卡，共 ' + this.cleanChars().length.toString() + ' 张）')
+          $r('app.string.char_batch_exporting', this.batchProgress, this.batchTotal) :
+          $r('app.string.char_batch_export', this.cleanChars().length))
           .width('100%')
           .height(42)
           .fontSize(14)

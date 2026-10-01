@@ -103,7 +103,7 @@ export struct FavDetailModal {
     }
     if (text) {
       ClipboardUtil.copy(text);
-      ToastUtil.show(this.uiContext, '已复制到剪贴板', 1000);
+      ToastUtil.show(this.uiContext, $r('app.string.poemct_copied'), 1000);
     }
   }
 
@@ -143,7 +143,7 @@ export struct FavDetailModal {
               }
 
               Row({ space: 10 }) {
-                Text('复制全部')
+                Text($r('app.string.detail_copy_all'))
                   .fontSize(14)
                   .fontColor($r('app.color.secondary_text'))
                   .backgroundColor($r('app.color.border_color'))
@@ -153,7 +153,7 @@ export struct FavDetailModal {
                     this.copyAll();
                   })
 
-                Text('分享图片')
+                Text($r('app.string.poemct_share_image'))
                   .fontSize(14)
                   .fontColor($r('app.color.on_accent_text'))
                   .backgroundColor(this.favItem!.type === 'poem' ? $r('app.color.poetry_green') :
@@ -251,7 +251,7 @@ export struct FavDetailModal {
 
       if (this.idiomData!.explanation) {
         Column() {
-          Text('释义')
+          Text($r('app.string.detail_explanation'))
             .fontSize(15)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.primary_text'))
@@ -268,7 +268,7 @@ export struct FavDetailModal {
 
       if (this.idiomData!.derivation) {
         Column() {
-          Text('出处')
+          Text($r('app.string.cover_slot_quote_source'))
             .fontSize(15)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.primary_text'))
@@ -285,7 +285,7 @@ export struct FavDetailModal {
 
       if (this.idiomData!.example) {
         Column() {
-          Text('例句')
+          Text($r('app.string.detail_example'))
             .fontSize(15)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.primary_text'))
@@ -306,7 +306,7 @@ export struct FavDetailModal {
   @Builder
   XiehouyuContent() {
     Column() {
-      Text('谜面')
+      Text($r('app.string.favd_riddle'))
         .fontSize(14)
         .fontColor($r('app.color.tertiary_text'))
         .margin({ bottom: 6 })
@@ -324,7 +324,7 @@ export struct FavDetailModal {
         .color($r('app.color.border_color'))
         .margin({ bottom: 16 })
 
-      Text('谜底')
+      Text($r('app.string.favd_answer'))
         .fontSize(14)
         .fontColor($r('app.color.tertiary_text'))
         .margin({ bottom: 6 })

@@ -12,9 +12,9 @@ export class DailyPoemWidgetUtil {
   private static readonly MAX_LINE_LEN: number = 18;
 
   static buildCardData(context: Context): Record<string, string> {
-    let title: string = '每日一诗';
+    let title: string = context.resourceManager.getStringByNameSync('daily_poem_title');
     let author: string = '';
-    let lines: string = '今日诗句加载中…';
+    let lines: string = context.resourceManager.getStringByNameSync('daily_poem_loading');
     let poemJson: string = '';
     try {
       let vm: PoetryViewModel = PoetryViewModel.getInstance();
@@ -48,7 +48,8 @@ export class DailyPoemWidgetUtil {
       console.error('[DailyPoemWidget] buildCardData failed: ' + (e as Error).message);
     }
     let now: Date = new Date();
-    let date: string = (now.getMonth() + 1).toString() + '\u6708' + now.getDate().toString() + '\u65E5';
+    let date: string = context.resourceManager.getStringByNameSync('widget_date_format',
+      (now.getMonth() + 1).toString(), now.getDate().toString());
     let data: Record<string, string> = {
       'title': title,
       'author': author,

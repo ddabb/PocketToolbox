@@ -7,7 +7,7 @@ export function DailyChallengePageBuilder() {
   NavDestination() {
     DailyChallengeContent()
   }
-  .title('每日挑战')
+  .title($r('app.string.daily_challenge'))
   .backButtonIcon($r('sys.symbol.chevron_left'))
   .menus([])
 }
@@ -80,15 +80,15 @@ struct DailyChallengeContent {
     return '\uD83D\uDCDC';
   }
 
-  private getTypeLabel(type: string): string {
+  private getTypeLabel(type: string): ResourceStr {
     if (type === 'poem') {
-      return '诗词填空';
+      return $r('app.string.challenge_type_poem');
     } else if (type === 'idiom') {
-      return '成语填字';
+      return $r('app.string.challenge_type_idiom');
     } else if (type === 'xiehouyu') {
-      return '歇后语猜谜';
+      return $r('app.string.challenge_type_xiehouyu');
     }
-    return '挑战';
+    return $r('app.string.challenge_type_default');
   }
 
   private getScoreEmoji(): string {
@@ -110,7 +110,7 @@ struct DailyChallengeContent {
             .width(48)
             .height(48)
             .color($r('app.color.poetry_green'))
-          Text('题目生成中...')
+          Text($r('app.string.challenge_generating'))
             .fontSize(16)
             .fontColor($r('app.color.tertiary_text'))
             .margin({ top: 12 })
@@ -133,11 +133,11 @@ struct DailyChallengeContent {
   QuestionSection() {
     Column() {
       Row() {
-        Text('第' + (this.currentIdx + 1).toString() + '/' + this.questions.length.toString() + '题')
+        Text($r('app.string.challenge_progress', this.currentIdx + 1, this.questions.length))
           .fontSize(14)
           .fontColor($r('app.color.tertiary_text'))
         Blank()
-        Text('得分：' + this.score.toString())
+        Text($r('app.string.challenge_score', this.score))
           .fontSize(14)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.poetry_green'))
@@ -222,7 +222,7 @@ struct DailyChallengeContent {
                 .backgroundColor($r('app.color.success_green'))
                 .textAlign(TextAlign.Center)
                 .margin({ right: 8 })
-              Text('回答正确！+20分')
+              Text($r('app.string.challenge_correct'))
                 .fontSize(15)
                 .fontColor($r('app.color.success_green'))
                 .fontWeight(FontWeight.Bold)
@@ -238,7 +238,7 @@ struct DailyChallengeContent {
                 .backgroundColor($r('app.color.danger_red'))
                 .textAlign(TextAlign.Center)
                 .margin({ right: 8 })
-              Text('正确答案：' + this.questions[this.currentIdx].options[this.questions[this.currentIdx].answerIndex])
+              Text($r('app.string.challenge_correct_answer', this.questions[this.currentIdx].options[this.questions[this.currentIdx].answerIndex]))
                 .fontSize(15)
                 .fontColor($r('app.color.danger_red'))
                 .fontWeight(FontWeight.Bold)
@@ -266,11 +266,11 @@ struct DailyChallengeContent {
     .height('100%')
   }
 
-  private getNextButtonText(): string {
+  private getNextButtonText(): ResourceStr {
     if (this.currentIdx < this.questions.length - 1) {
-      return '下一题';
+      return $r('app.string.xhyq_next');
     }
-    return '查看结果';
+    return $r('app.string.challenge_view_result');
   }
 
   private getOptionFontColor(index: number): ResourceColor {
@@ -346,12 +346,12 @@ struct DailyChallengeContent {
           .fontSize(64)
           .margin({ top: 32, bottom: 12 })
 
-        Text('今日挑战完成！')
+        Text($r('app.string.challenge_complete'))
           .fontSize(22)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.primary_text'))
 
-        Text('得分：' + this.score.toString() + ' / 100')
+        Text($r('app.string.challenge_final_score', this.score))
           .fontSize(18)
           .fontColor($r('app.color.poetry_green'))
           .fontWeight(FontWeight.Bold)
@@ -363,7 +363,7 @@ struct DailyChallengeContent {
               .fontSize(22)
               .fontWeight(FontWeight.Bold)
               .fontColor($r('app.color.poetry_green'))
-            Text('累计挑战')
+            Text($r('app.string.stat_challenges'))
               .fontSize(11)
               .fontColor($r('app.color.tertiary_text'))
               .margin({ top: 2 })
@@ -376,11 +376,11 @@ struct DailyChallengeContent {
             .color($r('app.color.border_color'))
 
           Column() {
-            Text(this.score >= 80 ? '优秀' : this.score >= 60 ? '良好' : this.score >= 40 ? '加油' : '继续努力')
+            Text(this.score >= 80 ? $r('app.string.challenge_grade_excellent') : this.score >= 60 ? $r('app.string.challenge_grade_good') : this.score >= 40 ? $r('app.string.challenge_grade_keep') : $r('app.string.challenge_grade_try'))
               .fontSize(22)
               .fontWeight(FontWeight.Bold)
               .fontColor($r('app.color.idiom_orange'))
-            Text('今日评级')
+            Text($r('app.string.challenge_today_grade'))
               .fontSize(11)
               .fontColor($r('app.color.tertiary_text'))
               .margin({ top: 2 })
@@ -394,7 +394,7 @@ struct DailyChallengeContent {
         .margin({ left: 16, right: 16, top: 24 })
 
         Column() {
-          Text('\uD83D\uDCC5 每日挑战每天更新，明天再来！')
+          Text($r('app.string.challenge_come_back'))
             .fontSize(14)
             .fontColor($r('app.color.tertiary_text'))
             .margin({ top: 24 })

@@ -22,6 +22,13 @@ export class ReadingAvSession {
     return this.session !== null;
   }
 
+  private artistLabel(): string {
+    if (this.context) {
+      return this.context.resourceManager.getStringByNameSync('reading_session_artist');
+    }
+    return '';
+  }
+
   async start(context: Context, title: string,
     onPlay: SimpleCallback, onPause: SimpleCallback,
     onNext: SimpleCallback, onPrev: SimpleCallback): Promise<void> {
@@ -56,7 +63,7 @@ export class ReadingAvSession {
       await session.setAVMetadata({
         assetId: this.assetId,
         title: title,
-        artist: '解语珠玑 · 朗读清单'
+        artist: this.artistLabel()
       });
       await session.activate();
       console.info('[ReadingAvSession] session started');
@@ -92,7 +99,7 @@ export class ReadingAvSession {
       await this.session.setAVMetadata({
         assetId: this.assetId,
         title: title,
-        artist: '解语珠玑 · 朗读清单'
+        artist: this.artistLabel()
       });
     } catch (e) {
       console.error('[ReadingAvSession] updateTitle failed: ' + (e as Error).message);

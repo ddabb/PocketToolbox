@@ -41,9 +41,9 @@ export class Palette {
     return new PaletteColor(tpl.bgColor, colors);
   }
 
-  static getNames(): string[] {
+  static getNames(): ResourceStr[] {
     let templates: TemplateInfo[] = Md2PngTemplates.getAll();
-    let names: string[] = [];
+    let names: ResourceStr[] = [];
     for (let i = 0; i < templates.length; i++) {
       names.push(templates[i].name);
     }

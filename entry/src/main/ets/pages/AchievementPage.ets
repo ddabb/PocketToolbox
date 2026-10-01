@@ -5,7 +5,7 @@ export function AchievementPageBuilder() {
   NavDestination() {
     AchievementContent()
   }
-  .title('我的成就')
+  .title($r('app.string.achpage_title'))
   .backButtonIcon($r('sys.symbol.chevron_left'))
   .menus([])
 }
@@ -47,7 +47,7 @@ struct AchievementContent {
               .fontSize(28)
               .fontWeight(FontWeight.Bold)
               .fontColor($r('app.color.poetry_green'))
-            Text('已解锁成就')
+            Text($r('app.string.achpage_unlocked'))
               .fontSize(12)
               .fontColor($r('app.color.tertiary_text'))
               .margin({ top: 2 })
@@ -61,11 +61,11 @@ struct AchievementContent {
             .color($r('app.color.border_color'))
 
           Column() {
-            Text(this.checkInData.streak.toString() + '天')
+            Text($r('app.string.days_unit', this.checkInData.streak))
               .fontSize(28)
               .fontWeight(FontWeight.Bold)
               .fontColor($r('app.color.idiom_orange'))
-            Text('连续签到')
+            Text($r('app.string.stat_streak'))
               .fontSize(12)
               .fontColor($r('app.color.tertiary_text'))
               .margin({ top: 2 })
@@ -83,7 +83,7 @@ struct AchievementContent {
               .fontSize(28)
               .fontWeight(FontWeight.Bold)
               .fontColor($r('app.color.idiom_blue'))
-            Text('累计浏览')
+            Text($r('app.string.stat_browse'))
               .fontSize(12)
               .fontColor($r('app.color.tertiary_text'))
               .margin({ top: 2 })
@@ -97,7 +97,7 @@ struct AchievementContent {
         .borderRadius(14)
         .margin({ left: 16, right: 16, top: 12 })
 
-        Text('成就列表')
+        Text($r('app.string.achpage_list'))
           .fontSize(16)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.primary_text'))

@@ -10,7 +10,7 @@ export function PoetryDetailPageBuilder(param: Object) {
   NavDestination() {
     PoetryDetailContent({ poetParam: buildPoetDetail(param) })
   }
-  .title((param as Record<string, Object>)['name'] as string || '诗人详情')
+  .title((param as Record<string, Object>)['name'] as string || $r('app.string.page_poetry_detail'))
   .hideTitleBar(false)
   .backButtonIcon($r('sys.symbol.chevron_left'))
   .menus([])
@@ -96,7 +96,7 @@ export struct PoetryDetailContent {
   @Builder
   SearchBar() {
     Row() {
-      TextInput({ placeholder: '搜索诗名...', text: this.searchText })
+      TextInput({ placeholder: $r('app.string.poemdetail_search_hint'), text: this.searchText })
         .layoutWeight(1)
         .height(36)
         .fontSize(13)
@@ -135,7 +135,7 @@ export struct PoetryDetailContent {
   PoemList() {
     Column() {
       Row() {
-        Text(this.searchText ? '搜索结果' : '作品')
+        Text(this.searchText ? $r('app.string.search_results') : $r('app.string.poemdetail_works'))
           .fontSize(16)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.primary_text'))
@@ -151,7 +151,7 @@ export struct PoetryDetailContent {
     List({ space: 6 }) {
       if (this.displayPoems.length === 0) {
         ListItem() {
-          Text('未找到相关诗词')
+          Text($r('app.string.poemdetail_no_result'))
             .fontSize(15)
             .fontColor($r('app.color.tertiary_text'))
             .width('100%')

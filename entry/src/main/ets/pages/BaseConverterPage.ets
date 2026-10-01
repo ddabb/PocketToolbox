@@ -1,13 +1,17 @@
 import { pasteboard } from '@kit.BasicServicesKit';
+import { Context } from '@kit.AbilityKit';
 import { ToastUtil } from '../common/utils/ToastUtil';
+import { StrUtil } from '../common/utils/StrUtil';
 
 @Observed
 class BaseValueItem {
-  name: string = '';
+  id: string = '';
+  name: ResourceStr = '';
   symbol: string = '';
   value: string = '';
 
-  constructor(name: string, symbol: string, value: string) {
+  constructor(id: string, name: ResourceStr, symbol: string, value: string) {
+    this.id = id;
     this.name = name;
     this.symbol = symbol;
     this.value = value;
@@ -19,7 +23,7 @@ export function BaseConverterPageBuilder(param?: Object) {
   NavDestination() {
     BaseConverterContent()
   }
-  .title('\u8FDB\u5236\u8F6C\u6362')
+  .title($r('app.string.basec_title'))
   .backButtonIcon($r('sys.symbol.chevron_left'))
   .menus([])
 }
@@ -47,7 +51,7 @@ struct BaseValueRow {
         .width(64)
         .alignItems(HorizontalAlign.Center)
 
-        TextInput({ text: $$this.item.value, placeholder: '\u8F93\u5165\u6570\u503C' })
+        TextInput({ text: $$this.item.value, placeholder: $r('app.string.basec_input_placeholder') })
           .type(InputType.Normal)
           .layoutWeight(1)
           .fontSize(15)
@@ -80,15 +84,15 @@ struct BaseValueRow {
 struct BaseConverterContent {
   @State baseValues: BaseValueItem[] = [];
   @State activeBaseIndex: number = -1;
-  @State errorMsg: string = '';
+  @State errorMsg: ResourceStr = '';
   private focusedIndex: number = -1;
   private suppressOnChange: boolean = false;
 
   private readonly examples: string[][] = [
-    ['255', '\u5341\u8FDB\u5236'],
-    ['11111111', '\u4E8C\u8FDB\u5236'],
-    ['777', '\u516B\u8FDB\u5236'],
-    ['FF', '\u5341\u516D\u8FDB\u5236']
+    ['255', 'dec'],
+    ['11111111', 'bin'],
+    ['777', 'oct'],
+    ['FF', 'hex']
   ];
 
   private copyAllResults(): void {
@@ -102,55 +106,73 @@ struct BaseConverterContent {
     if (!hasValue) {
       return;
     }
+    let ctx: Context = this.getUIContext().getHostContext() as Context;
     let lines: string[] = [];
     for (let i = 0; i < this.baseValues.length; i++) {
       if (this.baseValues[i].value.length > 0) {
-        lines.push(this.baseValues[i].name + '：' + this.baseValues[i].value);
+        lines.push(StrUtil.text(ctx, $r('app.string.basec_copy_line',
+          StrUtil.text(ctx, this.baseValues[i].name), this.baseValues[i].value)));
       }
     }
     try {
       let systemPasteboard: pasteboard.SystemPasteboard = pasteboard.getSystemPasteboard();
       let pasteData: pasteboard.PasteData = pasteboard.createData(pasteboard.MIMETYPE_TEXT_PLAIN, lines.join('\n'));
       systemPasteboard.setData(pasteData);
-      ToastUtil.show(this.getUIContext(), '已复制转换结果', 1000);
+      ToastUtil.show(this.getUIContext(), $r('app.string.gcd_copy_success'), 1000);
     } catch (e) {
-      ToastUtil.show(this.getUIContext(), '复制失败', 1000);
+      ToastUtil.show(this.getUIContext(), $r('app.string.sudoku_copy_failed'), 1000);
     }
   }
 
   aboutToAppear(): void {
     this.baseValues = [
-      new BaseValueItem('\u5341\u8FDB\u5236', 'DEC', ''),
-      new BaseValueItem('\u4E8C\u8FDB\u5236', 'BIN', ''),
-      new BaseValueItem('\u516B\u8FDB\u5236', 'OCT', ''),
-      new BaseValueItem('\u5341\u516D\u8FDB\u5236', 'HEX', ''),
-      new BaseValueItem('Base64', 'B64', '')
+      new BaseValueItem('dec', $r('app.string.basec_radix_dec'), 'DEC', ''),
+      new BaseValueItem('bin', $r('app.string.basec_radix_bin'), 'BIN', ''),
+      new BaseValueItem('oct', $r('app.string.basec_radix_oct'), 'OCT', ''),
+      new BaseValueItem('hex', $r('app.string.basec_radix_hex'), 'HEX', ''),
+      new BaseValueItem('b64', 'Base64', 'B64', '')
     ];
   }
 
-  private getDecimalNum(inputValue: string, baseName: string): number {
+  private radixName(baseId: string): ResourceStr {
+    if (baseId === 'dec') {
+      return $r('app.string.basec_radix_dec');
+    }
+    if (baseId === 'bin') {
+      return $r('app.string.basec_radix_bin');
+    }
+    if (baseId === 'oct') {
+      return $r('app.string.basec_radix_oct');
+    }
+    if (baseId === 'hex') {
+      return $r('app.string.basec_radix_hex');
+    }
+    return 'Base64';
+  }
+
+  private getDecimalNum(inputValue: string, baseId: string): number {
     if (inputValue.length === 0) {
       return NaN;
     }
-    if (baseName === '\u5341\u8FDB\u5236') {
+    if (baseId === 'dec') {
       let reg: RegExp = new RegExp('^[0-9]+$');
       if (!reg.test(inputValue)) {
         return NaN;
       }
       return parseInt(inputValue, 10);
-    } else if (baseName === '\u4E8C\u8FDB\u5236') {
+    } else if (baseId === 'bin') {
       let reg: RegExp = new RegExp('^[01]+$');
       if (!reg.test(inputValue)) {
         return NaN;
       }
       return parseInt(inputValue, 2);
-    } else if (baseName === '\u516B\u8FDB\u5236') {
+    } else if (baseId === 'oct') {
       let reg: RegExp = new RegExp('^[0-7]+$');
       if (!reg.test(inputValue)) {
         return NaN;
       }
       return parseInt(inputValue, 8);
-    } else if (baseName === '\u5341\u516D\u8FDB\u5236') {
+    } else if (baseId === 'hex') {
       let reg: RegExp = new RegExp('^[0-9A-Fa-f]+$');
       if (!reg.test(inputValue)) {
         return NaN;
@@ -160,35 +182,35 @@ struct BaseConverterContent {
     return NaN;
   }
 
-  private validateInput(value: string, baseName: string): string {
+  private validateInput(value: string, baseId: string): ResourceStr {
     if (value.length === 0) {
       return '';
     }
-    if (baseName === '\u5341\u8FDB\u5236') {
+    if (baseId === 'dec') {
       let reg: RegExp = new RegExp('^[0-9]+$');
       if (!reg.test(value)) {
-        return '\u8BF7\u8F93\u5165\u6709\u6548\u7684\u5341\u8FDB\u5236\u6570\u5B57';
+        return $r('app.string.basec_err_dec');
       }
-    } else if (baseName === '\u4E8C\u8FDB\u5236') {
+    } else if (baseId === 'bin') {
       let reg: RegExp = new RegExp('^[01]+$');
       if (!reg.test(value)) {
-        return '\u8BF7\u8F93\u5165\u6709\u6548\u7684\u4E8C\u8FDB\u5236\u6570\u5B57\uFF080\u548C1\uFF09';
+        return $r('app.string.basec_err_bin');
       }
-    } else if (baseName === '\u516B\u8FDB\u5236') {
+    } else if (baseId === 'oct') {
       let reg: RegExp = new RegExp('^[0-7]+$');
       if (!reg.test(value)) {
-        return '\u8BF7\u8F93\u5165\u6709\u6548\u7684\u516B\u8FDB\u5236\u6570\u5B57\uFF080-7\uFF09';
+        return $r('app.string.basec_err_oct');
       }
-    } else if (baseName === '\u5341\u516D\u8FDB\u5236') {
+    } else if (baseId === 'hex') {
       let reg: RegExp = new RegExp('^[0-9A-Fa-f]+$');
       if (!reg.test(value)) {
-        return '\u8BF7\u8F93\u5165\u6709\u6548\u7684\u5341\u516D\u8FDB\u5236\u6570\u5B57\uFF080-9, A-F\uFF09';
+        return $r('app.string.basec_err_hex');
       }
-    } else if (baseName === 'Base64') {
+    } else if (baseId === 'b64') {
       try {
         this.decodeBase64Text(value);
       } catch (e) {
-        return '\u65E0\u6548\u7684Base64\u5B57\u7B26';
+        return $r('app.string.basec_err_b64');
       }
     }
     return '';
@@ -261,8 +283,8 @@ struct BaseConverterContent {
     this.activeBaseIndex = changedIndex;
     this.suppressOnChange = true;
 
-    let baseName: string = this.baseValues[changedIndex].name;
-    let validationMsg: string = this.validateInput(value, baseName);
+    let baseId: string = this.baseValues[changedIndex].id;
+    let validationMsg: ResourceStr = this.validateInput(value, baseId);
     this.errorMsg = validationMsg;
 
     if (!value || value.length === 0) {
@@ -273,7 +295,7 @@ struct BaseConverterContent {
       return;
     }
 
-    if (validationMsg.length > 0) {
+    if (validationMsg !== '') {
       this.baseValues[changedIndex].value = value;
       for (let i = 0; i < this.baseValues.length; i++) {
         if (i !== changedIndex) {
@@ -286,7 +308,7 @@ struct BaseConverterContent {
 
     this.baseValues[changedIndex].value = value;
 
-    if (baseName === 'Base64') {
+    if (baseId === 'b64') {
       let decoded: string = this.decodeBase64Text(value);
       let num: number = 0;
       for (let i = 0; i < decoded.length; i++) {
@@ -297,7 +319,7 @@ struct BaseConverterContent {
       this.baseValues[2].value = num.toString(8);
       this.baseValues[3].value = num.toString(16).toUpperCase();
     } else {
-      let num: number = this.getDecimalNum(value, baseName);
+      let num: number = this.getDecimalNum(value, baseId);
       if (isNaN(num)) {
         this.suppressOnChange = false;
         return;
@@ -334,7 +356,7 @@ struct BaseConverterContent {
                 }
               })
             }
-          }, (item: BaseValueItem) => item.name)
+          }, (item: BaseValueItem) => item.id)
         }
         .width('100%')
         .borderRadius(12)
@@ -343,7 +365,7 @@ struct BaseConverterContent {
         .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
 
         Row() {
-          Text('复制转换结果')
+          Text($r('app.string.basec_copy_all'))
             .fontSize(13)
             .fontColor($r('app.color.idiom_blue'))
         }
@@ -354,7 +376,7 @@ struct BaseConverterContent {
           this.copyAllResults();
         })
 
-        if (this.errorMsg.length > 0) {
+        if (this.errorMsg !== '') {
           Text(this.errorMsg)
             .fontSize(13)
             .fontColor($r('app.color.error_red'))
@@ -362,7 +384,7 @@ struct BaseConverterContent {
         }
 
         Column() {
-          Text('\u5FEB\u901F\u793A\u4F8B')
+          Text($r('app.string.basec_examples_title'))
             .fontSize(15)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.primary_text'))
@@ -376,7 +398,7 @@ struct BaseConverterContent {
                   .fontSize(15)
                   .fontWeight(FontWeight.Bold)
                   .fontColor($r('app.color.idiom_blue'))
-                Text(ex[1])
+                Text(this.radixName(ex[1]))
                   .fontSize(11)
                   .fontColor($r('app.color.tertiary_text'))
                   .margin({ top: 2 })
@@ -398,18 +420,18 @@ struct BaseConverterContent {
         .margin({ left: 16, right: 16, top: 12 })
 
         Column() {
-          Text('\u8FDB\u5236\u8BF4\u660E')
+          Text($r('app.string.basec_info_title'))
             .fontSize(15)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.primary_text'))
             .width('100%')
             .margin({ bottom: 8 })
 
-          this.InfoRow('\u5341\u8FDB\u5236 (DEC)', '\u4F7F\u75280-9\uFF0C10\u4E2A\u6570\u5B57')
-          this.InfoRow('\u4E8C\u8FDB\u5236 (BIN)', '\u4F7F\u75280\u548C1\uFF0C\u8BA1\u7B97\u673A\u57FA\u7840')
-          this.InfoRow('\u516B\u8FDB\u5236 (OCT)', '\u4F7F\u75280-7\uFF0C8\u4E2A\u6570\u5B57')
-          this.InfoRow('\u5341\u516D\u8FDB\u5236 (HEX)', '\u4F7F\u75280-9\u548CA-F')
-          this.InfoRow('Base64 (B64)', '\u7F16\u7801\u4E8C\u8FDB\u5236\u6570\u636E\u4E3A\u6587\u672C')
+          this.InfoRow($r('app.string.basec_info_dec_title'), $r('app.string.basec_info_dec_desc'))
+          this.InfoRow($r('app.string.basec_info_bin_title'), $r('app.string.basec_info_bin_desc'))
+          this.InfoRow($r('app.string.basec_info_oct_title'), $r('app.string.basec_info_oct_desc'))
+          this.InfoRow($r('app.string.basec_info_hex_title'), $r('app.string.basec_info_hex_desc'))
+          this.InfoRow('Base64 (B64)', $r('app.string.basec_info_b64_desc'))
         }
         .width('100%')
         .padding(16)
@@ -427,7 +449,7 @@ struct BaseConverterContent {
   }
 
   @Builder
-  InfoRow(title: string, desc: string) {
+  InfoRow(title: ResourceStr, desc: ResourceStr) {
     Row() {
       Text(title)
         .fontSize(13)
@@ -447,7 +469,7 @@ struct BaseConverterContent {
     this.suppressOnChange = true;
     let targetIndex: number = -1;
     for (let i = 0; i < this.baseValues.length; i++) {
-      if (this.baseValues[i].name === source) {
+      if (this.baseValues[i].id === source) {
         targetIndex = i;
         break;
       }
@@ -461,7 +483,7 @@ struct BaseConverterContent {
     this.focusedIndex = targetIndex;
     this.baseValues[targetIndex].value = value;
 
-    if (source === 'Base64') {
+    if (source === 'b64') {
       let decoded: string = this.decodeBase64Text(value);
       let num: number = 0;
       for (let i = 0; i < decoded.length; i++) {

@@ -3,7 +3,7 @@ let storage = new LocalStorage();
 @Entry(storage)
 @Component
 struct DailyPoemWidgetCard {
-  @LocalStorageProp('title') title: string = '每日一诗';
+  @LocalStorageProp('title') title: string = '';
   @LocalStorageProp('author') author: string = '';
   @LocalStorageProp('lines') lines: string = '';
   @LocalStorageProp('date') date: string = '';
@@ -12,7 +12,7 @@ struct DailyPoemWidgetCard {
   build() {
     Column() {
       Row() {
-        Text('解语珠玑 · 每日一诗')
+        Text($r('app.string.widget_footer'))
           .fontSize(11)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.poetry_green'))

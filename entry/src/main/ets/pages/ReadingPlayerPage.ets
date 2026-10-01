@@ -25,7 +25,7 @@ export function ReadingPlayerPageBuilder(param: Object) {
   NavDestination() {
     ReadingPlayerContent({ playerParam: buildPlayerParam(param) })
   }
-  .title('朗读播放')
+  .title($r('app.string.player_title'))
   .backButtonIcon($r('sys.symbol.chevron_left'))
   .menus([])
 }
@@ -66,9 +66,9 @@ struct ReadingPlayerContent {
     });
     this.ttsController.onTtsError((code: number, message: string, kind: TtsErrorKind) => {
       if (kind === 'init') {
-        ToastUtil.show(this.uiContext, '当前设备暂不支持朗读', 2500);
+        ToastUtil.show(this.uiContext, $r('app.string.player_tts_unsupported'), 2500);
       } else {
-        ToastUtil.show(this.uiContext, '朗读失败(' + code.toString() + ')，请稍后重试', 2500);
+        ToastUtil.show(this.uiContext, $r('app.string.player_tts_failed', code), 2500);
       }
     });
   }
@@ -158,17 +158,17 @@ struct ReadingPlayerContent {
       (this.ttsState === 'speaking' || this.ttsState === 'paused');
   }
 
-  private getStatusText(): string {
+  private getStatusText(): ResourceStr {
     if (this.ttsState === 'speaking') {
       if (this.currentSegments.length > 0 && this.currentSegmentIndex >= 0) {
-        return '朗读中 ' + (this.currentSegmentIndex + 1).toString() + '/' + this.currentSegments.length.toString();
+        return $r('app.string.player_status_playing', this.currentSegmentIndex + 1, this.currentSegments.length);
       }
-      return '朗读中';
+      return $r('app.string.player_status_playing_short');
     }
     if (this.ttsState === 'paused') {
-      return '已暂停';
+      return $r('app.string.player_paused');
     }
-    return '点击朗读';
+    return $r('app.string.player_tap_to_read');
   }
 
   private loadList(): void {
@@ -249,7 +249,7 @@ struct ReadingPlayerContent {
       this.playCurrent();
     } else {
       this.currentIndex = this.currentList.items.length - 1;
-      ToastUtil.show(this.uiContext, '全部朗读完毕', 1500);
+      ToastUtil.show(this.uiContext, $r('app.string.player_all_done'), 1500);
     }
   }
 
@@ -302,7 +302,7 @@ struct ReadingPlayerContent {
       this.currentList.id, itemId);
     this.ttsController.stop();
     this.loadList();
-    ToastUtil.show(this.uiContext, '已移除', 1000);
+    ToastUtil.show(this.uiContext, $r('app.string.player_removed'), 1000);
   }
 
   private moveItemUp(index: number): void {
@@ -337,15 +337,15 @@ struct ReadingPlayerContent {
     return '\uD83D\uDCDC';
   }
 
-  private getTypeLabel(type: string): string {
+  private getTypeLabel(type: string): ResourceStr {
     if (type === 'poem') {
-      return '诗词';
+      return $r('app.string.player_type_poem');
     } else if (type === 'idiom') {
-      return '成语';
+      return $r('app.string.player_type_idiom');
     } else if (type === 'xiehouyu') {
-      return '歇后语';
+      return $r('app.string.xiehouyu_short');
     }
-    return '文本';
+    return $r('app.string.player_type_text');
   }
 
   build() {
@@ -359,10 +359,10 @@ struct ReadingPlayerContent {
             Text('\uD83D\uDCD6')
               .fontSize(48)
               .margin({ bottom: 12 })
-            Text('清单为空')
+            Text($r('app.string.player_empty_list'))
               .fontSize(16)
               .fontColor($r('app.color.tertiary_text'))
-            Text('请在诗词、成语或歇后语详情页添加内容')
+            Text($r('app.string.player_empty_hint'))
               .fontSize(13)
               .fontColor($r('app.color.hint_text'))
               .margin({ top: 6 })
@@ -373,7 +373,7 @@ struct ReadingPlayerContent {
           .alignItems(HorizontalAlign.Center)
         } else {
           Column() {
-            Text('清单不存在或已删除')
+            Text($r('app.string.player_list_missing'))
               .fontSize(16)
               .fontColor($r('app.color.tertiary_text'))
           }
@@ -560,7 +560,7 @@ struct ReadingPlayerContent {
       .justifyContent(FlexAlign.Center)
       .margin({ top: 8, bottom: 8 })
 
-      Text('语速 ' + this.formatSpeedLabel(this.speedValue))
+      Text($r('app.string.player_speed', this.formatSpeedLabel(this.speedValue)))
         .fontSize(12)
         .fontColor($r('app.color.poetry_green'))
         .backgroundColor($r('app.color.poetry_green') + '18')
@@ -582,7 +582,7 @@ struct ReadingPlayerContent {
   SpeedPanelOverlay() {
     Column() {
       Column() {
-        Text('朗读语速')
+        Text($r('app.string.player_speed_title'))
           .fontSize(16)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.primary_text'))
@@ -601,7 +601,7 @@ struct ReadingPlayerContent {
           })
 
         Row({ space: 12 }) {
-          Text('取消')
+          Text($r('app.string.readlist_cancel'))
             .fontSize(15)
             .fontColor($r('app.color.tertiary_text'))
             .layoutWeight(1)
@@ -613,7 +613,7 @@ struct ReadingPlayerContent {
               this.cancelSpeed();
             })
 
-          Text('确定')
+          Text($r('app.string.player_confirm'))
             .fontSize(15)
             .fontWeight(FontWeight.Medium)
             .fontColor($r('app.color.on_accent_text'))
@@ -652,7 +652,7 @@ struct ReadingPlayerContent {
           Text('\u2B06')
             .fontSize(20)
             .margin({ right: 8 })
-          Text('上移')
+          Text($r('app.string.player_move_up'))
             .fontSize(15)
             .fontColor($r('app.color.primary_text'))
         }
@@ -672,7 +672,7 @@ struct ReadingPlayerContent {
           Text('\u2B07')
             .fontSize(20)
             .margin({ right: 8 })
-          Text('下移')
+          Text($r('app.string.player_move_down'))
             .fontSize(15)
             .fontColor($r('app.color.primary_text'))
         }
@@ -692,7 +692,7 @@ struct ReadingPlayerContent {
           Text('\uD83D\uDDD1')
             .fontSize(20)
             .margin({ right: 8 })
-          Text('移除')
+          Text($r('app.string.player_remove'))
             .fontSize(15)
             .fontColor($r('app.color.danger_red'))
         }
@@ -706,7 +706,7 @@ struct ReadingPlayerContent {
         Divider().color($r('app.color.border_color')).margin({ left: 20 })
 
         Row() {
-          Text('取消')
+          Text($r('app.string.readlist_cancel'))
             .fontSize(15)
             .fontColor($r('app.color.tertiary_text'))
         }

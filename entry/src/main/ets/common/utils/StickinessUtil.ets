@@ -51,18 +51,18 @@ export class UserStats {
 
 class AchievementDef {
   id: string = '';
-  title: string = '';
-  desc: string = '';
+  titleKey: string = '';
+  descKey: string = '';
   icon: string = '';
   color: string = '';
   target: number = 0;
   statKey: string = '';
 
-  constructor(id: string, title: string, desc: string, icon: string, color: string,
+  constructor(id: string, titleKey: string, descKey: string, icon: string, color: string,
     target: number, statKey: string) {
     this.id = id;
-    this.title = title;
-    this.desc = desc;
+    this.titleKey = titleKey;
+    this.descKey = descKey;
     this.icon = icon;
     this.color = color;
     this.target = target;
@@ -80,21 +80,21 @@ export class StickinessUtil {
   private static readonly KEY_REVIEW_SHOWN: string = 'review_shown_records';
 
   private static readonly ACHIEVEMENT_DEFS: AchievementDef[] = [
-    new AchievementDef('fav_10', '收藏新手', '累计收藏10项', '\u2665', '#e74c3c', 10, 'favTotal'),
-    new AchievementDef('fav_50', '收藏达人', '累计收藏50项', '\u2665', '#e74c3c', 50, 'favTotal'),
-    new AchievementDef('fav_100', '收藏大师', '累计收藏100项', '\u2665', '#e74c3c', 100, 'favTotal'),
-    new AchievementDef('poem_fav_20', '诗词爱好者', '收藏诗词20首', '\uD83C\uDF3C', '#2d7d46', 20, 'favPoems'),
-    new AchievementDef('poem_fav_50', '诗词鉴赏家', '收藏诗词50首', '\uD83C\uDF3C', '#2d7d46', 50, 'favPoems'),
-    new AchievementDef('idiom_fav_20', '成语收藏家', '收藏成语20个', '\uD83D\uDCD6', '#2980b9', 20, 'favIdioms'),
-    new AchievementDef('checkin_7', '坚持一周', '连续签到7天', '\uD83D\uDCC5', '#f39c12', 7, 'checkInStreak'),
-    new AchievementDef('checkin_30', '月度学霸', '连续签到30天', '\uD83D\uDCC5', '#f39c12', 30, 'checkInStreak'),
-    new AchievementDef('checkin_total_30', '学习习惯', '累计签到30天', '\u2705', '#27ae60', 30, 'checkInTotal'),
-    new AchievementDef('challenge_10', '挑战新秀', '完成10次每日挑战', '\uD83C\uDFC6', '#8e44ad', 10, 'challengeTotal'),
-    new AchievementDef('challenge_50', '挑战达人', '完成50次每日挑战', '\uD83C\uDFC6', '#8e44ad', 50, 'challengeTotal'),
-    new AchievementDef('browse_100', '勤奋读者', '累计浏览100次', '\uD83D\uDC41', '#3498db', 100, 'browseCount'),
-    new AchievementDef('browse_500', '博览群书', '累计浏览500次', '\uD83D\uDC41', '#3498db', 500, 'browseCount'),
-    new AchievementDef('reading_10', '朗读者', '朗读10篇内容', '\uD83D\uDD0A', '#1abc9c', 10, 'readingItems'),
-    new AchievementDef('tool_5', '工具探索者', '使用5种不同工具', '\uD83D\uDD27', '#e67e22', 5, 'toolUseCount'),
+    new AchievementDef('fav_10', 'ach_fav_10_title', 'ach_fav_10_desc', '\u2665', '#e74c3c', 10, 'favTotal'),
+    new AchievementDef('fav_50', 'ach_fav_50_title', 'ach_fav_50_desc', '\u2665', '#e74c3c', 50, 'favTotal'),
+    new AchievementDef('fav_100', 'ach_fav_100_title', 'ach_fav_100_desc', '\u2665', '#e74c3c', 100, 'favTotal'),
+    new AchievementDef('poem_fav_20', 'ach_poem_fav_20_title', 'ach_poem_fav_20_desc', '\uD83C\uDF3C', '#2d7d46', 20, 'favPoems'),
+    new AchievementDef('poem_fav_50', 'ach_poem_fav_50_title', 'ach_poem_fav_50_desc', '\uD83C\uDF3C', '#2d7d46', 50, 'favPoems'),
+    new AchievementDef('idiom_fav_20', 'ach_idiom_fav_20_title', 'ach_idiom_fav_20_desc', '\uD83D\uDCD6', '#2980b9', 20, 'favIdioms'),
+    new AchievementDef('checkin_7', 'ach_checkin_7_title', 'ach_checkin_7_desc', '\uD83D\uDCC5', '#f39c12', 7, 'checkInStreak'),
+    new AchievementDef('checkin_30', 'ach_checkin_30_title', 'ach_checkin_30_desc', '\uD83D\uDCC5', '#f39c12', 30, 'checkInStreak'),
+    new AchievementDef('checkin_total_30', 'ach_checkin_total_30_title', 'ach_checkin_total_30_desc', '\u2705', '#27ae60', 30, 'checkInTotal'),
+    new AchievementDef('challenge_10', 'ach_challenge_10_title', 'ach_challenge_10_desc', '\uD83C\uDFC6', '#8e44ad', 10, 'challengeTotal'),
+    new AchievementDef('challenge_50', 'ach_challenge_50_title', 'ach_challenge_50_desc', '\uD83C\uDFC6', '#8e44ad', 50, 'challengeTotal'),
+    new AchievementDef('browse_100', 'ach_browse_100_title', 'ach_browse_100_desc', '\uD83D\uDC41', '#3498db', 100, 'browseCount'),
+    new AchievementDef('browse_500', 'ach_browse_500_title', 'ach_browse_500_desc', '\uD83D\uDC41', '#3498db', 500, 'browseCount'),
+    new AchievementDef('reading_10', 'ach_reading_10_title', 'ach_reading_10_desc', '\uD83D\uDD0A', '#1abc9c', 10, 'readingItems'),
+    new AchievementDef('tool_5', 'ach_tool_5_title', 'ach_tool_5_desc', '\uD83D\uDD27', '#e67e22', 5, 'toolUseCount'),
   ];
 
   static todayStr(): string {
@@ -286,7 +286,9 @@ export class StickinessUtil {
     let items: AchievementItem[] = [];
     for (let i = 0; i < StickinessUtil.ACHIEVEMENT_DEFS.length; i++) {
       let def: AchievementDef = StickinessUtil.ACHIEVEMENT_DEFS[i];
-      let item: AchievementItem = AchievementItem.create(def.id, def.title, def.desc,
+      let item: AchievementItem = AchievementItem.create(def.id,
+        context.resourceManager.getStringByNameSync(def.titleKey),
+        context.resourceManager.getStringByNameSync(def.descKey),
         def.icon, def.color, def.target);
       let current: number = StickinessUtil.getStatValue(stats, def.statKey);
       item.current = current;

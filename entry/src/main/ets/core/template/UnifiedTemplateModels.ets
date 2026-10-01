@@ -27,9 +27,9 @@ export class TemplateSlotKind {
 /** 选项 chips 单项（CHOICE 槽位与 ChipRow 组件共用） */
 export class ChipOption {
   value: string = '';
-  label: string = '';
+  label: ResourceStr = '';
 
-  static of(value: string, label: string): ChipOption {
+  static of(value: string, label: ResourceStr): ChipOption {
     let o: ChipOption = new ChipOption();
     o.value = value;
     o.label = label;
@@ -40,17 +40,17 @@ export class ChipOption {
 /** 槽位定义：模板的一个内容输入位 */
 export class TemplateSlot {
   id: string = '';
-  label: string = '';
+  label: ResourceStr = '';
   kind: string = TemplateSlotKind.TEXT;
   maxLength: number = 0;
-  placeholder: string = '';
+  placeholder: ResourceStr = '';
   /** 自动填充能力标记：'' | 'quote' | 'pinyin' | ...，由页面实现具体推荐逻辑 */
   autoFill: string = '';
   /** CHOICE 槽位的候选项 */
   options: ChipOption[] = [];
 
-  static of(id: string, label: string, kind: string, maxLength: number = 0,
-    placeholder: string = '', autoFill: string = '', options: ChipOption[] = []): TemplateSlot {
+  static of(id: string, label: ResourceStr, kind: string, maxLength: number = 0,
+    placeholder: ResourceStr = '', autoFill: string = '', options: ChipOption[] = []): TemplateSlot {
     let s: TemplateSlot = new TemplateSlot();
     s.id = id;
     s.label = label;
@@ -66,9 +66,9 @@ export class TemplateSlot {
 /** 字体选项 */
 export class TemplateFontOption {
   family: string = '';
-  label: string = '';
+  label: ResourceStr = '';
 
-  static of(family: string, label: string): TemplateFontOption {
+  static of(family: string, label: ResourceStr): TemplateFontOption {
     let f: TemplateFontOption = new TemplateFontOption();
     f.family = family;
     f.label = label;
@@ -78,13 +78,13 @@ export class TemplateFontOption {
 
 /** 导出规格：设计稿基准 + 实际导出像素 */
 export class ExportSpec {
-  label: string = '';
+  label: ResourceStr = '';
   designWidth: number = 0;
   designHeight: number = 0;
   exportWidth: number = 0;
   exportHeight: number = 0;
 
-  static of(label: string, designWidth: number, designHeight: number,
+  static of(label: ResourceStr, designWidth: number, designHeight: number,
     exportWidth: number, exportHeight: number): ExportSpec {
     let s: ExportSpec = new ExportSpec();
     s.label = label;
@@ -102,7 +102,7 @@ export class ExportSpec {
  */
 export class UnifiedTemplate {
   id: string = '';
-  name: string = '';
+  name: ResourceStr = '';
   kind: string = '';
   series: string = '';
   slots: TemplateSlot[] = [];
@@ -112,7 +112,7 @@ export class UnifiedTemplate {
   /** 槽位默认值（key = slot.id） */
   defaults: Record<string, string> = {};
 
-  static of(id: string, name: string, kind: string, series: string,
+  static of(id: string, name: ResourceStr, kind: string, series: string,
     slots: TemplateSlot[], palettes: CoverPalette[], fonts: TemplateFontOption[],
     exportSpecs: ExportSpec[], defaults: Record<string, string>): UnifiedTemplate {
     let t: UnifiedTemplate = new UnifiedTemplate();
@@ -132,13 +132,13 @@ export class UnifiedTemplate {
 /** 工具描述符：注册表的工具级元数据 */
 export class UnifiedToolDescriptor {
   kind: string = '';
-  title: string = '';
-  subtitle: string = '';
+  title: ResourceStr = '';
+  subtitle: ResourceStr = '';
   page: string = '';
   icon: string = '';
   color: string = '';
 
-  static of(kind: string, title: string, subtitle: string,
+  static of(kind: string, title: ResourceStr, subtitle: ResourceStr,
     page: string, icon: string, color: string): UnifiedToolDescriptor {
     let d: UnifiedToolDescriptor = new UnifiedToolDescriptor();
     d.kind = kind;

@@ -102,7 +102,7 @@ export function Md2PngPageBuilder() {
   NavDestination() {
     Md2PngContent()
   }
-  .title('文字转图片')
+  .title($r('app.string.tool_md2png_title'))
   .backButtonIcon($r('sys.symbol.chevron_left'))
   .menus([])
 }
@@ -280,13 +280,13 @@ struct Md2PngContent {
   private fillMarkdownExample(): void {
     this.inputText = this.markdownExample;
     this.scheduleRegenerate();
-    ToastUtil.show(this.getUIContext(), '已填入 Markdown 示例', 1000);
+    ToastUtil.show(this.getUIContext(), $r('app.string.md2_filled_md_example'), 1000);
   }
 
   private fillTextExample(): void {
     this.inputText = this.textExample;
     this.scheduleRegenerate();
-    ToastUtil.show(this.getUIContext(), '已填入文本示例', 1000);
+    ToastUtil.show(this.getUIContext(), $r('app.string.md2_filled_text_example'), 1000);
   }
 
   private scheduleRegenerate(): void {
@@ -305,7 +305,7 @@ struct Md2PngContent {
     }
     for (let i = 0; i < this.highlightKeywords.length; i++) {
       if (this.highlightKeywords[i].word === kw) {
-        ToastUtil.show(this.getUIContext(), '该词已在高亮列表中', 1000);
+        ToastUtil.show(this.getUIContext(), $r('app.string.md2_keyword_exists'), 1000);
         this.customKeyword = '';
         return;
       }
@@ -405,11 +405,11 @@ struct Md2PngContent {
     if (this.positionPanelDirty && !skipDirtyCheck) {
       let uiCtx = this.getUIContext();
       uiCtx.getPromptAction().showDialog({
-        title: '放弃修改？',
-        message: '当前的位置选择尚未保存，是否放弃修改？',
+        title: $r('app.string.md2_discard_title'),
+        message: $r('app.string.md2_discard_message'),
         buttons: [
-          { text: '继续编辑', color: $r('app.color.secondary_text') },
-          { text: '放弃', color: $r('app.color.error_red') },
+          { text: $r('app.string.md2_keep_editing'), color: $r('app.color.secondary_text') },
+          { text: $r('app.string.md2_discard'), color: $r('app.color.error_red') },
         ]
       }).then((result: promptAction.ShowDialogSuccessResponse) => {
         if (result.index === 1) {
@@ -537,10 +537,10 @@ struct Md2PngContent {
    */
   private showOverwriteConfirmDialog(): void {
     this.getUIContext().showAlertDialog({
-      title: '已手动调整过高亮词',
-      message: '检测到当前高亮词已被手动调整。是否用新文本的提取结果覆盖？\n\n点击外部空白处取消（保持当前高亮词不变）。',
+      title: $r('app.string.md2_overwrite_title'),
+      message: $r('app.string.md2_overwrite_message'),
       primaryButton: {
-        value: '保留当前（推荐）',
+        value: $r('app.string.md2_overwrite_keep'),
         action: () => {
           // 保留列表，基于新文本重新匹配位置，截断超出的 selectedIndices
           this.trimSelectedIndices();
@@ -550,7 +550,7 @@ struct Md2PngContent {
         }
       },
       secondaryButton: {
-        value: '用新结果覆盖',
+        value: $r('app.string.md2_overwrite_apply'),
         action: () => {
           this.userEditedKeywords = false;
           this.doExtractAndApply();
@@ -699,7 +699,7 @@ struct Md2PngContent {
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[Md2Png] generate failed: ' + err.message);
-      ToastUtil.show(this.getUIContext(), '生成失败', 2000);
+      ToastUtil.show(this.getUIContext(), $r('app.string.md2_generate_failed'), 2000);
     }
     this.isGenerating = false;
   }
@@ -786,7 +786,7 @@ struct Md2PngContent {
   private async saveToAlbum(): Promise<void> {
     let pixelMap: image.PixelMap | undefined = this.cachedPixelMap;
     if (!pixelMap) {
-      ToastUtil.show(this.getUIContext(), '请先生成图片', 1500);
+      ToastUtil.show(this.getUIContext(), $r('app.string.md2_generate_first'), 1500);
       return;
     }
     let uiCtx: UIContext = this.getUIContext();
@@ -819,12 +819,12 @@ struct Md2PngContent {
         await fs.copyFile(srcFile.fd, desFile.fd);
         await fs.close(srcFile);
         await fs.close(desFile.fd);
-        ToastUtil.show(uiCtx, '已保存到相册', 1000);
+        ToastUtil.show(uiCtx, $r('app.string.md2_saved_to_album'), 1000);
       }
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[Md2Png] save failed: ' + err.code + ' ' + err.message);
-      ToastUtil.show(uiCtx, '保存失败', 2000);
+      ToastUtil.show(uiCtx, $r('app.string.md2_save_failed'), 2000);
     }
   }
 
@@ -932,12 +932,12 @@ struct Md2PngContent {
   InputSection() {
     Column() {
       Row() {
-        Text('输入内容')
+        Text($r('app.string.md2_input_label'))
           .fontSize(15)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.primary_text'))
         Blank()
-        Text('Markdown示例')
+        Text($r('app.string.md2_md_example'))
           .fontSize(12)
           .fontColor($r('app.color.idiom_blue'))
           .backgroundColor($r('app.color.idiom_blue') + '18')
@@ -948,7 +948,7 @@ struct Md2PngContent {
             this.fillMarkdownExample();
           })
 
-        Text('文本示例')
+        Text($r('app.string.md2_text_example'))
           .fontSize(12)
           .fontColor($r('app.color.idiom_blue'))
           .backgroundColor($r('app.color.idiom_blue') + '18')
@@ -962,7 +962,7 @@ struct Md2PngContent {
       .margin({ bottom: 8 })
 
       Scroll() {
-        TextArea({ text: $$this.inputText, placeholder: '输入Markdown或普通文本...' })
+        TextArea({ text: $$this.inputText, placeholder: $r('app.string.md2_input_hint') })
           .width('100%')
           .height(140)
           .fontSize(14)
@@ -975,7 +975,7 @@ struct Md2PngContent {
             let text: string = value;
             if (text.length > this.maxInputLength) {
               text = text.substring(0, this.maxInputLength);
-              ToastUtil.show(this.getUIContext(), '最多输入 ' + this.maxInputLength.toString() + ' 字符', 1500);
+              ToastUtil.show(this.getUIContext(), $r('app.string.md2_max_chars', this.maxInputLength), 1500);
             }
             this.inputText = text;
             this.scheduleRegenerate();
@@ -1004,7 +1004,7 @@ struct Md2PngContent {
   HighlightWordsSection() {
     Column() {
       Row() {
-        Text('高亮词')
+        Text($r('app.string.md2_keywords_title'))
           .fontSize(15)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.primary_text'))
@@ -1016,7 +1016,7 @@ struct Md2PngContent {
             .margin({ left: 8 })
         }
         // 快捷操作按钮
-        Text('重置')
+        Text($r('app.string.md2_reset'))
           .fontSize(12)
           .fontColor($r('app.color.idiom_blue'))
           .margin({ left: 12 })
@@ -1024,7 +1024,7 @@ struct Md2PngContent {
             this.resetHighlightWords();
           })
         Blank()
-        Text('轻点词调整位置  \u00D7移除')
+        Text($r('app.string.md2_keywords_hint'))
           .fontSize(11)
           .fontColor($r('app.color.hint_text'))
       }
@@ -1034,7 +1034,7 @@ struct Md2PngContent {
       Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
         // 添加高亮词输入行
         Row() {
-          TextInput({ placeholder: '添加高亮词', text: this.customKeyword })
+          TextInput({ placeholder: $r('app.string.md2_add_keyword_hint'), text: this.customKeyword })
             .fontSize(13)
             .fontColor($r('app.color.primary_text'))
             .placeholderColor($r('app.color.hint_text'))
@@ -1178,11 +1178,11 @@ struct Md2PngContent {
             .maxLines(1)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
             .constraintSize({ maxWidth: 160 })
-          Text('  共 ' + this.editingWordOccurrences.length.toString() + ' 次出现')
+          Text($r('app.string.md2_occurrences_count', this.editingWordOccurrences.length))
             .fontSize(13)
             .fontColor($r('app.color.tertiary_text'))
           Blank()
-          Text('关闭')
+          Text($r('app.string.md2_close'))
             .fontSize(14)
             .fontColor($r('app.color.idiom_blue'))
             .onClick(() => {
@@ -1194,7 +1194,7 @@ struct Md2PngContent {
 
         if (this.editingWordOccurrences.length === 0) {
           Column() {
-            Text('当前文本中未找到该关键字')
+            Text($r('app.string.md2_keyword_not_found'))
               .fontSize(13)
               .fontColor($r('app.color.hint_text'))
               .padding(20)
@@ -1214,7 +1214,7 @@ struct Md2PngContent {
                     })
                     .margin({ right: 10 })
                   Column() {
-                    Text('第 ' + (ctx.index + 1).toString() + ' 次')
+                    Text($r('app.string.md2_occurrence_nth', ctx.index + 1))
                       .fontSize(12)
                       .fontColor($r('app.color.tertiary_text'))
                     Text(ctx.context)
@@ -1243,7 +1243,7 @@ struct Md2PngContent {
 
           // 底部操作按钮
           Row({ space: 8 }) {
-            Button('全选')
+            Button($r('app.string.md2_select_all'))
               .fontSize(13)
               .fontColor($r('app.color.idiom_blue'))
               .backgroundColor($r('app.color.idiom_blue') + '18')
@@ -1253,7 +1253,7 @@ struct Md2PngContent {
               .onClick(() => {
                 this.selectAllOccurrences();
               })
-            Button('全不选')
+            Button($r('app.string.md2_select_none'))
               .fontSize(13)
               .fontColor($r('app.color.tertiary_text'))
               .backgroundColor($r('app.color.card_background'))
@@ -1264,7 +1264,7 @@ struct Md2PngContent {
                 this.selectNoneOccurrences();
               })
             if (this.editingWordSource === 'manual') {
-              Button('移除该词')
+              Button($r('app.string.md2_remove_word'))
                 .fontSize(13)
                 .fontColor($r('app.color.error_red'))
                 .backgroundColor($r('app.color.danger_bg'))
@@ -1279,7 +1279,7 @@ struct Md2PngContent {
             }
           }
           Row() {
-            Button('确定')
+            Button($r('app.string.md2_confirm'))
               .fontSize(15)
               .fontWeight(FontWeight.Bold)
               .fontColor($r('app.color.on_accent_text'))
@@ -1321,12 +1321,12 @@ struct Md2PngContent {
   PreviewSwiper() {
     Column() {
       Row() {
-        Text('预览效果')
+        Text($r('app.string.md2_preview_title'))
           .fontSize(15)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.primary_text'))
         Blank()
-        Text('左右滑动切换模板')
+        Text($r('app.string.md2_swipe_hint'))
           .fontSize(12)
           .fontColor($r('app.color.tertiary_text'))
       }
@@ -1423,7 +1423,7 @@ struct Md2PngContent {
   ActionButtons() {
     Column() {
       Row() {
-        Text('生成结果')
+        Text($r('app.string.md2_result_title'))
           .fontSize(15)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.primary_text'))
@@ -1441,7 +1441,7 @@ struct Md2PngContent {
         .visibility(this.generatedImageUri ? Visibility.Visible : Visibility.Hidden)
 
       Row({ space: 10 }) {
-        Button('分享')
+        Button($r('app.string.md2_share'))
           .fontSize(15)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.idiom_blue'))
@@ -1458,7 +1458,7 @@ struct Md2PngContent {
             this.doShare();
           })
 
-        Button('保存图片')
+        Button($r('app.string.md2_save_image'))
           .fontSize(15)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.on_accent_text'))

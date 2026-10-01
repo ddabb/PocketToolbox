@@ -11,6 +11,7 @@ import { AddToReadingListUtil, AddToListResult } from '../common/utils/AddToRead
 import { ReadingList, ReadingListStore } from '../model/ReadingListModels';
 import { StickinessUtil } from '../common/utils/StickinessUtil';
 import { ToastUtil } from '../common/utils/ToastUtil';
+import { StrUtil } from '../common/utils/StrUtil';
 
 class XiehouyuListDataSource implements IDataSource {
   private listeners: DataChangeListener[] = [];
@@ -70,7 +71,7 @@ export function XiehouyuQueryPageBuilder() {
   NavDestination() {
     XiehouyuQueryContent()
   }
-  .title('歇后语查询')
+  .title($r('app.string.page_xiehouyu_query'))
   .backButtonIcon($r('sys.symbol.chevron_left'))
   .menus([])
 }
@@ -95,7 +96,8 @@ struct XiehouyuQueryContent {
   private isLoadingMore: boolean = false;
   @State guessItem: XiehouyuItem | null = null;
   @State guessInput: string = '';
-  @State guessMsg: string = '';
+  @State guessMsg: ResourceStr = '';
+  @State guessCorrect: boolean = false;
   @State guessScore: number = 0;
   @State guessTotal: number = 0;
   @State guessStreak: number = 0;
@@ -232,6 +234,7 @@ struct XiehouyuQueryContent {
       this.guessItem = items[0];
       this.guessInput = '';
       this.guessMsg = '';
+      this.guessCorrect = false;
       this.revealAnswer = '';
       if (this.activeTab === 'guess') {
         setTimeout(() => {
@@ -253,17 +256,19 @@ struct XiehouyuQueryContent {
     if (input === this.guessItem.answer || this.guessItem.answer.indexOf(input) >= 0 || input.indexOf(this.guessItem.answer) >= 0) {
       this.guessScore++;
       this.guessStreak++;
+      this.guessCorrect = true;
       if (this.guessStreak >= 2) {
-        this.guessMsg = '答对了！连对 ' + this.guessStreak.toString() + ' 题';
+        this.guessMsg = $r('app.string.xhyq_guess_correct_streak', this.guessStreak);
       } else {
-        this.guessMsg = '答对了！';
+        this.guessMsg = $r('app.string.xhyq_guess_correct');
       }
       setTimeout(() => {
         this.startNewGuess();
       }, 1000);
     } else {
       this.guessStreak = 0;
-      this.guessMsg = '不对哦，答案是：' + this.guessItem.answer;
+      this.guessCorrect = false;
+      this.guessMsg = $r('app.string.xhyq_guess_wrong', this.guessItem.answer);
     }
   }
 
@@ -296,7 +301,7 @@ struct XiehouyuQueryContent {
 
   private onCopyItem(item: XiehouyuItem): void {
     ClipboardUtil.copy(item.riddle + '——' + item.answer);
-    ToastUtil.show(this.uiContext, '已复制到剪贴板', 1000);
+    ToastUtil.show(this.uiContext, $r('app.string.idiomq_copied'), 1000);
   }
 
   private toggleFav(item: XiehouyuItem): void {
@@ -304,7 +309,7 @@ struct XiehouyuQueryContent {
     if (this.isFav) {
       FavoritesUtil.remove(ctx, 'xiehouyu', item.riddle);
       this.isFav = false;
-      ToastUtil.show(this.uiContext, '已取消收藏', 1000);
+      ToastUtil.show(this.uiContext, $r('app.string.xhyq_unfaved'), 1000);
     } else {
       let fav: FavoriteItem = new FavoriteItem();
       fav.type = 'xiehouyu';
@@ -314,9 +319,9 @@ struct XiehouyuQueryContent {
       let res: FavoriteAddResult = FavoritesUtil.add(ctx, fav);
       this.isFav = true;
       if (res.truncated) {
-        ToastUtil.show(this.uiContext, '收藏已达上限，最早一条已移除', 2000);
+        ToastUtil.show(this.uiContext, $r('app.string.xhyq_fav_full'), 2000);
       } else {
-        ToastUtil.show(this.uiContext, '已收藏', 1000);
+        ToastUtil.show(this.uiContext, $r('app.string.xhyq_faved'), 1000);
       }
     }
     FavoritesUtil.invalidateCache();
@@ -331,7 +336,7 @@ struct XiehouyuQueryContent {
             .width(48)
             .height(48)
             .color($r('app.color.idiom_orange'))
-          Text('加载中...')
+          Text($r('app.string.poemq_loading'))
             .fontSize(16)
             .fontColor($r('app.color.tertiary_text'))
             .margin({ top: 12 })
@@ -342,8 +347,8 @@ struct XiehouyuQueryContent {
       } else if (this.hasError) {
         Column() {
           ErrorState({
-            text: '数据加载失败',
-            subText: '歇后语数据读取异常，请重试',
+            text: StrUtil.text(this.uiContext.getHostContext() as Context, $r('app.string.poemq_load_failed')),
+            subText: StrUtil.text(this.uiContext.getHostContext() as Context, $r('app.string.xhyq_load_failed_sub')),
             onRetry: () => {
               this.loadData();
             }
@@ -367,7 +372,7 @@ struct XiehouyuQueryContent {
   @Builder
   TabBar() {
     Row() {
-      Text('搜索查询')
+      Text($r('app.string.xhyq_tab_search'))
         .fontSize(14)
         .fontColor(this.activeTab === 'search' ? $r('app.color.on_accent_text') : $r('app.color.secondary_text'))
         .backgroundColor(this.activeTab === 'search' ? $r('app.color.idiom_orange') : $r('app.color.border_color'))
@@ -377,7 +382,7 @@ struct XiehouyuQueryContent {
           this.activeTab = 'search';
         })
 
-      Text('分类浏览')
+      Text($r('app.string.xhyq_tab_browse'))
         .fontSize(14)
         .fontColor(this.activeTab === 'browse' ? $r('app.color.on_accent_text') : $r('app.color.secondary_text'))
         .backgroundColor(this.activeTab === 'browse' ? $r('app.color.idiom_orange') : $r('app.color.border_color'))
@@ -389,7 +394,7 @@ struct XiehouyuQueryContent {
           this.initBrowseTab();
         })
 
-      Text('猜谜玩法')
+      Text($r('app.string.xhyq_tab_guess'))
         .fontSize(14)
         .fontColor(this.activeTab === 'guess' ? $r('app.color.on_accent_text') : $r('app.color.secondary_text'))
         .backgroundColor(this.activeTab === 'guess' ? $r('app.color.idiom_orange') : $r('app.color.border_color'))
@@ -408,7 +413,7 @@ struct XiehouyuQueryContent {
   SearchTab() {
     Column() {
       Row() {
-        TextInput({ placeholder: '搜索歇后语...', text: this.searchQuery })
+        TextInput({ placeholder: $r('app.string.xhyq_search_hint'), text: this.searchQuery })
           .layoutWeight(1)
           .height(36)
           .fontSize(14)
@@ -425,7 +430,7 @@ struct XiehouyuQueryContent {
             this.doSearch();
           })
 
-        Text('搜索')
+        Text($r('app.string.poemq_search'))
           .fontSize(12)
           .fontColor($r('app.color.on_accent_text'))
           .backgroundColor($r('app.color.idiom_orange'))
@@ -443,7 +448,7 @@ struct XiehouyuQueryContent {
 
       if (this.searchResults.length > 0) {
         Row() {
-          Text('搜索结果')
+          Text($r('app.string.search_results'))
             .fontSize(14)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.primary_text'))
@@ -502,7 +507,7 @@ struct XiehouyuQueryContent {
         .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
       } else if (this.searchQuery) {
         Column() {
-          Text('未找到匹配的歇后语')
+          Text($r('app.string.xhyq_no_match'))
             .fontSize(14)
             .fontColor($r('app.color.tertiary_text'))
             .margin({ top: 30 })
@@ -512,11 +517,11 @@ struct XiehouyuQueryContent {
         .alignItems(HorizontalAlign.Center)
       } else {
         Column() {
-          Text('输入关键词搜索歇后语')
+          Text($r('app.string.xhyq_search_empty'))
             .fontSize(16)
             .fontColor($r('app.color.tertiary_text'))
             .margin({ top: 60 })
-          Text('搜索谜面或谜底')
+          Text($r('app.string.xhyq_search_hint_sub'))
             .fontSize(13)
             .fontColor($r('app.color.hint_text'))
             .margin({ top: 8 })
@@ -580,7 +585,7 @@ struct XiehouyuQueryContent {
 
       if (this.activeCategory && this.loadedCount > 0) {
         Row() {
-          Text('相关歇后语')
+          Text($r('app.string.xhyq_related'))
             .fontSize(14)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.primary_text'))
@@ -588,7 +593,7 @@ struct XiehouyuQueryContent {
             .fontSize(12)
             .fontColor($r('app.color.tertiary_text'))
             .margin({ left: 4 })
-          Text('已加载 ' + this.loadedCount.toString() + ' 条')
+          Text($r('app.string.xhyq_loaded_count', this.loadedCount))
             .fontSize(11)
             .fontColor($r('app.color.hint_text'))
             .margin({ left: 8 })
@@ -644,11 +649,11 @@ struct XiehouyuQueryContent {
                   .height(24)
                   .color($r('app.color.idiom_orange'))
                   .margin({ right: 8 })
-                Text('加载更多...')
+                Text($r('app.string.xhyq_load_more'))
                   .fontSize(13)
                   .fontColor($r('app.color.tertiary_text'))
               } else if (this.categoryTotal > 0) {
-                Text('已全部加载')
+                Text($r('app.string.xhyq_all_loaded'))
                   .fontSize(13)
                   .fontColor($r('app.color.hint_text'))
               }
@@ -668,7 +673,7 @@ struct XiehouyuQueryContent {
         })
       } else if (this.activeCategory) {
         Column() {
-          Text('该分类暂无歇后语')
+          Text($r('app.string.xhyq_category_empty'))
             .fontSize(14)
             .fontColor($r('app.color.tertiary_text'))
             .margin({ top: 30 })
@@ -678,7 +683,7 @@ struct XiehouyuQueryContent {
         .alignItems(HorizontalAlign.Center)
       } else {
         Column() {
-          Text('选择分类浏览歇后语')
+          Text($r('app.string.xhyq_pick_category'))
             .fontSize(16)
             .fontColor($r('app.color.tertiary_text'))
             .margin({ top: 40 })
@@ -698,12 +703,12 @@ struct XiehouyuQueryContent {
       if (this.guessItem) {
         Column() {
           Row() {
-            Text('得分：' + this.guessScore.toString() + '/' + this.guessTotal.toString())
+            Text($r('app.string.xhyq_guess_score', this.guessScore, this.guessTotal))
               .fontSize(14)
               .fontColor($r('app.color.idiom_orange'))
               .fontWeight(FontWeight.Bold)
             Blank()
-            Text('跳过')
+            Text($r('app.string.xhyq_skip'))
               .fontSize(13)
               .fontColor($r('app.color.idiom_blue'))
               .onClick(() => {
@@ -714,7 +719,7 @@ struct XiehouyuQueryContent {
           .padding({ left: 16, right: 16, top: 16 })
 
           Column() {
-            Text('猜谜面')
+            Text($r('app.string.xhyq_guess_riddle_label'))
               .fontSize(12)
               .fontColor($r('app.color.tertiary_text'))
               .margin({ bottom: 8 })
@@ -737,7 +742,7 @@ struct XiehouyuQueryContent {
             .margin({ bottom: 20 })
 
           Row() {
-            TextInput({ placeholder: '输入你的答案...', text: this.guessInput })
+            TextInput({ placeholder: $r('app.string.xhyq_guess_input_hint'), text: this.guessInput })
               .id('guess_input')
               .layoutWeight(1)
               .height(40)
@@ -759,7 +764,7 @@ struct XiehouyuQueryContent {
           .margin({ bottom: 12 })
 
           Row({ space: 10 }) {
-            Text('提交答案')
+            Text($r('app.string.xhyq_submit'))
               .fontSize(14)
               .fontColor($r('app.color.on_accent_text'))
               .backgroundColor($r('app.color.idiom_orange'))
@@ -769,7 +774,7 @@ struct XiehouyuQueryContent {
                 this.checkGuess();
               })
 
-            Text(this.revealAnswer ? '隐藏答案' : '查看答案')
+            Text(this.revealAnswer ? $r('app.string.xhyq_hide_answer') : $r('app.string.xhyq_show_answer'))
               .fontSize(14)
               .fontColor($r('app.color.on_accent_text'))
               .backgroundColor($r('app.color.tertiary_text'))
@@ -779,7 +784,7 @@ struct XiehouyuQueryContent {
                 this.toggleReveal();
               })
 
-            Text('下一题')
+            Text($r('app.string.xhyq_next'))
               .fontSize(14)
               .fontColor($r('app.color.on_accent_text'))
               .backgroundColor($r('app.color.poetry_green'))
@@ -794,17 +799,17 @@ struct XiehouyuQueryContent {
           .padding({ left: 16, right: 16 })
 
           if (this.revealAnswer) {
-            Text('答案：' + this.revealAnswer)
+            Text($r('app.string.xhyq_answer_label', this.revealAnswer))
             .fontSize(18)
             .fontColor($r('app.color.idiom_orange'))
               .fontWeight(FontWeight.Bold)
               .margin({ top: 16 })
           }
 
-          if (this.guessMsg) {
+          if (this.guessMsg !== '') {
             Text(this.guessMsg)
               .fontSize(16)
-              .fontColor(this.guessMsg.indexOf('对了') >= 0 ? $r('app.color.success_green') : $r('app.color.error_red'))
+              .fontColor(this.guessCorrect ? $r('app.color.success_green') : $r('app.color.error_red'))
               .fontWeight(FontWeight.Medium)
               .margin({ top: 16 })
           }
@@ -846,7 +851,7 @@ struct XiehouyuDetailModal {
     if (this.isFav) {
       FavoritesUtil.remove(ctx, 'xiehouyu', this.detailItem!.riddle);
       this.isFav = false;
-      ToastUtil.show(this.uiContext, '已取消收藏', 1000);
+      ToastUtil.show(this.uiContext, $r('app.string.xhyq_unfaved'), 1000);
     } else {
       let fav: FavoriteItem = new FavoriteItem();
       fav.type = 'xiehouyu';
@@ -856,9 +861,9 @@ struct XiehouyuDetailModal {
       let res: FavoriteAddResult = FavoritesUtil.add(ctx, fav);
       this.isFav = true;
       if (res.truncated) {
-        ToastUtil.show(this.uiContext, '收藏已达上限，最早一条已移除', 2000);
+        ToastUtil.show(this.uiContext, $r('app.string.xhyq_fav_full'), 2000);
       } else {
-        ToastUtil.show(this.uiContext, '已收藏', 1000);
+        ToastUtil.show(this.uiContext, $r('app.string.xhyq_faved'), 1000);
       }
     }
     FavoritesUtil.invalidateCache();
@@ -874,7 +879,7 @@ struct XiehouyuDetailModal {
   private createListAndAdd(): void {
     let name: string = this.newListName.trim();
     if (!name) {
-      ToastUtil.show(this.uiContext, '请输入清单名称', 1000);
+      ToastUtil.show(this.uiContext, $r('app.string.xhyq_input_list_name'), 1000);
       return;
     }
     let list: ReadingList = ReadingListStore.addList(this.uiContext.getHostContext() as Context, name);
@@ -906,7 +911,7 @@ struct XiehouyuDetailModal {
       .backgroundColor($r('app.color.idiom_orange') + '18')
       .borderRadius(12)
       .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-      .accessibilityText(this.inReadingList ? '已在朗读清单中' : '加入朗读清单')
+      .accessibilityText(this.inReadingList ? $r('app.string.xhyq_in_reading_list') : $r('app.string.xhyq_add_to_reading_list'))
       .onClick(() => {
         this.openReadingListPicker();
       })
@@ -939,7 +944,7 @@ struct XiehouyuDetailModal {
         if (this.detailItem) {
           Scroll() {
             Column() {
-              Text('谜面')
+              Text($r('app.string.xhyq_riddle_label'))
                 .fontSize(14)
                 .fontColor($r('app.color.tertiary_text'))
                 .margin({ bottom: 6 })
@@ -957,7 +962,7 @@ struct XiehouyuDetailModal {
                 .color($r('app.color.border_color'))
                 .margin({ bottom: 16 })
 
-              Text('谜底')
+              Text($r('app.string.xhyq_answer_label_short'))
                 .fontSize(14)
                 .fontColor($r('app.color.tertiary_text'))
                 .margin({ bottom: 6 })
@@ -993,7 +998,7 @@ struct XiehouyuDetailModal {
                   this.ReadingListButton()
                 }
 
-                Text('复制')
+                Text($r('app.string.xhyq_copy'))
                   .fontSize(14)
                   .fontColor($r('app.color.secondary_text'))
                   .backgroundColor($r('app.color.border_color'))
@@ -1001,10 +1006,10 @@ struct XiehouyuDetailModal {
                   .padding({ left: 16, right: 16, top: 8, bottom: 8 })
                   .onClick(() => {
                     ClipboardUtil.copy(this.detailItem!.riddle + '——' + this.detailItem!.answer);
-                    ToastUtil.show(this.uiContext, '已复制到剪贴板', 1000);
+                    ToastUtil.show(this.uiContext, $r('app.string.idiomq_copied'), 1000);
                   })
 
-                Text('分享图片')
+                Text($r('app.string.xhyq_share_image'))
                   .fontSize(14)
                   .fontColor($r('app.color.on_accent_text'))
                   .backgroundColor($r('app.color.idiom_orange'))
@@ -1057,7 +1062,7 @@ struct XiehouyuDetailModal {
   ReadingListPickerOverlay() {
     Column() {
       Column() {
-        Text(this.showCreateInPicker ? '新建朗读清单' : '加入朗读清单')
+         Text(this.showCreateInPicker ? $r('app.string.xhyq_create_list_title') : $r('app.string.xhyq_add_to_reading_list'))
           .fontSize(18)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.primary_text'))
@@ -1072,7 +1077,7 @@ struct XiehouyuDetailModal {
                     .fontSize(15)
                     .fontColor($r('app.color.primary_text'))
                     .layoutWeight(1)
-                  Text(list.items.length.toString() + '项')
+                  Text($r('app.string.xhyq_item_count', list.items.length))
                     .fontSize(12)
                     .fontColor($r('app.color.tertiary_text'))
                     .margin({ left: 8 })
@@ -1090,12 +1095,12 @@ struct XiehouyuDetailModal {
           .width('100%')
           .constraintSize({ maxHeight: '50%' })
         } else if (!this.showCreateInPicker) {
-          Text('暂无朗读清单，请先创建')
+          Text($r('app.string.xhyq_no_reading_list'))
             .fontSize(14)
             .fontColor($r('app.color.tertiary_text'))
             .margin({ top: 20, bottom: 12 })
 
-          Text('+ 新建清单')
+          Text($r('app.string.xhyq_new_list'))
             .fontSize(15)
             .fontColor($r('app.color.on_accent_text'))
             .backgroundColor($r('app.color.poetry_green'))
@@ -1106,7 +1111,7 @@ struct XiehouyuDetailModal {
               this.showCreateInPicker = true;
             })
         } else {
-          TextInput({ placeholder: '输入清单名称，如：每日诗词', text: this.newListName })
+          TextInput({ placeholder: $r('app.string.xhyq_list_name_hint'), text: this.newListName })
             .width('100%')
             .height(44)
             .fontSize(15)
@@ -1121,7 +1126,7 @@ struct XiehouyuDetailModal {
             })
 
           Row({ space: 12 }) {
-            Text('取消')
+        Text($r('app.string.xhyq_cancel'))
               .fontSize(15)
               .fontColor($r('app.color.tertiary_text'))
               .backgroundColor($r('app.color.border_color'))
@@ -1131,7 +1136,7 @@ struct XiehouyuDetailModal {
                 this.showCreateInPicker = false;
               })
 
-            Text('创建')
+            Text($r('app.string.xhyq_create'))
               .fontSize(15)
               .fontColor($r('app.color.on_accent_text'))
               .backgroundColor($r('app.color.poetry_green'))
@@ -1144,7 +1149,7 @@ struct XiehouyuDetailModal {
           .margin({ top: 16 })
         }
 
-        Text('取消')
+            Text($r('app.string.xhyq_cancel'))
           .fontSize(15)
           .fontColor($r('app.color.tertiary_text'))
           .backgroundColor($r('app.color.border_color'))

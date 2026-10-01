@@ -1,6 +1,8 @@
 import { UnitItem, UnitConverterData, ConverterCategory } from '../model/UnitModels';
 import { pasteboard } from '@kit.BasicServicesKit';
+import { Context } from '@kit.AbilityKit';
 import { ToastUtil } from '../common/utils/ToastUtil';
+import { StrUtil } from '../common/utils/StrUtil';
 
 @Observed
 class UnitValueItem {
@@ -52,7 +54,7 @@ struct UnitValueRow {
           .fontWeight(FontWeight.Medium)
           .fontColor($r('app.color.secondary_text'))
           .width(80)
-        TextInput({ text: $$this.item.value, placeholder: '\u8F93\u5165\u6570\u503C' })
+        TextInput({ text: $$this.item.value, placeholder: $r('app.string.basec_input_placeholder') })
           .type(InputType.Normal)
           .inputFilter('^[0-9.\\-]*$', () => {
             return 0;
@@ -201,19 +203,21 @@ struct UnitConverterContent {
     if (!hasValue) {
       return;
     }
+    let ctx: Context = this.getUIContext().getHostContext() as Context;
     let lines: string[] = [];
     for (let i = 0; i < this.unitValues.length; i++) {
       if (this.unitValues[i].value.length > 0) {
-        lines.push(this.unitValues[i].name + '：' + this.unitValues[i].value);
+        lines.push(StrUtil.text(ctx, $r('app.string.basec_copy_line',
+          this.unitValues[i].name, this.unitValues[i].value)));
       }
     }
     try {
       let systemPasteboard: pasteboard.SystemPasteboard = pasteboard.getSystemPasteboard();
       let pasteData: pasteboard.PasteData = pasteboard.createData(pasteboard.MIMETYPE_TEXT_PLAIN, lines.join('\n'));
       systemPasteboard.setData(pasteData);
-      ToastUtil.show(this.getUIContext(), '已复制转换结果', 1000);
+      ToastUtil.show(this.getUIContext(), $r('app.string.gcd_copy_success'), 1000);
     } catch (e) {
-      ToastUtil.show(this.getUIContext(), '复制失败', 1000);
+      ToastUtil.show(this.getUIContext(), $r('app.string.sudoku_copy_failed'), 1000);
     }
   }
 
@@ -244,7 +248,7 @@ struct UnitConverterContent {
       .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
 
       Row() {
-        Text('复制转换结果')
+        Text($r('app.string.basec_copy_all'))
           .fontSize(13)
           .fontColor($r('app.color.idiom_blue'))
       }
@@ -257,7 +261,7 @@ struct UnitConverterContent {
 
       Scroll() {
         Column() {
-          Text('\u5E38\u7528\u53C2\u8003')
+          Text($r('app.string.unitcv_ref_title'))
             .fontSize(15)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.primary_text'))

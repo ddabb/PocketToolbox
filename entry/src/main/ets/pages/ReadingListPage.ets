@@ -1,13 +1,14 @@
 import { ReadingListStore, ReadingList, ReadingItem } from '../model/ReadingListModels';
 import { promptAction } from '@kit.ArkUI';
 import { ToastUtil } from '../common/utils/ToastUtil';
+import { StrUtil } from '../common/utils/StrUtil';
 
 @Builder
 export function ReadingListPageBuilder() {
   NavDestination() {
     ReadingListContent()
   }
-  .title('朗读清单')
+  .title($r('app.string.stat_reading_list'))
   .backButtonIcon($r('sys.symbol.chevron_left'))
   .menus([])
 }
@@ -70,20 +71,20 @@ struct ReadingListContent {
   private addList(): void {
     let name: string = this.newListName.trim();
     if (!name) {
-      ToastUtil.show(this.uiContext, '请输入清单名称', 1000);
+      ToastUtil.show(this.uiContext, $r('app.string.readlist_input_name'), 1000);
       return;
     }
     ReadingListStore.addList(this.uiContext.getHostContext() as Context, name);
     this.newListName = '';
     this.showAddDialog = false;
     this.loadLists();
-    ToastUtil.show(this.uiContext, '清单已创建', 1000);
+    ToastUtil.show(this.uiContext, $r('app.string.readlist_created'), 1000);
   }
 
   private renameList(): void {
     let name: string = this.editName.trim();
     if (!name) {
-      ToastUtil.show(this.uiContext, '请输入清单名称', 1000);
+      ToastUtil.show(this.uiContext, $r('app.string.readlist_input_name'), 1000);
       return;
     }
     ReadingListStore.renameList(this.uiContext.getHostContext() as Context, this.editingListId, name);
@@ -91,22 +92,22 @@ struct ReadingListContent {
     this.editingListId = '';
     this.showRenameDialog = false;
     this.loadLists();
-    ToastUtil.show(this.uiContext, '已重命名', 1000);
+    ToastUtil.show(this.uiContext, $r('app.string.readlist_renamed'), 1000);
   }
 
   private deleteList(listId: string, listName: string): void {
     this.uiContext.getPromptAction().showDialog({
-      title: '确认删除',
-      message: '确定要删除清单「' + listName + '」吗？',
+      title: $r('app.string.readlist_confirm_delete'),
+      message: $r('app.string.readlist_delete_msg', listName),
       buttons: [
-        { text: '取消', color: $r('app.color.tertiary_text') },
-        { text: '删除', color: $r('app.color.danger_red') }
+        { text: $r('app.string.readlist_cancel'), color: $r('app.color.tertiary_text') },
+        { text: $r('app.string.readlist_delete'), color: $r('app.color.danger_red') }
       ]
     }).then((result: promptAction.ShowDialogSuccessResponse) => {
       if (result.index === 1) {
         ReadingListStore.removeList(this.uiContext.getHostContext() as Context, listId);
         this.loadLists();
-        ToastUtil.show(this.uiContext, '已删除', 1000);
+        ToastUtil.show(this.uiContext, $r('app.string.readlist_deleted'), 1000);
       }
     }).catch(() => {});
   }
@@ -120,8 +121,9 @@ struct ReadingListContent {
   }
 
   private getItemCountText(items: ReadingItem[]): string {
+    let ctx: Context = this.uiContext.getHostContext() as Context;
     if (items.length === 0) {
-      return '暂无内容';
+      return StrUtil.text(ctx, $r('app.string.readlist_no_items'));
     }
     let poemCount: number = 0;
     let idiomCount: number = 0;
@@ -137,22 +139,24 @@ struct ReadingListContent {
     }
     let parts: string[] = [];
     if (poemCount > 0) {
-      parts.push('诗词' + poemCount.toString());
+      parts.push(StrUtil.text(ctx, $r('app.string.readlist_item_poem', poemCount)));
     }
     if (idiomCount > 0) {
-      parts.push('成语' + idiomCount.toString());
+      parts.push(StrUtil.text(ctx, $r('app.string.readlist_item_idiom', idiomCount)));
     }
     if (xiehouyuCount > 0) {
-      parts.push('歇后语' + xiehouyuCount.toString());
+      parts.push(StrUtil.text(ctx, $r('app.string.readlist_item_xiehouyu', xiehouyuCount)));
     }
-    return '共' + items.length.toString() + '项：' + parts.join('、');
+    return StrUtil.text(ctx, $r('app.string.readlist_count_summary', items.length,
+      parts.join(StrUtil.text(ctx, $r('app.string.readlist_count_sep')))));
   }
 
   private formatDate(timestamp: number): string {
     let date: Date = new Date(timestamp);
     let m: number = date.getMonth() + 1;
     let d: number = date.getDate();
-    return m.toString() + '月' + d.toString() + '日';
+    return StrUtil.text(this.uiContext.getHostContext() as Context,
+      $r('app.string.widget_date_format', m.toString(), d.toString()));
   }
 
   build() {
@@ -174,7 +178,7 @@ struct ReadingListContent {
                       .fontSize(12)
                       .fontColor($r('app.color.tertiary_text'))
                       .margin({ top: 4 })
-                    Text('更新于 ' + this.formatDate(list.updatedAt))
+                    Text($r('app.string.readlist_updated_at', this.formatDate(list.updatedAt)))
                       .fontSize(11)
                       .fontColor($r('app.color.hint_text'))
                       .margin({ top: 2 })
@@ -233,10 +237,10 @@ struct ReadingListContent {
             Text('\uD83D\uDCD6')
               .fontSize(48)
               .margin({ bottom: 12 })
-            Text('暂无朗读清单')
+            Text($r('app.string.readlist_empty_title'))
               .fontSize(16)
               .fontColor($r('app.color.tertiary_text'))
-            Text('点击下方按钮创建您的第一个清单')
+            Text($r('app.string.readlist_empty_hint'))
               .fontSize(13)
               .fontColor($r('app.color.hint_text'))
               .margin({ top: 6 })
@@ -248,7 +252,7 @@ struct ReadingListContent {
         }
 
         Row() {
-          Text('+ 新建清单')
+          Text($r('app.string.readlist_new_list'))
             .fontSize(16)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.on_accent_text'))
@@ -284,13 +288,13 @@ struct ReadingListContent {
   AddListOverlay() {
     Column() {
       Column() {
-        Text('新建朗读清单')
+        Text($r('app.string.readlist_create_title'))
           .fontSize(18)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.primary_text'))
           .margin({ bottom: 20 })
 
-        TextInput({ placeholder: '输入清单名称，如：每日诗词', text: this.newListName })
+        TextInput({ placeholder: $r('app.string.readlist_name_hint'), text: this.newListName })
           .width('100%')
           .height(44)
           .fontSize(15)
@@ -304,7 +308,7 @@ struct ReadingListContent {
           })
 
         Row({ space: 12 }) {
-          Text('取消')
+          Text($r('app.string.readlist_cancel'))
             .fontSize(15)
             .fontColor($r('app.color.tertiary_text'))
             .backgroundColor($r('app.color.border_color'))
@@ -314,7 +318,7 @@ struct ReadingListContent {
               this.showAddDialog = false;
             })
 
-          Text('创建')
+          Text($r('app.string.readlist_create'))
             .fontSize(15)
             .fontColor($r('app.color.on_accent_text'))
             .backgroundColor($r('app.color.poetry_green'))
@@ -346,13 +350,13 @@ struct ReadingListContent {
   RenameListOverlay() {
     Column() {
       Column() {
-        Text('重命名清单')
+        Text($r('app.string.readlist_rename_title'))
           .fontSize(18)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.primary_text'))
           .margin({ bottom: 20 })
 
-        TextInput({ placeholder: '输入新的清单名称', text: this.editName })
+        TextInput({ placeholder: $r('app.string.readlist_rename_hint'), text: this.editName })
           .width('100%')
           .height(44)
           .fontSize(15)
@@ -366,7 +370,7 @@ struct ReadingListContent {
           })
 
         Row({ space: 12 }) {
-          Text('取消')
+          Text($r('app.string.readlist_cancel'))
             .fontSize(15)
             .fontColor($r('app.color.tertiary_text'))
             .backgroundColor($r('app.color.border_color'))
@@ -376,7 +380,7 @@ struct ReadingListContent {
               this.showRenameDialog = false;
             })
 
-          Text('保存')
+          Text($r('app.string.readlist_save'))
             .fontSize(15)
             .fontColor($r('app.color.on_accent_text'))
             .backgroundColor($r('app.color.poetry_green'))

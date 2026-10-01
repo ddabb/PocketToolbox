@@ -7,6 +7,7 @@ import { FavoritesUtil } from '../common/utils/FavoritesUtil';
 import { StickinessUtil } from '../common/utils/StickinessUtil';
 import { preferences } from '@kit.ArkData';
 import { ToastUtil } from '../common/utils/ToastUtil';
+import { StrUtil } from '../common/utils/StrUtil';
 
 class IdiomListDataSource implements IDataSource {
   private listeners: DataChangeListener[] = [];
@@ -46,7 +47,7 @@ export function IdiomQueryPageBuilder(param: Object) {
   NavDestination() {
     IdiomQueryContent({ initialWord: (param as string) || '' })
   }
-  .title('成语查询')
+  .title($r('app.string.page_idiom_query'))
   .backButtonIcon($r('sys.symbol.chevron_left'))
   .menus([])
 }
@@ -57,7 +58,7 @@ struct IdiomQueryContent {
   @State queryMode: string = 'forward';
   @State queryInput: string = '';
   @State queryResults: IdiomQueryResultItem[] = [];
-  @State queryTip: string = '';
+  @State queryTip: ResourceStr = '';
   @State queryHistory: string[] = [];
   @State loading: boolean = true;
   @State hasError: boolean = false;
@@ -181,7 +182,7 @@ struct IdiomQueryContent {
         this.handleMultipleFuzzy(fuzzy);
         return;
       } else {
-        ToastUtil.show(this.uiContext, '该成语不在词库中', 1000);
+        ToastUtil.show(this.uiContext, $r('app.string.idiomq_not_in_lib'), 1000);
         return;
       }
     }
@@ -191,14 +192,16 @@ struct IdiomQueryContent {
   private querySolitaire(word: string): void {
     let result: SolitaireResult = this.viewModel.querySolitaire(word, this.queryMode);
     if (result.error) {
-      ToastUtil.show(this.uiContext, result.error, 1000);
+      ToastUtil.show(this.uiContext, result.error === 'not_found'
+        ? $r('app.string.idiomq_not_in_lib') : $r('app.string.idiomq_data_loading'), 1000);
       this.isReverseReady = !result.lastIndexLoading;
       return;
     }
     this.addToHistory(word);
     this.queryResults = this.viewModel.buildQueryResults(result.candidates, word, this.queryMode);
-    let modeText: string = this.queryMode === 'forward' ? '顺查' : '逆查';
-    this.queryTip = '共 ' + this.queryResults.length.toString() + ' 条' + modeText + '结果';
+    this.queryTip = this.queryMode === 'forward'
+      ? $r('app.string.idiomq_tip_forward', this.queryResults.length)
+      : $r('app.string.idiomq_tip_reverse', this.queryResults.length);
     this.hasContent = true;
   }
 
@@ -213,7 +216,7 @@ struct IdiomQueryContent {
       }
     }
     this.queryResults = allResults;
-    this.queryTip = '模糊匹配到 ' + fuzzyWords.length.toString() + ' 个成语';
+    this.queryTip = $r('app.string.idiomq_fuzzy_tip', fuzzyWords.length);
     this.hasContent = true;
   }
 
@@ -231,7 +234,7 @@ struct IdiomQueryContent {
       this.detailDialogController.open();
       StickinessUtil.incrementBrowseCount(ctx);
     } else {
-      ToastUtil.show(this.uiContext, '暂无详情', 1000);
+      ToastUtil.show(this.uiContext, $r('app.string.idiomq_no_detail'), 1000);
     }
   }
 
@@ -255,13 +258,13 @@ struct IdiomQueryContent {
       lines.push(item.leftWord + ' \u2192 ' + item.rightWord);
     }
     ClipboardUtil.copy(lines.join('\n'));
-    ToastUtil.show(this.uiContext, '已复制到剪贴板', 1000);
+    ToastUtil.show(this.uiContext, $r('app.string.idiomq_copied'), 1000);
   }
 
   private toggleMode(): void {
     if (this.queryMode === 'forward') {
       if (!this.viewModel.isLastIndexReady()) {
-        ToastUtil.show(this.uiContext, '逆查数据加载中，请稍候...', 1000);
+        ToastUtil.show(this.uiContext, $r('app.string.idiomq_reverse_loading'), 1000);
         return;
       }
       this.queryMode = 'reverse';
@@ -331,7 +334,7 @@ struct IdiomQueryContent {
   @Builder
   TabBar() {
     Row() {
-      Text('拼音搜索')
+      Text($r('app.string.idiomq_tab_pinyin'))
         .fontSize(14)
         .fontColor(this.activeTab === 'pinyin' ? $r('app.color.on_accent_text') : $r('app.color.secondary_text'))
         .backgroundColor(this.activeTab === 'pinyin' ? $r('app.color.idiom_blue') : $r('app.color.border_color'))
@@ -341,7 +344,7 @@ struct IdiomQueryContent {
           this.activeTab = 'pinyin';
         })
 
-      Text('接龙查询')
+      Text($r('app.string.idiomq_tab_solitaire'))
         .fontSize(14)
         .fontColor(this.activeTab === 'solitaire' ? $r('app.color.on_accent_text') : $r('app.color.secondary_text'))
         .backgroundColor(this.activeTab === 'solitaire' ? $r('app.color.idiom_blue') : $r('app.color.border_color'))
@@ -352,7 +355,7 @@ struct IdiomQueryContent {
           this.activeTab = 'solitaire';
         })
 
-      Text('按字浏览')
+      Text($r('app.string.idiomq_tab_browse'))
         .fontSize(14)
         .fontColor(this.activeTab === 'browse' ? $r('app.color.on_accent_text') : $r('app.color.secondary_text'))
         .backgroundColor(this.activeTab === 'browse' ? $r('app.color.idiom_blue') : $r('app.color.border_color'))
@@ -381,7 +384,7 @@ struct IdiomQueryContent {
   @Builder
   SearchSection() {
     Row() {
-      TextInput({ placeholder: this.queryMode === 'forward' ? '输入成语，顺查接龙...' : '输入成语，逆查接龙...', text: this.queryInput })
+      TextInput({ placeholder: this.queryMode === 'forward' ? $r('app.string.idiomq_hint_forward') : $r('app.string.idiomq_hint_reverse'), text: this.queryInput })
         .layoutWeight(1)
         .height(36)
         .fontSize(14)
@@ -413,7 +416,7 @@ struct IdiomQueryContent {
           })
       }
 
-      Text(this.queryMode === 'forward' ? '顺查' : '逆查')
+      Text(this.queryMode === 'forward' ? $r('app.string.idiomq_mode_forward') : $r('app.string.idiomq_mode_reverse'))
         .fontSize(12)
         .fontColor($r('app.color.on_accent_text'))
         .backgroundColor(this.queryMode === 'forward' ? $r('app.color.idiom_blue') : $r('app.color.idiom_orange'))
@@ -424,7 +427,7 @@ struct IdiomQueryContent {
           this.toggleMode();
         })
 
-      Text('查询')
+      Text($r('app.string.idiomq_query'))
         .fontSize(12)
         .fontColor($r('app.color.on_accent_text'))
         .backgroundColor($r('app.color.poetry_green'))
@@ -473,7 +476,7 @@ struct IdiomQueryContent {
           .width(48)
           .height(48)
           .color($r('app.color.idiom_blue'))
-        Text('加载中...')
+        Text($r('app.string.poemq_loading'))
           .fontSize(16)
           .fontColor($r('app.color.tertiary_text'))
           .margin({ top: 12 })
@@ -484,8 +487,8 @@ struct IdiomQueryContent {
     } else if (this.hasError) {
       Column() {
         ErrorState({
-          text: '数据加载失败',
-          subText: '数据读取异常，请重试',
+          text: StrUtil.text(this.uiContext.getHostContext() as Context, $r('app.string.poemq_load_failed')),
+          subText: StrUtil.text(this.uiContext.getHostContext() as Context, $r('app.string.poemq_load_failed_sub')),
           onRetry: () => {
             this.loadData();
           }
@@ -501,7 +504,7 @@ struct IdiomQueryContent {
             .fontColor($r('app.color.primary_text'))
             .fontWeight(FontWeight.Medium)
           Blank()
-          Text('复制结果')
+          Text($r('app.string.idiomq_copy_results'))
             .fontSize(12)
             .fontColor($r('app.color.idiom_blue'))
             .backgroundColor($r('app.color.idiom_blue') + '18')
@@ -546,7 +549,8 @@ struct IdiomQueryContent {
                 }
 
                 if (item.canContinue) {
-                  Text(item.actionText)
+                  Text(item.actionKind === 'forward'
+                    ? $r('app.string.idiomq_chain_continue') : $r('app.string.idiomq_chain_reverse'))
                     .fontSize(12)
                     .fontColor($r('app.color.on_accent_text'))
                     .backgroundColor($r('app.color.danger_red'))
@@ -574,7 +578,7 @@ struct IdiomQueryContent {
       .layoutWeight(1)
     } else {
       Column() {
-        Text('输入成语开始接龙查询')
+          Text($r('app.string.idiomq_empty_solitaire'))
           .fontSize(16)
           .fontColor($r('app.color.tertiary_text'))
           .margin({ top: 60 })
@@ -613,7 +617,7 @@ struct IdiomQueryContent {
 
       if (this.activeLetter && this.letterDataSource.totalCount() > 0) {
         Row() {
-          Text(this.activeLetter.toUpperCase() + ' 开头的成语')
+          Text($r('app.string.idiomq_letter_header', this.activeLetter.toUpperCase()))
             .fontSize(14)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.primary_text'))
@@ -682,7 +686,7 @@ struct IdiomQueryContent {
         .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
       } else if (this.activeLetter) {
         Column() {
-          Text('暂无该字母开头的成语')
+          Text($r('app.string.idiomq_letter_empty'))
             .fontSize(14)
             .fontColor($r('app.color.tertiary_text'))
             .margin({ top: 30 })
@@ -692,7 +696,7 @@ struct IdiomQueryContent {
         .alignItems(HorizontalAlign.Center)
       } else {
         Column() {
-          Text('选择首字母浏览成语')
+          Text($r('app.string.idiomq_letter_pick'))
             .fontSize(16)
             .fontColor($r('app.color.tertiary_text'))
             .margin({ top: 60 })
@@ -710,7 +714,7 @@ struct IdiomQueryContent {
   SearchTab() {
     Column() {
       Row() {
-        TextInput({ placeholder: '输入拼音或汉字搜索，如 bai / 百', text: this.pinyinQuery })
+        TextInput({ placeholder: $r('app.string.idiomq_pinyin_hint'), text: this.pinyinQuery })
         .layoutWeight(1)
         .height(36)
         .fontSize(14)
@@ -727,7 +731,7 @@ struct IdiomQueryContent {
             this.doPinyinSearch();
           })
 
-        Text('搜索')
+        Text($r('app.string.poemq_search'))
         .fontSize(12)
         .fontColor($r('app.color.on_accent_text'))
         .backgroundColor($r('app.color.idiom_blue'))
@@ -743,11 +747,11 @@ struct IdiomQueryContent {
 
       if (this.pinyinResults.length > 0) {
         Row() {
-          Text('搜索结果')
+          Text($r('app.string.search_results'))
             .fontSize(14)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.primary_text'))
-          Text('(共 ' + this.pinyinAllCount.toString() + ' 条)')
+          Text($r('app.string.idiomq_total_count', this.pinyinAllCount))
             .fontSize(12)
             .fontColor($r('app.color.tertiary_text'))
             .margin({ left: 4 })
@@ -799,7 +803,7 @@ struct IdiomQueryContent {
           if (this.pinyinDisplayed < this.pinyinAllCount) {
             ListItem() {
               Row() {
-                Text('加载更多 (剩余 ' + (this.pinyinAllCount - this.pinyinDisplayed).toString() + ' 条)')
+                Text($r('app.string.idiomq_load_more_remaining', this.pinyinAllCount - this.pinyinDisplayed))
                   .fontSize(13)
                   .fontColor($r('app.color.idiom_blue'))
               }
@@ -819,7 +823,7 @@ struct IdiomQueryContent {
         .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
       } else if (this.pinyinQuery) {
         Column() {
-          Text('未找到匹配的成语')
+          Text($r('app.string.idiomq_no_match'))
           .fontSize(14)
           .fontColor($r('app.color.tertiary_text'))
             .margin({ top: 30 })
@@ -829,11 +833,11 @@ struct IdiomQueryContent {
         .alignItems(HorizontalAlign.Center)
       } else {
         Column() {
-          Text('输入拼音或汉字搜索成语')
+          Text($r('app.string.idiomq_pinyin_empty'))
           .fontSize(16)
           .fontColor($r('app.color.tertiary_text'))
           .margin({ top: 60 })
-        Text('例如: bai 或 百 \u2192 百发百中、百步穿杨')
+        Text($r('app.string.idiomq_pinyin_example'))
           .fontSize(13)
           .fontColor($r('app.color.hint_text'))
             .margin({ top: 8 })

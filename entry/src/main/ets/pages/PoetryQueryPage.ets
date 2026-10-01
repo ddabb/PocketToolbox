@@ -9,6 +9,7 @@ import { OcrUtil } from '../common/utils/OcrUtil';
 import { photoAccessHelper } from '@kit.MediaLibraryKit';
 import { image } from '@kit.ImageKit';
 import { fileIo } from '@kit.CoreFileKit';
+import { StrUtil } from '../common/utils/StrUtil';
 
 @Builder
 export function PoetryQueryPageBuilder(param?: Object) {
@@ -17,7 +18,7 @@ export function PoetryQueryPageBuilder(param?: Object) {
       initialDynasty: param ? ((param as Record<string, Object>)['dynasty'] as string || '') : ''
     })
   }
-  .title('诗词查询')
+  .title($r('app.string.page_poetry_query'))
   .backButtonIcon($r('sys.symbol.chevron_left'))
 }
 
@@ -122,7 +123,7 @@ struct PoetryQueryContent {
     }
     this.refreshContent();
     if (this.isSearching && this.results.length === 0) {
-      ToastUtil.show(this.uiContext, '未找到相关结果', 1000);
+      ToastUtil.show(this.uiContext, $r('app.string.poemq_no_results'), 1000);
     }
   }
 
@@ -205,14 +206,14 @@ struct PoetryQueryContent {
       pixelMap = await source.createPixelMap();
       let lines: string[] = await OcrUtil.recognizeLines(pixelMap);
       if (lines.length === 0) {
-        ToastUtil.show(this.uiContext, '未识别到文本', 1500);
+        ToastUtil.show(this.uiContext, $r('app.string.poemq_ocr_no_text'), 1500);
       } else {
         this.ocrLines = lines;
         this.ocrSheetVisible = true;
       }
     } catch (e) {
       console.error('[PoetryQuery] ocr failed: ' + (e as Error).message);
-      ToastUtil.show(this.uiContext, '识别失败，请重试', 1500);
+      ToastUtil.show(this.uiContext, $r('app.string.poemq_ocr_failed'), 1500);
     } finally {
       if (pixelMap) {
         pixelMap.release();
@@ -270,12 +271,12 @@ struct PoetryQueryContent {
             return;
           }
         }
-        ToastUtil.show(this.uiContext, '未找到诗词详情', 1000);
+        ToastUtil.show(this.uiContext, $r('app.string.poemq_no_poem_detail'), 1000);
       } else {
-        ToastUtil.show(this.uiContext, '未找到诗人信息', 1000);
+        ToastUtil.show(this.uiContext, $r('app.string.poemq_no_poet_info'), 1000);
       }
     } else {
-      ToastUtil.show(this.uiContext, '请搜索诗人姓名查看详情', 1000);
+      ToastUtil.show(this.uiContext, $r('app.string.poemq_search_poet_hint'), 1000);
     }
   }
 
@@ -316,7 +317,7 @@ struct PoetryQueryContent {
           Text('\uD83D\uDCF7')
             .fontSize(16)
             .margin({ right: 6 })
-          Text('识诗结果 · 点击一行搜索')
+          Text($r('app.string.poemq_ocr_result_title'))
             .fontSize(15)
             .fontWeight(FontWeight.Medium)
             .fontColor($r('app.color.primary_text'))
@@ -403,7 +404,7 @@ struct PoetryQueryContent {
   @Builder
   SearchBar() {
     Row() {
-      TextInput({ placeholder: '搜索诗人/诗词...', text: this.searchText })
+      TextInput({ placeholder: $r('app.string.poemq_search_hint'), text: this.searchText })
         .layoutWeight(1)
         .height(40)
         .fontSize(14)
@@ -453,7 +454,7 @@ struct PoetryQueryContent {
           })
       }
 
-      Text('搜索')
+      Text($r('app.string.poemq_search'))
         .fontSize(14)
         .fontColor($r('app.color.on_accent_text'))
         .backgroundColor($r('app.color.poetry_green'))
@@ -499,7 +500,7 @@ struct PoetryQueryContent {
           .width(48)
           .height(48)
           .color($r('app.color.poetry_green'))
-        Text('加载中...')
+        Text($r('app.string.poemq_loading'))
           .fontSize(16)
           .fontColor($r('app.color.tertiary_text'))
           .margin({ top: 12 })
@@ -510,8 +511,8 @@ struct PoetryQueryContent {
     } else if (this.hasError) {
       Column() {
         ErrorState({
-          text: '数据加载失败',
-          subText: '数据读取异常，请重试',
+          text: StrUtil.text(this.uiContext.getHostContext() as Context, $r('app.string.poemq_load_failed')),
+          subText: StrUtil.text(this.uiContext.getHostContext() as Context, $r('app.string.poemq_load_failed_sub')),
           onRetry: () => {
             this.loadData();
           }
@@ -531,7 +532,7 @@ struct PoetryQueryContent {
     List({ space: 6 }) {
       if (this.results.length === 0) {
         ListItem() {
-          Text('未找到相关结果')
+          Text($r('app.string.poemq_no_results'))
             .fontSize(16)
             .fontColor($r('app.color.tertiary_text'))
             .margin({ top: 40 })
@@ -548,7 +549,8 @@ struct PoetryQueryContent {
                 .fontWeight(FontWeight.Medium)
                 .maxLines(1)
                 .textOverflow({ overflow: TextOverflow.Ellipsis })
-              Text(item.subtitle)
+              Text(item.type === 'poet' && item.poemCount > 0
+                ? $r('app.string.poemq_poet_subtitle', item.poetDynasty, item.poemCount) : item.subtitle)
                 .fontSize(12)
                 .fontColor($r('app.color.tertiary_text'))
                 .margin({ top: 2 })
@@ -563,7 +565,7 @@ struct PoetryQueryContent {
                 .margin({ right: 6 })
             }
 
-            Text(item.type === 'poet' ? '诗人' : '诗词')
+            Text(item.type === 'poet' ? $r('app.string.poemq_type_poet') : $r('app.string.poemq_type_poem'))
               .fontSize(11)
               .fontColor($r('app.color.poetry_green'))
               .backgroundColor($r('app.color.poetry_green') + '18')
@@ -598,7 +600,7 @@ struct PoetryQueryContent {
                 .fontSize(15)
                 .fontColor($r('app.color.primary_text'))
                 .fontWeight(FontWeight.Medium)
-              Text(poet.d + ' \u00B7 ' + poet.pc.toString() + '首')
+              Text($r('app.string.poemq_poet_count', poet.d, poet.pc))
                 .fontSize(12)
                 .fontColor($r('app.color.tertiary_text'))
                 .margin({ top: 2 })
@@ -630,7 +632,7 @@ struct PoetryQueryContent {
                 .color($r('app.color.poetry_green'))
                 .margin({ right: 6 })
             }
-            Text(this.loadingMore ? '加载中...' : '加载更多')
+            Text(this.loadingMore ? $r('app.string.poemq_loading') : $r('app.string.poemq_load_more'))
               .fontSize(14)
               .fontColor($r('app.color.tertiary_text'))
           }

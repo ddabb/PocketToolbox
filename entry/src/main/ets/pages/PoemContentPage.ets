@@ -24,7 +24,7 @@ export function PoemContentPageBuilder(param: Object) {
   NavDestination() {
     PoemContentContent({ poemParam: buildPoemItem(param) })
   }
-  .title('诗词鉴赏')
+  .title($r('app.string.poemct_title'))
   .hideTitleBar(false)
   .backButtonIcon($r('sys.symbol.chevron_left'))
   .menus([])
@@ -76,7 +76,7 @@ export struct PoemContentContent {
   private copyPoem(): void {
     let text: string = '\u3010' + this.poemParam.n + '\u3011' + this.poetName + '\n' + this.poemParam.c;
     ClipboardUtil.copy(text);
-    ToastUtil.show(this.uiContext, '已复制到剪贴板', 1000);
+    ToastUtil.show(this.uiContext, $r('app.string.poemct_copied'), 1000);
     console.info('[PoemContent] copied poem=' + this.poemParam.n);
   }
 
@@ -95,7 +95,7 @@ export struct PoemContentContent {
     }
       console.info('[PoemContent] tap poet=' + this.poetName + ', poems=' + detail.poems.length.toString());
     } else {
-      ToastUtil.show(this.uiContext, '未找到诗人信息', 1000);
+      ToastUtil.show(this.uiContext, $r('app.string.poemct_poet_not_found'), 1000);
       console.warn('[PoemContent] poet not found: ' + this.poetName);
     }
   }
@@ -120,7 +120,7 @@ export struct PoemContentContent {
       FavoritesUtil.remove(ctx, 'poem', this.poemParam.n);
       this.isFav = false;
       AppStorage.setOrCreate('PoemFavStatus', false);
-      ToastUtil.show(this.uiContext, '已取消收藏', 1000);
+      ToastUtil.show(this.uiContext, $r('app.string.poemct_unfavorited'), 1000);
     } else {
       let item: FavoriteItem = new FavoriteItem();
       item.type = 'poem';
@@ -131,9 +131,9 @@ export struct PoemContentContent {
       this.isFav = true;
       AppStorage.setOrCreate('PoemFavStatus', true);
       if (res.truncated) {
-        ToastUtil.show(this.uiContext, '收藏已达上限，最早一条已移除', 2000);
+        ToastUtil.show(this.uiContext, $r('app.string.poemct_fav_full'), 2000);
       } else {
-        ToastUtil.show(this.uiContext, '已收藏', 1000);
+        ToastUtil.show(this.uiContext, $r('app.string.poemct_favorited'), 1000);
       }
     }
     FavoritesUtil.invalidateCache();
@@ -149,7 +149,7 @@ export struct PoemContentContent {
   private createListAndAdd(): void {
     let name: string = this.newListName.trim();
     if (!name) {
-      ToastUtil.show(this.uiContext, '请输入清单名称', 1000);
+      ToastUtil.show(this.uiContext, $r('app.string.readlist_input_name'), 1000);
       return;
     }
     let list: ReadingList = ReadingListStore.addList(this.uiContext.getHostContext() as Context, name);
@@ -185,9 +185,9 @@ export struct PoemContentContent {
     let added: number = CharBookUtil.addChars(this.uiContext.getHostContext() as Context, this.selectedChars);
     this.showCharPicker = false;
     if (added > 0) {
-      ToastUtil.show(this.uiContext, '已加入生字本 ' + added.toString() + ' 个字', 1500);
+      ToastUtil.show(this.uiContext, $r('app.string.poemct_charbook_added', added), 1500);
     } else {
-      ToastUtil.show(this.uiContext, '所选字已在生字本中', 1500);
+      ToastUtil.show(this.uiContext, $r('app.string.poemct_charbook_dup'), 1500);
     }
   }
 
@@ -213,7 +213,7 @@ export struct PoemContentContent {
       .backgroundColor($r('app.color.poetry_green') + '18')
       .borderRadius(16)
       .padding({ left: 20, right: 20, top: 8, bottom: 8 })
-      .accessibilityText(this.inReadingList ? '已在朗读清单中' : '加入朗读清单')
+      .accessibilityText(this.inReadingList ? $r('app.string.poemct_in_reading_list') : $r('app.string.poemct_add_to_reading'))
       .onClick(() => {
         this.openReadingListPicker();
       })
@@ -287,7 +287,7 @@ export struct PoemContentContent {
                 .backgroundColor(this.isFav ? $r('app.color.danger_red') + '18' : $r('app.color.poetry_green') + '18')
                 .borderRadius(16)
                 .padding({ left: 20, right: 20, top: 8, bottom: 8 })
-                .accessibilityText(this.isFav ? '取消收藏' : '收藏')
+                .accessibilityText(this.isFav ? $r('app.string.poemct_a11y_unfav') : $r('app.string.poemct_a11y_fav'))
                 .onClick(() => {
                   this.toggleFav();
                 })
@@ -304,7 +304,7 @@ export struct PoemContentContent {
                 this.ReadingListButton()
               }
 
-              Text('复制')
+              Text($r('app.string.poemct_copy'))
                 .fontSize(14)
                 .fontColor($r('app.color.on_accent_text'))
                 .backgroundColor($r('app.color.poetry_green'))
@@ -314,7 +314,7 @@ export struct PoemContentContent {
                   this.copyPoem();
                 })
 
-              Text('分享图片')
+              Text($r('app.string.poemct_share_image'))
                 .fontSize(14)
                 .fontColor($r('app.color.on_accent_text'))
                 .backgroundColor($r('app.color.poetry_green'))
@@ -329,10 +329,10 @@ export struct PoemContentContent {
             .margin({ top: 24 })
 
             Row({ space: 6 }) {
-              Text('\u63CF\u7EA2')
+              Text($r('app.string.poemct_trace'))
                 .fontSize(13)
                 .fontColor($r('app.color.on_accent_text'))
-              Text('\u9009\u53D6\u751F\u5B57\u52A0\u5165\u751F\u5B57\u672C')
+              Text($r('app.string.poemct_pick_chars_hint'))
                 .fontSize(13)
                 .fontColor($r('app.color.on_accent_text'))
             }
@@ -384,7 +384,7 @@ export struct PoemContentContent {
   ReadingListPickerOverlay() {
     Column() {
       Column() {
-        Text(this.showCreateInPicker ? '新建朗读清单' : '加入朗读清单')
+        Text(this.showCreateInPicker ? $r('app.string.readlist_create_title') : $r('app.string.poemct_add_to_reading'))
           .fontSize(18)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.primary_text'))
@@ -399,7 +399,7 @@ export struct PoemContentContent {
                     .fontSize(15)
                     .fontColor($r('app.color.primary_text'))
                     .layoutWeight(1)
-                  Text(list.items.length.toString() + '项')
+                  Text($r('app.string.poemct_items_count', list.items.length))
                     .fontSize(12)
                     .fontColor($r('app.color.tertiary_text'))
                     .margin({ left: 8 })
@@ -417,12 +417,12 @@ export struct PoemContentContent {
           .width('100%')
           .constraintSize({ maxHeight: '50%' })
         } else if (!this.showCreateInPicker) {
-          Text('暂无朗读清单，请先创建')
+          Text($r('app.string.poemct_no_lists'))
             .fontSize(14)
             .fontColor($r('app.color.tertiary_text'))
             .margin({ top: 20, bottom: 12 })
 
-          Text('+ 新建清单')
+          Text($r('app.string.readlist_new_list'))
             .fontSize(15)
             .fontColor($r('app.color.on_accent_text'))
             .backgroundColor($r('app.color.poetry_green'))
@@ -433,7 +433,7 @@ export struct PoemContentContent {
               this.showCreateInPicker = true;
             })
         } else {
-          TextInput({ placeholder: '输入清单名称，如：每日诗词', text: this.newListName })
+          TextInput({ placeholder: $r('app.string.readlist_name_hint'), text: this.newListName })
             .width('100%')
             .height(44)
             .fontSize(15)
@@ -448,7 +448,7 @@ export struct PoemContentContent {
             })
 
           Row({ space: 12 }) {
-            Text('取消')
+            Text($r('app.string.readlist_cancel'))
               .fontSize(15)
               .fontColor($r('app.color.tertiary_text'))
               .backgroundColor($r('app.color.border_color'))
@@ -458,7 +458,7 @@ export struct PoemContentContent {
                 this.showCreateInPicker = false;
               })
 
-            Text('创建')
+            Text($r('app.string.readlist_create'))
               .fontSize(15)
               .fontColor($r('app.color.on_accent_text'))
               .backgroundColor($r('app.color.poetry_green'))
@@ -471,7 +471,7 @@ export struct PoemContentContent {
           .margin({ top: 16 })
         }
 
-        Text('取消')
+        Text($r('app.string.readlist_cancel'))
           .fontSize(15)
           .fontColor($r('app.color.tertiary_text'))
           .backgroundColor($r('app.color.border_color'))
@@ -502,12 +502,12 @@ export struct PoemContentContent {
   CharPickerOverlay() {
     Column() {
       Column() {
-        Text('选取生字')
+        Text($r('app.string.poemct_pick_chars_title'))
           .fontSize(18)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.primary_text'))
 
-        Text('点选诗文中的字加入生字本，绿框为已收录，可在生字卡中一键导入')
+        Text($r('app.string.poemct_pick_chars_desc'))
           .fontSize(12)
           .fontColor($r('app.color.tertiary_text'))
           .margin({ top: 6, bottom: 14 })
@@ -541,7 +541,7 @@ export struct PoemContentContent {
         .width('100%')
 
         Row({ space: 12 }) {
-          Text('取消')
+          Text($r('app.string.readlist_cancel'))
             .fontSize(15)
             .fontColor($r('app.color.tertiary_text'))
             .backgroundColor($r('app.color.border_color'))
@@ -551,7 +551,7 @@ export struct PoemContentContent {
               this.showCharPicker = false;
             })
 
-          Text('加入生字本(' + this.selectedChars.length.toString() + ')')
+          Text($r('app.string.poemct_add_to_book', this.selectedChars.length))
             .fontSize(15)
             .fontWeight(FontWeight.Bold)
             .fontColor(this.selectedChars.length > 0 ? $r('app.color.on_accent_text') : $r('app.color.tertiary_text'))

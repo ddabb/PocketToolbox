@@ -192,7 +192,8 @@ export class PoetryViewModel {
       let item: SearchResultItem = new SearchResultItem();
       item.type = 'poet';
       item.title = poet.n;
-      item.subtitle = poet.d + ' \u00B7 ' + poet.pc.toString() + '首';
+      item.subtitle = poet.d;
+      item.poemCount = poet.pc;
       item.poetInitial = poet.i;
       item.poetDynasty = poet.d;
       results.push(item);

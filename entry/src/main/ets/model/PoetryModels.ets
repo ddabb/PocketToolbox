@@ -44,4 +44,5 @@ export class SearchResultItem {
   poetInitial: string = '';
   poetDynasty: string = '';
   poetName: string = '';
+  poemCount: number = 0;
 }

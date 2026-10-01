@@ -2,27 +2,27 @@
   "string": [
     {
       "name": "EntryFormAbility_label",
-      "value": "Daily Poem Card"
+      "value": "每日一诗卡片"
     },
     {
       "name": "EntryFormAbility_desc",
-      "value": "JieYu ZhuJi daily poem home-screen card"
+      "value": "解语珠玑每日一诗桌面卡片"
     },
     {
       "name": "daily_poem_widget_name",
-      "value": "Daily Poem"
+      "value": "每日一诗"
     },
     {
       "name": "daily_poem_widget_desc",
-      "value": "A poem a day. Tap the card to open JieYu ZhuJi"
+      "value": "每天一首诗，点击卡片进入解语珠玑"
     },
     {
       "name": "module_desc",
-      "value": "Main module of JieYu ZhuJi"
+      "value": "解语珠玑主模块"
     },
     {
       "name": "EntryAbility_desc",
-      "value": "JieYu ZhuJi app entry"
+      "value": "解语珠玑应用入口"
     },
     {
       "name": "EntryAbility_label",
@@ -30,1507 +30,1507 @@
     },
     {
       "name": "page_poetry_query",
-      "value": "Poetry Search"
+      "value": "诗词查询"
     },
     {
       "name": "page_poetry_detail",
-      "value": "Poet Details"
+      "value": "诗人详情"
     },
     {
       "name": "page_poem_content",
-      "value": "Poem Details"
+      "value": "诗词详情"
     },
     {
       "name": "page_idiom_query",
-      "value": "Idiom Search"
+      "value": "成语查询"
     },
     {
       "name": "page_xiehouyu_query",
-      "value": "Xiehouyu Search"
+      "value": "歇后语查询"
     },
     {
       "name": "page_favorites",
-      "value": "My Favorites"
+      "value": "我的收藏"
     },
     {
       "name": "permission_internet_reason",
-      "value": "Used to fetch poetry, idiom, and other content data"
+      "value": "用于获取诗词、成语等数据内容"
     },
     {
       "name": "permission_vibrate_reason",
-      "value": "Used for haptic feedback on key actions such as check-ins and challenge completion"
+      "value": "用于签到、挑战完成等关键操作的振动反馈"
     },
     {
       "name": "permission_reminder_reason",
-      "value": "Used to send daily check-in reminder notifications"
+      "value": "用于每日签到提醒的通知推送"
     },
     {
       "name": "permission_keep_background_reason",
-      "value": "Used to keep reading aloud playing in the background"
+      "value": "用于朗读内容的后台连续播放"
     },
     {
       "name": "daily_poem_title",
-      "value": "Daily Poem"
+      "value": "每日一诗"
     },
     {
       "name": "daily_poem_loading",
-      "value": "Loading today's poem…"
+      "value": "今日诗句加载中…"
     },
     {
       "name": "widget_date_format",
-      "value": "%1$s/%2$s"
+      "value": "%1$s月%2$s日"
     },
     {
       "name": "reminder_checkin_content",
-      "value": "You haven't checked in today. The daily challenge awaits!"
+      "value": "今天还没签到打卡，每日挑战等你来战！"
     },
     {
       "name": "reading_session_artist",
-      "value": "解语珠玑 · Reading List"
+      "value": "解语珠玑 · 朗读清单"
     },
     {
       "name": "added_to_list",
-      "value": "Added to “%1$s”"
+      "value": "已加入「%1$s」"
     },
     {
       "name": "already_in_list",
-      "value": "Already in “%1$s”"
+      "value": "已在「%1$s」中"
     },
     {
       "name": "ach_fav_10_title",
-      "value": "Collector Novice"
+      "value": "收藏新手"
     },
     {
       "name": "ach_fav_10_desc",
-      "value": "Collect 10 favorites in total"
+      "value": "累计收藏10项"
     },
     {
       "name": "ach_fav_50_title",
-      "value": "Collector Pro"
+      "value": "收藏达人"
     },
     {
       "name": "ach_fav_50_desc",
-      "value": "Collect 50 favorites in total"
+      "value": "累计收藏50项"
     },
     {
       "name": "ach_fav_100_title",
-      "value": "Collector Master"
+      "value": "收藏大师"
     },
     {
       "name": "ach_fav_100_desc",
-      "value": "Collect 100 favorites in total"
+      "value": "累计收藏100项"
     },
     {
       "name": "ach_poem_fav_20_title",
-      "value": "Poetry Lover"
+      "value": "诗词爱好者"
     },
     {
       "name": "ach_poem_fav_20_desc",
-      "value": "Favorite 20 poems"
+      "value": "收藏诗词20首"
     },
     {
       "name": "ach_poem_fav_50_title",
-      "value": "Poetry Connoisseur"
+      "value": "诗词鉴赏家"
     },
     {
       "name": "ach_poem_fav_50_desc",
-      "value": "Favorite 50 poems"
+      "value": "收藏诗词50首"
     },
     {
       "name": "ach_idiom_fav_20_title",
-      "value": "Idiom Collector"
+      "value": "成语收藏家"
     },
     {
       "name": "ach_idiom_fav_20_desc",
-      "value": "Favorite 20 idioms"
+      "value": "收藏成语20个"
     },
     {
       "name": "ach_checkin_7_title",
-      "value": "One-Week Streak"
+      "value": "坚持一周"
     },
     {
       "name": "ach_checkin_7_desc",
-      "value": "Check in 7 days in a row"
+      "value": "连续签到7天"
     },
     {
       "name": "ach_checkin_30_title",
-      "value": "Monthly Scholar"
+      "value": "月度学霸"
     },
     {
       "name": "ach_checkin_30_desc",
-      "value": "Check in 30 days in a row"
+      "value": "连续签到30天"
     },
     {
       "name": "ach_checkin_total_30_title",
-      "value": "Study Habit"
+      "value": "学习习惯"
     },
     {
       "name": "ach_checkin_total_30_desc",
-      "value": "Check in 30 days in total"
+      "value": "累计签到30天"
     },
     {
       "name": "ach_challenge_10_title",
-      "value": "Challenge Rookie"
+      "value": "挑战新秀"
     },
     {
       "name": "ach_challenge_10_desc",
-      "value": "Complete 10 daily challenges"
+      "value": "完成10次每日挑战"
     },
     {
       "name": "ach_challenge_50_title",
-      "value": "Challenge Master"
+      "value": "挑战达人"
     },
     {
       "name": "ach_challenge_50_desc",
-      "value": "Complete 50 daily challenges"
+      "value": "完成50次每日挑战"
     },
     {
       "name": "ach_browse_100_title",
-      "value": "Diligent Reader"
+      "value": "勤奋读者"
     },
     {
       "name": "ach_browse_100_desc",
-      "value": "Browse 100 times in total"
+      "value": "累计浏览100次"
     },
     {
       "name": "ach_browse_500_title",
-      "value": "Well-Read"
+      "value": "博览群书"
     },
     {
       "name": "ach_browse_500_desc",
-      "value": "Browse 500 times in total"
+      "value": "累计浏览500次"
     },
     {
       "name": "ach_reading_10_title",
-      "value": "The Reader"
+      "value": "朗读者"
     },
     {
       "name": "ach_reading_10_desc",
-      "value": "Read 10 items aloud"
+      "value": "朗读10篇内容"
     },
     {
       "name": "ach_tool_5_title",
-      "value": "Tool Explorer"
+      "value": "工具探索者"
     },
     {
       "name": "ach_tool_5_desc",
-      "value": "Use 5 different tools"
+      "value": "使用5种不同工具"
     },
     {
       "name": "challenge_poem_prompt",
-      "value": "Fill in the missing character:\n%1$s\n— %2$s, “%3$s”"
+      "value": "请填出空缺的字：\n%1$s\n——%2$s《%3$s》"
     },
     {
       "name": "challenge_idiom_prompt",
-      "value": "Fill in the missing character in the idiom:\n%1$s"
+      "value": "请填出成语中空缺的字：\n%1$s"
     },
     {
       "name": "challenge_xiehouyu_prompt",
-      "value": "Guess the second half of the xiehouyu:\n%1$s — ?"
+      "value": "猜猜歇后语的下半句：\n%1$s——？"
     },
     {
       "name": "widget_footer",
-      "value": "解语珠玑 · Daily Poem"
+      "value": "解语珠玑 · 每日一诗"
     },
     {
       "name": "tab_home",
-      "value": "Home"
+      "value": "首页"
     },
     {
       "name": "tab_tools",
-      "value": "Tools"
+      "value": "工具"
     },
     {
       "name": "tab_mine",
-      "value": "Mine"
+      "value": "我的"
     },
     {
       "name": "home_slogan",
-      "value": "Savor the classics, feel the beauty of words"
+      "value": "品读经典，感悟文字之美"
     },
     {
       "name": "home_poetry_sub",
-      "value": "Tang & Song poetry by dynasty"
+      "value": "唐诗宋词，按朝代浏览"
     },
     {
       "name": "home_idiom_sub",
-      "value": "Idiom chains, search both ways"
+      "value": "成语接龙，顺查逆查"
     },
     {
       "name": "xiehouyu_short",
-      "value": "Xiehouyu"
+      "value": "歇后语"
     },
     {
       "name": "home_xiehouyu_sub",
-      "value": "Fun xiehouyu riddles"
+      "value": "趣味歇后语，猜谜玩法"
     },
     {
       "name": "recent_tools",
-      "value": "Recently Used"
+      "value": "最近使用"
     },
     {
       "name": "a11y_recent_used",
-      "value": "Recently used: %1$s"
+      "value": "最近使用：%1$s"
     },
     {
       "name": "tools_title",
-      "value": "Toolbox"
+      "value": "工具箱"
     },
     {
       "name": "tools_slogan",
-      "value": "Handy calculators & converters"
+      "value": "实用计算与换算工具集"
     },
     {
       "name": "search_tools_hint",
-      "value": "Search tools"
+      "value": "搜索工具"
     },
     {
       "name": "search_results",
-      "value": "Search Results"
+      "value": "搜索结果"
     },
     {
       "name": "no_tools_found",
-      "value": "No matching tools"
+      "value": "没有找到相关工具"
     },
     {
       "name": "section_creative",
-      "value": "Creative"
+      "value": "创意工具"
     },
     {
       "name": "section_math",
-      "value": "Math"
+      "value": "数学计算"
     },
     {
       "name": "section_unit",
-      "value": "Converters"
+      "value": "单位换算"
     },
     {
       "name": "stat_total_checkin",
-      "value": "Total check-ins"
+      "value": "累计签到"
     },
     {
       "name": "stat_streak",
-      "value": "Streak"
+      "value": "连续签到"
     },
     {
       "name": "stat_reading_list",
-      "value": "Reading List"
+      "value": "朗读清单"
     },
     {
       "name": "mine_feedback",
-      "value": "Feedback"
+      "value": "意见反馈"
     },
     {
       "name": "mine_about",
-      "value": "About"
+      "value": "关于"
     },
     {
       "name": "mine_today_checkin",
-      "value": "Today's Check-in"
+      "value": "今日签到"
     },
     {
       "name": "checked_in",
-      "value": "✓ Checked in"
+      "value": "✓ 已签到"
     },
     {
       "name": "not_checked_in",
-      "value": "Not checked in"
+      "value": "未签到"
     },
     {
       "name": "days_unit",
-      "value": "%1$d days"
+      "value": "%1$d天"
     },
     {
       "name": "mine_today_challenge",
-      "value": "Today's Challenge"
+      "value": "今日挑战"
     },
     {
       "name": "challenge_done",
-      "value": "Done"
+      "value": "已完成"
     },
     {
       "name": "challenge_not_done",
-      "value": "Not done"
+      "value": "未完成"
     },
     {
       "name": "stat_browse",
-      "value": "Total views"
+      "value": "累计浏览"
     },
     {
       "name": "times_unit",
-      "value": "%1$d times"
+      "value": "%1$d次"
     },
     {
       "name": "stat_challenges",
-      "value": "Total challenges"
+      "value": "累计挑战"
     },
     {
       "name": "stat_reading_items",
-      "value": "Items read"
+      "value": "朗读内容"
     },
     {
       "name": "items_unit",
-      "value": "%1$d items"
+      "value": "%1$d篇"
     },
     {
       "name": "daily_idiom_title",
-      "value": "Daily Idiom"
+      "value": "每日成语"
     },
     {
       "name": "daily_xiehouyu_title",
-      "value": "Daily Xiehouyu"
+      "value": "每日歇后语"
     },
     {
       "name": "today_badge",
-      "value": "Today"
+      "value": "今日"
     },
     {
       "name": "a11y_back_to_today",
-      "value": "Back to today"
+      "value": "回到今日推荐"
     },
     {
       "name": "a11y_shuffle_poem",
-      "value": "Another poem"
+      "value": "换一首"
     },
     {
       "name": "a11y_shuffle_idiom",
-      "value": "Another idiom"
+      "value": "换一个成语"
     },
     {
       "name": "a11y_shuffle_xiehouyu",
-      "value": "Another xiehouyu"
+      "value": "换一条歇后语"
     },
     {
       "name": "xiehouyu_answer_prefix",
-      "value": "— %1$s"
+      "value": "—— %1$s"
     },
     {
       "name": "daily_checkin",
-      "value": "Daily Check-in"
+      "value": "每日签到"
     },
     {
       "name": "streak_days",
-      "value": "%1$d-day streak"
+      "value": "连续%1$d天"
     },
     {
       "name": "checkin_success_toast",
-      "value": "Checked in! %1$d-day streak"
+      "value": "签到成功！连续%1$d天"
     },
     {
       "name": "tap_to_checkin",
-      "value": "Tap to check in"
+      "value": "点击签到"
     },
     {
       "name": "streak_so_far",
-      "value": "Streak: %1$d days"
+      "value": "已连续%1$d天"
     },
     {
       "name": "start_streak",
-      "value": "Start your streak"
+      "value": "开始你的连续签到"
     },
     {
       "name": "daily_challenge",
-      "value": "Daily Challenge"
+      "value": "每日挑战"
     },
     {
       "name": "score_label",
-      "value": "Score %1$d"
+      "value": "得分 %1$d"
     },
     {
       "name": "go_challenge",
-      "value": "Take it"
+      "value": "去挑战"
     },
     {
       "name": "quiz_for_points",
-      "value": "Quiz for points"
+      "value": "答题赢积分"
     },
     {
       "name": "review_card_title",
-      "value": "Review & Remember"
+      "value": "温故知新"
     },
     {
       "name": "feedback_subject",
-      "value": "JieYu ZhuJi Feedback"
+      "value": "解语珠玑意见反馈"
     },
     {
       "name": "feedback_no_mail_app",
-      "value": "No email app found. Feedback address copied"
+      "value": "未找到邮件应用，反馈邮箱已复制"
     },
     {
       "name": "unit_temp_subtitle",
-      "value": "Celsius, Fahrenheit, Kelvin, etc."
+      "value": "摄氏度、华氏度、开尔文等"
     },
     {
       "name": "a11y_tool_item",
-      "value": "%1$s, %2$s"
+      "value": "%1$s，%2$s"
     },
     {
       "name": "tool_gcd_lcm_title",
-      "value": "GCD & LCM"
+      "value": "公约/倍数"
     },
     {
       "name": "tool_gcd_lcm_sub",
-      "value": "Greatest common divisor & least common multiple"
+      "value": "最大公约数、最小公倍数"
     },
     {
       "name": "tool_prime_title",
-      "value": "Prime Factorization"
+      "value": "质因数分解"
     },
     {
       "name": "tool_prime_sub",
-      "value": "Factor composite numbers into primes"
+      "value": "分解合数为质数乘积"
     },
     {
       "name": "tool_base_sub",
-      "value": "Binary/Octal/Hex/Base64"
+      "value": "二进制/八进制/十六进制/Base64"
     },
     {
       "name": "tool_timezone_sub",
-      "value": "Global city time zones & meeting coordination"
+      "value": "全球城市时区对照与会议协调"
     },
     {
       "name": "tool_wordcloud_title",
-      "value": "Word Cloud"
+      "value": "词云生成"
     },
     {
       "name": "tool_wordcloud_sub",
-      "value": "Paste text, image in 30s"
+      "value": "粘贴文本，30秒出图"
     },
     {
       "name": "tool_md2png_title",
-      "value": "Text to Image"
+      "value": "文字转图片"
     },
     {
       "name": "tool_md2png_sub",
-      "value": "Render Markdown text as an image"
+      "value": "Markdown文本生成图片"
     },
     {
       "name": "tool_cover_title",
-      "value": "Cover Maker"
+      "value": "首图制作"
     },
     {
       "name": "tool_cover_sub",
-      "value": "Cover images in 30 seconds"
+      "value": "公众号封面 30 秒出图"
     },
     {
       "name": "tool_charcard_title",
-      "value": "Character Cards"
+      "value": "生字卡"
     },
     {
       "name": "tool_charcard_sub",
-      "value": "Tianzige character cards with pinyin"
+      "value": "田字格生字卡，一键注音"
     },
     {
       "name": "tool_gif_title",
-      "value": "GIF Maker"
+      "value": "GIF 制作"
     },
     {
       "name": "tool_gif_sub",
-      "value": "Combine photos/videos, edit GIFs"
+      "value": "图片/视频合成、编辑动图"
     },
     {
       "name": "tool_sudoku_title",
-      "value": "Sudoku Solver"
+      "value": "数独求解"
     },
     {
       "name": "tool_sudoku_sub",
-      "value": "Snap a photo, solved in seconds"
+      "value": "拍照识别，DLX算法秒解"
     },
     {
       "name": "wc_shape_circle",
-      "value": "Circle"
+      "value": "圆形"
     },
     {
       "name": "wc_shape_cardioid",
-      "value": "Heart"
+      "value": "心形"
     },
     {
       "name": "wc_shape_star5",
-      "value": "Five-point star"
+      "value": "五角星"
     },
     {
       "name": "wc_shape_diamond",
-      "value": "Diamond"
+      "value": "菱形"
     },
     {
       "name": "wc_shape_triangle",
-      "value": "Inverted triangle"
+      "value": "倒三角"
     },
     {
       "name": "wc_shape_triangle_up",
-      "value": "Upright triangle"
+      "value": "正三角"
     },
     {
       "name": "wc_shape_triangle_left",
-      "value": "Left triangle"
+      "value": "左三角"
     },
     {
       "name": "wc_shape_triangle_right",
-      "value": "Right triangle"
+      "value": "右三角"
     },
     {
       "name": "wc_shape_square",
-      "value": "Square"
+      "value": "方形"
     },
     {
       "name": "wc_shape_pentagon",
-      "value": "Pentagon"
+      "value": "五边"
     },
     {
       "name": "wc_shape_hexagon",
-      "value": "Hexagon"
+      "value": "六边"
     },
     {
       "name": "wc_shape_cross",
-      "value": "Cross"
+      "value": "十字"
     },
     {
       "name": "wc_shape_cloud",
-      "value": "Cloud"
+      "value": "云朵"
     },
     {
       "name": "wc_shape_oval",
-      "value": "Oval"
+      "value": "椭圆"
     },
     {
       "name": "wc_shape_leaf",
-      "value": "Leaf"
+      "value": "叶片"
     },
     {
       "name": "wc_shape_star8",
-      "value": "Eight-point star"
+      "value": "八角星"
     },
     {
       "name": "wc_shape_flower",
-      "value": "Flower"
+      "value": "花朵"
     },
     {
       "name": "wc_shape_octagon",
-      "value": "Octagon"
+      "value": "八边形"
     },
     {
       "name": "theme_default",
-      "value": "Clean Blue"
+      "value": "简约蓝"
     },
     {
       "name": "theme_wechat",
-      "value": "Fresh Green"
+      "value": "清新绿"
     },
     {
       "name": "theme_xiaohongshu",
-      "value": "Cherry Red"
+      "value": "樱桃红"
     },
     {
       "name": "theme_douyin",
-      "value": "Midnight Red"
+      "value": "暗夜红"
     },
     {
       "name": "theme_ink",
-      "value": "Ink Wash"
+      "value": "水墨风"
     },
     {
       "name": "theme_cyberpunk",
-      "value": "Cyberpunk"
+      "value": "赛博朋克"
     },
     {
       "name": "theme_minimalist",
-      "value": "Minimalist White"
+      "value": "极简白"
     },
     {
       "name": "theme_neon",
-      "value": "Neon"
+      "value": "霓虹灯"
     },
     {
       "name": "theme_nature",
-      "value": "Natural Green"
+      "value": "自然绿"
     },
     {
       "name": "theme_nordic",
-      "value": "Nordic"
+      "value": "北欧风"
     },
     {
       "name": "tmpl_palette_title",
-      "value": "Palettes"
+      "value": "配色方案"
     },
     {
       "name": "cover_slot_title",
-      "value": "Main title"
+      "value": "主标题"
     },
     {
       "name": "wc_config_hint",
-      "value": "Palette: %1 | Shape: %2 | Font: %3"
+      "value": "配色：%1 | 形状：%2 | 字体：%3"
     },
     {
       "name": "cover_restored",
-      "value": "Restored: %1"
+      "value": "已恢复：%1"
     },
     {
       "name": "cover_slot_subtitle",
-      "value": "Subtitle"
+      "value": "副标题"
     },
     {
       "name": "cover_slot_author",
-      "value": "Author / account name"
+      "value": "署名 / 公众号名"
     },
     {
       "name": "cover_slot_issue",
-      "value": "Issue / date"
+      "value": "期号 / 日期"
     },
     {
       "name": "cover_slot_quote",
-      "value": "Quote"
+      "value": "引言"
     },
     {
       "name": "cover_slot_quote_source",
-      "value": "Source"
+      "value": "出处"
     },
     {
       "name": "cover_slot_pinyin",
-      "value": "Pinyin (auto-generated, tap a syllable to pick)"
+      "value": "拼音（自动生成，点音节选择读音）"
     },
     {
       "name": "cover_slot_seal",
-      "value": "Seal (2-4 chars)"
+      "value": "印章（2-4 字）"
     },
     {
       "name": "readlist_input_name",
-      "value": "Enter a list name"
+      "value": "请输入清单名称"
     },
     {
       "name": "readlist_created",
-      "value": "List created"
+      "value": "清单已创建"
     },
     {
       "name": "readlist_renamed",
-      "value": "Renamed"
+      "value": "已重命名"
     },
     {
       "name": "readlist_confirm_delete",
-      "value": "Confirm Delete"
+      "value": "确认删除"
     },
     {
       "name": "readlist_delete_msg",
-      "value": "Delete list “%1$s”?"
+      "value": "确定要删除清单「%1$s」吗？"
     },
     {
       "name": "readlist_cancel",
-      "value": "Cancel"
+      "value": "取消"
     },
     {
       "name": "readlist_delete",
-      "value": "Delete"
+      "value": "删除"
     },
     {
       "name": "readlist_deleted",
-      "value": "Deleted"
+      "value": "已删除"
     },
     {
       "name": "readlist_no_items",
-      "value": "No items yet"
+      "value": "暂无内容"
     },
     {
       "name": "readlist_item_poem",
-      "value": "Poems %1$d"
+      "value": "诗词%1$d"
     },
     {
       "name": "readlist_item_idiom",
-      "value": "Idioms %1$d"
+      "value": "成语%1$d"
     },
     {
       "name": "readlist_item_xiehouyu",
-      "value": "Xiehouyu %1$d"
+      "value": "歇后语%1$d"
     },
     {
       "name": "readlist_count_summary",
-      "value": "%1$d items: %2$s"
+      "value": "共%1$d项：%2$s"
     },
     {
       "name": "readlist_count_sep",
-      "value": ", "
+      "value": "、"
     },
     {
       "name": "readlist_updated_at",
-      "value": "Updated %1$s"
+      "value": "更新于 %1$s"
     },
     {
       "name": "readlist_empty_title",
-      "value": "No reading lists yet"
+      "value": "暂无朗读清单"
     },
     {
       "name": "readlist_empty_hint",
-      "value": "Tap the button below to create your first list"
+      "value": "点击下方按钮创建您的第一个清单"
     },
     {
       "name": "readlist_new_list",
-      "value": "+ New List"
+      "value": "+ 新建清单"
     },
     {
       "name": "readlist_create_title",
-      "value": "New Reading List"
+      "value": "新建朗读清单"
     },
     {
       "name": "readlist_name_hint",
-      "value": "Enter a list name, e.g. Daily Poems"
+      "value": "输入清单名称，如：每日诗词"
     },
     {
       "name": "readlist_create",
-      "value": "Create"
+      "value": "创建"
     },
     {
       "name": "readlist_rename_title",
-      "value": "Rename List"
+      "value": "重命名清单"
     },
     {
       "name": "readlist_rename_hint",
-      "value": "Enter a new list name"
+      "value": "输入新的清单名称"
     },
     {
       "name": "readlist_save",
-      "value": "Save"
+      "value": "保存"
     },
     {
       "name": "player_title",
-      "value": "Reading Player"
+      "value": "朗读播放"
     },
     {
       "name": "player_tts_unsupported",
-      "value": "Reading aloud is not supported on this device"
+      "value": "当前设备暂不支持朗读"
     },
     {
       "name": "player_tts_failed",
-      "value": "Reading failed (%1$d). Please try again later"
+      "value": "朗读失败(%1$d)，请稍后重试"
     },
     {
       "name": "player_status_playing",
-      "value": "Reading %1$d/%2$d"
+      "value": "朗读中 %1$d/%2$d"
     },
     {
       "name": "player_status_playing_short",
-      "value": "Reading"
+      "value": "朗读中"
     },
     {
       "name": "player_paused",
-      "value": "Paused"
+      "value": "已暂停"
     },
     {
       "name": "player_tap_to_read",
-      "value": "Tap to read"
+      "value": "点击朗读"
     },
     {
       "name": "player_all_done",
-      "value": "All items finished"
+      "value": "全部朗读完毕"
     },
     {
       "name": "player_removed",
-      "value": "Removed"
+      "value": "已移除"
     },
     {
       "name": "player_type_poem",
-      "value": "Poem"
+      "value": "诗词"
     },
     {
       "name": "player_type_idiom",
-      "value": "Idiom"
+      "value": "成语"
     },
     {
       "name": "player_type_text",
-      "value": "Text"
+      "value": "文本"
     },
     {
       "name": "player_empty_list",
-      "value": "This list is empty"
+      "value": "清单为空"
     },
     {
       "name": "player_empty_hint",
-      "value": "Add items from poem, idiom, or xiehouyu detail pages"
+      "value": "请在诗词、成语或歇后语详情页添加内容"
     },
     {
       "name": "player_list_missing",
-      "value": "List not found or deleted"
+      "value": "清单不存在或已删除"
     },
     {
       "name": "player_speed",
-      "value": "Speed %1$s"
+      "value": "语速 %1$s"
     },
     {
       "name": "player_speed_title",
-      "value": "Reading Speed"
+      "value": "朗读语速"
     },
     {
       "name": "player_confirm",
-      "value": "OK"
+      "value": "确定"
     },
     {
       "name": "player_move_up",
-      "value": "Move Up"
+      "value": "上移"
     },
     {
       "name": "player_move_down",
-      "value": "Move Down"
+      "value": "下移"
     },
     {
       "name": "player_remove",
-      "value": "Remove"
+      "value": "移除"
     },
     {
       "name": "poemdetail_search_hint",
-      "value": "Search poems..."
+      "value": "搜索诗名..."
     },
     {
       "name": "poemdetail_works",
-      "value": "Works"
+      "value": "作品"
     },
     {
       "name": "poemdetail_no_result",
-      "value": "No poems found"
+      "value": "未找到相关诗词"
     },
     {
       "name": "poemct_title",
-      "value": "Poem Appreciation"
+      "value": "诗词鉴赏"
     },
     {
       "name": "poemct_copied",
-      "value": "Copied to clipboard"
+      "value": "已复制到剪贴板"
     },
     {
       "name": "poemct_poet_not_found",
-      "value": "Poet not found"
+      "value": "未找到诗人信息"
     },
     {
       "name": "poemct_unfavorited",
-      "value": "Removed from favorites"
+      "value": "已取消收藏"
     },
     {
       "name": "poemct_fav_full",
-      "value": "Favorites limit reached. Oldest entry removed"
+      "value": "收藏已达上限，最早一条已移除"
     },
     {
       "name": "poemct_favorited",
-      "value": "Added to favorites"
+      "value": "已收藏"
     },
     {
       "name": "poemct_charbook_added",
-      "value": "Added %1$d characters to the word book"
+      "value": "已加入生字本 %1$d 个字"
     },
     {
       "name": "poemct_charbook_dup",
-      "value": "Those characters are already in the word book"
+      "value": "所选字已在生字本中"
     },
     {
       "name": "poemct_in_reading_list",
-      "value": "Already in a reading list"
+      "value": "已在朗读清单中"
     },
     {
       "name": "poemct_add_to_reading",
-      "value": "Add to Reading List"
+      "value": "加入朗读清单"
     },
     {
       "name": "poemct_a11y_unfav",
-      "value": "Remove from favorites"
+      "value": "取消收藏"
     },
     {
       "name": "poemct_a11y_fav",
-      "value": "Favorite"
+      "value": "收藏"
     },
     {
       "name": "poemct_copy",
-      "value": "Copy"
+      "value": "复制"
     },
     {
       "name": "poemct_share_image",
-      "value": "Share as Image"
+      "value": "分享图片"
     },
     {
       "name": "poemct_trace",
-      "value": "Trace"
+      "value": "描红"
     },
     {
       "name": "poemct_pick_chars_hint",
-      "value": "Pick characters for the word book"
+      "value": "选取生字加入生字本"
     },
     {
       "name": "poemct_no_lists",
-      "value": "No reading lists yet. Create one first"
+      "value": "暂无朗读清单，请先创建"
     },
     {
       "name": "poemct_items_count",
-      "value": "%1$d items"
+      "value": "%1$d项"
     },
     {
       "name": "poemct_pick_chars_title",
-      "value": "Pick Characters"
+      "value": "选取生字"
     },
     {
       "name": "poemct_pick_chars_desc",
-      "value": "Tap characters to add them to the word book. A green border means already saved. Import them in one tap from Character Cards."
+      "value": "点选诗文中的字加入生字本，绿框为已收录，可在生字卡中一键导入"
     },
     {
       "name": "poemct_add_to_book",
-      "value": "Add to Word Book (%1$d)"
+      "value": "加入生字本(%1$d)"
     },
     {
       "name": "favsp_delete_msg",
-      "value": "Remove “%1$s” from favorites?"
+      "value": "确定要取消收藏「%1$s」吗？"
     },
     {
       "name": "favsp_tab_all",
-      "value": "All"
+      "value": "全部"
     },
     {
       "name": "favsp_tab_poem",
-      "value": "Poems"
+      "value": "诗词"
     },
     {
       "name": "favsp_tab_idiom",
-      "value": "Idioms"
+      "value": "成语"
     },
     {
       "name": "favsp_empty_all",
-      "value": "No favorites yet"
+      "value": "暂无收藏"
     },
     {
       "name": "favsp_empty_poem",
-      "value": "No favorite poems yet"
+      "value": "暂无收藏的诗词"
     },
     {
       "name": "favsp_empty_idiom",
-      "value": "No favorite idioms yet"
+      "value": "暂无收藏的成语"
     },
     {
       "name": "favsp_empty_xiehouyu",
-      "value": "No favorite xiehouyu yet"
+      "value": "暂无收藏的歇后语"
     },
     {
       "name": "detail_explanation",
-      "value": "Meaning"
+      "value": "释义"
     },
     {
       "name": "detail_example",
-      "value": "Example"
+      "value": "例句"
     },
     {
       "name": "detail_copy_all",
-      "value": "Copy All"
+      "value": "复制全部"
     },
     {
       "name": "favd_riddle",
-      "value": "Riddle"
+      "value": "谜面"
     },
     {
       "name": "favd_answer",
-      "value": "Answer"
+      "value": "谜底"
     },
     {
       "name": "share_snapshot_failed",
-      "value": "Screenshot failed"
+      "value": "截图失败"
     },
     {
       "name": "share_generated",
-      "value": "Image generated"
+      "value": "图片已生成"
     },
     {
       "name": "share_generate_failed",
-      "value": "Generation failed"
+      "value": "生成失败"
     },
     {
       "name": "share_generate_failed_no_share",
-      "value": "Failed to generate image for sharing"
+      "value": "生成图片失败，无法分享"
     },
     {
       "name": "share_failed",
-      "value": "Share failed"
+      "value": "分享失败"
     },
     {
       "name": "share_generate_first",
-      "value": "Generate the image first"
+      "value": "请先生成图片"
     },
     {
       "name": "share_saved_to_album",
-      "value": "Saved to gallery"
+      "value": "已保存到相册"
     },
     {
       "name": "share_save_failed",
-      "value": "Save failed"
+      "value": "保存失败"
     },
     {
       "name": "share_generating",
-      "value": "Generating..."
+      "value": "生成中..."
     },
     {
       "name": "share_generate",
-      "value": "Generate Image"
+      "value": "生成图片"
     },
     {
       "name": "share_share",
-      "value": "Share"
+      "value": "分享"
     },
     {
       "name": "imgbar_save_image",
-      "value": "Save Image"
+      "value": "保存图片"
     },
     {
       "name": "err_load_failed",
-      "value": "Failed to load"
+      "value": "加载失败"
     },
     {
       "name": "err_retry",
-      "value": "Retry"
+      "value": "重试"
     },
     {
       "name": "poemq_no_results",
-      "value": "No results found"
+      "value": "未找到相关结果"
     },
     {
       "name": "poemq_ocr_no_text",
-      "value": "No text recognized"
+      "value": "未识别到文本"
     },
     {
       "name": "poemq_ocr_failed",
-      "value": "Recognition failed, please try again"
+      "value": "识别失败，请重试"
     },
     {
       "name": "poemq_no_poem_detail",
-      "value": "Poem details not found"
+      "value": "未找到诗词详情"
     },
     {
       "name": "poemq_no_poet_info",
-      "value": "Poet info not found"
+      "value": "未找到诗人信息"
     },
     {
       "name": "poemq_search_poet_hint",
-      "value": "Search a poet's name to view details"
+      "value": "请搜索诗人姓名查看详情"
     },
     {
       "name": "poemq_ocr_result_title",
-      "value": "Poem OCR results · Tap a line to search"
+      "value": "识诗结果 · 点击一行搜索"
     },
     {
       "name": "poemq_search_hint",
-      "value": "Search poets/poems..."
+      "value": "搜索诗人/诗词..."
     },
     {
       "name": "poemq_search",
-      "value": "Search"
+      "value": "搜索"
     },
     {
       "name": "poemq_loading",
-      "value": "Loading..."
+      "value": "加载中..."
     },
     {
       "name": "poemq_load_failed",
-      "value": "Failed to load data"
+      "value": "数据加载失败"
     },
     {
       "name": "poemq_load_failed_sub",
-      "value": "Data read error, please try again"
+      "value": "数据读取异常，请重试"
     },
     {
       "name": "poemq_type_poet",
-      "value": "Poet"
+      "value": "诗人"
     },
     {
       "name": "poemq_type_poem",
-      "value": "Poem"
+      "value": "诗词"
     },
     {
       "name": "poemq_poet_count",
-      "value": "%1$s · %2$d poems"
+      "value": "%1$s · %2$d首"
     },
     {
       "name": "poemq_load_more",
-      "value": "Load more"
+      "value": "加载更多"
     },
     {
       "name": "idiomq_not_in_lib",
-      "value": "Idiom not found in the library"
+      "value": "该成语不在词库中"
     },
     {
       "name": "idiomq_tip_forward",
-      "value": "%1$d forward-chain results"
+      "value": "共 %1$d 条顺查结果"
     },
     {
       "name": "idiomq_tip_reverse",
-      "value": "%1$d reverse-chain results"
+      "value": "共 %1$d 条逆查结果"
     },
     {
       "name": "idiomq_fuzzy_tip",
-      "value": "Fuzzy-matched %1$d idioms"
+      "value": "模糊匹配到 %1$d 个成语"
     },
     {
       "name": "idiomq_no_detail",
-      "value": "No details available"
+      "value": "暂无详情"
     },
     {
       "name": "idiomq_copied",
-      "value": "Copied to clipboard"
+      "value": "已复制到剪贴板"
     },
     {
       "name": "idiomq_reverse_loading",
-      "value": "Reverse index is loading, please wait..."
+      "value": "逆查数据加载中，请稍候..."
     },
     {
       "name": "idiomq_tab_pinyin",
-      "value": "Pinyin Search"
+      "value": "拼音搜索"
     },
     {
       "name": "idiomq_tab_solitaire",
-      "value": "Chain Search"
+      "value": "接龙查询"
     },
     {
       "name": "idiomq_tab_browse",
-      "value": "Browse by Letter"
+      "value": "按字浏览"
     },
     {
       "name": "idiomq_hint_forward",
-      "value": "Type an idiom for a forward chain..."
+      "value": "输入成语，顺查接龙..."
     },
     {
       "name": "idiomq_hint_reverse",
-      "value": "Type an idiom for a reverse chain..."
+      "value": "输入成语，逆查接龙..."
     },
     {
       "name": "idiomq_mode_forward",
-      "value": "Forward"
+      "value": "顺查"
     },
     {
       "name": "idiomq_mode_reverse",
-      "value": "Reverse"
+      "value": "逆查"
     },
     {
       "name": "idiomq_query",
-      "value": "Query"
+      "value": "查询"
     },
     {
       "name": "idiomq_copy_results",
-      "value": "Copy Results"
+      "value": "复制结果"
     },
     {
       "name": "idiomq_empty_solitaire",
-      "value": "Type an idiom to start a chain query"
+      "value": "输入成语开始接龙查询"
     },
     {
       "name": "idiomq_letter_header",
-      "value": "Idioms starting with %1$s"
+      "value": "%1$s 开头的成语"
     },
     {
       "name": "idiomq_letter_empty",
-      "value": "No idioms start with this letter"
+      "value": "暂无该字母开头的成语"
     },
     {
       "name": "idiomq_letter_pick",
-      "value": "Pick a first letter to browse idioms"
+      "value": "选择首字母浏览成语"
     },
     {
       "name": "idiomq_pinyin_hint",
-      "value": "Type pinyin or Chinese to search, e.g. bai / 百"
+      "value": "输入拼音或汉字搜索，如 bai / 百"
     },
     {
       "name": "idiomq_total_count",
-      "value": "(%1$d total)"
+      "value": "(共 %1$d 条)"
     },
     {
       "name": "idiomq_load_more_remaining",
-      "value": "Load more (%1$d left)"
+      "value": "加载更多 (剩余 %1$d 条)"
     },
     {
       "name": "idiomq_no_match",
-      "value": "No matching idioms"
+      "value": "未找到匹配的成语"
     },
     {
       "name": "idiomq_pinyin_empty",
-      "value": "Type pinyin or Chinese to search idioms"
+      "value": "输入拼音或汉字搜索成语"
     },
     {
       "name": "idiomq_pinyin_example",
-      "value": "e.g. bai or 百 → 百发百中、百步穿杨"
+      "value": "例如: bai 或 百 → 百发百中、百步穿杨"
     },
     {
       "name": "xhyq_guess_correct_streak",
-      "value": "Correct! %1$d in a row"
+      "value": "答对了！连对 %1$d 题"
     },
     {
       "name": "xhyq_guess_correct",
-      "value": "Correct!"
+      "value": "答对了！"
     },
     {
       "name": "xhyq_guess_wrong",
-      "value": "Not quite. The answer is: %1$s"
+      "value": "不对哦，答案是：%1$s"
     },
     {
       "name": "xhyq_unfaved",
-      "value": "Removed from favorites"
+      "value": "已取消收藏"
     },
     {
       "name": "xhyq_fav_full",
-      "value": "Favorites limit reached; the oldest entry was removed"
+      "value": "收藏已达上限，最早一条已移除"
     },
     {
       "name": "xhyq_faved",
-      "value": "Added to favorites"
+      "value": "已收藏"
     },
     {
       "name": "xhyq_load_failed_sub",
-      "value": "Failed to read xiehouyu data, please try again"
+      "value": "歇后语数据读取异常，请重试"
     },
     {
       "name": "xhyq_tab_search",
-      "value": "Search"
+      "value": "搜索查询"
     },
     {
       "name": "xhyq_tab_browse",
-      "value": "Browse by Category"
+      "value": "分类浏览"
     },
     {
       "name": "xhyq_tab_guess",
-      "value": "Riddle Game"
+      "value": "猜谜玩法"
     },
     {
       "name": "xhyq_search_hint",
-      "value": "Search xiehouyu..."
+      "value": "搜索歇后语..."
     },
     {
       "name": "xhyq_no_match",
-      "value": "No matching xiehouyu"
+      "value": "未找到匹配的歇后语"
     },
     {
       "name": "xhyq_search_empty",
-      "value": "Type a keyword to search xiehouyu"
+      "value": "输入关键词搜索歇后语"
     },
     {
       "name": "xhyq_search_hint_sub",
-      "value": "Search riddles or answers"
+      "value": "搜索谜面或谜底"
     },
     {
       "name": "xhyq_related",
-      "value": "Related Xiehouyu"
+      "value": "相关歇后语"
     },
     {
       "name": "xhyq_loaded_count",
-      "value": "%1$d loaded"
+      "value": "已加载 %1$d 条"
     },
     {
       "name": "xhyq_load_more",
-      "value": "Load more..."
+      "value": "加载更多..."
     },
     {
       "name": "xhyq_all_loaded",
-      "value": "All loaded"
+      "value": "已全部加载"
     },
     {
       "name": "xhyq_category_empty",
-      "value": "No xiehouyu in this category"
+      "value": "该分类暂无歇后语"
     },
     {
       "name": "xhyq_pick_category",
-      "value": "Pick a category to browse xiehouyu"
+      "value": "选择分类浏览歇后语"
     },
     {
       "name": "xhyq_guess_score",
-      "value": "Score: %1$d/%2$d"
+      "value": "得分：%1$d/%2$d"
     },
     {
       "name": "xhyq_skip",
-      "value": "Skip"
+      "value": "跳过"
     },
     {
       "name": "xhyq_guess_riddle_label",
-      "value": "Riddle"
+      "value": "猜谜面"
     },
     {
       "name": "xhyq_guess_input_hint",
-      "value": "Type your answer..."
+      "value": "输入你的答案..."
     },
     {
       "name": "xhyq_submit",
-      "value": "Submit"
+      "value": "提交答案"
     },
     {
       "name": "xhyq_hide_answer",
-      "value": "Hide Answer"
+      "value": "隐藏答案"
     },
     {
       "name": "xhyq_show_answer",
-      "value": "Show Answer"
+      "value": "查看答案"
     },
     {
       "name": "xhyq_next",
-      "value": "Next"
+      "value": "下一题"
     },
     {
       "name": "xhyq_answer_label",
-      "value": "Answer: %1$s"
+      "value": "答案：%1$s"
     },
     {
       "name": "xhyq_input_list_name",
-      "value": "Please enter a list name"
+      "value": "请输入清单名称"
     },
     {
       "name": "xhyq_in_reading_list",
-      "value": "Already in reading list"
+      "value": "已在朗读清单中"
     },
     {
       "name": "xhyq_add_to_reading_list",
-      "value": "Add to reading list"
+      "value": "加入朗读清单"
     },
     {
       "name": "xhyq_riddle_label",
-      "value": "Riddle"
+      "value": "谜面"
     },
     {
       "name": "xhyq_answer_label_short",
-      "value": "Answer"
+      "value": "谜底"
     },
     {
       "name": "xhyq_copy",
-      "value": "Copy"
+      "value": "复制"
     },
     {
       "name": "xhyq_share_image",
-      "value": "Share Image"
+      "value": "分享图片"
     },
     {
       "name": "xhyq_create_list_title",
-      "value": "New Reading List"
+      "value": "新建朗读清单"
     },
     {
       "name": "xhyq_item_count",
-      "value": "%1$d items"
+      "value": "%1$d项"
     },
     {
       "name": "xhyq_no_reading_list",
-      "value": "No reading lists yet. Create one first"
+      "value": "暂无朗读清单，请先创建"
     },
     {
       "name": "xhyq_new_list",
-      "value": "+ New List"
+      "value": "+ 新建清单"
     },
     {
       "name": "xhyq_list_name_hint",
-      "value": "Enter a list name, e.g. Daily Poems"
+      "value": "输入清单名称，如：每日诗词"
     },
     {
       "name": "xhyq_cancel",
-      "value": "Cancel"
+      "value": "取消"
     },
     {
       "name": "xhyq_create",
-      "value": "Create"
+      "value": "创建"
     },
     {
       "name": "challenge_type_poem",
-      "value": "Poem Fill-in"
+      "value": "诗词填空"
     },
     {
       "name": "challenge_type_idiom",
-      "value": "Idiom Fill-in"
+      "value": "成语填字"
     },
     {
       "name": "challenge_type_xiehouyu",
-      "value": "Xiehouyu Riddle"
+      "value": "歇后语猜谜"
     },
     {
       "name": "challenge_type_default",
-      "value": "Challenge"
+      "value": "挑战"
     },
     {
       "name": "challenge_generating",
-      "value": "Generating questions..."
+      "value": "题目生成中..."
     },
     {
       "name": "challenge_progress",
-      "value": "Question %1$d of %2$d"
+      "value": "第%1$d/%2$d题"
     },
     {
       "name": "challenge_score",
-      "value": "Score: %1$d"
+      "value": "得分：%1$d"
     },
     {
       "name": "challenge_correct",
-      "value": "Correct! +20 points"
+      "value": "回答正确！+20分"
     },
     {
       "name": "challenge_correct_answer",
-      "value": "Correct answer: %1$s"
+      "value": "正确答案：%1$s"
     },
     {
       "name": "challenge_view_result",
-      "value": "View Results"
+      "value": "查看结果"
     },
     {
       "name": "challenge_complete",
-      "value": "Daily challenge complete!"
+      "value": "今日挑战完成！"
     },
     {
       "name": "challenge_final_score",
-      "value": "Score: %1$d / 100"
+      "value": "得分：%1$d / 100"
     },
     {
       "name": "challenge_grade_excellent",
-      "value": "Excellent"
+      "value": "优秀"
     },
     {
       "name": "challenge_grade_good",
-      "value": "Good"
+      "value": "良好"
     },
     {
       "name": "challenge_grade_keep",
-      "value": "Keep going"
+      "value": "加油"
     },
     {
       "name": "challenge_grade_try",
-      "value": "Keep trying"
+      "value": "继续努力"
     },
     {
       "name": "challenge_today_grade",
-      "value": "Today's Grade"
+      "value": "今日评级"
     },
     {
       "name": "challenge_come_back",
-      "value": "📅 A new challenge every day. Come back tomorrow!"
+      "value": "📅 每日挑战每天更新，明天再来！"
     },
     {
       "name": "achpage_title",
-      "value": "My Achievements"
+      "value": "我的成就"
     },
     {
       "name": "achpage_unlocked",
-      "value": "Achievements Unlocked"
+      "value": "已解锁成就"
     },
     {
       "name": "achpage_list",
-      "value": "Achievements"
+      "value": "成就列表"
     },
     {
       "name": "about_clear_gif_title",
-      "value": "Clear GIF History"
+      "value": "清空 GIF 制作历史"
     },
     {
       "name": "about_clear_gif_msg",
-      "value": "All %1$d GIF records (about %2$s) will be deleted. Copies saved to Gallery are unaffected. Clear now?"
+      "value": "将删除全部 %1$d 条 GIF 制作记录（约 %2$s），已保存到相册的副本不受影响。确定清空？"
     },
     {
       "name": "about_clear",
-      "value": "Clear"
+      "value": "清空"
     },
     {
       "name": "about_reminder_title",
-      "value": "Daily Check-in Reminder"
+      "value": "每日签到提醒"
     },
     {
       "name": "about_reminder_desc",
-      "value": "When on, you'll be reminded daily at 20:00 to check in and take the challenge"
+      "value": "开启后每天 20:00 系统提醒签到与每日挑战"
     },
     {
       "name": "about_gif_history",
-      "value": "GIF History"
+      "value": "GIF 制作历史"
     },
     {
       "name": "about_gif_history_count",
-      "value": "%1$d items · %2$s"
+      "value": "%1$d 条 · %2$s"
     },
     {
       "name": "about_app_desc",
-      "value": "Poetry search, idiom chains, and xiehouyu riddles, plus handy tools like GIF maker, sudoku solver, and unit converters — enjoy the beauty of words and get more done every day."
+      "value": "包含诗词查询、成语接龙、歇后语猜谜，以及 GIF 制作、数独求解、单位转换等实用工具，助您领略文字之美、提升日常效率。"
     },
     {
       "name": "about_copyright",
@@ -1538,823 +1538,823 @@
     },
     {
       "name": "unitcat_title",
-      "value": "Unit Conversion"
+      "value": "单位转换"
     },
     {
       "name": "unitcat_base_sub",
-      "value": "Binary, octal, hexadecimal, Base64"
+      "value": "二进制、八进制、十六进制、Base64"
     },
     {
       "name": "unitcat_units_more",
-      "value": " and %1$d more"
+      "value": "等%1$d个单位"
     },
     {
       "name": "wc_edit_section_title",
-      "value": "Edit Words"
+      "value": "词语编辑"
     },
     {
       "name": "wc_restore_source",
-      "value": "Restore Source Text"
+      "value": "还原原文"
     },
     {
       "name": "wc_input_hint",
-      "value": "One word per line; use a colon to set weight, e.g. hello:5"
+      "value": "每行一个词语，冒号指定权重  例如: 创新:5"
     },
     {
       "name": "wc_btn_example",
-      "value": "Example"
+      "value": "示例"
     },
     {
       "name": "wc_btn_clear",
-      "value": "Clear"
+      "value": "清空"
     },
     {
       "name": "wc_extracting",
-      "value": "Extracting..."
+      "value": "分词中..."
     },
     {
       "name": "wc_extract_from_text",
-      "value": "Extract from Text"
+      "value": "从文本提取"
     },
     {
       "name": "wc_word_count",
-      "value": "%1$d words"
+      "value": "共%1$d词"
     },
     {
       "name": "wc_settings_title",
-      "value": "Style Settings"
+      "value": "样式设置"
     },
     {
       "name": "wc_btn_done",
-      "value": "Done"
+      "value": "完成"
     },
     {
       "name": "wc_section_shape",
-      "value": "Shape"
+      "value": "形状"
     },
     {
       "name": "wc_section_font",
-      "value": "Font"
+      "value": "字体"
     },
     {
       "name": "wc_label_palette",
-      "value": "Colors"
+      "value": "配色"
     },
     {
       "name": "wc_force_repeat",
-      "value": "Repeat words to fill the shape when few"
+      "value": "词少时强制重复填充"
     },
     {
       "name": "wc_generating",
-      "value": "Generating..."
+      "value": "生成中..."
     },
     {
       "name": "wc_generate",
-      "value": "Generate Word Cloud"
+      "value": "生成词云"
     },
     {
       "name": "wc_words_dialog_title",
-      "value": "Words (%1$d)"
+      "value": "参与词语 (%1$d)"
     },
     {
       "name": "wc_input_word_hint",
-      "value": "Enter a word"
+      "value": "输入词语"
     },
     {
       "name": "wc_weight_hint",
-      "value": "Weight"
+      "value": "权重"
     },
     {
       "name": "wc_btn_add",
-      "value": "Add"
+      "value": "添加"
     },
     {
       "name": "wc_tap_word_to_remove",
-      "value": "Tap a word to remove it"
+      "value": "点击词语可移除"
     },
     {
       "name": "wc_empty_hint",
-      "value": "Enter words, then tap Generate"
+      "value": "输入词语后点击生成"
     },
     {
       "name": "wc_toast_input_first",
-      "value": "Enter or paste some text above first"
+      "value": "请先输入或粘贴文本到上方编辑区"
     },
     {
       "name": "wc_toast_no_words",
-      "value": "No valid words found"
+      "value": "未提取到有效词语"
     },
     {
       "name": "wc_toast_extract_failed",
-      "value": "Word extraction failed"
+      "value": "分词失败"
     },
     {
       "name": "wc_toast_add_words_first",
-      "value": "Extract or add words first"
+      "value": "请先提取或添加词语"
     },
     {
       "name": "wc_phase_layout",
-      "value": "Laying out..."
+      "value": "布局中..."
     },
     {
       "name": "wc_phase_coloring",
-      "value": "Coloring..."
+      "value": "着色中..."
     },
     {
       "name": "wc_phase_done",
-      "value": "%1$d words placed"
+      "value": "已生成 %1$d 个词"
     },
     {
       "name": "wc_toast_generate_failed",
-      "value": "Generation failed"
+      "value": "生成失败"
     },
     {
       "name": "gif_btn_cancel",
-      "value": "Cancel"
+      "value": "取消"
     },
     {
       "name": "gif_btn_delete",
-      "value": "Delete"
+      "value": "删除"
     },
     {
       "name": "gif_btn_clear",
-      "value": "Clear"
+      "value": "清空"
     },
     {
       "name": "gif_coming_soon",
-      "value": "Coming soon"
+      "value": "敬请期待"
     },
     {
       "name": "gif_privacy_note",
-      "value": "Processed entirely on this device — no uploads, no watermark"
+      "value": "纯本地处理，不上传任何图片；导出无水印"
     },
     {
       "name": "gif_mode_images_title",
-      "value": "Images to GIF"
+      "value": "图片合成 GIF"
     },
     {
       "name": "gif_mode_images_sub",
-      "value": "Pick 2–30 photos and turn them into an animated GIF"
+      "value": "选择 2~30 张图片，合成动态 GIF"
     },
     {
       "name": "gif_mode_video_title",
-      "value": "Video to GIF"
+      "value": "视频转 GIF"
     },
     {
       "name": "gif_mode_video_sub",
-      "value": "Clip a video and turn it into a GIF"
+      "value": "截取视频片段，抽帧生成 GIF"
     },
     {
       "name": "gif_mode_edit_title",
-      "value": "Edit GIF"
+      "value": "编辑 GIF"
     },
     {
       "name": "gif_mode_edit_sub",
-      "value": "Break down an existing GIF and remix it"
+      "value": "拆解已有 GIF，二次编辑加工"
     },
     {
       "name": "gif_mode_history_title",
-      "value": "History"
+      "value": "制作历史"
     },
     {
       "name": "gif_mode_history_sub",
-      "value": "%1$d results · %2$s used"
+      "value": "最近成品 %1$d 条 · 占用 %2$s"
     },
     {
       "name": "gif_empty_no_images",
-      "value": "No photos selected yet"
+      "value": "尚未选择图片"
     },
     {
       "name": "gif_btn_pick_images",
-      "value": "Choose Photos"
+      "value": "选择图片"
     },
     {
       "name": "gif_section_clip",
-      "value": "Video Clip"
+      "value": "视频片段"
     },
     {
       "name": "gif_clip_info",
-      "value": "Video %1$ss · Selected %2$ss"
+      "value": "视频时长 %1$ss · 已选 %2$ss 片段"
     },
     {
       "name": "gif_clip_start",
-      "value": "Start at %1$ss"
+      "value": "起始时间 %1$ss"
     },
     {
       "name": "gif_clip_span",
-      "value": "Clip length %1$ss (max 15s)"
+      "value": "截取时长 %1$ss（最长 15s）"
     },
     {
       "name": "gif_label_fps",
-      "value": "Frame Rate"
+      "value": "抽帧帧率"
     },
     {
       "name": "gif_fps_n",
-      "value": "%1$d fps"
+      "value": "%1$d帧/秒"
     },
     {
       "name": "gif_extract_estimate",
-      "value": "About %1$d frames (max %2$d)"
+      "value": "预计抽取 %1$d 帧（上限 %2$d 帧）"
     },
     {
       "name": "gif_btn_start_extract",
-      "value": "Start Extracting"
+      "value": "开始抽帧"
     },
     {
       "name": "gif_btn_rechoose_video",
-      "value": "Choose Another Video"
+      "value": "重新选择视频"
     },
     {
       "name": "gif_preview",
-      "value": "Preview"
+      "value": "预览"
     },
     {
       "name": "gif_section_frames",
-      "value": "Frames (tap a thumbnail to adjust)"
+      "value": "帧管理（点选缩略图后可调整）"
     },
     {
       "name": "gif_section_overlay",
-      "value": "Stickers & Text"
+      "value": "贴纸与文字"
     },
     {
       "name": "gif_section_params",
-      "value": "Options"
+      "value": "参数"
     },
     {
       "name": "gif_section_result",
-      "value": "Result"
+      "value": "生成结果"
     },
     {
       "name": "gif_preview_info",
-      "value": "Interval %1$ss · Output %2$s×%3$s"
+      "value": "实际帧间隔 %1$ss · 输出 %2$s×%3$s"
     },
     {
       "name": "gif_overlay_count",
-      "value": "Overlays %1$d"
+      "value": "贴纸 %1$d"
     },
     {
       "name": "gif_op_move_left",
-      "value": "Move Left"
+      "value": "左移"
     },
     {
       "name": "gif_op_move_right",
-      "value": "Move Right"
+      "value": "右移"
     },
     {
       "name": "gif_op_reverse",
-      "value": "Reverse"
+      "value": "倒序"
     },
     {
       "name": "gif_op_rotate",
-      "value": "Rotate"
+      "value": "旋转"
     },
     {
       "name": "gif_frame_strip_hint",
-      "value": "%1$d/%2$d selected · Long-press and drag to reorder"
+      "value": "已选 %1$d/%2$d · 长按可拖拽排序"
     },
     {
       "name": "gif_frame_n",
-      "value": "Frame %1$d"
+      "value": "第 %1$d 帧"
     },
     {
       "name": "gif_perframe_duration_hint",
-      "value": "Duration (s); leave empty to use global"
+      "value": "单帧时长(秒)，留空跟随全局"
     },
     {
       "name": "gif_op_reset_duration",
-      "value": "Use Global"
+      "value": "恢复全局"
     },
     {
       "name": "gif_overlay_text_hint",
-      "value": "Enter text"
+      "value": "输入文字内容"
     },
     {
       "name": "gif_btn_add_text",
-      "value": "Add Text"
+      "value": "添加文字"
     },
     {
       "name": "gif_sticker_cat_emoji",
-      "value": "Emoticons"
+      "value": "表情"
     },
     {
       "name": "gif_sticker_cat_deco",
-      "value": "Decorations"
+      "value": "装饰"
     },
     {
       "name": "gif_sticker_cat_bubble",
-      "value": "Bubbles"
+      "value": "气泡"
     },
     {
       "name": "gif_overlay_hint_active",
-      "value": "Drag to move, pinch to scale and rotate; overlays apply to all frames"
+      "value": "拖动调整位置，双指捏合缩放旋转；叠加层应用于全部帧"
     },
     {
       "name": "gif_overlay_hint_empty",
-      "value": "Text and stickers you add will overlay every frame"
+      "value": "添加的文字与贴纸将叠加在所有帧上"
     },
     {
       "name": "gif_label_content",
-      "value": "Text"
+      "value": "内容"
     },
     {
       "name": "gif_label_text_color",
-      "value": "Text Color"
+      "value": "文字颜色"
     },
     {
       "name": "gif_color_sample",
-      "value": "A"
+      "value": "字"
     },
     {
       "name": "gif_btn_custom",
-      "value": "Custom"
+      "value": "自定义"
     },
     {
       "name": "gif_label_size",
-      "value": "Size (%1$d)"
+      "value": "大小（%1$d）"
     },
     {
       "name": "gif_label_rotation",
-      "value": "Rotation"
+      "value": "旋转"
     },
     {
       "name": "gif_btn_delete_overlay",
-      "value": "Delete Overlay"
+      "value": "删除该叠加层"
     },
     {
       "name": "gif_label_frame_duration",
-      "value": "Frame duration (s)"
+      "value": "帧时长（秒）"
     },
     {
       "name": "gif_label_speed",
-      "value": "Speed (multiplies frame duration)"
+      "value": "倍速（与帧时长叠加生效）"
     },
     {
       "name": "gif_label_play_mode",
-      "value": "Play Mode"
+      "value": "播放模式"
     },
     {
       "name": "gif_play_forward",
-      "value": "Forward"
+      "value": "正放"
     },
     {
       "name": "gif_play_reverse",
-      "value": "Reverse"
+      "value": "倒放"
     },
     {
       "name": "gif_play_pingpong",
-      "value": "Ping-Pong"
+      "value": "来回"
     },
     {
       "name": "gif_label_loop",
-      "value": "Loop"
+      "value": "循环播放"
     },
     {
       "name": "gif_loop_infinite",
-      "value": "Endless"
+      "value": "无限"
     },
     {
       "name": "gif_loop_n",
-      "value": "%1$d×"
+      "value": "%1$d次"
     },
     {
       "name": "gif_label_output_size",
-      "value": "Output Size"
+      "value": "输出尺寸"
     },
     {
       "name": "gif_size_original",
-      "value": "Original"
+      "value": "原始"
     },
     {
       "name": "gif_label_quality",
-      "value": "Quality"
+      "value": "画质"
     },
     {
       "name": "gif_quality_standard",
-      "value": "Standard"
+      "value": "标准"
     },
     {
       "name": "gif_quality_hd",
-      "value": "HD"
+      "value": "高清"
     },
     {
       "name": "gif_btn_generate",
-      "value": "Create GIF"
+      "value": "生成 GIF"
     },
     {
       "name": "gif_toast_need_two_images",
-      "value": "At least 2 photos are required"
+      "value": "至少需要 2 张图片"
     },
     {
       "name": "gif_dialog_size_title",
-      "value": "Large File"
+      "value": "体积提示"
     },
     {
       "name": "gif_dialog_size_msg",
-      "value": "The current settings may produce a large file (possibly over 30 MB). Consider a smaller size or fewer frames. Continue?"
+      "value": "按当前参数预计生成文件较大（可能超过 30MB），建议降低尺寸或减少帧数。是否继续？"
     },
     {
       "name": "gif_btn_continue",
-      "value": "Continue"
+      "value": "继续"
     },
     {
       "name": "gif_phase_preparing",
-      "value": "Preparing..."
+      "value": "准备中..."
     },
     {
       "name": "gif_phase_decode",
-      "value": "Decoding %1$d/%2$d"
+      "value": "解码 %1$d/%2$d"
     },
     {
       "name": "gif_phase_compose",
-      "value": "Composing %1$d/%2$d"
+      "value": "合成 %1$d/%2$d"
     },
     {
       "name": "gif_phase_encoding",
-      "value": "Encoding..."
+      "value": "编码中..."
     },
     {
       "name": "gif_phase_writing",
-      "value": "Writing file..."
+      "value": "写入文件..."
     },
     {
       "name": "gif_toast_export_done",
-      "value": "GIF created"
+      "value": "GIF 生成完成"
     },
     {
       "name": "gif_toast_export_cancelled",
-      "value": "Export cancelled"
+      "value": "已取消导出"
     },
     {
       "name": "gif_toast_export_failed",
-      "value": "Export failed: %1$s"
+      "value": "导出失败: %1$s"
     },
     {
       "name": "gif_exporting_title",
-      "value": "Creating GIF"
+      "value": "正在生成 GIF"
     },
     {
       "name": "gif_btn_save_album",
-      "value": "Save to Gallery"
+      "value": "保存到相册"
     },
     {
       "name": "gif_btn_share",
-      "value": "Share"
+      "value": "分享"
     },
     {
       "name": "gif_btn_back_edit",
-      "value": "Back to Editing"
+      "value": "返回编辑"
     },
     {
       "name": "gif_result_info",
-      "value": "%1$s×%2$s · %3$d frames · %4$s"
+      "value": "%1$s×%2$s · %3$d 帧 · %4$s"
     },
     {
       "name": "gif_history_summary",
-      "value": "%1$d items · %2$s used"
+      "value": "共 %1$d 条 · 占用 %2$s"
     },
     {
       "name": "gif_btn_clear_all",
-      "value": "Clear All"
+      "value": "清空全部"
     },
     {
       "name": "gif_history_empty",
-      "value": "No history yet"
+      "value": "暂无制作历史"
     },
     {
       "name": "gif_history_empty_hint",
-      "value": "Exported GIFs are kept here automatically (in the app sandbox, up to 50)"
+      "value": "导出的成品 GIF 会自动保存在这里（沙箱内，最多保留 50 条）"
     },
     {
       "name": "gif_btn_save",
-      "value": "Save"
+      "value": "保存"
     },
     {
       "name": "gif_btn_back",
-      "value": "Back"
+      "value": "返回"
     },
     {
       "name": "gif_dialog_delete_title",
-      "value": "Delete Record"
+      "value": "删除记录"
     },
     {
       "name": "gif_dialog_delete_msg",
-      "value": "This GIF will be removed from the app. Copies already saved to your gallery are unaffected. Delete it?"
+      "value": "删除后该成品 GIF 将从沙箱中移除，已保存到相册的副本不受影响。确定删除？"
     },
     {
       "name": "gif_toast_deleted",
-      "value": "Deleted"
+      "value": "已删除"
     },
     {
       "name": "gif_dialog_clear_title",
-      "value": "Clear History"
+      "value": "清空历史"
     },
     {
       "name": "gif_dialog_clear_msg",
-      "value": "All %1$d records (about %2$s) will be deleted. Copies already saved to your gallery are unaffected. Clear them all?"
+      "value": "将删除全部 %1$d 条记录（约 %2$s），已保存到相册的副本不受影响。确定清空？"
     },
     {
       "name": "gif_toast_cleared",
-      "value": "Cleared"
+      "value": "已清空"
     },
     {
       "name": "gif_toast_max_images",
-      "value": "Up to %1$d photos supported"
+      "value": "最多支持 %1$d 张图片"
     },
     {
       "name": "gif_toast_min_images",
-      "value": "Select at least 2 photos"
+      "value": "至少选择 2 张图片"
     },
     {
       "name": "gif_toast_max_kept",
-      "value": "Up to %1$d photos; kept the first %2$d"
+      "value": "最多支持 %1$d 张，已保留前 %2$d 张"
     },
     {
       "name": "gif_toast_pick_failed",
-      "value": "Failed to choose photos: %1$s"
+      "value": "选择图片失败: %1$s"
     },
     {
       "name": "gif_toast_select_frame_first",
-      "value": "Select a frame first"
+      "value": "请先点选一个帧"
     },
     {
       "name": "gif_toast_frames_below_min",
-      "value": "Fewer than 2 frames; cannot export"
+      "value": "帧数不足 2 张，无法导出"
     },
     {
       "name": "gif_phase_parsing",
-      "value": "Parsing GIF..."
+      "value": "解析 GIF 中..."
     },
     {
       "name": "gif_toast_invalid_gif",
-      "value": "Not a valid GIF file"
+      "value": "不是有效的 GIF 文件"
     },
     {
       "name": "gif_toast_gif_too_short",
-      "value": "This GIF has too few frames to edit"
+      "value": "该 GIF 帧数不足，无法编辑"
     },
     {
       "name": "gif_toast_frames_truncated",
-      "value": "More than %1$d frames; kept the first %1$d"
+      "value": "帧数超过 %1$d，已保留前 %1$d 帧"
     },
     {
       "name": "gif_phase_parse_frame",
-      "value": "Parsing frame %1$d/%2$d"
+      "value": "解析帧 %1$d/%2$d"
     },
     {
       "name": "gif_toast_import_cancelled",
-      "value": "Import cancelled"
+      "value": "已取消导入"
     },
     {
       "name": "gif_toast_imported_frames",
-      "value": "Imported %1$d frames"
+      "value": "已导入 %1$d 帧"
     },
     {
       "name": "gif_toast_parse_failed",
-      "value": "Failed to parse GIF: %1$s"
+      "value": "解析 GIF 失败: %1$s"
     },
     {
       "name": "gif_phase_video_info",
-      "value": "Reading video info..."
+      "value": "读取视频信息..."
     },
     {
       "name": "gif_toast_no_duration",
-      "value": "Could not read the video duration; the format may be unsupported"
+      "value": "无法读取视频时长，可能是不支持的格式"
     },
     {
       "name": "gif_toast_read_video_failed",
-      "value": "Failed to read video: %1$s"
+      "value": "读取视频失败: %1$s"
     },
     {
       "name": "gif_phase_prepare_extract",
-      "value": "Preparing to extract..."
+      "value": "准备抽帧..."
     },
     {
       "name": "gif_phase_extract_frame",
-      "value": "Extracting frame %1$d/%2$d"
+      "value": "抽帧 %1$d/%2$d"
     },
     {
       "name": "gif_toast_extract_cancelled",
-      "value": "Extraction cancelled"
+      "value": "已取消抽帧"
     },
     {
       "name": "gif_toast_extracted_frames",
-      "value": "Extracted %1$d frames"
+      "value": "已抽取 %1$d 帧"
     },
     {
       "name": "gif_toast_extract_failed",
-      "value": "Frame extraction failed: %1$s"
+      "value": "抽帧失败: %1$s"
     },
     {
       "name": "gif_err_unsupported_format",
-      "value": "Unsupported video frame format"
+      "value": "不支持的视频帧格式"
     },
     {
       "name": "gif_err_not_enough_frames",
-      "value": "Not enough frames extracted"
+      "value": "抽帧数量不足"
     },
     {
       "name": "gif_toast_enter_text",
-      "value": "Please enter some text"
+      "value": "请输入文字内容"
     },
     {
       "name": "gif_toast_invalid_color",
-      "value": "Enter a color in #RRGGBB format"
+      "value": "请输入 #RRGGBB 格式颜色"
     },
     {
       "name": "gif_toast_saved_album",
-      "value": "Saved to gallery"
+      "value": "已保存到相册"
     },
     {
       "name": "gif_toast_save_failed",
-      "value": "Save failed"
+      "value": "保存失败"
     },
     {
       "name": "gif_unit_sec_per_frame",
-      "value": "s/frame"
+      "value": "s/帧"
     },
     {
       "name": "md2_filled_md_example",
-      "value": "Markdown sample inserted"
+      "value": "已填入 Markdown 示例"
     },
     {
       "name": "md2_filled_text_example",
-      "value": "Text sample inserted"
+      "value": "已填入文本示例"
     },
     {
       "name": "md2_keyword_exists",
-      "value": "Already in the highlight list"
+      "value": "该词已在高亮列表中"
     },
     {
       "name": "md2_discard_title",
-      "value": "Discard changes?"
+      "value": "放弃修改？"
     },
     {
       "name": "md2_discard_message",
-      "value": "Position selections are unsaved. Discard them?"
+      "value": "当前的位置选择尚未保存，是否放弃修改？"
     },
     {
       "name": "md2_keep_editing",
-      "value": "Keep editing"
+      "value": "继续编辑"
     },
     {
       "name": "md2_discard",
-      "value": "Discard"
+      "value": "放弃"
     },
     {
       "name": "md2_overwrite_title",
-      "value": "Highlight words were edited"
+      "value": "已手动调整过高亮词"
     },
     {
       "name": "md2_overwrite_message",
-      "value": "Highlight words have been manually adjusted. Overwrite them with the new extraction results?\n\nTap outside to cancel and keep the current words."
+      "value": "检测到当前高亮词已被手动调整。是否用新文本的提取结果覆盖？\n\n点击外部空白处取消（保持当前高亮词不变）。"
     },
     {
       "name": "md2_overwrite_keep",
-      "value": "Keep current (recommended)"
+      "value": "保留当前（推荐）"
     },
     {
       "name": "md2_overwrite_apply",
-      "value": "Overwrite with new"
+      "value": "用新结果覆盖"
     },
     {
       "name": "md2_generate_failed",
-      "value": "Generation failed"
+      "value": "生成失败"
     },
     {
       "name": "md2_generate_first",
-      "value": "Generate an image first"
+      "value": "请先生成图片"
     },
     {
       "name": "md2_saved_to_album",
-      "value": "Saved to album"
+      "value": "已保存到相册"
     },
     {
       "name": "md2_save_failed",
-      "value": "Save failed"
+      "value": "保存失败"
     },
     {
       "name": "md2_input_label",
-      "value": "Input"
+      "value": "输入内容"
     },
     {
       "name": "md2_md_example",
-      "value": "Markdown sample"
+      "value": "Markdown示例"
     },
     {
       "name": "md2_text_example",
-      "value": "Text sample"
+      "value": "文本示例"
     },
     {
       "name": "md2_input_hint",
-      "value": "Enter Markdown or plain text..."
+      "value": "输入Markdown或普通文本..."
     },
     {
       "name": "md2_max_chars",
-      "value": "Up to %1$d characters"
+      "value": "最多输入 %1$d 字符"
     },
     {
       "name": "md2_keywords_title",
-      "value": "Highlight words"
+      "value": "高亮词"
     },
     {
       "name": "md2_reset",
-      "value": "Reset"
+      "value": "重置"
     },
     {
       "name": "md2_keywords_hint",
-      "value": "Tap a word to pick positions, × to remove"
+      "value": "轻点词调整位置  ×移除"
     },
     {
       "name": "md2_add_keyword_hint",
-      "value": "Add a highlight word"
+      "value": "添加高亮词"
     },
     {
       "name": "md2_occurrences_count",
-      "value": "  %1$d occurrences"
+      "value": "  共 %1$d 次出现"
     },
     {
       "name": "md2_close",
-      "value": "Close"
+      "value": "关闭"
     },
     {
       "name": "md2_keyword_not_found",
-      "value": "This word is not found in the current text"
+      "value": "当前文本中未找到该关键字"
     },
     {
       "name": "md2_occurrence_nth",
-      "value": "No. %1$d"
+      "value": "第 %1$d 次"
     },
     {
       "name": "md2_select_all",
-      "value": "Select all"
+      "value": "全选"
     },
     {
       "name": "md2_select_none",
-      "value": "Select none"
+      "value": "全不选"
     },
     {
       "name": "md2_remove_word",
-      "value": "Remove word"
+      "value": "移除该词"
     },
     {
       "name": "md2_confirm",
-      "value": "OK"
+      "value": "确定"
     },
     {
       "name": "md2_preview_title",
-      "value": "Preview"
+      "value": "预览效果"
     },
     {
       "name": "md2_swipe_hint",
-      "value": "Swipe to switch templates"
+      "value": "左右滑动切换模板"
     },
     {
       "name": "md2_result_title",
-      "value": "Result"
+      "value": "生成结果"
     },
     {
       "name": "md2_share",
-      "value": "Share"
+      "value": "分享"
     },
     {
       "name": "md2_save_image",
-      "value": "Save image"
+      "value": "保存图片"
     },
     {
       "name": "char_pinyin_show",
-      "value": "Show"
+      "value": "显示"
     },
     {
       "name": "char_pinyin_hide",
-      "value": "Hide"
+      "value": "隐藏"
     },
     {
       "name": "char_book_removed",
-      "value": "Removed \"%1$s\""
+      "value": "已删除「%1$s」"
     },
     {
       "name": "char_filled_from_book",
-      "value": "Filled %1$d characters from the word book"
+      "value": "已从生字本填入 %1$d 个字"
     },
     {
       "name": "char_restored",
-      "value": "Restored"
+      "value": "已恢复"
     },
     {
       "name": "char_save_cancelled",
-      "value": "Save cancelled"
+      "value": "已取消保存"
     },
     {
       "name": "char_export_failed",
-      "value": "Export failed: %1$s"
+      "value": "导出失败：%1$s"
     },
     {
       "name": "char_saved_count",
-      "value": "Saved %1$d cards to album"
+      "value": "已保存 %1$d 张到相册"
     },
     {
       "name": "char_export_cancelled",
-      "value": "Export cancelled"
+      "value": "已取消导出"
     },
     {
       "name": "char_export_size",
@@ -2362,1175 +2362,1175 @@
     },
     {
       "name": "char_label_size",
-      "value": "Size"
+      "value": "尺寸"
     },
     {
       "name": "char_label_grid",
-      "value": "Grid"
+      "value": "格型"
     },
     {
       "name": "char_label_mode",
-      "value": "Mode"
+      "value": "字色"
     },
     {
       "name": "char_label_pinyin",
-      "value": "Pinyin"
+      "value": "拼音"
     },
     {
       "name": "char_chars_label",
-      "value": "Characters (1-12 Chinese)"
+      "value": "生字（1-12 个汉字）"
     },
     {
       "name": "char_book_title",
-      "value": "Word book"
+      "value": "生字本"
     },
     {
       "name": "char_pinyin_locked_label",
-      "value": "Pinyin (manually locked)"
+      "value": "拼音（已手动锁定）"
     },
     {
       "name": "char_pinyin_auto_label",
-      "value": "Pinyin (auto-generated, editable)"
+      "value": "拼音（自动生成，可修改）"
     },
     {
       "name": "char_pinyin_auto",
-      "value": "Back to auto"
+      "value": "恢复自动"
     },
     {
       "name": "char_book_done",
-      "value": "Done"
+      "value": "完成"
     },
     {
       "name": "char_book_manage",
-      "value": "Manage"
+      "value": "管理"
     },
     {
       "name": "char_count_unit",
-      "value": "%1$d chars"
+      "value": "%1$d 字"
     },
     {
       "name": "char_book_manage_hint",
-      "value": "Manage mode: tap a character to delete it"
+      "value": "管理模式：点击生字即可删除"
     },
     {
       "name": "char_book_pick_hint",
-      "value": "Pick characters from poem pages, then tap to fill"
+      "value": "从诗词页选取生字，点选后填入制作"
     },
     {
       "name": "char_book_empty_hint",
-      "value": "Word book is empty. Collect characters via \"Trace & pick\" on poem pages"
+      "value": "生字本为空，可在「首页 → 诗词鉴赏」中点「描红选字」收藏生字"
     },
     {
       "name": "char_cancel",
-      "value": "Cancel"
+      "value": "取消"
     },
     {
       "name": "char_fill_selected",
-      "value": "Fill selected (%1$d)"
+      "value": "填入所选(%1$d)"
     },
     {
       "name": "char_fill_all",
-      "value": "Fill all"
+      "value": "全部填入"
     },
     {
       "name": "char_recent",
-      "value": "Recent"
+      "value": "最近制作"
     },
     {
       "name": "char_clear",
-      "value": "Clear"
+      "value": "清空"
     },
     {
       "name": "char_exporting",
-      "value": "Exporting…"
+      "value": "导出中…"
     },
     {
       "name": "char_save_album",
-      "value": "Save to album"
+      "value": "保存到相册"
     },
     {
       "name": "char_batch_exporting",
-      "value": "Exporting %1$d / %2$d"
+      "value": "导出中 %1$d / %2$d"
     },
     {
       "name": "char_batch_export",
-      "value": "Export all (one card per character, %1$d total)"
+      "value": "全部导出（每字一卡，共 %1$d 张）"
     },
     {
       "name": "cover_pick_failed",
-      "value": "Suggestion failed, try again"
+      "value": "推荐失败，请重试"
     },
     {
       "name": "cover_size_hint",
-      "value": "Article header 900 × 383"
+      "value": "公众号首图 900 × 383"
     },
     {
       "name": "cover_title_too_long",
-      "value": "Title is rather long; consider trimming (%1$d chars)"
+      "value": "文案偏长，建议精简（当前标题 %1$d 字）"
     },
     {
       "name": "cover_tab_text",
-      "value": "Text"
+      "value": "文字"
     },
     {
       "name": "cover_tab_style",
-      "value": "Style"
+      "value": "样式"
     },
     {
       "name": "cover_lib_label",
-      "value": "Library picks (poems / idioms / sayings)"
+      "value": "内容库推荐（诗词 / 成语 / 歇后语）"
     },
     {
       "name": "cover_change_quote",
-      "value": "Try another"
+      "value": "换一句"
     },
     {
       "name": "cover_pinyin_locked",
-      "value": "Pronunciation manually set"
+      "value": "已手动选择读音"
     },
     {
       "name": "cover_pinyin_empty_hint",
-      "value": "(Pinyin auto-generates from your text)"
+      "value": "（输入生字后自动生成拼音）"
     },
     {
       "name": "cover_pinyin_mismatch",
-      "value": "Pinyin does not match the character count; per-character editing paused"
+      "value": "拼音与字数不一致，已暂停逐字编辑"
     },
     {
       "name": "cover_font_label",
-      "value": "Font"
+      "value": "字体"
     },
     {
       "name": "tmpl_series_all",
-      "value": "All"
+      "value": "全部"
     },
     {
       "name": "tmpl_series_simple",
-      "value": "Minimal"
+      "value": "简约"
     },
     {
       "name": "tmpl_series_culture",
-      "value": "Culture"
+      "value": "文化"
     },
     {
       "name": "tmpl_series_big",
-      "value": "Big type"
+      "value": "大字"
     },
     {
       "name": "tmpl_series_magazine",
-      "value": "Magazine"
+      "value": "杂志"
     },
     {
       "name": "tmpl_series_photo",
-      "value": "Photo"
+      "value": "图片"
     },
     {
       "name": "tmpl_size_square",
-      "value": "Square 1:1"
+      "value": "方卡 1:1"
     },
     {
       "name": "tmpl_size_practice",
-      "value": "Practice 3:4"
+      "value": "练习卡 3:4"
     },
     {
       "name": "tmpl_grid_tian",
-      "value": "Tian grid"
+      "value": "田字格"
     },
     {
       "name": "tmpl_grid_mi",
-      "value": "Mi grid"
+      "value": "米字格"
     },
     {
       "name": "tmpl_mode_read",
-      "value": "Read"
+      "value": "认读"
     },
     {
       "name": "tmpl_mode_trace",
-      "value": "Trace"
+      "value": "描红"
     },
     {
       "name": "tmpl_name_solid",
-      "value": "Solid minimal"
+      "value": "纯色极简"
     },
     {
       "name": "tmpl_name_gradient",
-      "value": "Bold gradient"
+      "value": "渐变大气"
     },
     {
       "name": "tmpl_name_neon_night",
-      "value": "Neon night"
+      "value": "暗夜霓虹"
     },
     {
       "name": "tmpl_name_poetic",
-      "value": "Poetic charm"
+      "value": "诗词意境"
     },
     {
       "name": "tmpl_name_idiom",
-      "value": "Idiom story"
+      "value": "成语典故"
     },
     {
       "name": "tmpl_name_xiehouyu",
-      "value": "Xiehouyu fun"
+      "value": "歇后语趣味"
     },
     {
       "name": "tmpl_name_solar",
-      "value": "Solar terms"
+      "value": "节气雅致"
     },
     {
       "name": "tmpl_name_grid_card",
-      "value": "Grid character card"
+      "value": "田字格字卡"
     },
     {
       "name": "tmpl_name_big_type",
-      "value": "Big type poster"
+      "value": "大字报"
     },
     {
       "name": "tmpl_name_issue_number",
-      "value": "Issue number"
+      "value": "数字期号"
     },
     {
       "name": "tmpl_name_question",
-      "value": "Question hook"
+      "value": "问句悬念"
     },
     {
       "name": "tmpl_name_geoblock",
-      "value": "Geometric blocks"
+      "value": "几何色块"
     },
     {
       "name": "tmpl_name_twocolumn",
-      "value": "Two-column magazine"
+      "value": "双栏杂志"
     },
     {
       "name": "tmpl_name_seal",
-      "value": "Seal sign-off"
+      "value": "印章落款"
     },
     {
       "name": "tmpl_name_texture",
-      "value": "Textured"
+      "value": "纹理质感"
     },
     {
       "name": "tmpl_slot_solar_name",
-      "value": "Solar term name"
+      "value": "节气名"
     },
     {
       "name": "tmpl_slot_chars",
-      "value": "Characters (1-8)"
+      "value": "生字（1-8 字）"
     },
     {
       "name": "tmpl_slot_big_title",
-      "value": "Big title (8 chars max)"
+      "value": "大标题（建议 8 字内）"
     },
     {
       "name": "tmpl_slot_question_title",
-      "value": "Question title"
+      "value": "问句标题"
     },
     {
       "name": "tmpl_pal_blue_red",
-      "value": "Blue & red"
+      "value": "蓝底红格黑字"
     },
     {
       "name": "tmpl_pal_cream_red",
-      "value": "Cream & red"
+      "value": "米白底红格"
     },
     {
       "name": "tmpl_pal_board_green",
-      "value": "Board green"
+      "value": "黑板绿底米格"
     },
     {
       "name": "tmpl_pal_maroon_cream",
-      "value": "Maroon & cream"
+      "value": "暗红底米格"
     },
     {
       "name": "tmpl_pal_cream_ink",
-      "value": "Cream & ink"
+      "value": "米白底墨格"
     },
     {
       "name": "tmpl_pal_serene_blue",
-      "value": "Serene blue"
+      "value": "静谧蓝"
     },
     {
       "name": "tmpl_pal_warm_cream",
-      "value": "Warm cream"
+      "value": "暖米白"
     },
     {
       "name": "tmpl_pal_mint",
-      "value": "Mint"
+      "value": "薄荷绿"
     },
     {
       "name": "tmpl_pal_graphite",
-      "value": "Graphite"
+      "value": "石墨黑"
     },
     {
       "name": "tmpl_pal_sakura",
-      "value": "Sakura pink"
+      "value": "樱花粉"
     },
     {
       "name": "tmpl_pal_amber",
-      "value": "Amber"
+      "value": "琥珀"
     },
     {
       "name": "tmpl_pal_green_hill",
-      "value": "Green hill"
+      "value": "青山"
     },
     {
       "name": "tmpl_pal_dusk_blue",
-      "value": "Dusk blue"
+      "value": "暮蓝"
     },
     {
       "name": "tmpl_pal_rose",
-      "value": "Rose"
+      "value": "玫瑰"
     },
     {
       "name": "tmpl_pal_ink_night",
-      "value": "Ink night"
+      "value": "墨夜"
     },
     {
       "name": "tmpl_pal_neon_purple",
-      "value": "Neon purple"
+      "value": "霓虹紫"
     },
     {
       "name": "tmpl_pal_electric_cyan",
-      "value": "Electric cyan"
+      "value": "电光青"
     },
     {
       "name": "tmpl_pal_neon_pink",
-      "value": "Neon pink"
+      "value": "霓虹粉"
     },
     {
       "name": "tmpl_pal_neon_green",
-      "value": "Neon green"
+      "value": "荧光绿"
     },
     {
       "name": "tmpl_pal_dark_gold",
-      "value": "Dark gold"
+      "value": "暗金"
     },
     {
       "name": "tmpl_pal_rice_paper",
-      "value": "Rice paper"
+      "value": "宣纸米"
     },
     {
       "name": "tmpl_pal_pale_cyan",
-      "value": "Pale cyan"
+      "value": "淡青"
     },
     {
       "name": "tmpl_pal_moon_white",
-      "value": "Moon white"
+      "value": "月白"
     },
     {
       "name": "tmpl_pal_dusk_purple",
-      "value": "Dusk purple"
+      "value": "暮山紫"
     },
     {
       "name": "tmpl_pal_ink",
-      "value": "Ink"
+      "value": "墨色"
     },
     {
       "name": "tmpl_pal_beige",
-      "value": "Beige"
+      "value": "米黄"
     },
     {
       "name": "tmpl_pal_crimson",
-      "value": "Crimson"
+      "value": "绛红"
     },
     {
       "name": "tmpl_pal_indigo",
-      "value": "Indigo"
+      "value": "黛蓝"
     },
     {
       "name": "tmpl_pal_bright_yellow",
-      "value": "Bright yellow"
+      "value": "明黄"
     },
     {
       "name": "tmpl_pal_warm_orange",
-      "value": "Warm orange"
+      "value": "暖橙"
     },
     {
       "name": "tmpl_pal_sky_blue",
-      "value": "Sky blue"
+      "value": "天蓝"
     },
     {
       "name": "tmpl_pal_grass_green",
-      "value": "Grass green"
+      "value": "草绿"
     },
     {
       "name": "tmpl_pal_cherry_pink",
-      "value": "Cherry pink"
+      "value": "樱粉"
     },
     {
       "name": "tmpl_pal_spring",
-      "value": "Spring green"
+      "value": "春青"
     },
     {
       "name": "tmpl_pal_summer",
-      "value": "Summer jade"
+      "value": "夏碧"
     },
     {
       "name": "tmpl_pal_autumn",
-      "value": "Autumn orange"
+      "value": "秋橙"
     },
     {
       "name": "tmpl_pal_winter",
-      "value": "Winter blue"
+      "value": "冬蓝"
     },
     {
       "name": "tmpl_pal_plum",
-      "value": "Plum"
+      "value": "梅红"
     },
     {
       "name": "tmpl_pal_cream_red_black",
-      "value": "Cream, red & black"
+      "value": "米白底红格黑字"
     },
     {
       "name": "tmpl_pal_dark_green_red",
-      "value": "Dark green & red"
+      "value": "墨绿底米格红字"
     },
     {
       "name": "tmpl_pal_dark_red_black",
-      "value": "Dark red & black"
+      "value": "暗红底米格黑字"
     },
     {
       "name": "tmpl_pal_true_red",
-      "value": "True red"
+      "value": "正红"
     },
     {
       "name": "tmpl_pal_vivid_yellow",
-      "value": "Vivid yellow"
+      "value": "亮黄"
     },
     {
       "name": "tmpl_pal_emerald",
-      "value": "Emerald"
+      "value": "翠绿"
     },
     {
       "name": "tmpl_pal_royal_blue",
-      "value": "Royal blue"
+      "value": "宝蓝"
     },
     {
       "name": "tmpl_pal_pure_black",
-      "value": "Pure black"
+      "value": "纯黑"
     },
     {
       "name": "tmpl_pal_navy",
-      "value": "Deep navy"
+      "value": "藏蓝"
     },
     {
       "name": "tmpl_pal_dark_night",
-      "value": "Dark night"
+      "value": "暗夜"
     },
     {
       "name": "tmpl_pal_cream",
-      "value": "Cream"
+      "value": "米白"
     },
     {
       "name": "tmpl_pal_wine",
-      "value": "Wine"
+      "value": "酒红"
     },
     {
       "name": "tmpl_pal_ink_blue",
-      "value": "Ink blue"
+      "value": "墨蓝"
     },
     {
       "name": "tmpl_pal_charcoal",
-      "value": "Charcoal"
+      "value": "炭黑"
     },
     {
       "name": "tmpl_pal_deep_purple",
-      "value": "Deep purple"
+      "value": "深紫"
     },
     {
       "name": "tmpl_pal_dark_green",
-      "value": "Dark green"
+      "value": "暗绿"
     },
     {
       "name": "tmpl_pal_clash_yellow",
-      "value": "Clash yellow"
+      "value": "撞黄"
     },
     {
       "name": "tmpl_pal_clash_blue",
-      "value": "Clash blue"
+      "value": "撞蓝"
     },
     {
       "name": "tmpl_pal_clash_red",
-      "value": "Clash red"
+      "value": "撞红"
     },
     {
       "name": "tmpl_pal_clash_green",
-      "value": "Clash green"
+      "value": "撞绿"
     },
     {
       "name": "tmpl_pal_mono",
-      "value": "Monochrome"
+      "value": "黑白"
     },
     {
       "name": "tmpl_pal_red_black",
-      "value": "Red & black"
+      "value": "红黑"
     },
     {
       "name": "tmpl_pal_navy_blue",
-      "value": "Navy blue"
+      "value": "藏青"
     },
     {
       "name": "tmpl_pal_forest_green",
-      "value": "Forest green"
+      "value": "墨绿"
     },
     {
       "name": "tmpl_pal_warm_brown",
-      "value": "Warm brown"
+      "value": "暖棕"
     },
     {
       "name": "tmpl_pal_plain_white",
-      "value": "Plain white"
+      "value": "素白"
     },
     {
       "name": "tmpl_pal_moon_gray",
-      "value": "Moon gray"
+      "value": "月灰"
     },
     {
       "name": "tmpl_pal_morning_mist",
-      "value": "Morning mist"
+      "value": "晨雾"
     },
     {
       "name": "tmpl_pal_celadon",
-      "value": "Celadon"
+      "value": "青瓷"
     },
     {
       "name": "tmpl_pal_twilight",
-      "value": "Twilight"
+      "value": "暮色"
     },
     {
       "name": "tmpl_pal_gray_blue",
-      "value": "Gray blue"
+      "value": "灰蓝"
     },
     {
       "name": "sudoku_title",
-      "value": "Sudoku Solver"
+      "value": "数独求解器"
     },
     {
       "name": "sudoku_diff_easy",
-      "value": "Easy"
+      "value": "简单"
     },
     {
       "name": "sudoku_diff_medium",
-      "value": "Medium"
+      "value": "中等"
     },
     {
       "name": "sudoku_diff_hard",
-      "value": "Hard"
+      "value": "困难"
     },
     {
       "name": "sudoku_board_copied",
-      "value": "Board copied to clipboard"
+      "value": "棋盘已复制到剪贴板"
     },
     {
       "name": "sudoku_copy_failed",
-      "value": "Copy failed"
+      "value": "复制失败"
     },
     {
       "name": "sudoku_parse_failed",
-      "value": "Could not parse. Enter 81 digits (0 or . for blanks)"
+      "value": "无法解析，请输入 81 位数字（0 或 . 表示空格）"
     },
     {
       "name": "sudoku_paste_success",
-      "value": "Pasted! Loaded %1$d digits"
+      "value": "粘贴成功！加载 %1$d 个数字"
     },
     {
       "name": "sudoku_conflict",
-      "value": "The board has conflicts. Please check your input"
+      "value": "当前棋盘存在冲突，请检查输入"
     },
     {
       "name": "sudoku_solved",
-      "value": "Solved!"
+      "value": "求解完成！"
     },
     {
       "name": "sudoku_solved_multi",
-      "value": "Solved (note: this puzzle has multiple solutions)"
+      "value": "求解完成（提示：该题目有多个解）"
     },
     {
       "name": "sudoku_no_solution",
-      "value": "No solution exists. Please check your input"
+      "value": "该数独无解，请检查输入是否正确"
     },
     {
       "name": "sudoku_hint_result",
-      "value": "Hint: R%1$dC%2$d = %3$d"
+      "value": "提示: R%1$dC%2$d = %3$d"
     },
     {
       "name": "sudoku_congrats",
-      "value": "Congratulations! Complete and correct!"
+      "value": "恭喜！已完成且正确！"
     },
     {
       "name": "sudoku_full_but_wrong",
-      "value": "Board is full but has errors. Please check"
+      "value": "棋盘已填满但存在错误，请检查"
     },
     {
       "name": "sudoku_no_next_step",
-      "value": "Cannot determine the next step. Try deducing it yourself"
+      "value": "无法确定下一步，请尝试手动推理"
     },
     {
       "name": "sudoku_pick_failed",
-      "value": "Failed to pick image: %1$s"
+      "value": "选择图片失败: %1$s"
     },
     {
       "name": "sudoku_pick_cancelled",
-      "value": "Photo selection cancelled"
+      "value": "拍照/选图取消"
     },
     {
       "name": "sudoku_ocr_processing",
-      "value": "Recognizing the sudoku in the photo..."
+      "value": "正在识别图片中的数独..."
     },
     {
       "name": "sudoku_ocr_success",
-      "value": "Recognized! %1$d digits detected"
+      "value": "识别成功！检测到 %1$d 个数字"
     },
     {
       "name": "sudoku_ocr_failed",
-      "value": "Could not recognize a sudoku"
+      "value": "未能识别出数独"
     },
     {
       "name": "sudoku_image_error",
-      "value": "Image processing failed. Please retry"
+      "value": "图片处理异常，请重试"
     },
     {
       "name": "sudoku_dbg_header",
-      "value": "=== Recognition Debug Info ==="
+      "value": "=== 识别调试信息 ==="
     },
     {
       "name": "sudoku_dbg_pipeline",
-      "value": "[Pipeline] %1$s"
+      "value": "【流水线】%1$s"
     },
     {
       "name": "sudoku_dbg_resize",
-      "value": "[Resize params] %1$s"
+      "value": "【缩放参数】%1$s"
     },
     {
       "name": "sudoku_dbg_bbox",
-      "value": "[Image & board] %1$s"
+      "value": "【图片与棋盘】%1$s"
     },
     {
       "name": "sudoku_dbg_probe",
-      "value": "[Probe detail] %1$s"
+      "value": "【探测图详情】%1$s"
     },
     {
       "name": "sudoku_dbg_bbox_diag",
-      "value": "[Board localization diagnostics]"
+      "value": "【棋盘定位诊断】"
     },
     {
       "name": "sudoku_dbg_pixel_bg",
-      "value": "[Pixel background analysis] %1$s"
+      "value": "【像素背景分析】%1$s"
     },
     {
       "name": "sudoku_dbg_pixel_bbox",
-      "value": "[Pixel board localization] %1$s"
+      "value": "【像素棋盘定位】%1$s"
     },
     {
       "name": "sudoku_dbg_pixel_warp",
-      "value": "[Pixel perspective/grid] %1$s"
+      "value": "【像素透视/网格】%1$s"
     },
     {
       "name": "sudoku_dbg_pixel_cells",
-      "value": "[Pixel cell stats] %1$s"
+      "value": "【像素单元格统计】%1$s"
     },
     {
       "name": "sudoku_dbg_raw_digits",
-      "value": "[VisionKit raw digit count] %1$d"
+      "value": "【VisionKit原始数字数】%1$d"
     },
     {
       "name": "sudoku_dbg_vk_size",
-      "value": "[VisionKit OCR image size] %1$s"
+      "value": "【VisionKit OCR图尺寸】%1$s"
     },
     {
       "name": "sudoku_dbg_vk_blocks",
-      "value": "[VisionKit block count] %1$d"
+      "value": "【VisionKit Block数】%1$d"
     },
     {
       "name": "sudoku_dbg_vk_blocks_detail",
-      "value": "[VisionKit block detail]\n%1$s"
+      "value": "【VisionKit Block详情】\n%1$s"
     },
     {
       "name": "sudoku_dbg_vk_raw",
-      "value": "[VisionKit raw text] %1$s"
+      "value": "【VisionKit原始文本】%1$s"
     },
     {
       "name": "sudoku_dbg_vk_error",
-      "value": "[VisionKit error diagnostics] %1$s"
+      "value": "【VisionKit错误诊断】%1$s"
     },
     {
       "name": "sudoku_dbg_vk_grid",
-      "value": "[VisionKit grid]"
+      "value": "【VisionKit网格】"
     },
     {
       "name": "sudoku_dbg_pixel_grid",
-      "value": "[Pixel analysis grid]"
+      "value": "【像素分析网格】"
     },
     {
       "name": "sudoku_dbg_final_grid",
-      "value": "[Final grid]"
+      "value": "【最终网格】"
     },
     {
       "name": "sudoku_dbg_confidence",
-      "value": "[Confidence]"
+      "value": "【置信度】"
     },
     {
       "name": "sudoku_dbg_conflicts",
-      "value": "[Conflict cells] %1$s"
+      "value": "【冲突格子】%1$s"
     },
     {
       "name": "sudoku_dbg_low_conf",
-      "value": "[Low-confidence cells] %1$s"
+      "value": "【低置信格子】%1$s"
     },
     {
       "name": "sudoku_dbg_empty",
-      "value": "[Empty cells to fix] %1$d to fill"
+      "value": "【空格子待修正】%1$d个待填充"
     },
     {
       "name": "sudoku_dbg_fixed",
-      "value": "[Fixes applied] %1$d succeeded"
+      "value": "【实际修正】%1$d个成功"
     },
     {
       "name": "sudoku_dbg_fix_details",
-      "value": "[Per-cell fix details]"
+      "value": "【逐格修正详情】"
     },
     {
       "name": "sudoku_dbg_steps",
-      "value": "[Step details]"
+      "value": "【步骤详情】"
     },
     {
       "name": "sudoku_no_debug",
-      "value": "No recognition log yet. Run photo recognition first"
+      "value": "尚无识别调试信息，请先进行图片识别"
     },
     {
       "name": "sudoku_log_copied",
-      "value": "Recognition log copied to clipboard"
+      "value": "识别日志已复制到剪贴板"
     },
     {
       "name": "sudoku_done",
-      "value": "✔ Done"
+      "value": "✔ 完成"
     },
     {
       "name": "sudoku_edit",
-      "value": "✏ Edit"
+      "value": "✏ 修改"
     },
     {
       "name": "sudoku_clear_board",
-      "value": "Clear Board"
+      "value": "清空棋盘"
     },
     {
       "name": "sudoku_board_cleared",
-      "value": "Board cleared"
+      "value": "棋盘已清空"
     },
     {
       "name": "sudoku_copy_board",
-      "value": "Copy Board"
+      "value": "复制棋盘"
     },
     {
       "name": "sudoku_paste_puzzle",
-      "value": "Paste Puzzle"
+      "value": "粘贴题目"
     },
     {
       "name": "sudoku_recognizing_dots",
-      "value": "Recognizing..."
+      "value": "识别中..."
     },
     {
       "name": "sudoku_scan_photo",
-      "value": "Scan a Photo"
+      "value": "拍照识别"
     },
     {
       "name": "sudoku_ocr_disclaimer",
-      "value": "Photo recognition is still improving. If a puzzle is recognized incorrectly, please correct it manually."
+      "value": "拍照识别数据技术不断完善中，如果遇到题目识别错误，请手动进行修改。"
     },
     {
       "name": "sudoku_paste_title",
-      "value": "Paste Sudoku Puzzle"
+      "value": "粘贴数独题目"
     },
     {
       "name": "sudoku_example_n",
-      "value": "Example %1$d"
+      "value": "示例%1$d"
     },
     {
       "name": "sudoku_clear",
-      "value": "Clear"
+      "value": "清空"
     },
     {
       "name": "sudoku_example_hint",
-      "value": "Example 1: 0 = blank | Example 2: . = blank | Example 3: multi-line"
+      "value": "示例1: 0表示空格 | 示例2: .表示空格 | 示例3: 多行格式"
     },
     {
       "name": "sudoku_paste_placeholder",
-      "value": "Enter 81 digits (0 or . for blanks); multi-line is supported"
+      "value": "支持 81 位数字（0 或 . 表示空格），可多行输入"
     },
     {
       "name": "sudoku_cancel",
-      "value": "Cancel"
+      "value": "取消"
     },
     {
       "name": "sudoku_confirm",
-      "value": "OK"
+      "value": "确定"
     },
     {
       "name": "sudoku_candidate_on",
-      "value": "✎ Notes on"
+      "value": "✎ 候选中"
     },
     {
       "name": "sudoku_candidate_off",
-      "value": "✎ Notes"
+      "value": "✎ 候选数"
     },
     {
       "name": "sudoku_erase",
-      "value": "⌫ Erase"
+      "value": "⌫ 擦除"
     },
     {
       "name": "sudoku_solving",
-      "value": "Solving..."
+      "value": "求解中..."
     },
     {
       "name": "sudoku_solve",
-      "value": "🔍 Solve"
+      "value": "🔍 求解"
     },
     {
       "name": "sudoku_hint",
-      "value": "💡 Hint"
+      "value": "💡 提示"
     },
     {
       "name": "sudoku_copy_log",
-      "value": "Copy Recognition Log"
+      "value": "复制识别日志"
     },
     {
       "name": "sudoku_collapse",
-      "value": "Collapse"
+      "value": "收起"
     },
     {
       "name": "sudoku_edit_hint",
-      "value": "Edit mode: tap a digit to change or erase it; fix recognition errors here"
+      "value": "修改模式：点击数字可修改或擦除，识别错误可在此纠正"
     },
     {
       "name": "sudoku_input_hint",
-      "value": "Tap a cell to type | matching digits highlighted | long-press to clear"
+      "value": "点击空格输入数字 | 相同数字高亮显示 | 长按清空"
     },
     {
       "name": "tz_title",
-      "value": "Time Zone Converter"
+      "value": "时区转换"
     },
     {
       "name": "tz_tab_meeting",
-      "value": "Meeting Planner"
+      "value": "会议协调"
     },
     {
       "name": "tz_results",
-      "value": "Converted Times"
+      "value": "转换结果"
     },
     {
       "name": "tz_work_hours",
-      "value": "Work hours"
+      "value": "工作时间"
     },
     {
       "name": "tz_off_hours",
-      "value": "Off hours"
+      "value": "非工作时间"
     },
     {
       "name": "tz_add_city",
-      "value": "Add City"
+      "value": "添加城市"
     },
     {
       "name": "tz_base_city",
-      "value": "Base city"
+      "value": "基准城市"
     },
     {
       "name": "tz_set_time",
-      "value": "🕒 Set local time"
+      "value": "🕒 设置当地时间"
     },
     {
       "name": "tz_favorites",
-      "value": "⭐ Favorite Cities"
+      "value": "⭐ 收藏城市"
     },
     {
       "name": "tz_duration",
-      "value": "Meeting Duration"
+      "value": "会议时长"
     },
     {
       "name": "tz_duration_30",
-      "value": "30 min"
+      "value": "30分钟"
     },
     {
       "name": "tz_duration_60",
-      "value": "1 hr"
+      "value": "1小时"
     },
     {
       "name": "tz_duration_90",
-      "value": "1.5 hrs"
+      "value": "1.5小时"
     },
     {
       "name": "tz_duration_120",
-      "value": "2 hrs"
+      "value": "2小时"
     },
     {
       "name": "tz_cities",
-      "value": "Participating Cities"
+      "value": "参与城市"
     },
     {
       "name": "tz_need_two",
-      "value": "Add at least 2 cities"
+      "value": "请至少添加2个城市"
     },
     {
       "name": "tz_analysis",
-      "value": "Time Analysis"
+      "value": "时间分析"
     },
     {
       "name": "tz_overtime",
-      "value": "Overtime"
+      "value": "加班时间"
     },
     {
       "name": "tz_suggest_all_work",
-      "value": "All cities are in work hours — a great time to meet!"
+      "value": "所有城市都在工作时间，非常适合开会！"
     },
     {
       "name": "tz_suggest_night",
-      "value": "Some cities are in deep night. Consider rescheduling"
+      "value": "有城市处于深夜，建议调整会议时间"
     },
     {
       "name": "tz_suggest_partial",
-      "value": "Some cities are outside work hours. Please coordinate"
+      "value": "部分城市处于非工作时间，请注意协调"
     },
     {
       "name": "tz_select_city",
-      "value": "Select City"
+      "value": "选择城市"
     },
     {
       "name": "tz_search_city",
-      "value": "Search cities"
+      "value": "搜索城市"
     },
     {
       "name": "tz_load_failed",
-      "value": "⚠️ Failed to load city data"
+      "value": "⚠️ 城市数据加载失败"
     },
     {
       "name": "tz_load_failed_hint",
-      "value": "Try reopening this page or restarting the app"
+      "value": "请尝试重新进入页面或重启应用"
     },
     {
       "name": "gcd_step_intro",
-      "value": "Euclidean algorithm: find the GCD of %1$d and %2$d"
+      "value": "使用欧几里得算法求 %1$d 和 %2$d 的最大公约数"
     },
     {
       "name": "gcd_step_div_rem",
-      "value": "%1$d ÷ %2$d = %3$d remainder %4$d"
+      "value": "%1$d ÷ %2$d = %3$d 余 %4$d"
     },
     {
       "name": "gcd_step_gcd",
-      "value": "Remainder is 0, so the GCD is %1$d"
+      "value": "余数为0，最大公约数为 %1$d"
     },
     {
       "name": "gcd_step_lcm",
-      "value": "LCM = (%1$d × %2$d) ÷ %3$d = %4$d"
+      "value": "最小公倍数 = (%1$d × %2$d) ÷ %3$d = %4$d"
     },
     {
       "name": "gcd_copy_pair",
-      "value": "%1$s and %2$s"
+      "value": "%1$s 和 %2$s"
     },
     {
       "name": "gcd_label_gcd",
-      "value": "GCD: %1$d"
+      "value": "最大公约数：%1$d"
     },
     {
       "name": "gcd_label_lcm",
-      "value": "LCM: %1$d"
+      "value": "最小公倍数：%1$d"
     },
     {
       "name": "gcd_copy_success",
-      "value": "Conversion results copied"
+      "value": "已复制转换结果"
     },
     {
       "name": "gcd_example_pair",
-      "value": "%1$d and %2$d"
+      "value": "%1$d 和 %2$d"
     },
     {
       "name": "gcd_input_hint1",
-      "value": "First positive integer"
+      "value": "第一个正整数"
     },
     {
       "name": "gcd_input_hint2",
-      "value": "Second positive integer"
+      "value": "第二个正整数"
     },
     {
       "name": "gcd_result_gcd",
-      "value": "Greatest Common Divisor (GCD)"
+      "value": "最大公约数 (GCD)"
     },
     {
       "name": "gcd_result_lcm",
-      "value": "Least Common Multiple (LCM)"
+      "value": "最小公倍数 (LCM)"
     },
     {
       "name": "gcd_steps_title",
-      "value": "Calculation Steps"
+      "value": "计算过程"
     },
     {
       "name": "gcd_copy_result",
-      "value": "Copy Result"
+      "value": "复制结果"
     },
     {
       "name": "gcd_empty_hint",
-      "value": "Enter two positive integers to calculate in real time"
+      "value": "输入两个正整数，实时计算"
     },
     {
       "name": "prime_step_start",
-      "value": "Start factoring %1$d"
+      "value": "开始分解 %1$d"
     },
     {
       "name": "prime_step_div",
-      "value": "Step %1$d: %2$d ÷ %3$d = %4$d"
+      "value": "步骤%1$d：%2$d ÷ %3$d = %4$d"
     },
     {
       "name": "prime_step_power",
-      "value": "Step %1$d: %2$d ÷ %3$d^%4$d = %5$d"
+      "value": "步骤%1$d：%2$d ÷ %3$d^%4$d = %5$d"
     },
     {
       "name": "prime_step_remainder",
-      "value": "Step %1$d: the remaining %2$d is prime"
+      "value": "步骤%1$d：剩余 %2$d 是质数"
     },
     {
       "name": "prime_is_prime_step",
-      "value": "%1$d is prime, no factorization needed"
+      "value": "%1$d 是质数，无需分解"
     },
     {
       "name": "prime_copy_success",
-      "value": "Result copied"
+      "value": "已复制结果"
     },
     {
       "name": "prime_input_hint",
-      "value": "Enter a positive integer"
+      "value": "输入正整数"
     },
     {
       "name": "prime_range_hint",
-      "value": "Supports 2 to 999,999,999,999"
+      "value": "支持 2 ~ 999,999,999,999"
     },
     {
       "name": "prime_is_prime_note",
-      "value": "%1$s is itself a prime, no factorization needed"
+      "value": "%1$s 本身就是质数，无需分解"
     },
     {
       "name": "prime_steps_title",
-      "value": "Factoring Steps"
+      "value": "分解过程"
     },
     {
       "name": "prime_what_title",
-      "value": "What is prime factorization?"
+      "value": "什么是质因数分解？"
     },
     {
       "name": "prime_what_desc",
-      "value": "Breaking a composite number into a product of primes"
+      "value": "把一个合数分解成若干个质数相乘的形式"
     },
     {
       "name": "basec_title",
-      "value": "Base Converter"
+      "value": "进制转换"
     },
     {
       "name": "basec_input_placeholder",
-      "value": "Enter a value"
+      "value": "输入数值"
     },
     {
       "name": "basec_radix_dec",
-      "value": "Decimal"
+      "value": "十进制"
     },
     {
       "name": "basec_radix_bin",
-      "value": "Binary"
+      "value": "二进制"
     },
     {
       "name": "basec_radix_oct",
-      "value": "Octal"
+      "value": "八进制"
     },
     {
       "name": "basec_radix_hex",
-      "value": "Hexadecimal"
+      "value": "十六进制"
     },
     {
       "name": "basec_copy_all",
-      "value": "Copy Conversion Results"
+      "value": "复制转换结果"
     },
     {
       "name": "basec_copy_line",
-      "value": "%1$s: %2$s"
+      "value": "%1$s：%2$s"
     },
     {
       "name": "basec_err_dec",
-      "value": "Enter a valid decimal number"
+      "value": "请输入有效的十进制数字"
     },
     {
       "name": "basec_err_bin",
-      "value": "Enter a valid binary number (0s and 1s)"
+      "value": "请输入有效的二进制数字（0和1）"
     },
     {
       "name": "basec_err_oct",
-      "value": "Enter a valid octal number (0-7)"
+      "value": "请输入有效的八进制数字（0-7）"
     },
     {
       "name": "basec_err_hex",
-      "value": "Enter a valid hexadecimal number (0-9, A-F)"
+      "value": "请输入有效的十六进制数字（0-9, A-F）"
     },
     {
       "name": "basec_err_b64",
-      "value": "Invalid Base64 characters"
+      "value": "无效的Base64字符"
     },
     {
       "name": "basec_examples_title",
-      "value": "Quick Examples"
+      "value": "快速示例"
     },
     {
       "name": "basec_info_title",
-      "value": "About Number Bases"
+      "value": "进制说明"
     },
     {
       "name": "basec_info_dec_title",
-      "value": "Decimal (DEC)"
+      "value": "十进制 (DEC)"
     },
     {
       "name": "basec_info_dec_desc",
-      "value": "Uses 0-9, ten digits"
+      "value": "使用0-9，10个数字"
     },
     {
       "name": "basec_info_bin_title",
-      "value": "Binary (BIN)"
+      "value": "二进制 (BIN)"
     },
     {
       "name": "basec_info_bin_desc",
-      "value": "Uses 0 and 1, the basis of computing"
+      "value": "使用0和1，计算机基础"
     },
     {
       "name": "basec_info_oct_title",
-      "value": "Octal (OCT)"
+      "value": "八进制 (OCT)"
     },
     {
       "name": "basec_info_oct_desc",
-      "value": "Uses 0-7, eight digits"
+      "value": "使用0-7，8个数字"
     },
     {
       "name": "basec_info_hex_title",
-      "value": "Hexadecimal (HEX)"
+      "value": "十六进制 (HEX)"
     },
     {
       "name": "basec_info_hex_desc",
-      "value": "Uses 0-9 and A-F"
+      "value": "使用0-9和A-F"
     },
     {
       "name": "basec_info_b64_desc",
-      "value": "Encodes binary data as text"
+      "value": "编码二进制数据为文本"
     },
     {
       "name": "unitcv_ref_title",
-      "value": "Quick Reference"
+      "value": "常用参考"
     },
     {
       "name": "idiomq_data_loading",
-      "value": "Loading data..."
+      "value": "数据加载中…"
     },
     {
       "name": "idiomq_chain_continue",
-      "value": "Continue chain"
+      "value": "继续接龙"
     },
     {
       "name": "idiomq_chain_reverse",
-      "value": "Reverse chain"
+      "value": "逆查接龙"
     },
     {
       "name": "poemq_poet_subtitle",
-      "value": "%1 · %2 poems"
+      "value": "%1 · %2"
     }
   ]
 }

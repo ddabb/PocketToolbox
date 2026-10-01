@@ -45,7 +45,7 @@ export function TimezoneConverterPageBuilder(param?: Object) {
   NavDestination() {
     TimezoneConverterContent()
   }
-  .title('时区转换')
+  .title($r('app.string.tz_title'))
   .backButtonIcon($r('sys.symbol.chevron_left'))
   .menus([])
 }
@@ -64,7 +64,7 @@ struct TimezoneConverterContent {
   @State pickerMode: string = 'add';
   @State searchKeyword: string = '';
   @State pendingBaseCityName: string = '';
-  @State meetingSuggestion: string = '';
+  @State meetingSuggestion: ResourceStr = '';
   @State meetingSuggestionType: number = 0;
   @State cityTimeInfos: CityTimeInfo[] = [];
   @State meetingCityInfos: MeetingCityInfo[] = [];
@@ -303,7 +303,7 @@ struct TimezoneConverterContent {
   private calculateMeetingSuggestion(): void {
     this.recalcMeetingCityInfos();
     if (this.meetingCities.length < 2) {
-      this.meetingSuggestion = '请至少添加2个城市';
+      this.meetingSuggestion = $r('app.string.tz_need_two');
       this.meetingSuggestionType = 1;
       return;
     }
@@ -318,13 +318,13 @@ struct TimezoneConverterContent {
       }
     }
     if (allWork) {
-      this.meetingSuggestion = '所有城市都在工作时间，非常适合开会！';
+      this.meetingSuggestion = $r('app.string.tz_suggest_all_work');
       this.meetingSuggestionType = 0;
     } else if (hasNight) {
-      this.meetingSuggestion = '有城市处于深夜，建议调整会议时间';
+      this.meetingSuggestion = $r('app.string.tz_suggest_night');
       this.meetingSuggestionType = 2;
     } else {
-      this.meetingSuggestion = '部分城市处于非工作时间，请注意协调';
+      this.meetingSuggestion = $r('app.string.tz_suggest_partial');
       this.meetingSuggestionType = 1;
     }
   }
@@ -455,7 +455,7 @@ struct TimezoneConverterContent {
   TabBar() {
     Row() {
       Column() {
-        Text('时区转换')
+        Text($r('app.string.tz_title'))
           .fontSize(15)
           .fontWeight(this.activeTab === 0 ? FontWeight.Bold : FontWeight.Normal)
           .fontColor(this.activeTab === 0 ? $r('app.color.idiom_blue') : $r('app.color.tertiary_text'))
@@ -468,7 +468,7 @@ struct TimezoneConverterContent {
       })
 
       Column() {
-        Text('会议协调')
+        Text($r('app.string.tz_tab_meeting'))
           .fontSize(15)
           .fontWeight(this.activeTab === 1 ? FontWeight.Bold : FontWeight.Normal)
           .fontColor(this.activeTab === 1 ? $r('app.color.idiom_blue') : $r('app.color.tertiary_text'))
@@ -493,7 +493,7 @@ struct TimezoneConverterContent {
       Column() {
         this.BaseTimeCard()
 
-        Text('转换结果')
+        Text($r('app.string.tz_results'))
           .fontSize(15)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.primary_text'))
@@ -528,7 +528,7 @@ struct TimezoneConverterContent {
             .alignItems(HorizontalAlign.End)
 
             Column() {
-              Text(info.isWorkTime ? '工作时间' : '非工作时间')
+              Text(info.isWorkTime ? $r('app.string.tz_work_hours') : $r('app.string.tz_off_hours'))
                 .fontSize(11)
                 .fontColor(info.isWorkTime ? $r('app.color.success_green') : $r('app.color.warning_orange'))
                 .backgroundColor(info.isWorkTime ? $r('app.color.success_tint') : $r('app.color.warning_orange_tint'))
@@ -555,7 +555,7 @@ struct TimezoneConverterContent {
         }, (info: CityTimeInfo) => info.cityName + '_' + this.calcVersion.toString())
 
         Row() {
-          Button('添加城市')
+          Button($r('app.string.tz_add_city'))
             .fontSize(14)
             .fontColor($r('app.color.idiom_blue'))
             .backgroundColor($r('app.color.idiom_blue') + '12')
@@ -584,7 +584,7 @@ struct TimezoneConverterContent {
   BaseTimeCard() {
     Column() {
       Row() {
-        Text('基准城市')
+        Text($r('app.string.tz_base_city'))
           .fontSize(13)
           .fontColor($r('app.color.tertiary_text'))
         Blank()
@@ -599,7 +599,7 @@ struct TimezoneConverterContent {
       .margin({ bottom: 8 })
 
       Row() {
-        Text('\uD83D\uDD52 设置当地时间')
+        Text($r('app.string.tz_set_time'))
           .fontSize(12)
           .fontColor($r('app.color.tertiary_text'))
       }
@@ -641,7 +641,7 @@ struct TimezoneConverterContent {
   @Builder
   FavoritesSection() {
     Column() {
-      Text('\u2B50 收藏城市')
+      Text($r('app.string.tz_favorites'))
         .fontSize(15)
         .fontWeight(FontWeight.Bold)
         .fontColor($r('app.color.primary_text'))
@@ -683,7 +683,7 @@ struct TimezoneConverterContent {
   MeetingPage() {
     Scroll() {
       Column() {
-        Text('会议时长')
+        Text($r('app.string.tz_duration'))
           .fontSize(15)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.primary_text'))
@@ -691,14 +691,14 @@ struct TimezoneConverterContent {
           .margin({ left: 16, top: 12 })
 
         Row({ space: 8 }) {
-          this.DurationButton(30, '30分钟')
-          this.DurationButton(60, '1小时')
-          this.DurationButton(90, '1.5小时')
-          this.DurationButton(120, '2小时')
+          this.DurationButton(30, $r('app.string.tz_duration_30'))
+          this.DurationButton(60, $r('app.string.tz_duration_60'))
+          this.DurationButton(90, $r('app.string.tz_duration_90'))
+          this.DurationButton(120, $r('app.string.tz_duration_120'))
         }
         .margin({ left: 16, right: 16, top: 8 })
 
-        Text('参与城市')
+        Text($r('app.string.tz_cities'))
           .fontSize(15)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.primary_text'))
@@ -733,7 +733,7 @@ struct TimezoneConverterContent {
         }, (cityName: string) => cityName)
 
         Row() {
-          Button('添加城市')
+          Button($r('app.string.tz_add_city'))
             .fontSize(14)
             .fontColor($r('app.color.idiom_blue'))
             .backgroundColor($r('app.color.idiom_blue') + '12')
@@ -750,7 +750,7 @@ struct TimezoneConverterContent {
         if (this.meetingCities.length >= 2) {
           this.MeetingAnalysis()
         } else {
-          Text('请至少添加2个城市')
+          Text($r('app.string.tz_need_two'))
             .fontSize(13)
             .fontColor($r('app.color.tertiary_text'))
             .margin({ top: 16 })
@@ -766,7 +766,7 @@ struct TimezoneConverterContent {
   }
 
   @Builder
-  DurationButton(value: number, label: string) {
+  DurationButton(value: number, label: ResourceStr) {
     Button(label)
       .fontSize(13)
       .fontColor(this.meetingDuration === value ? Color.White : $r('app.color.primary_text'))
@@ -783,7 +783,7 @@ struct TimezoneConverterContent {
   @Builder
   MeetingAnalysis() {
     Column() {
-      Text('时间分析')
+      Text($r('app.string.tz_analysis'))
         .fontSize(15)
         .fontWeight(FontWeight.Bold)
         .fontColor($r('app.color.primary_text'))
@@ -803,7 +803,7 @@ struct TimezoneConverterContent {
             .fontSize(14)
             .fontColor($r('app.color.primary_text'))
             .margin({ right: 8 })
-          Text(info.isWorkTime ? '工作时间' : '加班时间')
+          Text(info.isWorkTime ? $r('app.string.tz_work_hours') : $r('app.string.tz_overtime'))
             .fontSize(11)
             .fontColor(info.isWorkTime ? $r('app.color.success_green') : $r('app.color.warning_orange'))
             .backgroundColor(info.isWorkTime ? $r('app.color.success_tint') : $r('app.color.warning_orange_tint'))
@@ -839,7 +839,7 @@ struct TimezoneConverterContent {
     Column() {
       Column() {
         Row() {
-          Text('选择城市')
+          Text($r('app.string.tz_select_city'))
             .fontSize(16)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.primary_text'))
@@ -854,7 +854,7 @@ struct TimezoneConverterContent {
         .width('100%')
         .margin({ bottom: 12 })
 
-        TextInput({ placeholder: '搜索城市', text: this.searchKeyword })
+        TextInput({ placeholder: $r('app.string.tz_search_city'), text: this.searchKeyword })
           .width('100%')
           .height(40)
           .fontSize(14)
@@ -868,7 +868,7 @@ struct TimezoneConverterContent {
         Scroll() {
           Column() {
             if (this.searchKeyword.length === 0) {
-              Text('\u2B50 收藏城市')
+              Text($r('app.string.tz_favorites'))
                 .fontSize(14)
                 .fontWeight(FontWeight.Bold)
                 .fontColor($r('app.color.primary_text'))
@@ -895,11 +895,11 @@ struct TimezoneConverterContent {
 
             if (this.regionGroups.length === 0) {
               Column() {
-                Text('\u26A0\uFE0F 城市数据加载失败')
+                Text($r('app.string.tz_load_failed'))
                   .fontSize(14)
                   .fontColor($r('app.color.danger_red'))
                   .margin({ top: 24, bottom: 8 })
-                Text('请尝试重新进入页面或重启应用')
+                Text($r('app.string.tz_load_failed_hint'))
                   .fontSize(12)
                   .fontColor($r('app.color.tertiary_text'))
               }
@@ -949,7 +949,7 @@ struct TimezoneConverterContent {
 
         if (this.pickerMode === 'base') {
           Row() {
-            Button('取消')
+            Button($r('app.string.sudoku_cancel'))
               .fontSize(14)
               .fontColor($r('app.color.tertiary_text'))
               .backgroundColor($r('app.color.page_background'))
@@ -959,7 +959,7 @@ struct TimezoneConverterContent {
               .onClick(() => {
                 this.showCityPicker = false;
               })
-            Button('确定')
+            Button($r('app.string.sudoku_confirm'))
               .fontSize(14)
               .fontColor($r('app.color.on_accent_text'))
               .backgroundColor($r('app.color.idiom_blue'))

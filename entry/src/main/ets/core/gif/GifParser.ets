@@ -44,13 +44,13 @@ function readSubBlocks(data: Uint8Array, pos: number): SubBlockData {
       return result;
     }
     if (p + len > data.length) {
-      throw new Error('GIF: 数据截断');
+      throw new Error('GIF: truncated data');
     }
     chunks.push(data.slice(p, p + len));
     total += len;
     p += len;
   }
-  throw new Error('GIF: 数据截断');
+  throw new Error('GIF: truncated data');
 }
 
 function skipSubBlocks(data: Uint8Array, pos: number): number {
@@ -63,7 +63,7 @@ function skipSubBlocks(data: Uint8Array, pos: number): number {
     }
     p += len;
   }
-  throw new Error('GIF: 数据截断');
+  throw new Error('GIF: truncated data');
 }
 
 /**
@@ -108,7 +108,7 @@ function lzwDecode(data: Uint8Array, minCodeSize: number, maxPixels: number): Ui
     }
     if (prev < 0) {
       if (code >= clearCode) {
-        throw new Error('GIF: 非法首码');
+        throw new Error('GIF: invalid first code');
       }
       output[outLen] = code;
       outLen++;
@@ -129,7 +129,7 @@ function lzwDecode(data: Uint8Array, minCodeSize: number, maxPixels: number): Ui
       stack[depth] = c;
       depth++;
       if (outLen + depth > maxPixels) {
-        throw new Error('GIF: 图像数据超出声明尺寸');
+        throw new Error('GIF: image data exceeds declared size');
       }
       for (let i = depth - 1; i >= 0; i--) {
         output[outLen] = stack[i];
@@ -150,14 +150,14 @@ function lzwDecode(data: Uint8Array, minCodeSize: number, maxPixels: number): Ui
       stack[depth] = c;
       depth++;
       if (outLen + depth > maxPixels) {
-        throw new Error('GIF: 图像数据超出声明尺寸');
+        throw new Error('GIF: image data exceeds declared size');
       }
       for (let i = depth - 1; i >= 0; i--) {
         output[outLen] = stack[i];
         outLen++;
       }
     } else {
-      throw new Error('GIF: 非法编码');
+      throw new Error('GIF: invalid code');
     }
     prefix[nextCode] = prev;
     suffix[nextCode] = first;
@@ -191,19 +191,19 @@ function interlaceRowOrder(height: number): number[] {
  */
 export function parseGif(data: Uint8Array): GifParseResult {
   if (data.length < 13) {
-    throw new Error('GIF: 文件过小');
+    throw new Error('GIF: file too small');
   }
   if (data[0] !== 0x47 || data[1] !== 0x49 || data[2] !== 0x46 || data[3] !== 0x38) {
-    throw new Error('GIF: 不是有效的 GIF 文件');
+    throw new Error('GIF: not a valid GIF file');
   }
   let width: number = data[6] | (data[7] << 8);
   let height: number = data[8] | (data[9] << 8);
   if (width <= 0 || height <= 0) {
-    throw new Error('GIF: 画布尺寸非法');
+    throw new Error('GIF: invalid canvas size');
   }
   let maxPixels: number = width * height;
   if (maxPixels > 64 * 1024 * 1024) {
-    throw new Error('GIF: 画布过大');
+    throw new Error('GIF: canvas too large');
   }
   let result: GifParseResult = new GifParseResult();
   result.width = width;
@@ -214,7 +214,7 @@ export function parseGif(data: Uint8Array): GifParseResult {
   if ((packed & 0x80) !== 0) {
     let n: number = 2 << (packed & 0x07);
     if (pos + n * 3 > data.length) {
-      throw new Error('GIF: 数据截断');
+      throw new Error('GIF: truncated data');
     }
     gct = data.slice(pos, pos + n * 3);
     pos += n * 3;
@@ -239,19 +239,19 @@ export function parseGif(data: Uint8Array): GifParseResult {
     if (blockType === 0x21) {
       // 扩展块
       if (pos >= data.length) {
-        throw new Error('GIF: 数据截断');
+        throw new Error('GIF: truncated data');
       }
       let label: number = data[pos];
       pos++;
       if (label === 0xF9) {
         // 图形控制扩展
         if (pos >= data.length) {
-          throw new Error('GIF: 数据截断');
+          throw new Error('GIF: truncated data');
         }
         let blockSize: number = data[pos];
         pos++;
         if (blockSize < 4 || pos + blockSize > data.length) {
-          throw new Error('GIF: 图形控制扩展损坏');
+          throw new Error('GIF: corrupt graphic control extension');
         }
         let gcePacked: number = data[pos];
         disposal = (gcePacked >> 2) & 0x07;
@@ -262,12 +262,12 @@ export function parseGif(data: Uint8Array): GifParseResult {
       } else if (label === 0xFF) {
         // 应用扩展（识别 NETSCAPE2.0 循环块）
         if (pos >= data.length) {
-          throw new Error('GIF: 数据截断');
+          throw new Error('GIF: truncated data');
         }
         let idSize: number = data[pos];
         pos++;
         if (pos + idSize > data.length) {
-          throw new Error('GIF: 数据截断');
+          throw new Error('GIF: truncated data');
         }
         let appId: string = '';
         for (let i = 0; i < idSize; i++) {
@@ -279,7 +279,7 @@ export function parseGif(data: Uint8Array): GifParseResult {
             let len: number = data[pos];
             pos++;
             if (pos + len > data.length) {
-              throw new Error('GIF: 数据截断');
+              throw new Error('GIF: truncated data');
             }
             if (len >= 3 && data[pos] === 0x01) {
               let v: number = data[pos + 1] | (data[pos + 2] << 8);
@@ -288,7 +288,7 @@ export function parseGif(data: Uint8Array): GifParseResult {
             pos += len;
           }
           if (pos >= data.length) {
-            throw new Error('GIF: 数据截断');
+            throw new Error('GIF: truncated data');
           }
           pos++;
         } else {
@@ -303,7 +303,7 @@ export function parseGif(data: Uint8Array): GifParseResult {
     if (blockType === 0x2C) {
       // 图像描述符
       if (pos + 9 > data.length) {
-        throw new Error('GIF: 数据截断');
+        throw new Error('GIF: truncated data');
       }
       let left: number = data[pos] | (data[pos + 1] << 8);
       let top: number = data[pos + 2] | (data[pos + 3] << 8);
@@ -312,35 +312,35 @@ export function parseGif(data: Uint8Array): GifParseResult {
       let descPacked: number = data[pos + 8];
       pos += 9;
       if (fw <= 0 || fh <= 0) {
-        throw new Error('GIF: 帧尺寸非法');
+        throw new Error('GIF: invalid frame size');
       }
       let lct: Uint8Array | null = null;
       if ((descPacked & 0x80) !== 0) {
         let n: number = 2 << (descPacked & 0x07);
         if (pos + n * 3 > data.length) {
-          throw new Error('GIF: 数据截断');
+          throw new Error('GIF: truncated data');
         }
         lct = data.slice(pos, pos + n * 3);
         pos += n * 3;
       }
       let interlaced: boolean = (descPacked & 0x40) !== 0;
       if (pos >= data.length) {
-        throw new Error('GIF: 数据截断');
+        throw new Error('GIF: truncated data');
       }
       let minCodeSize: number = data[pos];
       pos++;
       if (minCodeSize < 2 || minCodeSize > 8) {
-        throw new Error('GIF: 非法最小码宽');
+        throw new Error('GIF: invalid minimum code size');
       }
       let sub: SubBlockData = readSubBlocks(data, pos);
       pos = sub.endPos;
       let indices: Uint8Array = lzwDecode(sub.bytes, minCodeSize, fw * fh);
       if (indices.length < fw * fh) {
-        throw new Error('GIF: 图像数据不完整');
+        throw new Error('GIF: incomplete image data');
       }
       let palette: Uint8Array | null = lct !== null ? lct : gct;
       if (palette === null) {
-        throw new Error('GIF: 缺少调色板');
+        throw new Error('GIF: missing palette');
       }
       let paletteCount: number = palette.length / 3;
       let rowOrder: number[] = interlaced ? interlaceRowOrder(fh) : [];
@@ -396,7 +396,7 @@ export function parseGif(data: Uint8Array): GifParseResult {
     throw new Error('GIF: 无法识别的数据块 0x' + blockType.toString(16));
   }
   if (result.frames.length === 0) {
-    throw new Error('GIF: 未找到帧数据');
+    throw new Error('GIF: no frame data found');
   }
   return result;
 }
@@ -406,7 +406,7 @@ export function parseGif(data: Uint8Array): GifParseResult {
  */
 export function resizeRgba(src: Uint8Array, sw: number, sh: number, tw: number, th: number): Uint8Array {
   if (tw <= 0 || th <= 0 || sw <= 0 || sh <= 0) {
-    throw new Error('resizeRgba: 非法尺寸');
+    throw new Error('resizeRgba: invalid size');
   }
   if (tw === sw && th === sh) {
     return src.slice();

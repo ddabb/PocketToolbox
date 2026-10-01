@@ -180,19 +180,19 @@ export class IdiomViewModel {
     result.lastIndexLoading = false;
 
     if (!this.isFirstReady) {
-      result.error = '数据加载中\u2026';
+      result.error = 'loading';
       result.lastIndexLoading = !this.isLastReady;
       return result;
     }
 
     if (!this.hasWord(word)) {
-      result.error = '该成语不在词库中';
+      result.error = 'not_found';
       return result;
     }
 
     if (mode === 'reverse') {
       if (!this.isLastReady) {
-        result.error = '数据加载中\u2026';
+        result.error = 'loading';
         result.lastIndexLoading = true;
         return result;
       }
@@ -514,7 +514,7 @@ export class IdiomViewModel {
         item.leftClass = 'candidate';
         item.rightClass = 'query';
         item.continueWord = candidate;
-        item.actionText = '逆查接龙';
+        item.actionKind = 'reverse';
         let nextResult: SolitaireResult = this.querySolitaire(candidate, 'forward');
         item.canContinue = nextResult.candidates.length > 0;
       } else {
@@ -523,7 +523,7 @@ export class IdiomViewModel {
         item.leftClass = 'query';
         item.rightClass = 'candidate';
         item.continueWord = candidate;
-        item.actionText = '继续接龙';
+        item.actionKind = 'forward';
         item.canContinue = true;
       }
 

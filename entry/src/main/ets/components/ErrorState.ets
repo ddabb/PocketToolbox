@@ -1,10 +1,23 @@
+import { Context } from '@kit.AbilityKit';
+import { StrUtil } from '../common/utils/StrUtil';
+
 @Component
 export struct ErrorState {
-  @Prop text: string = '加载失败';
+  @Prop text: string = '';
   @Prop subText: string = '';
   @Prop showButton: boolean = true;
-  @Prop buttonText: string = '重试';
+  @Prop buttonText: string = '';
   onRetry: () => void = () => {};
+
+  aboutToAppear(): void {
+    let ctx: Context = this.getUIContext().getHostContext() as Context;
+    if (!this.text) {
+      this.text = StrUtil.text(ctx, $r('app.string.err_load_failed'));
+    }
+    if (!this.buttonText) {
+      this.buttonText = StrUtil.text(ctx, $r('app.string.err_retry'));
+    }
+  }
 
   build() {
     Column() {

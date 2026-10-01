@@ -3,7 +3,7 @@ import { photoAccessHelper } from '@kit.MediaLibraryKit';
 import { image } from '@kit.ImageKit';
 import { media } from '@kit.MediaKit';
 import { fileIo as fs, fileUri, WriteOptions, ReadOptions } from '@kit.CoreFileKit';
-import { common } from '@kit.AbilityKit';
+import { common, Context } from '@kit.AbilityKit';
 import { buildFrameOrder, resolveFrameDelayCs, composeFramePixels } from '../core/gif/GifEncoder';
 import { parseGif, resizeRgba, swapBgraRgba, GifParseResult } from '../core/gif/GifParser';
 import { GifExportTaskInput, runGifExportTask, cancelGifExportTask } from '../core/gif/GifExportTask';
@@ -20,6 +20,7 @@ import { renderOverlaysIntoPixels } from '../core/gif/GifOverlayRenderer';
 import { GifHistoryStore, GifHistoryRecord, makeHistoryFileName, formatGifBytes } from '../core/gif/GifHistoryStore';
 import { shareGifViaPanel } from '../common/utils/ShareImageUtil';
 import { ToastUtil } from '../common/utils/ToastUtil';
+import { StrUtil } from '../common/utils/StrUtil';
 import { VibrateUtil } from '../common/utils/VibrateUtil';
 
 const MIN_FRAMES: number = 2;
@@ -27,22 +28,16 @@ const MAX_FRAMES: number = 30;
 const MAX_ORIGINAL_EDGE: number = 720;
 const MAX_VIDEO_SPAN_MS: number = 15000;
 
-const SPEED_LABELS: string[] = ['0.25x', '0.5x', '1x', '2x', '4x'];
+const SPEED_LABELS: ResourceStr[] = ['0.25x', '0.5x', '1x', '2x', '4x'];
 const SPEED_VALUES: number[] = [0.25, 0.5, 1, 2, 4];
-const PLAY_MODE_LABELS: string[] = ['正放', '倒放', '来回'];
 const PLAY_MODE_VALUES: string[] = ['forward', 'reverse', 'pingpong'];
-const LOOP_LABELS: string[] = ['无限', '1次', '3次', '5次', '10次'];
 const LOOP_VALUES: number[] = [0, 1, 3, 5, 10];
-const SIZE_LABELS: string[] = ['原始', '480P', '720P'];
-const QUALITY_LABELS: string[] = ['标准', '高清'];
-const VIDEO_FPS_LABELS: string[] = ['5帧/秒', '10帧/秒', '15帧/秒', '24帧/秒'];
 const VIDEO_FPS_VALUES: number[] = [5, 10, 15, 24];
 
 const OVERLAY_COLORS: string[] = [
   '#FFFFFF', '#000000', '#E53E3E', '#ED8936', '#ECC94B', '#48BB78',
   '#38B2AC', '#3182CE', '#805AD5', '#ED64A6', '#A0AEC0', '#744210'
 ];
-const STICKER_CATEGORIES: string[] = ['表情', '装饰', '气泡'];
 const STICKER_SETS: string[][] = [
   ['😀', '😂', '🥹', '😍', '🥰', '😎', '🤔', '😭', '😡', '🥳', '😴', '🤡'],
   ['❤️', '🔥', '✨', '⭐', '🌈', '🎉', '🎊', '💯', '⚡', '🌸', '👍', '🥇'],
@@ -160,7 +155,7 @@ class DecodedFrame {
 
 @Component
 struct GifSectionCard {
-  @Prop title: string = '';
+  @Prop title: ResourceStr = '';
   @BuilderParam content: () => void;
 
   build() {
@@ -185,7 +180,7 @@ export function GifMakerPageBuilder() {
   NavDestination() {
     GifMakerPage()
   }
-  .title('GIF 制作')
+  .title($r('app.string.tool_gif_title'))
   .backButtonIcon($r('sys.symbol.chevron_left'))
   .menus([])
 }
@@ -216,7 +211,7 @@ struct GifMakerPage {
   @State videoThumb: image.PixelMap | null = null;
   // 导出
   @State exporting: boolean = false;
-  @State exportPhase: string = '';
+  @State exportPhase: ResourceStr = '';
   @State exportProgress: number = 0;
   @State exportedPath: string = '';
   @State exportedSize: number = 0;
@@ -239,6 +234,60 @@ struct GifMakerPage {
 
   private previewTimerId: number = -1;
   private exportCancelled: boolean = false;
+
+  // ---------- i18n 选项标签 ----------
+
+  private playModeLabels(): ResourceStr[] {
+    return [
+      $r('app.string.gif_play_forward'),
+      $r('app.string.gif_play_reverse'),
+      $r('app.string.gif_play_pingpong')
+    ];
+  }
+
+  private loopLabels(): ResourceStr[] {
+    return [
+      $r('app.string.gif_loop_infinite'),
+      $r('app.string.gif_loop_n', 1),
+      $r('app.string.gif_loop_n', 3),
+      $r('app.string.gif_loop_n', 5),
+      $r('app.string.gif_loop_n', 10)
+    ];
+  }
+
+  private sizeLabels(): ResourceStr[] {
+    return [$r('app.string.gif_size_original'), '480P', '720P'];
+  }
+
+  private qualityLabels(): ResourceStr[] {
+    return [$r('app.string.gif_quality_standard'), $r('app.string.gif_quality_hd')];
+  }
+
+  private videoFpsLabels(): ResourceStr[] {
+    return [
+      $r('app.string.gif_fps_n', VIDEO_FPS_VALUES[0]),
+      $r('app.string.gif_fps_n', VIDEO_FPS_VALUES[1]),
+      $r('app.string.gif_fps_n', VIDEO_FPS_VALUES[2]),
+      $r('app.string.gif_fps_n', VIDEO_FPS_VALUES[3])
+    ];
+  }
+
+  private stickerCategories(): ResourceStr[] {
+    return [
+      $r('app.string.gif_sticker_cat_emoji'),
+      $r('app.string.gif_sticker_cat_deco'),
+      $r('app.string.gif_sticker_cat_bubble')
+    ];
+  }
+
+  private resText(res: ResourceStr): string {
+    let ctx: Context = this.getUIContext().getHostContext() as Context;
+    return StrUtil.text(ctx, res);
+  }
+
+  private phaseProgressText(): string {
+    return this.resText(this.exportPhase) + '  ' + this.exportProgress.toString() + '%';
+  }
 
   aboutToAppear(): void {
     this.syncPreviewTimer();
@@ -381,7 +430,7 @@ struct GifMakerPage {
 
   private async pickImages(): Promise<void> {
     if (this.frames.length >= MAX_FRAMES) {
-      ToastUtil.show(this.getUIContext(), `最多支持 ${MAX_FRAMES} 张图片`, 2000);
+      ToastUtil.show(this.getUIContext(), $r('app.string.gif_toast_max_images', MAX_FRAMES), 2000);
       return;
     }
     try {
@@ -394,12 +443,12 @@ struct GifMakerPage {
         return;
       }
       if (this.frames.length === 0 && result.photoUris.length < MIN_FRAMES) {
-        ToastUtil.show(this.getUIContext(), '至少选择 2 张图片', 2000);
+        ToastUtil.show(this.getUIContext(), $r('app.string.gif_toast_min_images'), 2000);
         return;
       }
       let willFull: number = this.frames.length + result.photoUris.length;
       if (willFull > MAX_FRAMES) {
-        ToastUtil.show(this.getUIContext(), `最多支持 ${MAX_FRAMES} 张，已保留前 ${MAX_FRAMES - this.frames.length} 张`, 2000);
+        ToastUtil.show(this.getUIContext(), $r('app.string.gif_toast_max_kept', MAX_FRAMES, MAX_FRAMES - this.frames.length), 2000);
       }
       for (let i = 0; i < result.photoUris.length && this.frames.length < MAX_FRAMES; i++) {
         let uri: string = result.photoUris[i];
@@ -410,7 +459,7 @@ struct GifMakerPage {
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       if (err.code !== 0) {
-        ToastUtil.show(this.getUIContext(), '选择图片失败: ' + err.message, 2000);
+        ToastUtil.show(this.getUIContext(), $r('app.string.gif_toast_pick_failed', err.message), 2000);
       }
     }
   }
@@ -541,20 +590,20 @@ struct GifMakerPage {
       this.exporting = true;
       this.exportCancelled = false;
       this.exportProgress = 5;
-      this.exportPhase = '解析 GIF 中...';
+      this.exportPhase = $r('app.string.gif_phase_parsing');
       let bytes: Uint8Array = this.readFileBytes(uri);
       if (bytes.length < 13 || bytes[0] !== 0x47 || bytes[1] !== 0x49 || bytes[2] !== 0x46 || bytes[3] !== 0x38) {
-        ToastUtil.show(this.getUIContext(), '不是有效的 GIF 文件', 2000);
+        ToastUtil.show(this.getUIContext(), $r('app.string.gif_toast_invalid_gif'), 2000);
         return;
       }
       let parsed: GifParseResult = parseGif(bytes);
       if (parsed.frames.length < MIN_FRAMES) {
-        ToastUtil.show(this.getUIContext(), '该 GIF 帧数不足，无法编辑', 2000);
+        ToastUtil.show(this.getUIContext(), $r('app.string.gif_toast_gif_too_short'), 2000);
         return;
       }
       let count: number = Math.min(parsed.frames.length, MAX_FRAMES);
       if (parsed.frames.length > MAX_FRAMES) {
-        ToastUtil.show(this.getUIContext(), `帧数超过 ${MAX_FRAMES}，已保留前 ${MAX_FRAMES} 帧`, 2000);
+        ToastUtil.show(this.getUIContext(), $r('app.string.gif_toast_frames_truncated', MAX_FRAMES, MAX_FRAMES), 2000);
       }
       let longEdge: number = Math.max(parsed.width, parsed.height);
       let scale: number = longEdge > MAX_ORIGINAL_EDGE ? MAX_ORIGINAL_EDGE / longEdge : 1;
@@ -565,7 +614,7 @@ struct GifMakerPage {
         if (this.exportCancelled) {
           break;
         }
-        this.exportPhase = `解析帧 ${i + 1}/${count}`;
+        this.exportPhase = $r('app.string.gif_phase_parse_frame', i + 1, count);
         this.exportProgress = 5 + Math.round((i / count) * 90);
         let src: Uint8Array = parsed.frames[i].pixels;
         if (scale < 1) {
@@ -590,7 +639,7 @@ struct GifMakerPage {
         for (let i = 0; i < newFrames.length; i++) {
           this.releaseFramePixels(newFrames[i]);
         }
-        ToastUtil.show(this.getUIContext(), '已取消导入', 1500);
+        ToastUtil.show(this.getUIContext(), $r('app.string.gif_toast_import_cancelled'), 1500);
         return;
       }
       this.resetEditorState();
@@ -598,11 +647,11 @@ struct GifMakerPage {
       this.applyParsedLoop(parsed.loopCount);
       this.viewMode = 'edit';
       this.onFramesChanged();
-      ToastUtil.show(this.getUIContext(), `已导入 ${count} 帧`, 1500);
+      ToastUtil.show(this.getUIContext(), $r('app.string.gif_toast_imported_frames', count), 1500);
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[GifMaker] parse gif failed: ' + err.code + ' ' + err.message);
-      ToastUtil.show(this.getUIContext(), '解析 GIF 失败: ' + err.message, 2500);
+      ToastUtil.show(this.getUIContext(), $r('app.string.gif_toast_parse_failed', err.message), 2500);
     } finally {
       this.exporting = false;
     }
@@ -732,7 +781,7 @@ struct GifMakerPage {
       return this.createRgbaPixelMap(rgba, decoded.width, decoded.height);
     }
     pm.release();
-    throw new Error('不支持的视频帧格式');
+    throw new Error(this.resText($r('app.string.gif_err_unsupported_format')));
   }
 
   private async pickVideo(): Promise<void> {
@@ -749,10 +798,10 @@ struct GifMakerPage {
       this.exporting = true;
       this.exportCancelled = false;
       this.exportProgress = 30;
-      this.exportPhase = '读取视频信息...';
+      this.exportPhase = $r('app.string.gif_phase_video_info');
       let durationMs: number = await this.queryVideoDurationMs(uri);
       if (durationMs <= 0) {
-        ToastUtil.show(this.getUIContext(), '无法读取视频时长，可能是不支持的格式', 2500);
+        ToastUtil.show(this.getUIContext(), $r('app.string.gif_toast_no_duration'), 2500);
         return;
       }
       let file: fs.File = fs.openSync(uri, fs.OpenMode.READ_ONLY);
@@ -782,7 +831,7 @@ struct GifMakerPage {
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[GifMaker] pick video failed: ' + err.code + ' ' + err.message);
-      ToastUtil.show(this.getUIContext(), '读取视频失败: ' + err.message, 2500);
+      ToastUtil.show(this.getUIContext(), $r('app.string.gif_toast_read_video_failed', err.message), 2500);
     } finally {
       this.exporting = false;
     }
@@ -795,7 +844,7 @@ struct GifMakerPage {
     this.exporting = true;
     this.exportCancelled = false;
     this.exportProgress = 0;
-    this.exportPhase = '准备抽帧...';
+    this.exportPhase = $r('app.string.gif_phase_prepare_extract');
     let file: fs.File | null = null;
     let generator: media.AVImageGenerator | null = null;
     let partial: GifFrameItem[] = [];
@@ -820,7 +869,7 @@ struct GifMakerPage {
         if (this.exportCancelled) {
           break;
         }
-        this.exportPhase = `抽帧 ${i + 1}/${frameCount}`;
+        this.exportPhase = $r('app.string.gif_phase_extract_frame', i + 1, frameCount);
         this.exportProgress = Math.round((i / frameCount) * 95);
         let tMs: number = this.videoStartMs + i * stepMs;
         let tMaxMs: number = Math.max(0, this.videoDurationMs - 20);
@@ -838,11 +887,11 @@ struct GifMakerPage {
         for (let i = 0; i < partial.length; i++) {
           this.releaseFramePixels(partial[i]);
         }
-        ToastUtil.show(this.getUIContext(), '已取消抽帧', 1500);
+        ToastUtil.show(this.getUIContext(), $r('app.string.gif_toast_extract_cancelled'), 1500);
         return;
       }
       if (partial.length < MIN_FRAMES) {
-        throw new Error('抽帧数量不足');
+        throw new Error(this.resText($r('app.string.gif_err_not_enough_frames')));
       }
       let fps: number = VIDEO_FPS_VALUES[this.videoFpsIndex];
       let frameMs: number = Math.round(1000 / fps / 50) * 50;
@@ -855,14 +904,14 @@ struct GifMakerPage {
       this.durationInput = (frameMs / 1000).toFixed(2);
       this.viewMode = 'edit';
       this.onFramesChanged();
-      ToastUtil.show(this.getUIContext(), `已抽取 ${partial.length} 帧`, 1500);
+      ToastUtil.show(this.getUIContext(), $r('app.string.gif_toast_extracted_frames', partial.length), 1500);
     } catch (e) {
       for (let i = 0; i < partial.length; i++) {
         this.releaseFramePixels(partial[i]);
       }
       let err: BusinessError = e as BusinessError;
       console.error('[GifMaker] extract frames failed: ' + err.code + ' ' + err.message);
-      ToastUtil.show(this.getUIContext(), '抽帧失败: ' + err.message, 2500);
+      ToastUtil.show(this.getUIContext(), $r('app.string.gif_toast_extract_failed', err.message), 2500);
     } finally {
       if (generator !== null) {
         try {
@@ -884,7 +933,7 @@ struct GifMakerPage {
 
   private deleteSelectedFrame(): void {
     if (this.selectedFrameIndex < 0 || this.selectedFrameIndex >= this.frames.length) {
-      ToastUtil.show(this.getUIContext(), '请先点选一个帧', 1500);
+      ToastUtil.show(this.getUIContext(), $r('app.string.gif_toast_select_frame_first'), 1500);
       return;
     }
     this.releaseFramePixels(this.frames[this.selectedFrameIndex]);
@@ -893,13 +942,13 @@ struct GifMakerPage {
     this.perFrameDurationInput = '';
     this.onFramesChanged();
     if (this.frames.length < MIN_FRAMES) {
-      ToastUtil.show(this.getUIContext(), '帧数不足 2 张，无法导出', 1500);
+      ToastUtil.show(this.getUIContext(), $r('app.string.gif_toast_frames_below_min'), 1500);
     }
   }
 
   private moveSelectedFrame(delta: number): void {
     if (this.selectedFrameIndex < 0 || this.selectedFrameIndex >= this.frames.length) {
-      ToastUtil.show(this.getUIContext(), '请先点选一个帧', 1500);
+      ToastUtil.show(this.getUIContext(), $r('app.string.gif_toast_select_frame_first'), 1500);
       return;
     }
     let target: number = this.selectedFrameIndex + delta;
@@ -933,7 +982,7 @@ struct GifMakerPage {
 
   private rotateSelectedFrame(): void {
     if (this.selectedFrameIndex < 0 || this.selectedFrameIndex >= this.frames.length) {
-      ToastUtil.show(this.getUIContext(), '请先点选一个帧', 1500);
+      ToastUtil.show(this.getUIContext(), $r('app.string.gif_toast_select_frame_first'), 1500);
       return;
     }
     let item: GifFrameItem = this.frames[this.selectedFrameIndex];
@@ -1094,7 +1143,7 @@ struct GifMakerPage {
   private addTextOverlay(): void {
     let text: string = this.overlayTextInput.trim();
     if (text.length === 0) {
-      ToastUtil.show(this.getUIContext(), '请输入文字内容', 1500);
+      ToastUtil.show(this.getUIContext(), $r('app.string.gif_toast_enter_text'), 1500);
       return;
     }
     let item: ObservedOverlayItem = new ObservedOverlayItem(OVERLAY_KIND_TEXT, text, '#FFFFFF', 32, 0.5, 0.5, 0);
@@ -1160,7 +1209,7 @@ struct GifMakerPage {
   private applyCustomColor(): void {
     let raw: string = this.customColorInput.trim();
     if (!/^#[0-9a-fA-F]{6}$/.test(raw)) {
-      ToastUtil.show(this.getUIContext(), '请输入 #RRGGBB 格式颜色', 1500);
+      ToastUtil.show(this.getUIContext(), $r('app.string.gif_toast_invalid_color'), 1500);
       return;
     }
     this.applyOverlayColor(raw.toUpperCase());
@@ -1187,9 +1236,12 @@ struct GifMakerPage {
       record.width = w;
       record.height = h;
       record.frameCount = frameCount;
-      record.paramsText = SIZE_LABELS[this.sizeIndex] + ' · ' + (this.frameDurationMs / 1000).toFixed(2) + 's/帧 · '
-        + SPEED_LABELS[this.speedIndex] + ' · ' + PLAY_MODE_LABELS[this.playModeIndex] + ' · '
-        + LOOP_LABELS[this.loopIndex] + ' · ' + QUALITY_LABELS[this.qualityIndex];
+      record.paramsText = StrUtil.text(context, this.sizeLabels()[this.sizeIndex]) + ' · '
+        + (this.frameDurationMs / 1000).toFixed(2) + StrUtil.text(context, $r('app.string.gif_unit_sec_per_frame')) + ' · '
+        + StrUtil.text(context, SPEED_LABELS[this.speedIndex]) + ' · '
+        + StrUtil.text(context, this.playModeLabels()[this.playModeIndex]) + ' · '
+        + StrUtil.text(context, this.loopLabels()[this.loopIndex]) + ' · '
+        + StrUtil.text(context, this.qualityLabels()[this.qualityIndex]);
       if (!GifHistoryStore.saveRecord(context, this.exportedPath, record)) {
         console.warn('[GifMaker] save history record failed');
       }
@@ -1215,20 +1267,20 @@ struct GifMakerPage {
 
   private deleteHistoryRecord(record: GifHistoryRecord): void {
     let dialogParam: AlertDialogParamWithButtons = {
-      title: '删除记录',
-      message: '删除后该成品 GIF 将从沙箱中移除，已保存到相册的副本不受影响。确定删除？',
+      title: $r('app.string.gif_dialog_delete_title'),
+      message: $r('app.string.gif_dialog_delete_msg'),
       primaryButton: {
-        value: '取消',
+        value: $r('app.string.gif_btn_cancel'),
         action: () => {
         }
       },
       secondaryButton: {
-        value: '删除',
+        value: $r('app.string.gif_btn_delete'),
         action: () => {
           let context: common.UIAbilityContext = this.getUIContext().getHostContext() as common.UIAbilityContext;
           GifHistoryStore.deleteRecord(context, record.id);
           this.refreshHistory();
-          ToastUtil.show(this.getUIContext(), '已删除', 1200);
+          ToastUtil.show(this.getUIContext(), $r('app.string.gif_toast_deleted'), 1200);
         }
       }
     };
@@ -1240,20 +1292,20 @@ struct GifMakerPage {
       return;
     }
     let dialogParam: AlertDialogParamWithButtons = {
-      title: '清空历史',
-      message: `将删除全部 ${this.historyRecords.length} 条记录（约 ${formatGifBytes(this.historyBytes)}），已保存到相册的副本不受影响。确定清空？`,
+      title: $r('app.string.gif_dialog_clear_title'),
+      message: $r('app.string.gif_dialog_clear_msg', this.historyRecords.length, formatGifBytes(this.historyBytes)),
       primaryButton: {
-        value: '取消',
+        value: $r('app.string.gif_btn_cancel'),
         action: () => {
         }
       },
       secondaryButton: {
-        value: '清空',
+        value: $r('app.string.gif_btn_clear'),
         action: () => {
           let context: common.UIAbilityContext = this.getUIContext().getHostContext() as common.UIAbilityContext;
           GifHistoryStore.clearAll(context);
           this.refreshHistory();
-          ToastUtil.show(this.getUIContext(), '已清空', 1200);
+          ToastUtil.show(this.getUIContext(), $r('app.string.gif_toast_cleared'), 1200);
         }
       }
     };
@@ -1347,20 +1399,20 @@ struct GifMakerPage {
 
   private startExport(): void {
     if (this.frames.length < MIN_FRAMES) {
-      ToastUtil.show(this.getUIContext(), '至少需要 2 张图片', 2000);
+      ToastUtil.show(this.getUIContext(), $r('app.string.gif_toast_need_two_images'), 2000);
       return;
     }
     if (this.estimateOutputBytes() > 30 * 1024 * 1024) {
       let dialogParam: AlertDialogParamWithButtons = {
-        title: '体积提示',
-        message: '按当前参数预计生成文件较大（可能超过 30MB），建议降低尺寸或减少帧数。是否继续？',
+        title: $r('app.string.gif_dialog_size_title'),
+        message: $r('app.string.gif_dialog_size_msg'),
         primaryButton: {
-          value: '取消',
+          value: $r('app.string.gif_btn_cancel'),
           action: () => {
           }
         },
         secondaryButton: {
-          value: '继续',
+          value: $r('app.string.gif_btn_continue'),
           action: () => {
             this.doExport();
           }
@@ -1379,7 +1431,7 @@ struct GifMakerPage {
     this.exporting = true;
     this.exportCancelled = false;
     this.exportProgress = 0;
-    this.exportPhase = '准备中...';
+    this.exportPhase = $r('app.string.gif_phase_preparing');
     const exportT0: number = Date.now();
     console.info('[GifMaker] export start: ' + this.frames.length + ' frames ' + this.outputCanvasSize()[0] + 'x' + this.outputCanvasSize()[1]);
     try {
@@ -1395,7 +1447,9 @@ struct GifMakerPage {
         if (this.exportCancelled) {
           return;
         }
-        this.exportPhase = hasOverlays ? `合成 ${i + 1}/${this.frames.length}` : `解码 ${i + 1}/${this.frames.length}`;
+        this.exportPhase = hasOverlays
+          ? $r('app.string.gif_phase_compose', i + 1, this.frames.length)
+          : $r('app.string.gif_phase_decode', i + 1, this.frames.length);
         this.exportProgress = Math.round((i / this.frames.length) * 75);
         let decoded: DecodedFrame = await this.decodeFramePixels(this.frames[i], boxEdge);
         if (hasOverlays) {
@@ -1415,7 +1469,7 @@ struct GifMakerPage {
       if (this.exportCancelled) {
         return;
       }
-      this.exportPhase = '编码中...';
+      this.exportPhase = $r('app.string.gif_phase_encoding');
       console.info('[GifMaker] decode done in ' + (Date.now() - exportT0) + 'ms');
       this.exportProgress = 85;
       let order: number[] = this.displayOrder();
@@ -1450,7 +1504,7 @@ struct GifMakerPage {
         return;
       }
       this.exportProgress = 96;
-      this.exportPhase = '写入文件...';
+      this.exportPhase = $r('app.string.gif_phase_writing');
       let context: common.UIAbilityContext = this.getUIContext().getHostContext() as common.UIAbilityContext;
       let filePath: string = context.cacheDir + '/gifmaker_' + Date.now() + '.gif';
       let file: fs.File = fs.openSync(filePath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.TRUNC);
@@ -1481,15 +1535,15 @@ struct GifMakerPage {
       this.stopPreviewTimer();
       this.recordExportHistory(context, canvasW, canvasH, order.length);
       VibrateUtil.success();
-      ToastUtil.show(this.getUIContext(), 'GIF 生成完成', 1500);
+      ToastUtil.show(this.getUIContext(), $r('app.string.gif_toast_export_done'), 1500);
     } catch (e) {
       if (this.exportCancelled) {
-        ToastUtil.show(this.getUIContext(), '已取消导出', 1500);
+        ToastUtil.show(this.getUIContext(), $r('app.string.gif_toast_export_cancelled'), 1500);
       } else {
         let err: BusinessError = e as BusinessError;
         console.error('[GifMaker] export failed: ' + err.code + ' ' + err.message);
         VibrateUtil.error();
-        ToastUtil.show(this.getUIContext(), '导出失败: ' + err.message, 2500);
+        ToastUtil.show(this.getUIContext(), $r('app.string.gif_toast_export_failed', err.message), 2500);
       }
     } finally {
       this.exporting = false;
@@ -1540,12 +1594,12 @@ struct GifMakerPage {
         await fs.copyFile(srcFile.fd, desFile.fd);
         fs.closeSync(srcFile);
         await fs.close(desFile.fd);
-        ToastUtil.show(uiCtx, '已保存到相册', 1500);
+        ToastUtil.show(uiCtx, $r('app.string.gif_toast_saved_album'), 1500);
       }
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[GifMaker] save failed: ' + err.code + ' ' + err.message);
-      ToastUtil.show(uiCtx, '保存失败', 2000);
+      ToastUtil.show(uiCtx, $r('app.string.gif_toast_save_failed'), 2000);
     }
   }
 
@@ -1566,7 +1620,7 @@ struct GifMakerPage {
   // ---------- UI ----------
 
   @Builder
-  ModeCard(icon: string, title: string, subtitle: string, color: string, enabled: boolean, action: () => void) {
+  ModeCard(icon: string, title: ResourceStr, subtitle: ResourceStr, color: string, enabled: boolean, action: () => void) {
     Row({ space: 14 }) {
       Text(icon)
         .fontSize(28)
@@ -1582,7 +1636,7 @@ struct GifMakerPage {
             .fontWeight(FontWeight.Medium)
             .fontColor($r('app.color.primary_text'))
           if (!enabled) {
-            Text('敬请期待')
+            Text($r('app.string.gif_coming_soon'))
               .fontSize(10)
               .fontColor($r('app.color.tertiary_text'))
               .padding({ left: 6, right: 6, top: 2, bottom: 2 })
@@ -1609,15 +1663,15 @@ struct GifMakerPage {
       if (enabled) {
         action();
       } else {
-        ToastUtil.show(this.getUIContext(), '敬请期待', 1500);
+        ToastUtil.show(this.getUIContext(), $r('app.string.gif_coming_soon'), 1500);
       }
     })
   }
 
   @Builder
-  OptionChips(labels: string[], selected: number, onPick: (index: number) => void) {
+  OptionChips(labels: ResourceStr[], selected: number, onPick: (index: number) => void) {
     Row({ space: 8 }) {
-      ForEach(labels, (label: string, index: number) => {
+      ForEach(labels, (label: ResourceStr, index: number) => {
         Text(label)
           .fontSize(13)
           .fontColor(index === selected ? Color.White : $r('app.color.secondary_text'))
@@ -1631,12 +1685,12 @@ struct GifMakerPage {
           .onClick(() => {
             onPick(index);
           })
-      }, (label: string, index: number) => label + '_' + index.toString())
+      }, (label: ResourceStr, index: number) => index.toString())
     }
   }
 
   @Builder
-  ParamLabel(text: string) {
+  ParamLabel(text: ResourceStr) {
     Text(text)
       .fontSize(12)
       .fontColor($r('app.color.tertiary_text'))
@@ -1686,7 +1740,7 @@ struct GifMakerPage {
   }
 
   @Builder
-  FrameOpsButton(text: string, action: () => void) {
+  FrameOpsButton(text: ResourceStr, action: () => void) {
     Text(text)
       .fontSize(13)
       .fontColor($r('app.color.secondary_text'))
@@ -1703,20 +1757,20 @@ struct GifMakerPage {
   @Builder
   SelectView() {
     Column({ space: 12 }) {
-      this.ModeCard('🖼️', '图片合成 GIF', '选择 2~30 张图片，合成动态 GIF', '#ec4899', true, () => {
+      this.ModeCard('🖼️', $r('app.string.gif_mode_images_title'), $r('app.string.gif_mode_images_sub'), '#ec4899', true, () => {
         this.viewMode = 'edit';
         this.pickImages();
       })
-      this.ModeCard('🎬', '视频转 GIF', '截取视频片段，抽帧生成 GIF', '#f59e0b', true, () => {
+      this.ModeCard('🎬', $r('app.string.gif_mode_video_title'), $r('app.string.gif_mode_video_sub'), '#f59e0b', true, () => {
         this.pickVideo();
       })
-      this.ModeCard('✏️', '编辑 GIF', '拆解已有 GIF，二次编辑加工', '#10b981', true, () => {
+      this.ModeCard('✏️', $r('app.string.gif_mode_edit_title'), $r('app.string.gif_mode_edit_sub'), '#10b981', true, () => {
         this.pickGif();
       })
-      this.ModeCard('🕘', '制作历史', `最近成品 ${this.historyRecords.length} 条 · 占用 ${formatGifBytes(this.historyBytes)}`, '#6366f1', true, () => {
+      this.ModeCard('🕘', $r('app.string.gif_mode_history_title'), $r('app.string.gif_mode_history_sub', this.historyRecords.length, formatGifBytes(this.historyBytes)), '#6366f1', true, () => {
         this.openHistory();
       })
-      Text('纯本地处理，不上传任何图片；导出无水印')
+      Text($r('app.string.gif_privacy_note'))
         .fontSize(11)
         .fontColor($r('app.color.tertiary_text'))
         .margin({ top: 8 })
@@ -1727,7 +1781,7 @@ struct GifMakerPage {
   @Builder
   VideoConfigView() {
     Column({ space: 12 }) {
-      GifSectionCard({ title: '视频片段' }) {
+      GifSectionCard({ title: $r('app.string.gif_section_clip') }) {
         Column({ space: 12 }) {
           if (this.videoThumb !== null) {
             Image(this.videoThumb)
@@ -1737,12 +1791,12 @@ struct GifMakerPage {
               .borderRadius(10)
               .backgroundColor($r('app.color.page_background'))
           }
-          Text(`视频时长 ${(this.videoDurationMs / 1000).toFixed(1)}s · 已选 ${(this.videoSpanMs / 1000).toFixed(1)}s 片段`)
+          Text($r('app.string.gif_clip_info', (this.videoDurationMs / 1000).toFixed(1), (this.videoSpanMs / 1000).toFixed(1)))
             .fontSize(12)
             .fontColor($r('app.color.secondary_text'))
 
           Column({ space: 6 }) {
-            this.ParamLabel(`起始时间 ${(this.videoStartMs / 1000).toFixed(1)}s`)
+            this.ParamLabel($r('app.string.gif_clip_start', (this.videoStartMs / 1000).toFixed(1)))
             Slider({
               value: this.videoStartMs,
               min: 0,
@@ -1761,7 +1815,7 @@ struct GifMakerPage {
           }
 
           Column({ space: 6 }) {
-            this.ParamLabel(`截取时长 ${(this.videoSpanMs / 1000).toFixed(1)}s（最长 15s）`)
+            this.ParamLabel($r('app.string.gif_clip_span', (this.videoSpanMs / 1000).toFixed(1)))
             Slider({
               value: this.videoSpanMs,
               min: 500,
@@ -1786,20 +1840,20 @@ struct GifMakerPage {
           }
 
           Column({ space: 6 }) {
-            this.ParamLabel('抽帧帧率')
-            this.OptionChips(VIDEO_FPS_LABELS, this.videoFpsIndex, (index: number) => {
+            this.ParamLabel($r('app.string.gif_label_fps'))
+            this.OptionChips(this.videoFpsLabels(), this.videoFpsIndex, (index: number) => {
               this.videoFpsIndex = index;
             })
           }
 
-          Text(`预计抽取 ${this.plannedVideoFrameCount()} 帧（上限 ${MAX_FRAMES} 帧）`)
+          Text($r('app.string.gif_extract_estimate', this.plannedVideoFrameCount(), MAX_FRAMES))
             .fontSize(12)
             .fontColor($r('app.color.tertiary_text'))
         }
         .width('100%')
       }
 
-      Button('开始抽帧')
+      Button($r('app.string.gif_btn_start_extract'))
         .fontSize(16)
         .fontWeight(FontWeight.Medium)
         .width('100%')
@@ -1809,7 +1863,7 @@ struct GifMakerPage {
           this.extractVideoFrames();
         })
 
-      Button('重新选择视频')
+      Button($r('app.string.gif_btn_rechoose_video'))
         .fontSize(14)
         .width('100%')
         .height(42)
@@ -1829,10 +1883,10 @@ struct GifMakerPage {
       Column({ space: 12 }) {
         Text('🖼️')
           .fontSize(44)
-        Text('尚未选择图片')
+        Text($r('app.string.gif_empty_no_images'))
           .fontSize(14)
           .fontColor($r('app.color.secondary_text'))
-        Button('选择图片')
+        Button($r('app.string.gif_btn_pick_images'))
           .fontSize(14)
           .height(38)
           .backgroundColor($r('app.color.idiom_blue'))
@@ -1902,14 +1956,15 @@ struct GifMakerPage {
             Text(`${(this.previewPos % this.displayOrder().length) + 1}/${this.displayOrder().length}`)
               .fontSize(13)
               .fontColor($r('app.color.primary_text'))
-            Text(`实际帧间隔 ${(this.currentPreviewIntervalMs() / 1000).toFixed(2)}s · 输出 ${this.outputCanvasSize()[0]}×${this.outputCanvasSize()[1]}`)
+            Text($r('app.string.gif_preview_info', (this.currentPreviewIntervalMs() / 1000).toFixed(2),
+              this.outputCanvasSize()[0].toString(), this.outputCanvasSize()[1].toString()))
               .fontSize(11)
               .fontColor($r('app.color.tertiary_text'))
           }
           .alignItems(HorizontalAlign.Start)
           .layoutWeight(1)
           if (this.overlays.length > 0) {
-            Text(`贴纸 ${this.overlays.length}`)
+            Text($r('app.string.gif_overlay_count', this.overlays.length))
               .fontSize(11)
               .fontColor($r('app.color.tertiary_text'))
           }
@@ -1995,22 +2050,22 @@ struct GifMakerPage {
       })
 
       Flex({ wrap: FlexWrap.Wrap }) {
-        this.FrameOpsButton('左移', () => {
+        this.FrameOpsButton($r('app.string.gif_op_move_left'), () => {
           this.moveSelectedFrame(-1);
         })
-        this.FrameOpsButton('右移', () => {
+        this.FrameOpsButton($r('app.string.gif_op_move_right'), () => {
           this.moveSelectedFrame(1);
         })
-        this.FrameOpsButton('倒序', () => {
+        this.FrameOpsButton($r('app.string.gif_op_reverse'), () => {
           this.reverseFrames();
         })
-        this.FrameOpsButton('旋转', () => {
+        this.FrameOpsButton($r('app.string.gif_op_rotate'), () => {
           this.rotateSelectedFrame();
         })
-        this.FrameOpsButton('删除', () => {
+        this.FrameOpsButton($r('app.string.gif_btn_delete'), () => {
           this.deleteSelectedFrame();
         })
-        Text(`已选 ${this.frames.length}/${MAX_FRAMES} · 长按可拖拽排序`)
+        Text($r('app.string.gif_frame_strip_hint', this.frames.length, MAX_FRAMES))
           .fontSize(11)
           .fontColor($r('app.color.tertiary_text'))
           .margin({ left: 4, right: 8, bottom: 8 })
@@ -2019,10 +2074,10 @@ struct GifMakerPage {
 
       if (this.selectedFrameIndex >= 0 && this.selectedFrameIndex < this.frames.length) {
         Row({ space: 8 }) {
-          Text(`第 ${this.selectedFrameIndex + 1} 帧`)
+          Text($r('app.string.gif_frame_n', this.selectedFrameIndex + 1))
             .fontSize(12)
             .fontColor($r('app.color.tertiary_text'))
-          TextInput({ text: this.perFrameDurationInput, placeholder: '单帧时长(秒)，留空跟随全局' })
+          TextInput({ text: this.perFrameDurationInput, placeholder: $r('app.string.gif_perframe_duration_hint') })
             .fontSize(13)
             .height(34)
             .layoutWeight(1)
@@ -2037,7 +2092,7 @@ struct GifMakerPage {
             .onBlur(() => {
               this.applyPerFrameDuration();
             })
-          this.FrameOpsButton('恢复全局', () => {
+          this.FrameOpsButton($r('app.string.gif_op_reset_duration'), () => {
             this.clearPerFrameDuration();
           })
         }
@@ -2051,7 +2106,7 @@ struct GifMakerPage {
   OverlayArea() {
     Column({ space: 12 }) {
       Row({ space: 8 }) {
-        TextInput({ text: this.overlayTextInput, placeholder: '输入文字内容' })
+        TextInput({ text: this.overlayTextInput, placeholder: $r('app.string.gif_overlay_text_hint') })
           .fontSize(13)
           .height(36)
           .layoutWeight(1)
@@ -2063,7 +2118,7 @@ struct GifMakerPage {
           .onSubmit(() => {
             this.addTextOverlay();
           })
-        Button('添加文字')
+        Button($r('app.string.gif_btn_add_text'))
           .fontSize(13)
           .height(36)
           .padding({ left: 12, right: 12 })
@@ -2075,7 +2130,7 @@ struct GifMakerPage {
       .width('100%')
 
       Column({ space: 8 }) {
-        this.OptionChips(STICKER_CATEGORIES, this.stickerCategoryIndex, (index: number) => {
+        this.OptionChips(this.stickerCategories(), this.stickerCategoryIndex, (index: number) => {
           this.stickerCategoryIndex = index;
         })
         Flex({ wrap: FlexWrap.Wrap }) {
@@ -2123,8 +2178,8 @@ struct GifMakerPage {
       }
 
       Text(this.overlays.length > 0
-        ? '拖动调整位置，双指捏合缩放旋转；叠加层应用于全部帧'
-        : '添加的文字与贴纸将叠加在所有帧上')
+        ? $r('app.string.gif_overlay_hint_active')
+        : $r('app.string.gif_overlay_hint_empty'))
         .fontSize(11)
         .fontColor($r('app.color.tertiary_text'))
     }
@@ -2136,7 +2191,7 @@ struct GifMakerPage {
     Column({ space: 10 }) {
       if (this.selectedOverlay()!.kind === OVERLAY_KIND_TEXT) {
         Row({ space: 8 }) {
-          Text('内容')
+          Text($r('app.string.gif_label_content'))
             .fontSize(12)
             .fontColor($r('app.color.tertiary_text'))
           TextInput({ text: this.selectedOverlay()!.text })
@@ -2152,10 +2207,10 @@ struct GifMakerPage {
         .width('100%')
 
         Column({ space: 6 }) {
-          this.ParamLabel('文字颜色')
+          this.ParamLabel($r('app.string.gif_label_text_color'))
           Flex({ wrap: FlexWrap.Wrap }) {
             ForEach(OVERLAY_COLORS, (color: string) => {
-              Text('字')
+              Text($r('app.string.gif_color_sample'))
                 .fontSize(13)
                 .fontColor(color)
                 .width(32)
@@ -2182,7 +2237,7 @@ struct GifMakerPage {
                 .onChange((value: string) => {
                   this.customColorInput = value;
                 })
-              this.FrameOpsButton('自定义', () => {
+              this.FrameOpsButton($r('app.string.gif_btn_custom'), () => {
                 this.applyCustomColor();
               })
             }
@@ -2193,7 +2248,7 @@ struct GifMakerPage {
       }
 
       Column({ space: 6 }) {
-        this.ParamLabel(`大小（${this.selectedOverlay()!.fontPx}）`)
+        this.ParamLabel($r('app.string.gif_label_size', this.selectedOverlay()!.fontPx))
         Slider({
           value: this.selectedOverlay()!.fontPx,
           min: 12,
@@ -2208,7 +2263,7 @@ struct GifMakerPage {
       }
 
       Row({ space: 8 }) {
-        Text('旋转')
+        Text($r('app.string.gif_label_rotation'))
           .fontSize(12)
           .fontColor($r('app.color.tertiary_text'))
         this.FrameOpsButton('-15°', () => {
@@ -2222,7 +2277,7 @@ struct GifMakerPage {
         })
       }
 
-      Button('删除该叠加层')
+      Button($r('app.string.gif_btn_delete_overlay'))
         .fontSize(13)
         .height(34)
         .width('100%')
@@ -2243,7 +2298,7 @@ struct GifMakerPage {
   ParamsArea() {
     Column({ space: 14 }) {
       Column({ space: 6 }) {
-        this.ParamLabel('帧时长（秒）')
+        this.ParamLabel($r('app.string.gif_label_frame_duration'))
         Row({ space: 10 }) {
           Slider({
             value: this.frameDurationMs,
@@ -2281,7 +2336,7 @@ struct GifMakerPage {
       }
 
       Column({ space: 6 }) {
-        this.ParamLabel('倍速（与帧时长叠加生效）')
+        this.ParamLabel($r('app.string.gif_label_speed'))
         this.OptionChips(SPEED_LABELS, this.speedIndex, (index: number) => {
           this.speedIndex = index;
           this.syncPreviewTimer();
@@ -2289,8 +2344,8 @@ struct GifMakerPage {
       }
 
       Column({ space: 6 }) {
-        this.ParamLabel('播放模式')
-        this.OptionChips(PLAY_MODE_LABELS, this.playModeIndex, (index: number) => {
+        this.ParamLabel($r('app.string.gif_label_play_mode'))
+        this.OptionChips(this.playModeLabels(), this.playModeIndex, (index: number) => {
           this.playModeIndex = index;
           this.previewPos = 0;
           this.onFramesChanged();
@@ -2298,23 +2353,23 @@ struct GifMakerPage {
       }
 
       Column({ space: 6 }) {
-        this.ParamLabel('循环播放')
-        this.OptionChips(LOOP_LABELS, this.loopIndex, (index: number) => {
+        this.ParamLabel($r('app.string.gif_label_loop'))
+        this.OptionChips(this.loopLabels(), this.loopIndex, (index: number) => {
           this.loopIndex = index;
         })
       }
 
       Column({ space: 6 }) {
-        this.ParamLabel('输出尺寸')
-        this.OptionChips(SIZE_LABELS, this.sizeIndex, (index: number) => {
+        this.ParamLabel($r('app.string.gif_label_output_size'))
+        this.OptionChips(this.sizeLabels(), this.sizeIndex, (index: number) => {
           this.sizeIndex = index;
           this.syncPreviewBox();
         })
       }
 
       Column({ space: 6 }) {
-        this.ParamLabel('画质')
-        this.OptionChips(QUALITY_LABELS, this.qualityIndex, (index: number) => {
+        this.ParamLabel($r('app.string.gif_label_quality'))
+        this.OptionChips(this.qualityLabels(), this.qualityIndex, (index: number) => {
           this.qualityIndex = index;
         })
       }
@@ -2326,7 +2381,7 @@ struct GifMakerPage {
   @Builder
   ExportPanel() {
     Column({ space: 14 }) {
-      Button(this.exporting ? '取消' : '生成 GIF')
+      Button(this.exporting ? $r('app.string.gif_btn_cancel') : $r('app.string.gif_btn_generate'))
         .fontSize(16)
         .fontWeight(FontWeight.Medium)
         .width('100%')
@@ -2359,7 +2414,7 @@ struct GifMakerPage {
   @Builder
   ResultView() {
     Column({ space: 14 }) {
-      GifSectionCard({ title: '生成结果' }) {
+      GifSectionCard({ title: $r('app.string.gif_section_result') }) {
         Column({ space: 12 }) {
           Image(fileUri.getUriFromPath(this.exportedPath))
             .width('100%')
@@ -2367,7 +2422,8 @@ struct GifMakerPage {
             .objectFit(ImageFit.Contain)
             .borderRadius(10)
             .backgroundColor($r('app.color.page_background'))
-          Text(`${this.exportedWidth}×${this.exportedHeight} · ${this.displayOrder().length} 帧 · ${this.formatBytes(this.exportedSize)}`)
+          Text($r('app.string.gif_result_info', this.exportedWidth.toString(), this.exportedHeight.toString(),
+            this.displayOrder().length, this.formatBytes(this.exportedSize)))
             .fontSize(12)
             .fontColor($r('app.color.secondary_text'))
         }
@@ -2375,7 +2431,7 @@ struct GifMakerPage {
       }
 
       Row({ space: 10 }) {
-        Button('保存到相册')
+        Button($r('app.string.gif_btn_save_album'))
           .fontSize(14)
           .layoutWeight(1)
           .height(42)
@@ -2383,7 +2439,7 @@ struct GifMakerPage {
           .onClick(() => {
             this.saveToAlbum();
           })
-        Button('分享')
+        Button($r('app.string.gif_btn_share'))
           .fontSize(14)
           .layoutWeight(1)
           .height(42)
@@ -2396,7 +2452,7 @@ struct GifMakerPage {
       }
       .width('100%')
 
-      Button('返回编辑')
+      Button($r('app.string.gif_btn_back_edit'))
         .fontSize(14)
         .width('100%')
         .height(42)
@@ -2422,7 +2478,8 @@ struct GifMakerPage {
           .borderRadius(8)
           .backgroundColor($r('app.color.page_background'))
         Column({ space: 3 }) {
-          Text(`${record.width}×${record.height} · ${record.frameCount} 帧 · ${formatGifBytes(record.sizeBytes)}`)
+          Text($r('app.string.gif_result_info', record.width.toString(), record.height.toString(),
+            record.frameCount, formatGifBytes(record.sizeBytes)))
             .fontSize(13)
             .fontColor($r('app.color.primary_text'))
           Text(record.paramsText)
@@ -2440,7 +2497,7 @@ struct GifMakerPage {
       .width('100%')
 
       Row({ space: 8 }) {
-        Button('预览')
+        Button($r('app.string.gif_preview'))
           .fontSize(12)
           .height(32)
           .layoutWeight(1)
@@ -2450,7 +2507,7 @@ struct GifMakerPage {
             this.historyPreviewPath = GifHistoryStore.recordFilePath(context, record);
             this.viewMode = 'historyPreview';
           })
-        Button('保存')
+        Button($r('app.string.gif_btn_save'))
           .fontSize(12)
           .height(32)
           .layoutWeight(1)
@@ -2461,7 +2518,7 @@ struct GifMakerPage {
             let context: common.UIAbilityContext = this.getUIContext().getHostContext() as common.UIAbilityContext;
             this.saveGifPathToAlbum(GifHistoryStore.recordFilePath(context, record));
           })
-        Button('分享')
+        Button($r('app.string.gif_btn_share'))
           .fontSize(12)
           .height(32)
           .layoutWeight(1)
@@ -2472,7 +2529,7 @@ struct GifMakerPage {
             let context: common.UIAbilityContext = this.getUIContext().getHostContext() as common.UIAbilityContext;
             shareGifViaPanel(this.getUIContext(), GifHistoryStore.recordFilePath(context, record));
           })
-        Button('删除')
+        Button($r('app.string.gif_btn_delete'))
           .fontSize(12)
           .height(32)
           .layoutWeight(1)
@@ -2495,12 +2552,12 @@ struct GifMakerPage {
   HistoryView() {
     Column({ space: 12 }) {
       Row({ space: 10 }) {
-        Text(`共 ${this.historyRecords.length} 条 · 占用 ${formatGifBytes(this.historyBytes)}`)
+        Text($r('app.string.gif_history_summary', this.historyRecords.length, formatGifBytes(this.historyBytes)))
           .fontSize(12)
           .fontColor($r('app.color.secondary_text'))
           .layoutWeight(1)
         if (this.historyRecords.length > 0) {
-          Button('清空全部')
+          Button($r('app.string.gif_btn_clear_all'))
             .fontSize(12)
             .height(30)
             .padding({ left: 10, right: 10 })
@@ -2518,10 +2575,10 @@ struct GifMakerPage {
         Column({ space: 10 }) {
           Text('🕘')
             .fontSize(40)
-          Text('暂无制作历史')
+          Text($r('app.string.gif_history_empty'))
             .fontSize(14)
             .fontColor($r('app.color.secondary_text'))
-          Text('导出的成品 GIF 会自动保存在这里（沙箱内，最多保留 50 条）')
+          Text($r('app.string.gif_history_empty_hint'))
             .fontSize(11)
             .fontColor($r('app.color.tertiary_text'))
         }
@@ -2533,7 +2590,7 @@ struct GifMakerPage {
         }, (record: GifHistoryRecord) => record.id + '_' + record.sizeBytes.toString())
       }
 
-      Button('返回')
+      Button($r('app.string.gif_btn_back'))
         .fontSize(14)
         .width('100%')
         .height(42)
@@ -2557,7 +2614,7 @@ struct GifMakerPage {
         .borderRadius(10)
         .backgroundColor($r('app.color.page_background'))
         .layoutWeight(1)
-      Button('返回')
+      Button($r('app.string.gif_btn_back'))
         .fontSize(14)
         .width('100%')
         .height(42)
@@ -2578,17 +2635,17 @@ struct GifMakerPage {
         Column({ space: 16 }) {
           Text('⏳')
             .fontSize(40)
-          Text('正在生成 GIF')
+          Text($r('app.string.gif_exporting_title'))
             .fontSize(16)
             .fontWeight(FontWeight.Medium)
             .fontColor($r('app.color.primary_text'))
           Progress({ value: this.exportProgress, total: 100, type: ProgressType.Linear })
             .color($r('app.color.idiom_blue'))
             .width('70%')
-          Text(`${this.exportPhase}  ${this.exportProgress}%`)
+          Text(this.phaseProgressText())
             .fontSize(12)
             .fontColor($r('app.color.secondary_text'))
-          Button('取消')
+          Button($r('app.string.gif_btn_cancel'))
             .fontSize(14)
             .height(36)
             .backgroundColor($r('app.color.card_background'))
@@ -2672,16 +2729,16 @@ struct GifMakerPage {
         Column() {
           Scroll() {
             Column({ space: 12 }) {
-              GifSectionCard({ title: '预览' }) {
+              GifSectionCard({ title: $r('app.string.gif_preview') }) {
                 this.PreviewArea()
               }
-              GifSectionCard({ title: '帧管理（点选缩略图后可调整）' }) {
+              GifSectionCard({ title: $r('app.string.gif_section_frames') }) {
                 this.FrameStrip()
               }
-              GifSectionCard({ title: '贴纸与文字' }) {
+              GifSectionCard({ title: $r('app.string.gif_section_overlay') }) {
                 this.OverlayArea()
               }
-              GifSectionCard({ title: '参数' }) {
+              GifSectionCard({ title: $r('app.string.gif_section_params') }) {
                 this.ParamsArea()
               }
               this.ExportPanel()

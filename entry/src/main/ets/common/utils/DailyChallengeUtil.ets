@@ -118,8 +118,9 @@ export class DailyChallengeUtil {
     if (answerIdx < 0) {
       answerIdx = 0;
     }
-    return ChallengeQuestion.create('poem', '请填出空缺的字：\n' + display +
-      '\n——' + detail.name + '《' + poem.n + '》', options, answerIdx, detail.name + '·' + detail.dynasty);
+    return ChallengeQuestion.create('poem', context.resourceManager.getStringByNameSync(
+      'challenge_poem_prompt', display, detail.name, poem.n),
+      options, answerIdx, detail.name + '·' + detail.dynasty);
   }
 
   private static generateIdiomQuestion(context: Context, seed: number): ChallengeQuestion | null {
@@ -147,7 +148,8 @@ export class DailyChallengeUtil {
     if (answerIdx < 0) {
       answerIdx = 0;
     }
-    return ChallengeQuestion.create('idiom', '请填出成语中空缺的字：\n' + display, options, answerIdx, word);
+    return ChallengeQuestion.create('idiom', context.resourceManager.getStringByNameSync(
+      'challenge_idiom_prompt', display), options, answerIdx, word);
   }
 
   private static generateXiehouyuQuestion(context: Context, seed: number): ChallengeQuestion | null {
@@ -168,8 +170,8 @@ export class DailyChallengeUtil {
     if (answerIdx < 0) {
       answerIdx = 0;
     }
-    return ChallengeQuestion.create('xiehouyu', '猜猜歇后语的下半句：\n' + item.riddle + '——？',
-      options, answerIdx, item.riddle);
+    return ChallengeQuestion.create('xiehouyu', context.resourceManager.getStringByNameSync(
+      'challenge_xiehouyu_prompt', item.riddle), options, answerIdx, item.riddle);
   }
 
   private static buildOptions(answer: string, seed: number): string[] {

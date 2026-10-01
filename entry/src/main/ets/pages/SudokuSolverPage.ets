@@ -15,6 +15,7 @@ import {
 } from '../core/sudoku/SudokuOCR';
 import { initDigitTemplates } from '../core/sudoku/SudokuPixel';
 import { VibrateUtil } from '../common/utils/VibrateUtil';
+import { StrUtil } from '../common/utils/StrUtil';
 
 const SIZE: number = 9;
 const EMPTY: number = 0;
@@ -55,14 +56,12 @@ const PRESET_PUZZLES: number[][] = [
   ]
 ];
 
-const DIFFICULTY_NAMES: string[] = ['简单', '中等', '困难'];
-
 @Builder
 export function SudokuSolverPageBuilder() {
   NavDestination() {
     SudokuSolverPage()
   }
-  .title('数独求解器')
+  .title($r('app.string.sudoku_title'))
   .backButtonIcon($r('sys.symbol.chevron_left'))
   .menus([])
 }
@@ -76,7 +75,7 @@ struct SudokuSolverPage {
   @State selectedCol: number = -1;
   @State candidateMode: boolean = false;
   @State candidates: Array<Set<number>> = new Array<Set<number>>(81);
-  @State message: string = '';
+  @State message: ResourceStr = '';
   @State messageType: number = 0;
   @State solving: boolean = false;
   @State recognizing: boolean = false;
@@ -94,6 +93,11 @@ struct SudokuSolverPage {
   @State debugText: string = '';
 
   private scroller: Scroller = new Scroller();
+  private readonly difficultyNames: ResourceStr[] = [
+    $r('app.string.sudoku_diff_easy'),
+    $r('app.string.sudoku_diff_medium'),
+    $r('app.string.sudoku_diff_hard')
+  ];
 
   aboutToAppear(): void {
     try {
@@ -156,10 +160,10 @@ struct SudokuSolverPage {
       const sysBoard = pasteboard.getSystemPasteboard();
       const data = pasteboard.createData(pasteboard.MIMETYPE_TEXT_PLAIN, s);
       sysBoard.setData(data);
-      this.showMessage('棋盘已复制到剪贴板', 1);
+      this.showMessage($r('app.string.sudoku_board_copied'), 1);
     } catch (_err) {
       hilog.error(0xA03D00, 'SudokuSolver', `copyBoardToClipboard failed: ${_err}`);
-      this.showMessage('复制失败', 2);
+      this.showMessage($r('app.string.sudoku_copy_failed'), 2);
     }
   }
 
@@ -208,13 +212,13 @@ struct SudokuSolverPage {
     }
     const grid: number[] | null = parseOCRToGrid(s);
     if (!grid) {
-      this.showMessage('无法解析，请输入 81 位数字（0 或 . 表示空格）', 2);
+      this.showMessage($r('app.string.sudoku_parse_failed'), 2);
       return;
     }
     this.clearBoardOnly();
     this.loadGridFromArray(grid, null);
     const cnt: number = grid.filter((d: number) => d > 0).length;
-    this.showMessage(`粘贴成功！加载 ${cnt} 个数字`, 1);
+    this.showMessage($r('app.string.sudoku_paste_success', cnt), 1);
   }
 
   solve(): void {
@@ -222,7 +226,7 @@ struct SudokuSolverPage {
 
     if (!result.success && result.solutionCount === -1) {
       VibrateUtil.error();
-      this.showMessage('当前棋盘存在冲突，请检查输入', 2);
+      this.showMessage($r('app.string.sudoku_conflict'), 2);
       return;
     }
 
@@ -236,14 +240,14 @@ struct SudokuSolverPage {
       this.currentGrid = [...result.solution];
       this.puzzle = [...this.currentGrid];
       this.clearCandidates();
-      this.showMessage('求解完成！', 1);
+      this.showMessage($r('app.string.sudoku_solved'), 1);
 
       if (result.solutionCount > 1) {
-        this.showMessage('求解完成（提示：该题目有多个解）', 0);
+        this.showMessage($r('app.string.sudoku_solved_multi'), 0);
       }
     } else {
       VibrateUtil.error();
-      this.showMessage('该数独无解，请检查输入是否正确', 2);
+      this.showMessage($r('app.string.sudoku_no_solution'), 2);
     }
   }
 
@@ -261,15 +265,15 @@ struct SudokuSolverPage {
       this.clearCandidates();
       this.updateConflicts();
       this.highlightDigit = hint.value;
-      this.showMessage(`提示: R${hint.row + 1}C${hint.col + 1} = ${hint.value}`, 0);
+      this.showMessage($r('app.string.sudoku_hint_result', hint.row + 1, hint.col + 1, hint.value), 0);
     } else if (isGridFull(this.currentGrid)) {
       if (validateFullGrid(this.currentGrid)) {
-        this.showMessage('恭喜！已完成且正确！', 1);
+        this.showMessage($r('app.string.sudoku_congrats'), 1);
       } else {
-        this.showMessage('棋盘已填满但存在错误，请检查', 2);
+        this.showMessage($r('app.string.sudoku_full_but_wrong'), 2);
       }
     } else {
-      this.showMessage('无法确定下一步，请尝试手动推理', 0);
+      this.showMessage($r('app.string.sudoku_no_next_step'), 0);
     }
   }
 
@@ -331,7 +335,7 @@ struct SudokuSolverPage {
       hilog.error(0xA03D00, 'SudokuSolver', `pickFromGallery error: ${err}`);
       const error: BusinessError = err as BusinessError;
       if (error.code !== 0) {
-        this.showMessage(`选择图片失败: ${error.message}`, 2);
+        this.showMessage($r('app.string.sudoku_pick_failed', error.message), 2);
       }
     }
   }
@@ -356,7 +360,7 @@ struct SudokuSolverPage {
       hilog.error(0xA03D00, 'SudokuSolver', `takePhoto error: ${err}`);
       const error: BusinessError = err as BusinessError;
       if (error.code !== 0) {
-        this.showMessage('拍照/选图取消', 0);
+        this.showMessage($r('app.string.sudoku_pick_cancelled'), 0);
       }
     }
   }
@@ -366,7 +370,7 @@ struct SudokuSolverPage {
     this.clearGrid();
     this.debugText = '';
     this.debugExpanded = false;
-    this.showMessage('正在识别图片中的数独...', 0, true);
+    this.showMessage($r('app.string.sudoku_ocr_processing'), 0, true);
 
     try {
       hilog.info(0xA03D00, 'SudokuSolver', `processImageOCR start, uri=${uri}`);
@@ -407,13 +411,13 @@ struct SudokuSolverPage {
         this.loadGridFromArray(ocrResult.grid, ocrResult.confidence);
 
         const digitCount: number = ocrResult.grid.filter((d: number) => d > 0).length;
-        this.showMessage(`识别成功！检测到 ${digitCount} 个数字`, 1);
+        this.showMessage($r('app.string.sudoku_ocr_success', digitCount), 1);
       } else {
-        this.showMessage(ocrResult.error || '未能识别出数独', 2);
+        this.showMessage(ocrResult.error || $r('app.string.sudoku_ocr_failed'), 2);
       }
     } catch (_err) {
       hilog.error(0xA03D00, 'SudokuSolver', `processImageOCR error: ${_err}`);
-      this.showMessage('图片处理异常，请重试', 2);
+      this.showMessage($r('app.string.sudoku_image_error'), 2);
     } finally {
       this.recognizing = false;
     }
@@ -532,7 +536,7 @@ struct SudokuSolverPage {
     this.showNumberPad = false;
   }
 
-  showMessage(text: string, type: number, sticky: boolean = false): void {
+  showMessage(text: ResourceStr, type: number, sticky: boolean = false): void {
     this.message = text;
     this.messageType = type;
     if (!sticky) {
@@ -549,77 +553,80 @@ struct SudokuSolverPage {
   }
 
   formatDebugInfo(info: OCRDebugInfo): string {
+    const ctx: Context = this.getUIContext().getHostContext() as Context;
     const lines: string[] = [];
-    lines.push(`=== 识别调试信息 ===`);
+    lines.push(StrUtil.text(ctx, $r('app.string.sudoku_dbg_header')));
     lines.push(``);
-    lines.push(`【流水线】${info.pipeline}`);
-    lines.push(`【缩放参数】${info.resizeInfo}`);
-    lines.push(`【图片与棋盘】${info.bboxInfo}`);
+    lines.push(StrUtil.text(ctx, $r('app.string.sudoku_dbg_pipeline', info.pipeline)));
+    lines.push(StrUtil.text(ctx, $r('app.string.sudoku_dbg_resize', info.resizeInfo)));
+    lines.push(StrUtil.text(ctx, $r('app.string.sudoku_dbg_bbox', info.bboxInfo)));
     if (info.probeInfo.length > 0) {
-      lines.push(`【探测图详情】${info.probeInfo}`);
+      lines.push(StrUtil.text(ctx, $r('app.string.sudoku_dbg_probe', info.probeInfo)));
     }
     if (info.bboxDiag.length > 0) {
-      lines.push(`【棋盘定位诊断】`);
+      lines.push(StrUtil.text(ctx, $r('app.string.sudoku_dbg_bbox_diag')));
       lines.push(info.bboxDiag);
     }
     if (info.pixelBgInfo.length > 0) {
-      lines.push(`【像素背景分析】${info.pixelBgInfo}`);
+      lines.push(StrUtil.text(ctx, $r('app.string.sudoku_dbg_pixel_bg', info.pixelBgInfo)));
     }
     if (info.pixelBboxLocator.length > 0) {
-      lines.push(`【像素棋盘定位】${info.pixelBboxLocator}`);
+      lines.push(StrUtil.text(ctx, $r('app.string.sudoku_dbg_pixel_bbox', info.pixelBboxLocator)));
     }
     if (info.pixelWarpInfo.length > 0) {
-      lines.push(`【像素透视/网格】${info.pixelWarpInfo}`);
+      lines.push(StrUtil.text(ctx, $r('app.string.sudoku_dbg_pixel_warp', info.pixelWarpInfo)));
     }
     if (info.pixelCellStats.length > 0) {
-      lines.push(`【像素单元格统计】${info.pixelCellStats}`);
+      lines.push(StrUtil.text(ctx, $r('app.string.sudoku_dbg_pixel_cells', info.pixelCellStats)));
     }
-    lines.push(`【VisionKit原始数字数】${info.rawDigits}`);
+    lines.push(StrUtil.text(ctx, $r('app.string.sudoku_dbg_raw_digits', info.rawDigits)));
     if (info.visionKitOcrSize.length > 0) {
-      lines.push(`【VisionKit OCR图尺寸】${info.visionKitOcrSize}`);
+      lines.push(StrUtil.text(ctx, $r('app.string.sudoku_dbg_vk_size', info.visionKitOcrSize)));
     }
     if (info.visionKitBlockCount > 0 || info.visionKitRawText.length > 0) {
-      lines.push(`【VisionKit Block数】${info.visionKitBlockCount}`);
+      lines.push(StrUtil.text(ctx, $r('app.string.sudoku_dbg_vk_blocks', info.visionKitBlockCount)));
     }
     if (info.visionKitBlockDetail && info.visionKitBlockDetail.length > 0) {
-      lines.push(`【VisionKit Block详情】\n${info.visionKitBlockDetail}`);
+      lines.push(StrUtil.text(ctx, $r('app.string.sudoku_dbg_vk_blocks_detail', info.visionKitBlockDetail)));
     }
     if (info.visionKitRawText.length > 0) {
-      lines.push(`【VisionKit原始文本】${info.visionKitRawText}`);
+      lines.push(StrUtil.text(ctx, $r('app.string.sudoku_dbg_vk_raw', info.visionKitRawText)));
     }
     if (info.visionKitOcrError.length > 0) {
-      lines.push(`【VisionKit错误诊断】${info.visionKitOcrError}`);
+      lines.push(StrUtil.text(ctx, $r('app.string.sudoku_dbg_vk_error', info.visionKitOcrError)));
     }
     lines.push(``);
     if (info.visionKitGrid.length > 1) {
-      lines.push(`【VisionKit网格】`);
+      lines.push(StrUtil.text(ctx, $r('app.string.sudoku_dbg_vk_grid')));
       lines.push(info.visionKitGrid);
     }
     if (info.pixelGrid.length > 1) {
-      lines.push(`【像素分析网格】`);
+      lines.push(StrUtil.text(ctx, $r('app.string.sudoku_dbg_pixel_grid')));
       lines.push(info.pixelGrid);
     }
-    lines.push(`【最终网格】`);
+    lines.push(StrUtil.text(ctx, $r('app.string.sudoku_dbg_final_grid')));
     lines.push(info.finalGrid);
-    lines.push(`【置信度】`);
+    lines.push(StrUtil.text(ctx, $r('app.string.sudoku_dbg_confidence')));
     lines.push(info.confidence);
     if (info.conflictIndices.length > 0) {
-      lines.push(`【冲突格子】${info.conflictIndices.map((i: number) => `R${Math.floor(i / 9) + 1}C${i % 9 + 1}`).join(', ')}`);
+      lines.push(StrUtil.text(ctx, $r('app.string.sudoku_dbg_conflicts',
+        info.conflictIndices.map((i: number) => `R${Math.floor(i / 9) + 1}C${i % 9 + 1}`).join(', '))));
     }
     if (info.lowConfIndices.length > 0) {
-      lines.push(`【低置信格子】${info.lowConfIndices.map((i: number) => `R${Math.floor(i / 9) + 1}C${i % 9 + 1}`).join(', ')}`);
+      lines.push(StrUtil.text(ctx, $r('app.string.sudoku_dbg_low_conf',
+        info.lowConfIndices.map((i: number) => `R${Math.floor(i / 9) + 1}C${i % 9 + 1}`).join(', '))));
     }
     if (info.emptyIndices.length > 0) {
-      lines.push(`【空格子待修正】${info.emptyIndices.length}个待填充`);
+      lines.push(StrUtil.text(ctx, $r('app.string.sudoku_dbg_empty', info.emptyIndices.length)));
     }
-    lines.push(`【实际修正】${info.fixCount}个成功`);
+    lines.push(StrUtil.text(ctx, $r('app.string.sudoku_dbg_fixed', info.fixCount)));
     if (info.fixDetails && info.fixDetails.length > 0) {
       lines.push(``);
-      lines.push(`【逐格修正详情】`);
+      lines.push(StrUtil.text(ctx, $r('app.string.sudoku_dbg_fix_details')));
       lines.push(info.fixDetails);
     }
     lines.push(``);
-    lines.push(`【步骤详情】`);
+    lines.push(StrUtil.text(ctx, $r('app.string.sudoku_dbg_steps')));
     for (let i: number = 0; i < info.steps.length; i++) {
       const s: OCRDebugStep = info.steps[i];
       lines.push(`  ${s.step}: ${s.detail}`);
@@ -630,7 +637,7 @@ struct SudokuSolverPage {
   toggleDebug(): void {
     const info: OCRDebugInfo | null = getOCRDebugInfo();
     if (info === null) {
-      this.debugText = '尚无识别调试信息，请先进行图片识别';
+      this.debugText = StrUtil.text(this.getUIContext().getHostContext() as Context, $r('app.string.sudoku_no_debug'));
     } else {
       this.debugText = this.formatDebugInfo(info);
       // 复制到剪贴板
@@ -641,7 +648,7 @@ struct SudokuSolverPage {
           hilog.error(0xA03D00, 'SudokuSolver', '复制失败: %{public}s', err.message);
         }
       });
-      this.showMessage('识别日志已复制到剪贴板', 1);
+      this.showMessage($r('app.string.sudoku_log_copied'), 1);
     }
     this.debugExpanded = !this.debugExpanded;
   }
@@ -722,7 +729,7 @@ struct SudokuSolverPage {
     Column() {
       this.TopBar()
 
-      if (this.message.length > 0) {
+      if (this.message !== '') {
         Row() {
           Text(this.message)
             .fontSize(13)
@@ -789,7 +796,7 @@ struct SudokuSolverPage {
       Blank()
 
       if (this.editMode) {
-        Text('\u2714 完成')
+        Text($r('app.string.sudoku_done'))
           .fontSize(13)
           .fontColor($r('app.color.success_green'))
           .padding({ left: 10, right: 10, top: 4, bottom: 4 })
@@ -801,7 +808,7 @@ struct SudokuSolverPage {
           })
       } else {
         if (this.hasUserInput || this.currentGrid.some((d: number) => d > 0)) {
-          Text('\u270F 修改')
+          Text($r('app.string.sudoku_edit'))
             .fontSize(13)
             .fontColor($r('app.color.primary_indigo'))
             .padding({ left: 10, right: 10, top: 4, bottom: 4 })
@@ -825,7 +832,7 @@ struct SudokuSolverPage {
         Button() {
           Row({ space: 3 }) {
             Text('\u{1F9F9}').fontSize(13)
-            Text('清空棋盘').fontSize(12)
+            Text($r('app.string.sudoku_clear_board')).fontSize(12)
           }
         }
         .fontColor($r('app.color.error_red'))
@@ -835,13 +842,13 @@ struct SudokuSolverPage {
         .layoutWeight(1)
         .onClick(() => {
           this.clearBoardOnly();
-          this.showMessage('棋盘已清空', 0);
+          this.showMessage($r('app.string.sudoku_board_cleared'), 0);
         })
 
         Button() {
           Row({ space: 3 }) {
             Text('\u{1F4CB}').fontSize(13)
-            Text('复制棋盘').fontSize(12)
+            Text($r('app.string.sudoku_copy_board')).fontSize(12)
           }
         }
         .fontColor($r('app.color.info_sky'))
@@ -857,7 +864,7 @@ struct SudokuSolverPage {
         Button() {
           Row({ space: 3 }) {
             Text('\u{1F4CE}').fontSize(13)
-            Text('粘贴题目').fontSize(12)
+            Text($r('app.string.sudoku_paste_puzzle')).fontSize(12)
           }
         }
         .fontColor($r('app.color.primary_text'))
@@ -871,7 +878,7 @@ struct SudokuSolverPage {
         Button() {
           Row({ space: 3 }) {
             Text('\u{1F4F7}').fontSize(13)
-            Text(this.recognizing ? '识别中...' : '拍照识别').fontSize(12)
+            Text(this.recognizing ? $r('app.string.sudoku_recognizing_dots') : $r('app.string.sudoku_scan_photo')).fontSize(12)
           }
         }
         .fontColor($r('app.color.on_accent_text'))
@@ -884,7 +891,7 @@ struct SudokuSolverPage {
       }
       .width('100%')
 
-      Text('拍照识别数据技术不断完善中，如果遇到题目识别错误，请手动进行修改。')
+      Text($r('app.string.sudoku_ocr_disclaimer'))
         .fontSize(11)
         .fontColor($r('app.color.tertiary_text'))
         .textAlign(TextAlign.Center)
@@ -899,14 +906,14 @@ struct SudokuSolverPage {
   PasteDialog() {
     Column() {
       Column() {
-        Text('粘贴数独题目')
+        Text($r('app.string.sudoku_paste_title'))
           .fontSize(18)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.primary_text'))
           .width('100%')
 
         Flex({ wrap: FlexWrap.Wrap, justifyContent: FlexAlign.SpaceBetween }) {
-          Text('示例1')
+          Text($r('app.string.sudoku_example_n', 1))
             .fontSize(12)
             .fontColor($r('app.color.primary_indigo'))
             .backgroundColor($r('app.color.primary_indigo_bg'))
@@ -915,7 +922,7 @@ struct SudokuSolverPage {
             .margin({ bottom: 6 })
             .onClick(() => { this.loadExample(0); })
 
-          Text('示例2')
+          Text($r('app.string.sudoku_example_n', 2))
             .fontSize(12)
             .fontColor($r('app.color.primary_indigo'))
             .backgroundColor($r('app.color.primary_indigo_bg'))
@@ -924,7 +931,7 @@ struct SudokuSolverPage {
             .margin({ bottom: 6 })
             .onClick(() => { this.loadExample(1); })
 
-          Text('示例3')
+          Text($r('app.string.sudoku_example_n', 3))
             .fontSize(12)
             .fontColor($r('app.color.primary_indigo'))
             .backgroundColor($r('app.color.primary_indigo_bg'))
@@ -933,7 +940,7 @@ struct SudokuSolverPage {
             .margin({ bottom: 6 })
             .onClick(() => { this.loadExample(2); })
 
-          Text('清空')
+          Text($r('app.string.sudoku_clear'))
             .fontSize(12)
             .fontColor($r('app.color.error_red'))
             .backgroundColor($r('app.color.danger_bg'))
@@ -945,13 +952,13 @@ struct SudokuSolverPage {
         .width('100%')
         .margin({ top: 12 })
 
-        Text('示例1: 0表示空格 | 示例2: .表示空格 | 示例3: 多行格式')
+        Text($r('app.string.sudoku_example_hint'))
           .fontSize(10)
           .fontColor($r('app.color.tertiary_text'))
           .width('100%')
           .margin({ bottom: 4 })
 
-        TextArea({ text: this.pasteInput, placeholder: '支持 81 位数字（0 或 . 表示空格），可多行输入' })
+        TextArea({ text: this.pasteInput, placeholder: $r('app.string.sudoku_paste_placeholder') })
           .margin({ top: 12 })
           .width('100%')
           .height(160)
@@ -962,7 +969,7 @@ struct SudokuSolverPage {
           .onChange((v: string) => { this.pasteInput = v; })
 
         Row({ space: 10 }) {
-          Button('取消')
+          Button($r('app.string.sudoku_cancel'))
             .fontSize(14)
             .fontColor($r('app.color.tertiary_text'))
             .backgroundColor($r('app.color.card_background'))
@@ -972,7 +979,7 @@ struct SudokuSolverPage {
             .layoutWeight(1)
             .onClick(() => { this.closePasteDialog(); })
 
-          Button('确定')
+          Button($r('app.string.sudoku_confirm'))
             .fontSize(14)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.on_accent_text'))
@@ -1109,7 +1116,7 @@ struct SudokuSolverPage {
       .justifyContent(FlexAlign.Center)
 
       Row({ space: 8 }) {
-        Button(this.candidateMode ? '\u270E 候选中' : '\u270E 候选数')
+        Button(this.candidateMode ? $r('app.string.sudoku_candidate_on') : $r('app.string.sudoku_candidate_off'))
           .fontSize(11)
           .fontColor(this.candidateMode ? $r('app.color.on_accent_text') : $r('app.color.primary_indigo'))
           .backgroundColor(this.candidateMode ? $r('app.color.primary_indigo') : $r('app.color.primary_indigo_bg'))
@@ -1118,7 +1125,7 @@ struct SudokuSolverPage {
           .layoutWeight(1)
           .onClick(() => { this.toggleCandidateMode(); })
 
-        Button('\u232B 擦除')
+        Button($r('app.string.sudoku_erase'))
           .fontSize(11)
           .fontColor($r('app.color.error_red'))
           .backgroundColor($r('app.color.danger_bg'))
@@ -1151,7 +1158,7 @@ struct SudokuSolverPage {
   @Builder
   ActionButtons() {
     Row({ space: 8 }) {
-      Button(this.solving ? '求解中...' : '\u{1F50D} 求解')
+      Button(this.solving ? $r('app.string.sudoku_solving') : $r('app.string.sudoku_solve'))
         .fontSize(14)
         .fontWeight(FontWeight.Bold)
         .fontColor($r('app.color.on_accent_text'))
@@ -1162,7 +1169,7 @@ struct SudokuSolverPage {
         .enabled(!this.solving)
         .onClick(() => { this.solve(); })
 
-      Button('\u{1F4A1} 提示')
+      Button($r('app.string.sudoku_hint'))
         .fontSize(14)
         .fontColor($r('app.color.primary_indigo'))
         .backgroundColor($r('app.color.primary_indigo_bg'))
@@ -1181,7 +1188,7 @@ struct SudokuSolverPage {
       Button() {
         Row({ space: 4 }) {
           Text('\u{1F4CB}').fontSize(13)
-          Text('复制识别日志').fontSize(12)
+          Text($r('app.string.sudoku_copy_log')).fontSize(12)
         }
       }
       .fontColor($r('app.color.primary_indigo'))
@@ -1193,7 +1200,7 @@ struct SudokuSolverPage {
       if (this.debugExpanded && this.debugText.length > 0) {
         Row() {
           Blank()
-          Button() { Text('收起').fontSize(11) }
+          Button() { Text($r('app.string.sudoku_collapse')).fontSize(11) }
             .height(24)
             .fontColor($r('app.color.primary_indigo'))
             .backgroundColor(Color.Transparent)
@@ -1226,7 +1233,7 @@ struct SudokuSolverPage {
     Column() {
       Row() {
         Row({ space: 2 }) {
-          ForEach(DIFFICULTY_NAMES, (name: string, index: number) => {
+          ForEach(this.difficultyNames, (name: ResourceStr, index: number) => {
             Text(name)
               .fontSize(13)
               .fontWeight(this.currentDifficulty === index ? FontWeight.Bold : FontWeight.Normal)
@@ -1237,7 +1244,7 @@ struct SudokuSolverPage {
                 this.currentDifficulty === index ? $r('app.color.primary_indigo_bg') : Color.Transparent
               )
               .onClick(() => { this.loadPuzzle(index); })
-          })
+          }, (name: ResourceStr, index: number) => index.toString())
         }
         .border({ width: 1, color: $r('app.color.border_soft'), radius: 20 })
         .backgroundColor($r('app.color.card_background'))
@@ -1246,8 +1253,8 @@ struct SudokuSolverPage {
       .justifyContent(FlexAlign.Center)
 
       Text(this.editMode
-        ? '修改模式：点击数字可修改或擦除，识别错误可在此纠正'
-        : '点击空格输入数字 | 相同数字高亮显示 | 长按清空')
+        ? $r('app.string.sudoku_edit_hint')
+        : $r('app.string.sudoku_input_hint'))
         .fontSize(11)
         .fontColor($r('app.color.tertiary_text'))
         .textAlign(TextAlign.Center)

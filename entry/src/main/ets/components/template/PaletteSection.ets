@@ -14,7 +14,7 @@ export struct PaletteSection {
   /** 选中描边色（生字卡/首图品牌色资源） */
   @Prop accentColor: ResourceColor = '#D8231A';
   @Prop labelColor: ResourceColor = '#666666';
-  @Prop title: string = '配色方案';
+  @Prop title: ResourceStr = $r('app.string.tmpl_palette_title');
   onSelect: (index: number) => void = () => {
   };
 
@@ -51,7 +51,7 @@ export struct PaletteSection {
           .onClick(() => {
             this.onSelect(idx);
           })
-        }, (p: CoverPalette, idx: number) => p.name + idx.toString())
+        }, (p: CoverPalette, idx: number) => 'pal_' + idx.toString())
       }
       .width('100%')
     }

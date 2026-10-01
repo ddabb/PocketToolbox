@@ -36,7 +36,7 @@ export struct DetailModal {
     if (this.isFav) {
       FavoritesUtil.remove(ctx, 'idiom', this.detailItem!.word);
       this.isFav = false;
-      ToastUtil.show(this.uiContext, '已取消收藏', 1000);
+      ToastUtil.show(this.uiContext, $r('app.string.poemct_unfavorited'), 1000);
     } else {
       let item: FavoriteItem = new FavoriteItem();
       item.type = 'idiom';
@@ -46,9 +46,9 @@ export struct DetailModal {
       let res: FavoriteAddResult = FavoritesUtil.add(ctx, item);
       this.isFav = true;
       if (res.truncated) {
-        ToastUtil.show(this.uiContext, '收藏已达上限，最早一条已移除', 2000);
+        ToastUtil.show(this.uiContext, $r('app.string.poemct_fav_full'), 2000);
       } else {
-        ToastUtil.show(this.uiContext, '已收藏', 1000);
+        ToastUtil.show(this.uiContext, $r('app.string.poemct_favorited'), 1000);
       }
     }
     FavoritesUtil.invalidateCache();
@@ -97,7 +97,7 @@ export struct DetailModal {
       .backgroundColor($r('app.color.idiom_blue') + '18')
       .borderRadius(12)
       .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-      .accessibilityText(this.inReadingList ? '已在朗读清单中' : '加入朗读清单')
+      .accessibilityText(this.inReadingList ? $r('app.string.poemct_in_reading_list') : $r('app.string.poemct_add_to_reading'))
       .onClick(() => {
         this.openReadingListPicker();
       })
@@ -145,12 +145,12 @@ export struct DetailModal {
               if (this.detailItem!.explanation) {
                 Column() {
                   Row() {
-                    Text('释义')
+                    Text($r('app.string.detail_explanation'))
                       .fontSize(15)
                       .fontWeight(FontWeight.Bold)
                       .fontColor($r('app.color.primary_text'))
                     Blank()
-                    Text('复制')
+                    Text($r('app.string.poemct_copy'))
                       .fontSize(12)
                       .fontColor($r('app.color.idiom_blue'))
                       .backgroundColor($r('app.color.idiom_blue') + '18')
@@ -158,7 +158,7 @@ export struct DetailModal {
                       .padding({ left: 8, right: 8, top: 2, bottom: 2 })
                       .onClick(() => {
                         ClipboardUtil.copy(this.detailItem!.explanation);
-                        ToastUtil.show(this.uiContext, '已复制到剪贴板', 1000);
+                        ToastUtil.show(this.uiContext, $r('app.string.poemct_copied'), 1000);
                       })
                   }
                   .width('100%')
@@ -175,12 +175,12 @@ export struct DetailModal {
               if (this.detailItem!.derivation) {
                 Column() {
                   Row() {
-                    Text('出处')
+                    Text($r('app.string.cover_slot_quote_source'))
                       .fontSize(15)
                       .fontWeight(FontWeight.Bold)
                       .fontColor($r('app.color.primary_text'))
                     Blank()
-                    Text('复制')
+                    Text($r('app.string.poemct_copy'))
                       .fontSize(12)
                       .fontColor($r('app.color.idiom_blue'))
                       .backgroundColor($r('app.color.idiom_blue') + '18')
@@ -188,7 +188,7 @@ export struct DetailModal {
                       .padding({ left: 8, right: 8, top: 2, bottom: 2 })
                       .onClick(() => {
                         ClipboardUtil.copy(this.detailItem!.derivation);
-                        ToastUtil.show(this.uiContext, '已复制到剪贴板', 1000);
+                        ToastUtil.show(this.uiContext, $r('app.string.poemct_copied'), 1000);
                       })
                   }
                   .width('100%')
@@ -205,7 +205,7 @@ export struct DetailModal {
               if (this.detailItem!.example) {
                 Column() {
                   Row() {
-                    Text('例句')
+                    Text($r('app.string.detail_example'))
                       .fontSize(15)
                       .fontWeight(FontWeight.Bold)
                       .fontColor($r('app.color.primary_text'))
@@ -244,7 +244,7 @@ export struct DetailModal {
                   this.ReadingListButton()
                 }
 
-                Text('复制全部')
+                Text($r('app.string.detail_copy_all'))
                   .fontSize(14)
                   .fontColor($r('app.color.secondary_text'))
                   .backgroundColor($r('app.color.border_color'))
@@ -259,10 +259,10 @@ export struct DetailModal {
                       all += '\n\u3010\u4F8B\u53E5\u3011' + this.detailItem!.example;
                     }
                     ClipboardUtil.copy(all);
-                    ToastUtil.show(this.uiContext, '已复制到剪贴板', 1000);
+                    ToastUtil.show(this.uiContext, $r('app.string.poemct_copied'), 1000);
                   })
 
-                Text('分享图片')
+                Text($r('app.string.poemct_share_image'))
                   .fontSize(14)
                   .fontColor($r('app.color.on_accent_text'))
                   .backgroundColor($r('app.color.idiom_blue'))
@@ -315,7 +315,7 @@ export struct DetailModal {
   ReadingListPickerOverlay() {
     Column() {
       Column() {
-        Text('加入朗读清单')
+        Text($r('app.string.poemct_add_to_reading'))
           .fontSize(18)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.primary_text'))
@@ -330,7 +330,7 @@ export struct DetailModal {
                     .fontSize(15)
                     .fontColor($r('app.color.primary_text'))
                     .layoutWeight(1)
-                  Text(list.items.length.toString() + '项')
+                  Text($r('app.string.poemct_items_count', list.items.length))
                     .fontSize(12)
                     .fontColor($r('app.color.tertiary_text'))
                     .margin({ left: 8 })
@@ -348,13 +348,13 @@ export struct DetailModal {
           .width('100%')
           .constraintSize({ maxHeight: '50%' })
         } else {
-          Text('暂无朗读清单，请先创建')
+          Text($r('app.string.poemct_no_lists'))
             .fontSize(14)
             .fontColor($r('app.color.tertiary_text'))
             .margin({ top: 20, bottom: 20 })
         }
 
-        Text('取消')
+        Text($r('app.string.readlist_cancel'))
           .fontSize(15)
           .fontColor($r('app.color.tertiary_text'))
           .backgroundColor($r('app.color.border_color'))

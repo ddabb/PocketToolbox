@@ -38,19 +38,20 @@ import { ConverterCategory, UnitConverterData } from '../model/UnitModels';
 import { ToastUtil } from '../common/utils/ToastUtil';
 import { ClipboardUtil } from '../common/utils/ClipboardUtil';
 import { VibrateUtil } from '../common/utils/VibrateUtil';
+import { StrUtil } from '../common/utils/StrUtil';
 
 const FEEDBACK_EMAIL: string = '1011888891@qq.com';
 
 class ToolItem {
   id: string = '';
-  title: string = '';
-  subtitle: string = '';
+  title: ResourceStr = '';
+  subtitle: ResourceStr = '';
   icon: string = '';
   color: string = '';
   page: string = '';
   param: Record<string, Object> | null = null;
 
-  constructor(id: string, title: string, subtitle: string, icon: string, color: string,
+  constructor(id: string, title: ResourceStr, subtitle: ResourceStr, icon: string, color: string,
     page: string, param: Record<string, Object> | null = null) {
     this.id = id;
     this.title = title;
@@ -139,8 +140,8 @@ struct Index {
 
   private buildToolItems(): void {
     this.mathTools = [
-      new ToolItem('gcd_lcm', '公约/倍数', '最大公约数、最小公倍数', 'unit_gcd_lcm', '#e74c3c', 'GcdLcmPage'),
-      new ToolItem('prime_factor', '质因数分解', '分解合数为质数乘积', 'unit_prime_factor', '#9b59b6', 'PrimeFactorPage')
+      new ToolItem('gcd_lcm', $r('app.string.tool_gcd_lcm_title'), $r('app.string.tool_gcd_lcm_sub'), 'unit_gcd_lcm', '#e74c3c', 'GcdLcmPage'),
+      new ToolItem('prime_factor', $r('app.string.tool_prime_title'), $r('app.string.tool_prime_sub'), 'unit_prime_factor', '#9b59b6', 'PrimeFactorPage')
     ];
 
     let unitTools: ToolItem[] = [];
@@ -148,11 +149,11 @@ struct Index {
     for (let i = 0; i < cats.length; i++) {
       let cat: ConverterCategory = cats[i];
       if (cat.isBase) {
-        unitTools.push(new ToolItem(cat.id, cat.title, '二进制/八进制/十六进制/Base64', cat.icon, cat.color, 'BaseConverterPage'));
+        unitTools.push(new ToolItem(cat.id, cat.title, $r('app.string.tool_base_sub'), cat.icon, cat.color, 'BaseConverterPage'));
       } else if (cat.isTimezone) {
-        unitTools.push(new ToolItem(cat.id, cat.title, '全球城市时区对照与会议协调', cat.icon, cat.color, 'TimezoneConverterPage'));
+        unitTools.push(new ToolItem(cat.id, cat.title, $r('app.string.tool_timezone_sub'), cat.icon, cat.color, 'TimezoneConverterPage'));
       } else {
-        let sub: string = this.getUnitSubtitle(cat);
+        let sub: ResourceStr = this.getUnitSubtitle(cat);
         let param: Record<string, Object> = {
           'categoryId': cat.id as Object,
           'title': cat.title as Object
@@ -163,12 +164,12 @@ struct Index {
     this.unitTools = unitTools;
 
     this.creativeTools = [
-      new ToolItem('word_cloud', '词云生成', '粘贴文本，30秒出图', 'creative_wordcloud', '#8b5cf6', 'WordCloudPage'),
-      new ToolItem('md2png', '文字转图片', 'Markdown文本生成图片', 'creative_md2png', '#9b59b6', 'Md2PngPage'),
-      new ToolItem('gzh_cover', '首图制作', '公众号封面 30 秒出图', 'creative_cover', '#2E6FD6', 'CoverMakerPage'),
-      new ToolItem('char_card', '生字卡', '田字格生字卡，一键注音', 'creative_charcard', '#D8231A', 'CharCardPage'),
-      new ToolItem('gif_maker', 'GIF 制作', '图片/视频合成、编辑动图', 'creative_gif', '#ec4899', 'GifMakerPage'),
-      new ToolItem('sudoku_solver', '数独求解', '拍照识别，DLX算法秒解', 'creative_sudoku', '#6366f1', 'SudokuSolverPage')
+      new ToolItem('word_cloud', $r('app.string.tool_wordcloud_title'), $r('app.string.tool_wordcloud_sub'), 'creative_wordcloud', '#8b5cf6', 'WordCloudPage'),
+      new ToolItem('md2png', $r('app.string.tool_md2png_title'), $r('app.string.tool_md2png_sub'), 'creative_md2png', '#9b59b6', 'Md2PngPage'),
+      new ToolItem('gzh_cover', $r('app.string.tool_cover_title'), $r('app.string.tool_cover_sub'), 'creative_cover', '#2E6FD6', 'CoverMakerPage'),
+      new ToolItem('char_card', $r('app.string.tool_charcard_title'), $r('app.string.tool_charcard_sub'), 'creative_charcard', '#D8231A', 'CharCardPage'),
+      new ToolItem('gif_maker', $r('app.string.tool_gif_title'), $r('app.string.tool_gif_sub'), 'creative_gif', '#ec4899', 'GifMakerPage'),
+      new ToolItem('sudoku_solver', $r('app.string.tool_sudoku_title'), $r('app.string.tool_sudoku_sub'), 'creative_sudoku', '#6366f1', 'SudokuSolverPage')
     ];
 
     let all: ToolItem[] = [];
@@ -206,10 +207,14 @@ struct Index {
     if (!kw) {
       return [];
     }
+    let ctx: Context = this.getUIContext().getHostContext() as Context;
+    let kwLower: string = kw.toLowerCase();
     let result: ToolItem[] = [];
     for (let i = 0; i < this.allTools.length; i++) {
       let t: ToolItem = this.allTools[i];
-      if (t.title.includes(kw) || t.subtitle.includes(kw)) {
+      let titleStr: string = StrUtil.text(ctx, t.title).toLowerCase();
+      let subStr: string = StrUtil.text(ctx, t.subtitle).toLowerCase();
+      if (titleStr.includes(kwLower) || subStr.includes(kwLower)) {
         result.push(t);
       }
     }
@@ -224,19 +229,20 @@ struct Index {
 
   private onFeedbackTap(): void {
     let ctx: common.UIAbilityContext = this.getUIContext().getHostContext() as common.UIAbilityContext;
+    let subject: string = ctx.resourceManager.getStringByNameSync('feedback_subject');
     let want: Want = {
       action: 'ohos.want.action.sendToData',
-      uri: 'mailto:' + FEEDBACK_EMAIL + '?subject=' + encodeURIComponent('解语珠玑意见反馈')
+      uri: 'mailto:' + FEEDBACK_EMAIL + '?subject=' + encodeURIComponent(subject)
     };
     ctx.startAbility(want).catch(() => {
       ClipboardUtil.copy(FEEDBACK_EMAIL);
-      ToastUtil.show(this.getUIContext(), '未找到邮件应用，反馈邮箱已复制', 1500);
+      ToastUtil.show(this.getUIContext(), $r('app.string.feedback_no_mail_app'), 1500);
     });
   }
 
-  private getUnitSubtitle(cat: ConverterCategory): string {
+  private getUnitSubtitle(cat: ConverterCategory): ResourceStr {
     if (cat.isTemperature) {
-      return '摄氏度、华氏度、开尔文等';
+      return $r('app.string.unit_temp_subtitle');
     }
     let names: string[] = [];
     let count: number = Math.min(cat.units.length, 3);
@@ -334,7 +340,7 @@ struct Index {
       this.checkInData = StickinessUtil.loadCheckIn(ctx);
       this.checkedInToday = true;
       this.mineCheckInData = StickinessUtil.loadCheckIn(ctx);
-      ToastUtil.show(this.getUIContext(), '签到成功！连续' + this.checkInData.streak.toString() + '天', 1500);
+      ToastUtil.show(this.getUIContext(), $r('app.string.checkin_success_toast', this.checkInData.streak), 1500);
     }
   }
 
@@ -541,17 +547,17 @@ struct Index {
         TabContent() {
           this.HomeContent()
         }
-        .tabBar(this.TabBarItem(0, $r('app.media.tab_home'), '首页'))
+        .tabBar(this.TabBarItem(0, $r('app.media.tab_home'), $r('app.string.tab_home')))
 
         TabContent() {
           this.ToolContent()
         }
-        .tabBar(this.TabBarItem(1, $r('app.media.tab_tools'), '工具'))
+        .tabBar(this.TabBarItem(1, $r('app.media.tab_tools'), $r('app.string.tab_tools')))
 
         TabContent() {
           this.MineContent()
         }
-        .tabBar(this.TabBarItem(2, $r('app.media.tab_mine'), '我的'))
+        .tabBar(this.TabBarItem(2, $r('app.media.tab_mine'), $r('app.string.tab_mine')))
       }
       .barPosition(BarPosition.End)
       .scrollable(false)
@@ -573,7 +579,7 @@ struct Index {
   }
 
   @Builder
-  TabBarItem(index: number, icon: Resource, label: string) {
+  TabBarItem(index: number, icon: Resource, label: ResourceStr) {
     Column() {
       Image(icon)
         .width(24)
@@ -588,7 +594,7 @@ struct Index {
     .height('100%')
     .justifyContent(FlexAlign.Center)
     .alignItems(HorizontalAlign.Center)
-    .accessibilityText(label)
+    .accessibilityText(this.textOf(label))
   }
 
   @Builder
@@ -602,7 +608,7 @@ struct Index {
               .fontWeight(FontWeight.Bold)
               .fontColor($r('app.color.primary_text'))
             Blank()
-            Text('品读经典，感悟文字之美')
+            Text($r('app.string.home_slogan'))
               .fontSize(11)
               .fontColor($r('app.color.tertiary_text'))
           }
@@ -620,11 +626,11 @@ struct Index {
                 .height(44)
                 .borderRadius(12)
                 .margin({ bottom: 6 })
-              Text('诗词查询')
+              Text($r('app.string.page_poetry_query'))
                 .fontSize(14)
                 .fontWeight(FontWeight.Bold)
                 .fontColor($r('app.color.primary_text'))
-              Text('唐诗宋词，按朝代浏览')
+              Text($r('app.string.home_poetry_sub'))
                 .fontSize(10)
                 .fontColor($r('app.color.tertiary_text'))
                 .margin({ top: 2 })
@@ -645,11 +651,11 @@ struct Index {
                 .height(44)
                 .borderRadius(12)
                 .margin({ bottom: 6 })
-              Text('成语查询')
+              Text($r('app.string.page_idiom_query'))
                 .fontSize(14)
                 .fontWeight(FontWeight.Bold)
                 .fontColor($r('app.color.primary_text'))
-              Text('成语接龙，顺查逆查')
+              Text($r('app.string.home_idiom_sub'))
                 .fontSize(10)
                 .fontColor($r('app.color.tertiary_text'))
                 .margin({ top: 2 })
@@ -672,11 +678,11 @@ struct Index {
                   .borderRadius(12)
               }
               .margin({ bottom: 6 })
-              Text('歇后语')
+              Text($r('app.string.xiehouyu_short'))
                 .fontSize(14)
                 .fontWeight(FontWeight.Bold)
                 .fontColor($r('app.color.primary_text'))
-              Text('趣味歇后语，猜谜玩法')
+              Text($r('app.string.home_xiehouyu_sub'))
                 .fontSize(10)
                 .fontColor($r('app.color.tertiary_text'))
                 .margin({ top: 2 })
@@ -747,7 +753,7 @@ struct Index {
   QuickToolsRow() {
     if (this.recentToolIds.length > 0) {
       Column() {
-        Text('最近使用')
+        Text($r('app.string.recent_tools'))
           .fontSize(12)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.tertiary_text'))
@@ -769,7 +775,7 @@ struct Index {
               .padding({ left: 8, right: 12, top: 6, bottom: 6 })
               .backgroundColor($r('app.color.card_background'))
               .borderRadius(16)
-              .accessibilityText('最近使用：' + tool.title)
+              .accessibilityText(this.recentToolA11y(tool))
               .onClick(() => {
                 this.openTool(this.homeStack, tool);
               })
@@ -786,8 +792,24 @@ struct Index {
     }
   }
 
+  private textOf(res: ResourceStr): string {
+    return StrUtil.text(this.getUIContext().getHostContext() as Context, res);
+  }
+
+  private recentToolA11y(tool: ToolItem): string {
+    let ctx: Context = this.getUIContext().getHostContext() as Context;
+    let rm = ctx.resourceManager;
+    return rm.getStringByNameSync('a11y_recent_used', StrUtil.text(ctx, tool.title));
+  }
+
+  private toolA11yLabel(tool: ToolItem): string {
+    let ctx: Context = this.getUIContext().getHostContext() as Context;
+    let rm = ctx.resourceManager;
+    return rm.getStringByNameSync('a11y_tool_item', StrUtil.text(ctx, tool.title), StrUtil.text(ctx, tool.subtitle));
+  }
+
   @Builder
-  ToolSectionTitle(title: string, paddingTop: number) {
+  ToolSectionTitle(title: ResourceStr, paddingTop: number) {
     Text(title)
       .fontSize(15)
       .fontWeight(FontWeight.Bold)
@@ -817,7 +839,7 @@ struct Index {
         .width('25%')
         .padding({ top: 8, bottom: 12 })
         .alignItems(HorizontalAlign.Center)
-        .accessibilityText(tool.title + '，' + tool.subtitle)
+        .accessibilityText(this.toolA11yLabel(tool))
         .onClick(() => {
           this.openTool(this.toolStack, tool);
         })
@@ -833,19 +855,19 @@ struct Index {
       Scroll() {
         Column() {
           Row() {
-            Text('工具箱')
+            Text($r('app.string.tools_title'))
               .fontSize(22)
               .fontWeight(FontWeight.Bold)
               .fontColor($r('app.color.primary_text'))
             Blank()
-            Text('实用计算与换算工具集')
+            Text($r('app.string.tools_slogan'))
               .fontSize(11)
               .fontColor($r('app.color.tertiary_text'))
           }
           .width('100%')
           .padding({ left: 16, right: 16, top: 12, bottom: 4 })
 
-          TextInput({ placeholder: '搜索工具', text: this.toolSearchText })
+          TextInput({ placeholder: $r('app.string.search_tools_hint'), text: this.toolSearchText })
             .onChange((value: string) => {
               this.toolSearchText = value;
             })
@@ -859,9 +881,9 @@ struct Index {
             .margin({ left: 16, right: 16, top: 8 })
 
           if (this.toolSearchText.trim().length > 0) {
-            this.ToolSectionTitle('搜索结果', 12)
+            this.ToolSectionTitle($r('app.string.search_results'), 12)
             if (this.filteredTools().length === 0) {
-              Text('没有找到相关工具')
+              Text($r('app.string.no_tools_found'))
                 .fontSize(12)
                 .fontColor($r('app.color.tertiary_text'))
                 .width('100%')
@@ -872,17 +894,17 @@ struct Index {
             }
           } else {
             if (this.recentToolIds.length > 0) {
-              this.ToolSectionTitle('最近使用', 12)
+              this.ToolSectionTitle($r('app.string.recent_tools'), 12)
               this.ImageToolGrid(this.recentToolItems())
             }
 
-            this.ToolSectionTitle('创意工具', 8)
+            this.ToolSectionTitle($r('app.string.section_creative'), 8)
             this.ImageToolGrid(this.creativeTools)
 
-            this.ToolSectionTitle('数学计算', 8)
+            this.ToolSectionTitle($r('app.string.section_math'), 8)
             this.ImageToolGrid(this.mathTools)
 
-            this.ToolSectionTitle('单位换算', 8)
+            this.ToolSectionTitle($r('app.string.section_unit'), 8)
             this.ImageToolGrid(this.unitTools)
           }
         }
@@ -926,7 +948,7 @@ struct Index {
                 .fontSize(22)
                 .fontWeight(FontWeight.Bold)
                 .fontColor($r('app.color.success_green'))
-              Text('累计签到')
+              Text($r('app.string.stat_total_checkin'))
                 .fontSize(11)
                 .fontColor($r('app.color.tertiary_text'))
                 .margin({ top: 2 })
@@ -944,7 +966,7 @@ struct Index {
                 .fontSize(22)
                 .fontWeight(FontWeight.Bold)
                 .fontColor($r('app.color.idiom_orange'))
-              Text('连续签到')
+              Text($r('app.string.stat_streak'))
                 .fontSize(11)
                 .fontColor($r('app.color.tertiary_text'))
                 .margin({ top: 2 })
@@ -961,7 +983,7 @@ struct Index {
               Text('\uD83D\uDCD6')
                 .fontSize(22)
                 .fontColor($r('app.color.poetry_green'))
-              Text('朗读清单')
+              Text($r('app.string.stat_reading_list'))
                 .fontSize(11)
                 .fontColor($r('app.color.tertiary_text'))
                 .margin({ top: 2 })
@@ -983,7 +1005,7 @@ struct Index {
               Text('\u2665')
                 .fontSize(20)
                 .margin({ right: 10 })
-              Text('我的收藏')
+              Text($r('app.string.page_favorites'))
                 .fontSize(15)
                 .fontColor($r('app.color.primary_text'))
                 .layoutWeight(1)
@@ -1005,7 +1027,7 @@ struct Index {
               Text('\uD83C\uDF3C')
                 .fontSize(20)
                 .margin({ right: 10 })
-              Text('诗词查询')
+              Text($r('app.string.page_poetry_query'))
                 .fontSize(15)
                 .fontColor($r('app.color.primary_text'))
                 .layoutWeight(1)
@@ -1027,7 +1049,7 @@ struct Index {
               Text('\uD83D\uDCD6')
                 .fontSize(20)
                 .margin({ right: 10 })
-              Text('成语查询')
+              Text($r('app.string.page_idiom_query'))
                 .fontSize(15)
                 .fontColor($r('app.color.primary_text'))
                 .layoutWeight(1)
@@ -1051,7 +1073,7 @@ struct Index {
                 .height(20)
                 .borderRadius(5)
                 .margin({ right: 10 })
-              Text('歇后语')
+              Text($r('app.string.xiehouyu_short'))
                 .fontSize(15)
                 .fontColor($r('app.color.primary_text'))
                 .layoutWeight(1)
@@ -1073,7 +1095,7 @@ struct Index {
               Text('\uD83D\uDCAC')
                 .fontSize(20)
                 .margin({ right: 10 })
-              Text('意见反馈')
+              Text($r('app.string.mine_feedback'))
                 .fontSize(15)
                 .fontColor($r('app.color.primary_text'))
                 .layoutWeight(1)
@@ -1095,7 +1117,7 @@ struct Index {
               Text('\u2139\uFE0F')
                 .fontSize(20)
                 .margin({ right: 10 })
-              Text('关于')
+              Text($r('app.string.mine_about'))
                 .fontSize(15)
                 .fontColor($r('app.color.primary_text'))
                 .layoutWeight(1)
@@ -1119,11 +1141,11 @@ struct Index {
               Text('\uD83D\uDCC5')
                 .fontSize(20)
                 .margin({ right: 10 })
-              Text('今日签到')
+              Text($r('app.string.mine_today_checkin'))
                 .fontSize(15)
                 .fontColor($r('app.color.primary_text'))
                 .layoutWeight(1)
-              Text(this.mineCheckInData.lastDate === StickinessUtil.todayStr() ? '\u2713 已签到' : '未签到')
+              Text(this.mineCheckInData.lastDate === StickinessUtil.todayStr() ? $r('app.string.checked_in') : $r('app.string.not_checked_in'))
                 .fontSize(14)
                 .fontColor(this.mineCheckInData.lastDate === StickinessUtil.todayStr() ? $r('app.color.success_green') : $r('app.color.idiom_orange'))
             }
@@ -1143,11 +1165,11 @@ struct Index {
               Text('\uD83D\uDD25')
                 .fontSize(20)
                 .margin({ right: 10 })
-              Text('连续签到')
+              Text($r('app.string.stat_streak'))
                 .fontSize(15)
                 .fontColor($r('app.color.primary_text'))
                 .layoutWeight(1)
-              Text(this.mineCheckInData.streak.toString() + '天')
+              Text($r('app.string.days_unit', this.mineCheckInData.streak))
                 .fontSize(14)
                 .fontColor($r('app.color.idiom_orange'))
                 .fontWeight(FontWeight.Bold)
@@ -1163,11 +1185,11 @@ struct Index {
               Text('\uD83C\uDFC6')
                 .fontSize(20)
                 .margin({ right: 10 })
-              Text('今日挑战')
+              Text($r('app.string.mine_today_challenge'))
                 .fontSize(15)
                 .fontColor($r('app.color.primary_text'))
                 .layoutWeight(1)
-              Text(this.mineChallengeProgress.completed && this.mineChallengeProgress.date === StickinessUtil.todayStr() ? '已完成' : '未完成')
+              Text(this.mineChallengeProgress.completed && this.mineChallengeProgress.date === StickinessUtil.todayStr() ? $r('app.string.challenge_done') : $r('app.string.challenge_not_done'))
                 .fontSize(14)
                 .fontColor(this.mineChallengeProgress.completed && this.mineChallengeProgress.date === StickinessUtil.todayStr() ? $r('app.color.success_green') : $r('app.color.tertiary_text'))
             }
@@ -1182,11 +1204,11 @@ struct Index {
               Text('\uD83D\uDC41')
                 .fontSize(20)
                 .margin({ right: 10 })
-              Text('累计浏览')
+              Text($r('app.string.stat_browse'))
                 .fontSize(15)
                 .fontColor($r('app.color.primary_text'))
                 .layoutWeight(1)
-              Text(this.mineUserStats.browseCount.toString() + '次')
+              Text($r('app.string.times_unit', this.mineUserStats.browseCount))
                 .fontSize(14)
                 .fontColor($r('app.color.tertiary_text'))
             }
@@ -1201,11 +1223,11 @@ struct Index {
               Text('\uD83D\uDCDA')
                 .fontSize(20)
                 .margin({ right: 10 })
-              Text('累计挑战')
+              Text($r('app.string.stat_challenges'))
                 .fontSize(15)
                 .fontColor($r('app.color.primary_text'))
                 .layoutWeight(1)
-              Text(this.mineChallengeProgress.totalChallenges.toString() + '次')
+              Text($r('app.string.times_unit', this.mineChallengeProgress.totalChallenges))
                 .fontSize(14)
                 .fontColor($r('app.color.tertiary_text'))
             }
@@ -1220,11 +1242,11 @@ struct Index {
               Text('\uD83D\uDDE3')
                 .fontSize(20)
                 .margin({ right: 10 })
-              Text('朗读内容')
+              Text($r('app.string.stat_reading_items'))
                 .fontSize(15)
                 .fontColor($r('app.color.primary_text'))
                 .layoutWeight(1)
-              Text(this.mineUserStats.readingItems.toString() + '篇')
+              Text($r('app.string.items_unit', this.mineUserStats.readingItems))
                 .fontSize(14)
                 .fontColor($r('app.color.tertiary_text'))
             }
@@ -1265,20 +1287,20 @@ struct Index {
         Text('\uD83C\uDF3C')
           .fontSize(this.POEM_HEADER_ICON_SIZE)
           .margin({ right: 4 })
-        Text('每日一诗')
+        Text($r('app.string.daily_poem_title'))
           .fontSize(this.DAILY_HEADER_TITLE_SIZE + 1)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.poetry_green'))
         Blank()
         if (this.poemOffset > 0) {
-          Text('今日')
+          Text($r('app.string.today_badge'))
             .fontSize(10)
             .fontColor($r('app.color.poetry_green'))
             .backgroundColor($r('app.color.poetry_green') + '18')
             .borderRadius(10)
             .padding({ left: 7, right: 7, top: 3, bottom: 3 })
             .margin({ right: 6 })
-            .accessibilityText('回到今日推荐')
+            .accessibilityText($r('app.string.a11y_back_to_today'))
             .onClick(() => {
               this.backToDailyPoem();
             })
@@ -1286,7 +1308,7 @@ struct Index {
         Text('\uD83D\uDD04')
           .fontSize(this.DAILY_LOADING_SIZE + 1)
           .fontColor($r('app.color.poetry_green'))
-          .accessibilityText('换一首')
+          .accessibilityText($r('app.string.a11y_shuffle_poem'))
           .onClick(() => {
             this.refreshPoem();
           })
@@ -1326,20 +1348,20 @@ struct Index {
         Text('\uD83D\uDCD6')
           .fontSize(this.DAILY_HEADER_ICON_SIZE)
           .margin({ right: 3 })
-        Text('每日成语')
+        Text($r('app.string.daily_idiom_title'))
           .fontSize(this.DAILY_HEADER_TITLE_SIZE)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.idiom_blue'))
         Blank()
         if (this.idiomOffset > 0) {
-          Text('今日')
+          Text($r('app.string.today_badge'))
             .fontSize(10)
             .fontColor($r('app.color.idiom_blue'))
             .backgroundColor($r('app.color.idiom_blue') + '18')
             .borderRadius(10)
             .padding({ left: 7, right: 7, top: 3, bottom: 3 })
             .margin({ right: 6 })
-            .accessibilityText('回到今日推荐')
+            .accessibilityText($r('app.string.a11y_back_to_today'))
             .onClick(() => {
               this.backToDailyIdiom();
             })
@@ -1347,7 +1369,7 @@ struct Index {
         Text('\uD83D\uDD04')
           .fontSize(this.DAILY_LOADING_SIZE)
           .fontColor($r('app.color.idiom_blue'))
-          .accessibilityText('换一个成语')
+          .accessibilityText($r('app.string.a11y_shuffle_idiom'))
           .onClick(() => {
             this.refreshIdiom();
           })
@@ -1382,20 +1404,20 @@ struct Index {
         Text('\uD83E\uDD14')
           .fontSize(this.DAILY_HEADER_ICON_SIZE)
           .margin({ right: 3 })
-        Text('每日歇后语')
+        Text($r('app.string.daily_xiehouyu_title'))
           .fontSize(this.DAILY_HEADER_TITLE_SIZE)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.idiom_orange'))
         Blank()
         if (this.xiehouyuOffset > 0) {
-          Text('今日')
+          Text($r('app.string.today_badge'))
             .fontSize(10)
             .fontColor($r('app.color.idiom_orange'))
             .backgroundColor($r('app.color.idiom_orange') + '18')
             .borderRadius(10)
             .padding({ left: 7, right: 7, top: 3, bottom: 3 })
             .margin({ right: 6 })
-            .accessibilityText('回到今日推荐')
+            .accessibilityText($r('app.string.a11y_back_to_today'))
             .onClick(() => {
               this.backToDailyXiehouyu();
             })
@@ -1403,7 +1425,7 @@ struct Index {
         Text('\uD83D\uDD04')
           .fontSize(this.DAILY_LOADING_SIZE)
           .fontColor($r('app.color.idiom_orange'))
-          .accessibilityText('换一条歇后语')
+          .accessibilityText($r('app.string.a11y_shuffle_xiehouyu'))
           .onClick(() => {
             this.refreshXiehouyu();
           })
@@ -1416,7 +1438,7 @@ struct Index {
         .maxLines(1)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
         .margin({ bottom: 2 })
-      Text('—— ' + this.dailyXiehouyuAnswer)
+      Text($r('app.string.xiehouyu_answer_prefix', this.dailyXiehouyuAnswer))
         .fontSize(this.XIEHOUYU_ANSWER_SIZE)
         .fontColor($r('app.color.idiom_orange'))
         .fontWeight(FontWeight.Bold)
@@ -1439,7 +1461,7 @@ struct Index {
         Text('\uD83D\uDCD6')
           .fontSize(this.DAILY_HEADER_ICON_SIZE)
           .margin({ right: 3 })
-        Text('每日成语')
+        Text($r('app.string.daily_idiom_title'))
           .fontSize(this.DAILY_HEADER_TITLE_SIZE)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.idiom_blue'))
@@ -1481,7 +1503,7 @@ struct Index {
         Text('\uD83E\uDD14')
           .fontSize(this.DAILY_HEADER_ICON_SIZE)
           .margin({ right: 3 })
-        Text('每日歇后语')
+        Text($r('app.string.daily_xiehouyu_title'))
           .fontSize(this.DAILY_HEADER_TITLE_SIZE)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.idiom_orange'))
@@ -1517,7 +1539,7 @@ struct Index {
         Text('\uD83C\uDF3C')
           .fontSize(this.POEM_HEADER_ICON_SIZE)
           .margin({ right: 4 })
-        Text('每日一诗')
+        Text($r('app.string.daily_poem_title'))
           .fontSize(this.DAILY_HEADER_TITLE_SIZE + 1)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.poetry_green'))
@@ -1568,33 +1590,33 @@ struct Index {
           Text('\uD83D\uDCC5')
             .fontSize(14)
             .margin({ right: 4 })
-          Text('每日签到')
+          Text($r('app.string.daily_checkin'))
             .fontSize(12)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.idiom_orange'))
         }
         .margin({ bottom: 6 })
         if (this.checkedInToday) {
-          Text('\u2713 已签到')
+          Text($r('app.string.checked_in'))
             .fontSize(14)
             .fontColor($r('app.color.success_green'))
             .fontWeight(FontWeight.Bold)
-          Text('连续' + this.checkInData.streak.toString() + '天')
+          Text($r('app.string.streak_days', this.checkInData.streak))
             .fontSize(11)
             .fontColor($r('app.color.tertiary_text'))
             .margin({ top: 2 })
         } else {
-          Text('点击签到')
+          Text($r('app.string.tap_to_checkin'))
             .fontSize(14)
             .fontColor($r('app.color.idiom_orange'))
             .fontWeight(FontWeight.Bold)
           if (this.checkInData.streak > 0) {
-            Text('已连续' + this.checkInData.streak.toString() + '天')
+            Text($r('app.string.streak_so_far', this.checkInData.streak))
               .fontSize(11)
               .fontColor($r('app.color.tertiary_text'))
               .margin({ top: 2 })
           } else {
-            Text('开始你的连续签到')
+            Text($r('app.string.start_streak'))
               .fontSize(11)
               .fontColor($r('app.color.tertiary_text'))
               .margin({ top: 2 })
@@ -1618,27 +1640,27 @@ struct Index {
           Text('\uD83C\uDFC6')
             .fontSize(14)
             .margin({ right: 4 })
-          Text('每日挑战')
+          Text($r('app.string.daily_challenge'))
             .fontSize(12)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.poetry_green'))
         }
         .margin({ bottom: 6 })
         if (this.challengeProgress.completed && this.challengeProgress.date === StickinessUtil.todayStr()) {
-          Text('已完成')
+          Text($r('app.string.challenge_done'))
             .fontSize(14)
             .fontColor($r('app.color.success_green'))
             .fontWeight(FontWeight.Bold)
-          Text('得分 ' + this.challengeProgress.score.toString())
+          Text($r('app.string.score_label', this.challengeProgress.score))
             .fontSize(11)
             .fontColor($r('app.color.tertiary_text'))
             .margin({ top: 2 })
         } else {
-          Text('去挑战')
+          Text($r('app.string.go_challenge'))
             .fontSize(14)
             .fontColor($r('app.color.poetry_green'))
             .fontWeight(FontWeight.Bold)
-          Text('答题赢积分')
+          Text($r('app.string.quiz_for_points'))
             .fontSize(11)
             .fontColor($r('app.color.tertiary_text'))
             .margin({ top: 2 })
@@ -1665,7 +1687,7 @@ struct Index {
         Text('\uD83D\uDCDD')
           .fontSize(13)
           .margin({ right: 3 })
-        Text('温故知新')
+        Text($r('app.string.review_card_title'))
           .fontSize(12)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.poetry_green'))

@@ -31,9 +31,9 @@ export class AddToReadingListUtil {
       listName = list.name;
     }
     if (ok) {
-      return new AddToListResult(true, '已加入「' + listName + '」');
+      return new AddToListResult(true, context.resourceManager.getStringByNameSync('added_to_list', listName));
     } else {
-      return new AddToListResult(false, '已在「' + listName + '」中');
+      return new AddToListResult(false, context.resourceManager.getStringByNameSync('already_in_list', listName));
     }
   }
 

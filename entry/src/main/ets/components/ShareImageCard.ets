@@ -175,7 +175,7 @@ export struct ShareImageCard {
     try {
       let pixelMap: image.PixelMap | undefined = await this.takeSnapshot();
       if (!pixelMap) {
-        ToastUtil.show(this.getUIContext(), '截图失败', 2000);
+        ToastUtil.show(this.getUIContext(), $r('app.string.share_snapshot_failed'), 2000);
         this.isGenerating = false;
         return '';
       }
@@ -184,12 +184,12 @@ export struct ShareImageCard {
       result = await this.pixelMapToCache(uiCtx, pixelMap, 'share');
       this.generatedImageUri = result;
       if (!this.autoShare) {
-        ToastUtil.show(uiCtx, '图片已生成', 1000);
+        ToastUtil.show(uiCtx, $r('app.string.share_generated'), 1000);
       }
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[ShareCard] generate failed: ' + err.code + ' ' + err.message);
-      ToastUtil.show(this.getUIContext(), '生成失败', 2000);
+      ToastUtil.show(this.getUIContext(), $r('app.string.share_generate_failed'), 2000);
     }
     this.isGenerating = false;
     return result;
@@ -202,12 +202,12 @@ export struct ShareImageCard {
       if (cachePath) {
         shareImageViaPanel(this.getUIContext(), cachePath);
       } else {
-        ToastUtil.show(this.getUIContext(), '生成图片失败，无法分享', 2000);
+        ToastUtil.show(this.getUIContext(), $r('app.string.share_generate_failed_no_share'), 2000);
       }
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[ShareCard] generateAndShare failed: ' + err.code + ' ' + err.message);
-      ToastUtil.show(this.getUIContext(), '分享失败', 2000);
+      ToastUtil.show(this.getUIContext(), $r('app.string.share_failed'), 2000);
     }
     this.isGenerating = false;
     this.onAutoShared();
@@ -215,7 +215,7 @@ export struct ShareImageCard {
 
   async doSave(): Promise<void> {
     if (!this.generatedImageUri) {
-      ToastUtil.show(this.getUIContext(), '请先生成图片', 1500);
+      ToastUtil.show(this.getUIContext(), $r('app.string.share_generate_first'), 1500);
       return;
     }
     let uiCtx: UIContext = this.getUIContext();
@@ -236,12 +236,12 @@ export struct ShareImageCard {
         await fs.copyFile(srcFile.fd, desFile.fd);
         await fs.close(srcFile);
         await fs.close(desFile.fd);
-        ToastUtil.show(uiCtx, '已保存到相册', 1000);
+        ToastUtil.show(uiCtx, $r('app.string.share_saved_to_album'), 1000);
       }
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[ShareCard] save failed: ' + err.code + ' ' + err.message);
-      ToastUtil.show(uiCtx, '保存失败', 2000);
+      ToastUtil.show(uiCtx, $r('app.string.share_save_failed'), 2000);
     }
   }
 
@@ -251,7 +251,7 @@ export struct ShareImageCard {
       pixelMap = await this.takeSnapshot();
     }
     if (!pixelMap) {
-      ToastUtil.show(this.getUIContext(), '截图失败', 2000);
+      ToastUtil.show(this.getUIContext(), $r('app.string.share_snapshot_failed'), 2000);
       return;
     }
     let uiCtx: UIContext = this.getUIContext();
@@ -273,12 +273,12 @@ export struct ShareImageCard {
         await fs.copyFile(srcFile.fd, desFile.fd);
         await fs.close(srcFile);
         await fs.close(desFile.fd);
-        ToastUtil.show(uiCtx, '已保存到相册', 1000);
+        ToastUtil.show(uiCtx, $r('app.string.share_saved_to_album'), 1000);
       }
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[ShareCard] savePixelMap failed: ' + err.code + ' ' + err.message);
-      ToastUtil.show(uiCtx, '保存失败', 2000);
+      ToastUtil.show(uiCtx, $r('app.string.share_save_failed'), 2000);
     }
   }
 
@@ -337,7 +337,7 @@ export struct ShareImageCard {
 
       if (!this.autoShare) {
         Row({ space: 8 }) {
-          Text(this.isGenerating ? '生成中...' : '生成图片')
+          Text(this.isGenerating ? $r('app.string.share_generating') : $r('app.string.share_generate'))
             .fontSize(13)
             .fontColor('#ffffff')
             .backgroundColor(this.resolvedAccentColor)
@@ -349,7 +349,7 @@ export struct ShareImageCard {
             })
 
           if (this.generatedImageUri) {
-            Text('分享')
+            Text($r('app.string.share_share'))
               .fontSize(13)
               .fontColor(this.resolvedAccentColor)
               .backgroundColor(Color.Transparent)
@@ -360,7 +360,7 @@ export struct ShareImageCard {
                 this.doShare();
               })
 
-            Text('保存')
+            Text($r('app.string.readlist_save'))
               .fontSize(13)
               .fontColor('#ffffff')
               .backgroundColor(this.resolvedAccentColor)

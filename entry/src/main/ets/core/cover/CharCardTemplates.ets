@@ -8,8 +8,9 @@ export class CharCardSize {
   static readonly SQUARE: string = 'square';
   static readonly PRACTICE: string = 'practice';
 
-  static label(kind: string): string {
-    return kind === CharCardSize.PRACTICE ? '练习卡 3:4' : '方卡 1:1';
+  static label(kind: string): ResourceStr {
+    return kind === CharCardSize.PRACTICE ?
+      $r('app.string.tmpl_size_practice') : $r('app.string.tmpl_size_square');
   }
 }
 
@@ -17,8 +18,8 @@ export class CharCardGridType {
   static readonly TIAN: string = 'tian';
   static readonly MI: string = 'mi';
 
-  static label(kind: string): string {
-    return kind === CharCardGridType.MI ? '米字格' : '田字格';
+  static label(kind: string): ResourceStr {
+    return kind === CharCardGridType.MI ? $r('app.string.tmpl_grid_mi') : $r('app.string.tmpl_grid_tian');
   }
 }
 
@@ -26,8 +27,8 @@ export class CharCardCharMode {
   static readonly READ: string = 'read';
   static readonly TRACE: string = 'trace';
 
-  static label(mode: string): string {
-    return mode === CharCardCharMode.TRACE ? '描红' : '认读';
+  static label(mode: string): ResourceStr {
+    return mode === CharCardCharMode.TRACE ? $r('app.string.tmpl_mode_trace') : $r('app.string.tmpl_mode_read');
   }
 }
 
@@ -116,11 +117,11 @@ export class CharCards {
   /** 配色 5 套：bg=底色 accent=格线 title=字色 sub=拼音色 */
   static palettes(): CoverPalette[] {
     return [
-      CoverPalette.of('蓝底红格黑字', '#2E6FD6', '#D8231A', '#1F1F1F', '#1F1F1F'),
-      CoverPalette.of('米白底红格', '#FAF6EE', '#D8231A', '#1F1F1F', '#333333'),
-      CoverPalette.of('黑板绿底米格', '#2F5D50', '#F0EAD8', '#F0EAD8', '#F0EAD8'),
-      CoverPalette.of('暗红底米格', '#8C2F2A', '#F0EAD8', '#F0EAD8', '#F0EAD8'),
-      CoverPalette.of('米白底墨格', '#FAF6EE', '#2B2B2B', '#2B2B2B', '#2B2B2B'),
+      CoverPalette.of($r('app.string.tmpl_pal_blue_red'), '#2E6FD6', '#D8231A', '#1F1F1F', '#1F1F1F'),
+      CoverPalette.of($r('app.string.tmpl_pal_cream_red'), '#FAF6EE', '#D8231A', '#1F1F1F', '#333333'),
+      CoverPalette.of($r('app.string.tmpl_pal_board_green'), '#2F5D50', '#F0EAD8', '#F0EAD8', '#F0EAD8'),
+      CoverPalette.of($r('app.string.tmpl_pal_maroon_cream'), '#8C2F2A', '#F0EAD8', '#F0EAD8', '#F0EAD8'),
+      CoverPalette.of($r('app.string.tmpl_pal_cream_ink'), '#FAF6EE', '#2B2B2B', '#2B2B2B', '#2B2B2B'),
     ];
   }
 }

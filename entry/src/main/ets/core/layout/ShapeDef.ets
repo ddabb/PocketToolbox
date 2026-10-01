@@ -7,7 +7,7 @@ export interface GlyphMask {
 
 export class ShapeDef {
   id: string;
-  label: string;
+  label: ResourceStr;
   fn: (theta: number) => number;
   shapeRatio: number;
   // parametric outline (x(t), y(t)) in [-1,1], used by heart/leaf for clean shapes
@@ -18,7 +18,7 @@ export class ShapeDef {
   private angleMask?: number[];
   private paramScale?: number;
 
-  constructor(id: string, label: string, fn: (theta: number) => number, shapeRatio: number) {
+  constructor(id: string, label: ResourceStr, fn: (theta: number) => number, shapeRatio: number) {
     this.id = id;
     this.label = label;
     this.fn = fn;
@@ -339,24 +339,24 @@ export class ShapeDef {
   };
 
   static readonly SHAPES: ShapeDef[] = [
-    new ShapeDef('circle', '圆形', ShapeDef.circleFn, 1.0),
-    new ShapeDef('cardioid', '心形', ShapeDef.cardioidFn, 0.5).setParam(ShapeDef.heartParam),
-    new ShapeDef('star5', '五角星', ShapeDef.star5Fn, 0.4),
-    new ShapeDef('diamond', '菱形', ShapeDef.diamondFn, 0.5),
-    new ShapeDef('triangle', '倒三角', ShapeDef.triangleFn, 0.38),
-    new ShapeDef('triangleUp', '正三角', ShapeDef.triangleUpFn, 0.38),
-    new ShapeDef('triangleLeft', '左三角', ShapeDef.triangleLeftFn, 0.38),
-    new ShapeDef('triangleRight', '右三角', ShapeDef.triangleRightFn, 0.38),
-    new ShapeDef('square', '方形', ShapeDef.squareFn, 0.6),
-    new ShapeDef('pentagon', '五边', ShapeDef.pentagonFn, 0.76),
-    new ShapeDef('hexagon', '六边', ShapeDef.hexagonFn, 0.83),
-    new ShapeDef('cross', '十字', ShapeDef.crossFn, 0.35),
-    new ShapeDef('cloud', '云朵', ShapeDef.cloudFn, 0.58),
-    new ShapeDef('oval', '椭圆', ShapeDef.ovalFn, 0.7),
-    new ShapeDef('leaf', '叶片', ShapeDef.leafFn, 0.42).setParam(ShapeDef.leafParam),
-    new ShapeDef('star8', '八角星', ShapeDef.star8Fn, 0.55),
-    new ShapeDef('flower', '花朵', ShapeDef.flowerFn, 0.5),
-    new ShapeDef('octagon', '八边形', ShapeDef.octagonFn, 0.9),
+    new ShapeDef('circle', $r('app.string.wc_shape_circle'), ShapeDef.circleFn, 1.0),
+    new ShapeDef('cardioid', $r('app.string.wc_shape_cardioid'), ShapeDef.cardioidFn, 0.5).setParam(ShapeDef.heartParam),
+    new ShapeDef('star5', $r('app.string.wc_shape_star5'), ShapeDef.star5Fn, 0.4),
+    new ShapeDef('diamond', $r('app.string.wc_shape_diamond'), ShapeDef.diamondFn, 0.5),
+    new ShapeDef('triangle', $r('app.string.wc_shape_triangle'), ShapeDef.triangleFn, 0.38),
+    new ShapeDef('triangleUp', $r('app.string.wc_shape_triangle_up'), ShapeDef.triangleUpFn, 0.38),
+    new ShapeDef('triangleLeft', $r('app.string.wc_shape_triangle_left'), ShapeDef.triangleLeftFn, 0.38),
+    new ShapeDef('triangleRight', $r('app.string.wc_shape_triangle_right'), ShapeDef.triangleRightFn, 0.38),
+    new ShapeDef('square', $r('app.string.wc_shape_square'), ShapeDef.squareFn, 0.6),
+    new ShapeDef('pentagon', $r('app.string.wc_shape_pentagon'), ShapeDef.pentagonFn, 0.76),
+    new ShapeDef('hexagon', $r('app.string.wc_shape_hexagon'), ShapeDef.hexagonFn, 0.83),
+    new ShapeDef('cross', $r('app.string.wc_shape_cross'), ShapeDef.crossFn, 0.35),
+    new ShapeDef('cloud', $r('app.string.wc_shape_cloud'), ShapeDef.cloudFn, 0.58),
+    new ShapeDef('oval', $r('app.string.wc_shape_oval'), ShapeDef.ovalFn, 0.7),
+    new ShapeDef('leaf', $r('app.string.wc_shape_leaf'), ShapeDef.leafFn, 0.42).setParam(ShapeDef.leafParam),
+    new ShapeDef('star8', $r('app.string.wc_shape_star8'), ShapeDef.star8Fn, 0.55),
+    new ShapeDef('flower', $r('app.string.wc_shape_flower'), ShapeDef.flowerFn, 0.5),
+    new ShapeDef('octagon', $r('app.string.wc_shape_octagon'), ShapeDef.octagonFn, 0.9),
   ];
 
   setParam(p: (t: number) => [number, number]): ShapeDef {

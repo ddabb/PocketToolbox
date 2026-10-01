@@ -11,15 +11,15 @@ import { UnifiedTemplateRegistry } from './UnifiedTemplateRegistry';
 
 export function registerUnifiedTemplateSets(): void {
   UnifiedTemplateRegistry.register(UnifiedToolDescriptor.of(
-    UnifiedToolKind.CHAR_CARD, '生字卡', '田字格生字卡，一键注音', 'CharCardPage', 'creative_charcard', '#D8231A'
+    UnifiedToolKind.CHAR_CARD, $r('app.string.tool_charcard_title'), $r('app.string.tool_charcard_sub'), 'CharCardPage', 'creative_charcard', '#D8231A'
   ), []);
   UnifiedTemplateRegistry.register(UnifiedToolDescriptor.of(
-    UnifiedToolKind.COVER, '首图制作', '公众号封面 30 秒出图', 'CoverMakerPage', 'creative_cover', '#2E6FD6'
+    UnifiedToolKind.COVER, $r('app.string.tool_cover_title'), $r('app.string.tool_cover_sub'), 'CoverMakerPage', 'creative_cover', '#2E6FD6'
   ), []);
   UnifiedTemplateRegistry.register(UnifiedToolDescriptor.of(
-    UnifiedToolKind.MD2PNG, '文字转图片', 'Markdown文本生成图片', 'Md2PngPage', 'creative_md2png', '#9b59b6'
+    UnifiedToolKind.MD2PNG, $r('app.string.tool_md2png_title'), $r('app.string.tool_md2png_sub'), 'Md2PngPage', 'creative_md2png', '#9b59b6'
   ), []);
   UnifiedTemplateRegistry.register(UnifiedToolDescriptor.of(
-    UnifiedToolKind.WORD_CLOUD, '词云生成', '粘贴文本，30秒出图', 'WordCloudPage', 'creative_wordcloud', '#8b5cf6'
+    UnifiedToolKind.WORD_CLOUD, $r('app.string.tool_wordcloud_title'), $r('app.string.tool_wordcloud_sub'), 'WordCloudPage', 'creative_wordcloud', '#8b5cf6'
   ), []);
 }

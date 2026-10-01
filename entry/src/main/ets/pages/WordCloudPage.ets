@@ -13,13 +13,15 @@ import { BusinessError } from '@kit.BasicServicesKit';
 import { image } from '@kit.ImageKit';
 import { LengthMetricsUnit } from '@kit.ArkUI';
 import { ToastUtil } from '../common/utils/ToastUtil';
+import { StrUtil } from '../common/utils/StrUtil';
+import { Context } from '@kit.AbilityKit';
 
 @Builder
 export function WordCloudPageBuilder() {
   NavDestination() {
     WordCloudContent()
   }
-  .title('词云生成')
+  .title($r('app.string.tool_wordcloud_title'))
   .backButtonIcon($r('sys.symbol.chevron_left'))
   .menus([])
 }
@@ -36,7 +38,7 @@ struct WordCloudContent {
   @State isExtracting: boolean = false;
   @State canvasSize: number = 360;
   @State canvasPixelSize: number = 720;
-  @State progressText: string = '';
+  @State progressText: ResourceStr = '';
   @State progressValue: number = 0;
   @State customWord: string = '';
   @State customCount: string = '1';
@@ -78,6 +80,14 @@ struct WordCloudContent {
   private readonly MAX_WORDS: number = 180;
   private readonly LAYOUT_CANVAS_SIZE: number = 800;
 
+  private cfgHint(): string {
+    let ctx: Context = this.getUIContext().getHostContext() as Context;
+    return ctx.resourceManager.getStringSync($r('app.string.wc_config_hint',
+      StrUtil.text(ctx, this.templates[this.currentPaletteIndex].name),
+      StrUtil.text(ctx, this.shapes[this.currentShapeIndex].label),
+      this.fontLabels[this.currentFontIndex]));
+  }
+
   aboutToAppear(): void {
     FontUtil.registerAll(this.uiContext);
     this.calcCanvasSize();
@@ -112,13 +122,13 @@ struct WordCloudContent {
         // 词语编辑区 — 紧凑排版
         Column() {
           Row() {
-            Text('词语编辑')
+            Text($r('app.string.wc_edit_section_title'))
               .fontSize(14)
               .fontWeight(FontWeight.Bold)
               .fontColor($r('app.color.primary_text'))
             Blank()
             if (this.rawSourceText.length > 0) {
-              Text('还原原文')
+              Text($r('app.string.wc_restore_source'))
                 .fontSize(11)
                 .fontColor(this.getAccentColor())
                 .onClick(() => {
@@ -129,7 +139,7 @@ struct WordCloudContent {
           }
           .width('100%')
 
-          TextArea({ placeholder: '每行一个词语，冒号指定权重  例如: 创新:5', text: this.directWordsText })
+          TextArea({ placeholder: $r('app.string.wc_input_hint'), text: this.directWordsText })
             .width('100%')
             .height(96)
             .fontSize(13)
@@ -148,7 +158,7 @@ struct WordCloudContent {
 
         // 操作按钮行 + 词语计数
         Row({ space: 6 }) {
-          Button('示例')
+          Button($r('app.string.wc_btn_example'))
             .fontSize(13)
             .fontColor($r('app.color.on_accent_text'))
             .backgroundColor($r('app.color.success_green'))
@@ -156,7 +166,7 @@ struct WordCloudContent {
             .height(32)
             .onClick(() => { this.loadExample(); })
 
-          Button('清空')
+          Button($r('app.string.wc_btn_clear'))
             .fontSize(13)
             .fontColor($r('app.color.tertiary_text'))
             .backgroundColor($r('app.color.card_background'))
@@ -164,7 +174,7 @@ struct WordCloudContent {
             .height(32)
             .onClick(() => { this.clearWords(); })
 
-          Button(this.isExtracting ? '分词中...' : '从文本提取')
+          Button(this.isExtracting ? $r('app.string.wc_extracting') : $r('app.string.wc_extract_from_text'))
             .fontSize(13)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.on_accent_text'))
@@ -177,7 +187,7 @@ struct WordCloudContent {
           Blank()
 
           if (this.cloudWords.length > 0) {
-            Text('共' + this.cloudWords.length.toString() + '词')
+            Text($r('app.string.wc_word_count', this.cloudWords.length))
               .fontSize(12)
               .fontColor($r('app.color.tertiary_text'))
               .onClick(() => { this.showWordsDialog = true; })
@@ -269,12 +279,12 @@ struct WordCloudContent {
   SettingsCover() {
     Column() {
       Row() {
-        Text('样式设置')
+        Text($r('app.string.wc_settings_title'))
           .fontSize(18)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.primary_text'))
         Blank()
-            Button('完成')
+            Button($r('app.string.wc_btn_done'))
             .fontSize(14)
             .fontColor($r('app.color.on_accent_text'))
             .backgroundColor(this.getAccentColor())
@@ -291,7 +301,7 @@ struct WordCloudContent {
       Scroll() {
         Column() {
           // 配色方案 — 可视化色块预览
-          Text('配色方案')
+          Text($r('app.string.tmpl_palette_title'))
             .fontSize(14)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.primary_text'))
@@ -336,7 +346,7 @@ struct WordCloudContent {
           .padding({ left: 8, right: 8 })
 
           // 形状 — 大图标预览
-          Text('形状')
+          Text($r('app.string.wc_section_shape'))
             .fontSize(14)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.primary_text'))
@@ -374,7 +384,7 @@ struct WordCloudContent {
           .padding({ left: 8, right: 8 })
 
           // 字体 — 大字预览
-          Text('字体')
+          Text($r('app.string.wc_section_font'))
             .fontSize(14)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.primary_text'))
@@ -430,7 +440,7 @@ struct WordCloudContent {
     Column() {
       // 配色 — 两行显示
       Row({ space: 4 }) {
-        Text('配色')
+        Text($r('app.string.wc_label_palette'))
           .fontSize(11)
           .fontColor($r('app.color.tertiary_text'))
           .width(32)
@@ -455,7 +465,7 @@ struct WordCloudContent {
 
       // 形状行 — 自动换行
       Row({ space: 4 }) {
-        Text('形状')
+        Text($r('app.string.wc_section_shape'))
           .fontSize(11)
           .fontColor($r('app.color.tertiary_text'))
           .width(32)
@@ -477,7 +487,7 @@ struct WordCloudContent {
 
       // 字体行 — 自动换行
       Row({ space: 4 }) {
-        Text('字体')
+        Text($r('app.string.wc_section_font'))
           .fontSize(11)
           .fontColor($r('app.color.tertiary_text'))
           .width(32)
@@ -498,9 +508,7 @@ struct WordCloudContent {
       .width('100%').padding({ left: 16, right: 16 }).alignItems(VerticalAlign.Top)
 
       // 当前配置提示
-      Text('配色: ' + this.templates[this.currentPaletteIndex].name +
-        ' | 形状: ' + this.shapes[this.currentShapeIndex].label +
-        ' | 字体: ' + this.fontLabels[this.currentFontIndex])
+      Text(this.cfgHint())
         .fontSize(10)
         .fontColor($r('app.color.tertiary_text'))
         .width('100%')
@@ -512,7 +520,7 @@ struct WordCloudContent {
           .selectedColor(this.getAccentColor())
           .width(16).height(16)
           .onChange((isOn: boolean) => { this.forceRepeat = isOn; })
-        Text('词少时强制重复填充')
+        Text($r('app.string.wc_force_repeat'))
           .fontSize(11)
           .fontColor($r('app.color.tertiary_text'))
       }
@@ -520,7 +528,7 @@ struct WordCloudContent {
       .padding({ left: 16, right: 16, top: 4 })
 
       // 生成词云按钮
-      Button(this.isGenerating ? '生成中...' : '生成词云')
+      Button(this.isGenerating ? $r('app.string.wc_generating') : $r('app.string.wc_generate'))
         .fontSize(14)
         .fontWeight(FontWeight.Bold)
         .fontColor($r('app.color.on_accent_text'))
@@ -543,12 +551,12 @@ struct WordCloudContent {
   WordsEditCover() {
     Column() {
       Row() {
-        Text('参与词语 (' + this.cloudWords.length.toString() + ')')
+        Text($r('app.string.wc_words_dialog_title', this.cloudWords.length))
           .fontSize(18)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.primary_text'))
         Blank()
-        Button('完成')
+        Button($r('app.string.wc_btn_done'))
           .fontSize(14)
           .fontColor($r('app.color.on_accent_text'))
           .backgroundColor($r('app.color.brand_blue'))
@@ -563,7 +571,7 @@ struct WordCloudContent {
       .padding({ left: 16, right: 16, top: 16, bottom: 12 })
 
       Row() {
-        TextInput({ placeholder: '输入词语', text: this.customWord })
+        TextInput({ placeholder: $r('app.string.wc_input_word_hint'), text: this.customWord })
           .fontSize(14)
           .fontColor($r('app.color.primary_text'))
           .backgroundColor($r('app.color.card_background'))
@@ -575,7 +583,7 @@ struct WordCloudContent {
             this.customWord = value;
           })
 
-        TextInput({ placeholder: '权重', text: this.customCount })
+        TextInput({ placeholder: $r('app.string.wc_weight_hint'), text: this.customCount })
           .fontSize(14)
           .fontColor($r('app.color.primary_text'))
           .backgroundColor($r('app.color.card_background'))
@@ -589,7 +597,7 @@ struct WordCloudContent {
             this.customCount = value;
           })
 
-        Button('添加')
+        Button($r('app.string.wc_btn_add'))
           .fontSize(13)
           .fontColor($r('app.color.on_accent_text'))
           .backgroundColor(this.getAccentColor())
@@ -605,7 +613,7 @@ struct WordCloudContent {
       .padding({ left: 16, right: 16, bottom: 12 })
 
       if (this.cloudWords.length > 0) {
-        Text('点击词语可移除')
+        Text($r('app.string.wc_tap_word_to_remove'))
           .fontSize(11)
           .fontColor($r('app.color.hint_text'))
           .width('100%')
@@ -643,7 +651,7 @@ struct WordCloudContent {
       }
 
       Row({ space: 8 }) {
-        Button('示例')
+        Button($r('app.string.wc_btn_example'))
           .fontSize(14)
           .fontColor($r('app.color.on_accent_text'))
           .backgroundColor($r('app.color.success_green'))
@@ -653,7 +661,7 @@ struct WordCloudContent {
             this.loadExample();
           })
 
-        Button('清空')
+        Button($r('app.string.wc_btn_clear'))
           .fontSize(14)
           .fontColor($r('app.color.tertiary_text'))
           .backgroundColor($r('app.color.card_background'))
@@ -700,7 +708,7 @@ struct WordCloudContent {
       }
       .margin({ bottom: 12 })
 
-      Text('输入词语后点击生成')
+      Text($r('app.string.wc_empty_hint'))
         .fontSize(13)
         .fontColor($r('app.color.tertiary_text'))
     }
@@ -849,14 +857,14 @@ struct WordCloudContent {
 
   private async extractWordsToDirect(): Promise<void> {
     if (!this.directWordsText || this.directWordsText.trim().length === 0) {
-      ToastUtil.show(this.uiContext, '请先输入或粘贴文本到上方编辑区', 1500);
+      ToastUtil.show(this.uiContext, $r('app.string.wc_toast_input_first'), 1500);
       return;
     }
     this.isExtracting = true;
     try {
       let wordEntries: Array<WordCountEntry> = await KeywordUtil.extractAllWords(this.directWordsText);
       if (wordEntries.length === 0) {
-        ToastUtil.show(this.uiContext, '未提取到有效词语', 2000);
+        ToastUtil.show(this.uiContext, $r('app.string.wc_toast_no_words'), 2000);
         this.isExtracting = false;
         return;
       }
@@ -877,7 +885,7 @@ struct WordCloudContent {
       this.directWordsText = lines.join('\n');
       this.cloudWords = newWords;
     } catch (e) {
-      ToastUtil.show(this.uiContext, '分词失败', 2000);
+      ToastUtil.show(this.uiContext, $r('app.string.wc_toast_extract_failed'), 2000);
     }
     this.isExtracting = false;
   }
@@ -885,13 +893,13 @@ struct WordCloudContent {
   private async generateWordCloud(): Promise<void> {
     console.info('[WordCloud] generateWordCloud START, cloudWords=' + this.cloudWords.length.toString());
     if (this.cloudWords.length === 0) {
-      ToastUtil.show(this.uiContext, '请先提取或添加词语', 1500);
+      ToastUtil.show(this.uiContext, $r('app.string.wc_toast_add_words_first'), 1500);
       return;
     }
     this.isGenerating = true;
     this.placedWords = [];
     this.progressValue = 10;
-    this.progressText = '布局中...';
+    this.progressText = $r('app.string.wc_phase_layout');
 
     try {
       let wordInputs: WordInput[] = [];
@@ -930,7 +938,7 @@ struct WordCloudContent {
       console.info('[WordCloud] placement done, placed=' + result.count.toString());
 
       this.progressValue = 90;
-      this.progressText = '着色中...';
+      this.progressText = $r('app.string.wc_phase_coloring');
 
       let palette: PaletteColor = this.palettes[this.currentPaletteIndex];
       let placedResults: PlacedWord[] = [];
@@ -960,11 +968,11 @@ struct WordCloudContent {
       }
 
       this.progressValue = 100;
-      this.progressText = '已生成 ' + placedResults.length.toString() + ' 个词';
+      this.progressText = $r('app.string.wc_phase_done', placedResults.length);
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[WordCloud] generate FAILED: code=' + err.code + ' msg=' + err.message);
-      ToastUtil.show(this.uiContext, '生成失败', 2000);
+      ToastUtil.show(this.uiContext, $r('app.string.wc_toast_generate_failed'), 2000);
     }
 
     this.isGenerating = false;

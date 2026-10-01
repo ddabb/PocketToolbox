@@ -7,7 +7,7 @@ export function AboutPageBuilder() {
   NavDestination() {
     AboutContent()
   }
-  .title('关于')
+  .title($r('app.string.mine_about'))
   .backButtonIcon($r('sys.symbol.chevron_left'))
   .menus([])
 }
@@ -59,15 +59,15 @@ struct AboutContent {
       return;
     }
     let dialogParam: AlertDialogParamWithButtons = {
-      title: '清空 GIF 制作历史',
-      message: `将删除全部 ${this.gifHistoryCount} 条 GIF 制作记录（约 ${formatGifBytes(this.gifHistoryBytes)}），已保存到相册的副本不受影响。确定清空？`,
+      title: $r('app.string.about_clear_gif_title'),
+      message: $r('app.string.about_clear_gif_msg', this.gifHistoryCount, formatGifBytes(this.gifHistoryBytes)),
       primaryButton: {
-        value: '取消',
+        value: $r('app.string.xhyq_cancel'),
         action: () => {
         }
       },
       secondaryButton: {
-        value: '清空',
+        value: $r('app.string.about_clear'),
         action: () => {
           let ctx: Context = this.uiContext.getHostContext() as Context;
           GifHistoryStore.clearAll(ctx);
@@ -96,7 +96,7 @@ struct AboutContent {
             .height(72)
             .borderRadius(16)
             .margin({ bottom: 12 })
-          Text('解语珠玑')
+          Text($r('app.string.EntryAbility_label'))
             .fontSize(24)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.primary_text'))
@@ -106,7 +106,7 @@ struct AboutContent {
               .fontColor($r('app.color.tertiary_text'))
               .margin({ top: 4 })
           }
-          Text('品读经典，感悟文字之美')
+          Text($r('app.string.home_slogan'))
             .fontSize(13)
             .fontColor($r('app.color.hint_text'))
             .margin({ top: 10 })
@@ -118,10 +118,10 @@ struct AboutContent {
         Column() {
           Row() {
             Column() {
-              Text('每日签到提醒')
+              Text($r('app.string.about_reminder_title'))
                 .fontSize(15)
                 .fontColor($r('app.color.primary_text'))
-              Text('开启后每天 20:00 系统提醒签到与每日挑战')
+              Text($r('app.string.about_reminder_desc'))
                 .fontSize(12)
                 .fontColor($r('app.color.hint_text'))
                 .margin({ top: 2 })
@@ -144,15 +144,15 @@ struct AboutContent {
 
         Column() {
           Row() {
-            Text('GIF 制作历史')
+            Text($r('app.string.about_gif_history'))
               .fontSize(15)
               .fontColor($r('app.color.primary_text'))
               .layoutWeight(1)
-            Text(this.gifHistoryCount.toString() + ' 条 · ' + formatGifBytes(this.gifHistoryBytes))
+            Text($r('app.string.about_gif_history_count', this.gifHistoryCount, formatGifBytes(this.gifHistoryBytes)))
               .fontSize(14)
               .fontColor($r('app.color.tertiary_text'))
             if (this.gifHistoryCount > 0) {
-              Text('清空')
+              Text($r('app.string.about_clear'))
                 .fontSize(13)
                 .fontColor($r('app.color.danger_red'))
                 .padding({ left: 10, right: 0 })
@@ -170,12 +170,12 @@ struct AboutContent {
         .margin({ left: 16, right: 16, top: 8 })
 
         Column() {
-          Text('包含诗词查询、成语接龙、歇后语猜谜，以及 GIF 制作、数独求解、单位转换等实用工具，助您领略文字之美、提升日常效率。')
+          Text($r('app.string.about_app_desc'))
             .fontSize(13)
             .fontColor($r('app.color.hint_text'))
             .textAlign(TextAlign.Center)
             .lineHeight(22)
-          Text('© 2026 解语珠玑')
+          Text($r('app.string.about_copyright'))
             .fontSize(12)
             .fontColor($r('app.color.hint_text'))
             .margin({ top: 8 })

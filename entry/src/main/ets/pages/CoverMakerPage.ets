@@ -14,6 +14,7 @@ import { CoverPreview } from '../components/cover/CoverPreview';
 import { PaletteSection } from '../components/template/PaletteSection';
 import { FontUtil } from '../common/utils/FontUtil';
 import { ToastUtil } from '../common/utils/ToastUtil';
+import { StrUtil } from '../common/utils/StrUtil';
 import { savePixelMapToAlbum, shareImageViaPanel } from '../common/utils/ShareImageUtil';
 
 const PREVIEW_ID: string = 'cover_preview';
@@ -24,7 +25,7 @@ export function CoverMakerPageBuilder() {
   NavDestination() {
     CoverMakerContent()
   }
-  .title('首图制作')
+  .title($r('app.string.tool_cover_title'))
   .backButtonIcon($r('sys.symbol.chevron_left'))
   .menus([])
 }
@@ -168,23 +169,23 @@ struct CoverMakerContent {
     return '';
   }
 
-  private slotLabel(slot: string): string {
+  private slotLabel(slot: string): ResourceStr {
     if (slot === CoverSlot.TITLE) {
       return this.currentTemplate().titleLabel;
     } else if (slot === CoverSlot.SUBTITLE) {
-      return '副标题';
+      return $r('app.string.cover_slot_subtitle');
     } else if (slot === CoverSlot.AUTHOR) {
-      return '署名 / 公众号名';
+      return $r('app.string.cover_slot_author');
     } else if (slot === CoverSlot.ISSUE) {
-      return '期号 / 日期';
+      return $r('app.string.cover_slot_issue');
     } else if (slot === CoverSlot.QUOTE) {
-      return '引言';
+      return $r('app.string.cover_slot_quote');
     } else if (slot === CoverSlot.QUOTE_SOURCE) {
-      return '出处';
+      return $r('app.string.cover_slot_quote_source');
     } else if (slot === CoverSlot.PINYIN) {
-      return '拼音（自动生成，点音节选择读音）';
+      return $r('app.string.cover_slot_pinyin');
     } else if (slot === CoverSlot.SEAL) {
-      return '印章（2-4 字）';
+      return $r('app.string.cover_slot_seal');
     }
     return slot;
   }
@@ -214,7 +215,7 @@ struct CoverMakerContent {
     let t: CoverTemplate = this.currentTemplate();
     let pick = CoverContentUtil.pickByKind(this.context(), t.contentKind);
     if (pick === null) {
-      ToastUtil.show(this.getUIContext(), '推荐失败，请重试', 1500);
+      ToastUtil.show(this.getUIContext(), $r('app.string.cover_pick_failed'), 1500);
       return;
     }
     let c: CoverContent = this.content.copy();
@@ -282,7 +283,7 @@ struct CoverMakerContent {
     this.content = CoverContent.fromJson(r.textsJson);
     this.editorTab = 0;
     this.pyEditIndex = -1;
-    ToastUtil.show(this.getUIContext(), '已恢复：' + t.name, 1200);
+    ToastUtil.show(this.getUIContext(), $r('app.string.cover_restored', StrUtil.text(this.context(), t.name)), 1200);
   }
 
   private clearHistory(): void {
@@ -352,14 +353,14 @@ struct CoverMakerContent {
       }
       if (save) {
         let ok: boolean = await savePixelMapToAlbum(uiCtx, pixelMap);
-        ToastUtil.show(uiCtx, ok ? '已保存到相册' : '已取消保存', 1500);
+        ToastUtil.show(uiCtx, ok ? $r('app.string.md2_saved_to_album') : $r('app.string.char_save_cancelled'), 1500);
       } else {
         shareImageViaPanel(uiCtx, filePath);
       }
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[Cover] export failed: ' + err.code + ' ' + err.message);
-      ToastUtil.show(this.getUIContext(), '导出失败：' + err.message, 2000);
+      ToastUtil.show(this.getUIContext(), $r('app.string.char_export_failed', err.message), 2000);
     }
     this.exporting = false;
   }
@@ -437,11 +438,11 @@ struct CoverMakerContent {
       .width('100%')
       .justifyContent(FlexAlign.Center)
 
-      Text('公众号首图 900 × 383')
+      Text($r('app.string.cover_size_hint'))
         .fontSize(11)
         .fontColor(this.labelColor())
       if (this.titleTooLong()) {
-        Text('文案偏长，建议精简（当前标题 ' + this.content.title.length.toString() + ' 字）')
+        Text($r('app.string.cover_title_too_long', this.content.title.length))
           .fontSize(11)
           .fontColor($r('app.color.danger_red'))
       }
@@ -454,7 +455,7 @@ struct CoverMakerContent {
     Scroll() {
       Row({ space: 8 }) {
         ForEach(CoverSeries.all(), (name: string) => {
-          Text(name)
+          Text(CoverSeries.label(name))
             .fontSize(13)
             .padding({ left: 14, right: 14, top: 6, bottom: 6 })
             .backgroundColor(this.seriesFilter === name ? $r('app.color.brand_blue') : this.chipBg())
@@ -506,7 +507,7 @@ struct CoverMakerContent {
               this.selectTemplate(t);
             })
 
-            Text(t.series + ' · ' + t.id)
+            Text(StrUtil.text(this.context(), CoverSeries.label(t.series)) + ' · ' + t.id)
               .fontSize(9)
               .fontColor(this.currentTemplateId === t.id ? $r('app.color.brand_blue') : this.labelColor())
           }
@@ -524,7 +525,7 @@ struct CoverMakerContent {
   @Builder
   EditorTabs() {
     Row({ space: 0 }) {
-      Text('文字')
+      Text($r('app.string.cover_tab_text'))
         .fontSize(14)
         .fontWeight(this.editorTab === 0 ? FontWeight.Bold : FontWeight.Normal)
         .fontColor(this.editorTab === 0 ? $r('app.color.brand_blue') : this.labelColor())
@@ -532,7 +533,7 @@ struct CoverMakerContent {
         .onClick(() => {
           this.editorTab = 0;
         })
-      Text('样式')
+      Text($r('app.string.cover_tab_style'))
         .fontSize(14)
         .fontWeight(this.editorTab === 1 ? FontWeight.Bold : FontWeight.Normal)
         .fontColor(this.editorTab === 1 ? $r('app.color.brand_blue') : this.labelColor())
@@ -550,11 +551,11 @@ struct CoverMakerContent {
     Column({ space: 12 }) {
       if (this.currentTemplate().contentKind !== '') {
         Row() {
-          Text('内容库推荐（诗词 / 成语 / 歇后语）')
+          Text($r('app.string.cover_lib_label'))
             .fontSize(12)
             .fontColor(this.labelColor())
             .layoutWeight(1)
-          Text('换一句')
+          Text($r('app.string.cover_change_quote'))
             .fontSize(13)
             .fontColor($r('app.color.idiom_blue'))
             .padding({ left: 14, right: 14, top: 7, bottom: 7 })
@@ -652,11 +653,11 @@ struct CoverMakerContent {
 
         if (this.content.pinyinLocked) {
           Row() {
-            Text('已手动选择读音')
+            Text($r('app.string.cover_pinyin_locked'))
               .fontSize(11)
               .fontColor(this.labelColor())
               .layoutWeight(1)
-            Text('恢复自动')
+            Text($r('app.string.char_pinyin_auto'))
               .fontSize(12)
               .fontColor($r('app.color.idiom_blue'))
               .padding({ left: 10, right: 10, top: 6, bottom: 6 })
@@ -670,7 +671,7 @@ struct CoverMakerContent {
           .alignItems(VerticalAlign.Center)
         }
       } else {
-        Text(this.content.pinyin === '' ? '（输入生字后自动生成拼音）' : this.content.pinyin)
+        Text(this.content.pinyin === '' ? $r('app.string.cover_pinyin_empty_hint') : this.content.pinyin)
           .fontSize(13)
           .fontColor(this.labelColor())
           .width('100%')
@@ -682,11 +683,11 @@ struct CoverMakerContent {
           })
         if (this.content.pinyinLocked) {
           Row() {
-            Text('拼音与字数不一致，已暂停逐字编辑')
+            Text($r('app.string.cover_pinyin_mismatch'))
               .fontSize(11)
               .fontColor(this.labelColor())
               .layoutWeight(1)
-            Text('恢复自动')
+            Text($r('app.string.char_pinyin_auto'))
               .fontSize(12)
               .fontColor($r('app.color.idiom_blue'))
               .padding({ left: 10, right: 10, top: 6, bottom: 6 })
@@ -718,7 +719,7 @@ struct CoverMakerContent {
       })
 
       Column({ space: 10 }) {
-        Text('字体')
+        Text($r('app.string.cover_font_label'))
           .fontSize(12)
           .fontColor(this.labelColor())
         Flex({ wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
@@ -750,11 +751,11 @@ struct CoverMakerContent {
     if (this.historyRecords.length > 0) {
       Column({ space: 8 }) {
         Row() {
-          Text('最近制作')
+          Text($r('app.string.char_recent'))
             .fontSize(12)
             .fontColor(this.labelColor())
             .layoutWeight(1)
-          Text('清空')
+          Text($r('app.string.char_clear'))
             .fontSize(12)
             .fontColor(this.labelColor())
             .padding(6)
@@ -802,7 +803,7 @@ struct CoverMakerContent {
   @Builder
   ExportBar() {
     Row({ space: 12 }) {
-      Button(this.exporting ? '导出中…' : '保存到相册')
+      Button(this.exporting ? $r('app.string.char_exporting') : $r('app.string.char_save_album'))
         .layoutWeight(1)
         .height(44)
         .fontSize(15)
@@ -811,7 +812,7 @@ struct CoverMakerContent {
         .onClick(() => {
           this.doExport(true);
         })
-      Button('分享')
+      Button($r('app.string.md2_share'))
         .layoutWeight(1)
         .height(44)
         .fontSize(15)

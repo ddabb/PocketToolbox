@@ -1,12 +1,14 @@
 import { pasteboard } from '@kit.BasicServicesKit';
+import { Context } from '@kit.AbilityKit';
 import { ToastUtil } from '../common/utils/ToastUtil';
+import { StrUtil } from '../common/utils/StrUtil';
 
 @Builder
 export function GcdLcmPageBuilder() {
   NavDestination() {
     GcdLcmContent()
   }
-  .title('公约/倍数')
+  .title($r('app.string.tool_gcd_lcm_title'))
   .backButtonIcon($r('sys.symbol.chevron_left'))
   .menus([])
 }
@@ -46,23 +48,24 @@ struct GcdLcmContent {
   }
 
   private generateSteps(a: number, b: number, gcd: number): string[] {
+    const ctx: Context = this.getUIContext().getHostContext() as Context;
     let result: string[] = [];
-    result.push('使用欧几里得算法求 ' + a.toString() + ' 和 ' + b.toString() + ' 的最大公约数');
+    result.push(StrUtil.text(ctx, $r('app.string.gcd_step_intro', a, b)));
     let x: number = Math.max(a, b);
     let y: number = Math.min(a, b);
     while (y !== 0) {
       let remainder: number = x % y;
       let quotient: number = Math.floor(x / y);
       if (remainder > 0) {
-        result.push(x.toString() + ' ÷ ' + y.toString() + ' = ' + quotient.toString() + ' 余 ' + remainder.toString());
+        result.push(StrUtil.text(ctx, $r('app.string.gcd_step_div_rem', x, y, quotient, remainder)));
       } else {
         result.push(x.toString() + ' ÷ ' + y.toString() + ' = ' + quotient.toString());
       }
       x = y;
       y = remainder;
     }
-    result.push('余数为0，最大公约数为 ' + x.toString());
-    result.push('最小公倍数 = (' + a.toString() + ' × ' + b.toString() + ') ÷ ' + x.toString() + ' = ' + ((a * b) / x).toString());
+    result.push(StrUtil.text(ctx, $r('app.string.gcd_step_gcd', x)));
+    result.push(StrUtil.text(ctx, $r('app.string.gcd_step_lcm', a, b, x, (a * b) / x)));
     return result;
   }
 
@@ -102,20 +105,22 @@ struct GcdLcmContent {
     if (!this.showResult) {
       return;
     }
+    const ctx: Context = this.getUIContext().getHostContext() as Context;
     let lines: string[] = [];
-    lines.push(this.gcdFactor1.split(' = ')[0] + ' 和 ' + this.gcdFactor2.split(' = ')[0]);
-    lines.push('最大公约数：' + this.gcd.toString());
+    lines.push(StrUtil.text(ctx, $r('app.string.gcd_copy_pair',
+      this.gcdFactor1.split(' = ')[0], this.gcdFactor2.split(' = ')[0])));
+    lines.push(StrUtil.text(ctx, $r('app.string.gcd_label_gcd', this.gcd)));
     lines.push(this.gcdFactor1);
     lines.push(this.gcdFactor2);
-    lines.push('最小公倍数：' + this.lcm.toString());
+    lines.push(StrUtil.text(ctx, $r('app.string.gcd_label_lcm', this.lcm)));
     lines.push(this.lcmFormula);
     try {
       let systemPasteboard: pasteboard.SystemPasteboard = pasteboard.getSystemPasteboard();
       let pasteData: pasteboard.PasteData = pasteboard.createData(pasteboard.MIMETYPE_TEXT_PLAIN, lines.join('\n'));
       systemPasteboard.setData(pasteData);
-      ToastUtil.show(this.getUIContext(), '已复制转换结果', 1000);
+      ToastUtil.show(this.getUIContext(), $r('app.string.gcd_copy_success'), 1000);
     } catch (e) {
-      ToastUtil.show(this.getUIContext(), '复制失败', 1000);
+      ToastUtil.show(this.getUIContext(), $r('app.string.sudoku_copy_failed'), 1000);
     }
   }
 
@@ -125,7 +130,7 @@ struct GcdLcmContent {
         Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, justifyContent: FlexAlign.SpaceAround }) {
           ForEach(this.examples, (ex: number[]) => {
             Column() {
-              Text(ex[0].toString() + ' 和 ' + ex[1].toString())
+              Text($r('app.string.gcd_example_pair', ex[0], ex[1]))
                 .fontSize(14)
                 .fontWeight(FontWeight.Medium)
                 .fontColor($r('app.color.idiom_blue'))
@@ -155,7 +160,7 @@ struct GcdLcmContent {
               .backgroundColor($r('app.color.idiom_blue'))
               .textAlign(TextAlign.Center)
               .margin({ right: 10 })
-            TextInput({ text: this.num1, placeholder: '第一个正整数' })
+            TextInput({ text: this.num1, placeholder: $r('app.string.gcd_input_hint1') })
               .type(InputType.Number)
               .inputFilter('^[0-9]*$', () => { return 0; })
               .maxLength(6)
@@ -186,7 +191,7 @@ struct GcdLcmContent {
               .backgroundColor($r('app.color.danger_red'))
               .textAlign(TextAlign.Center)
               .margin({ right: 10 })
-            TextInput({ text: this.num2, placeholder: '第二个正整数' })
+            TextInput({ text: this.num2, placeholder: $r('app.string.gcd_input_hint2') })
               .type(InputType.Number)
               .inputFilter('^[0-9]*$', () => { return 0; })
               .maxLength(6)
@@ -211,7 +216,7 @@ struct GcdLcmContent {
         Column() {
           if (this.showResult) {
             Column() {
-              Text('最大公约数 (GCD)')
+              Text($r('app.string.gcd_result_gcd'))
                 .fontSize(12)
                 .fontColor($r('app.color.tertiary_text'))
                 .margin({ bottom: 4 })
@@ -237,7 +242,7 @@ struct GcdLcmContent {
             Divider().color($r('app.color.border_color'))
 
             Column() {
-              Text('最小公倍数 (LCM)')
+              Text($r('app.string.gcd_result_lcm'))
                 .fontSize(12)
                 .fontColor($r('app.color.tertiary_text'))
                 .margin({ bottom: 4 })
@@ -257,7 +262,7 @@ struct GcdLcmContent {
             .borderRadius({ bottomLeft: 16, bottomRight: 16 })
 
             Column() {
-              Text('计算过程')
+              Text($r('app.string.gcd_steps_title'))
                 .fontSize(13)
                 .fontWeight(FontWeight.Medium)
                 .fontColor($r('app.color.secondary_text'))
@@ -281,7 +286,7 @@ struct GcdLcmContent {
             .width('100%')
             .padding({ left: 16, right: 16, top: 12, bottom: 12 })
 
-            Button('复制结果')
+            Button($r('app.string.gcd_copy_result'))
               .fontSize(13)
               .fontColor($r('app.color.on_accent_text'))
               .backgroundColor($r('app.color.idiom_blue'))
@@ -294,7 +299,7 @@ struct GcdLcmContent {
               })
           } else {
             Column() {
-              Text('输入两个正整数，实时计算')
+              Text($r('app.string.gcd_empty_hint'))
                 .fontSize(14)
                 .fontColor($r('app.color.tertiary_text'))
             }

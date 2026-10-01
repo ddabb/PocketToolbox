@@ -7,7 +7,7 @@ export function FavoritesPageBuilder() {
   NavDestination() {
     FavoritesContent()
   }
-  .title('我的收藏')
+  .title($r('app.string.page_favorites'))
   .backButtonIcon($r('sys.symbol.chevron_left'))
   .menus([])
 }
@@ -58,11 +58,11 @@ struct FavoritesContent {
   private removeItem(item: FavoriteItem): void {
     let uiContext: UIContext = this.getUIContext();
     uiContext.getPromptAction().showDialog({
-      title: '确认删除',
-      message: '确定要取消收藏「' + item.title + '」吗？',
+      title: $r('app.string.readlist_confirm_delete'),
+      message: $r('app.string.favsp_delete_msg', item.title),
       buttons: [
-        { text: '取消', color: $r('app.color.tertiary_text') },
-        { text: '删除', color: $r('app.color.danger_red') }
+        { text: $r('app.string.readlist_cancel'), color: $r('app.color.tertiary_text') },
+        { text: $r('app.string.readlist_delete'), color: $r('app.color.danger_red') }
       ]
     }).then((result: promptAction.ShowDialogSuccessResponse) => {
       if (result.index === 1) {
@@ -86,7 +86,7 @@ struct FavoritesContent {
   build() {
     Column() {
       Row({ space: 8 }) {
-        Text('全部')
+        Text($r('app.string.favsp_tab_all'))
           .fontSize(14)
           .fontColor(this.activeTab === 'all' ? $r('app.color.on_accent_text') : $r('app.color.secondary_text'))
           .backgroundColor(this.activeTab === 'all' ? $r('app.color.tab_selected_bg') : $r('app.color.border_color'))
@@ -97,7 +97,7 @@ struct FavoritesContent {
             this.refreshDisplay();
           })
 
-        Text('诗词')
+        Text($r('app.string.favsp_tab_poem'))
           .fontSize(14)
           .fontColor(this.activeTab === 'poem' ? $r('app.color.on_accent_text') : $r('app.color.secondary_text'))
           .backgroundColor(this.activeTab === 'poem' ? $r('app.color.poetry_green') : $r('app.color.border_color'))
@@ -108,7 +108,7 @@ struct FavoritesContent {
             this.refreshDisplay();
           })
 
-        Text('成语')
+        Text($r('app.string.favsp_tab_idiom'))
           .fontSize(14)
           .fontColor(this.activeTab === 'idiom' ? $r('app.color.on_accent_text') : $r('app.color.secondary_text'))
           .backgroundColor(this.activeTab === 'idiom' ? $r('app.color.idiom_blue') : $r('app.color.border_color'))
@@ -119,7 +119,7 @@ struct FavoritesContent {
             this.refreshDisplay();
           })
 
-        Text('歇后语')
+        Text($r('app.string.xiehouyu_short'))
           .fontSize(14)
           .fontColor(this.activeTab === 'xiehouyu' ? $r('app.color.on_accent_text') : $r('app.color.secondary_text'))
           .backgroundColor(this.activeTab === 'xiehouyu' ? $r('app.color.idiom_orange') : $r('app.color.border_color'))
@@ -182,7 +182,9 @@ struct FavoritesContent {
         .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
       } else {
         Column() {
-          Text(this.activeTab === 'all' ? '暂无收藏' : this.activeTab === 'poem' ? '暂无收藏的诗词' : this.activeTab === 'idiom' ? '暂无收藏的成语' : '暂无收藏的歇后语')
+          Text(this.activeTab === 'all' ? $r('app.string.favsp_empty_all') :
+            this.activeTab === 'poem' ? $r('app.string.favsp_empty_poem') :
+              this.activeTab === 'idiom' ? $r('app.string.favsp_empty_idiom') : $r('app.string.favsp_empty_xiehouyu'))
             .fontSize(16)
             .fontColor($r('app.color.tertiary_text'))
             .margin({ top: 60 })

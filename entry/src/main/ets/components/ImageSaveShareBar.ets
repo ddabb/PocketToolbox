@@ -110,12 +110,12 @@ export struct ImageSaveShareBar {
         await fs.copyFile(src.fd, des.fd);
         fs.closeSync(src);
         await fs.close(des);
-        ToastUtil.show(uiCtx, '已保存到相册', 1000);
+        ToastUtil.show(uiCtx, $r('app.string.share_saved_to_album'), 1000);
       }
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[ImageSaveShareBar] saveToAlbum failed: ' + err.code + ' ' + err.message);
-      ToastUtil.show(uiCtx, '保存失败', 2000);
+      ToastUtil.show(uiCtx, $r('app.string.share_save_failed'), 2000);
     }
     this.isBusy = false;
   }
@@ -147,14 +147,14 @@ export struct ImageSaveShareBar {
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[ImageSaveShareBar] shareViaPanel failed: ' + err.code + ' ' + err.message);
-      ToastUtil.show(uiCtx, '分享失败', 2000);
+      ToastUtil.show(uiCtx, $r('app.string.share_failed'), 2000);
     }
     this.isBusy = false;
   }
 
   build() {
     Row({ space: 10 }) {
-      Button('保存图片')
+      Button($r('app.string.imgbar_save_image'))
         .fontSize(13)
         .fontWeight(FontWeight.Bold)
         .fontColor($r('app.color.on_accent_text'))
@@ -167,7 +167,7 @@ export struct ImageSaveShareBar {
           await this.saveToAlbum();
         })
 
-      Button('分享')
+      Button($r('app.string.share_share'))
         .fontSize(13)
         .fontWeight(FontWeight.Bold)
         .fontColor($r('app.color.on_accent_text'))

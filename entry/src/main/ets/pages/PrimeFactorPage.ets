@@ -1,5 +1,7 @@
 import { pasteboard } from '@kit.BasicServicesKit';
+import { Context } from '@kit.AbilityKit';
 import { ToastUtil } from '../common/utils/ToastUtil';
+import { StrUtil } from '../common/utils/StrUtil';
 
 class PrimeFactorItem {
   value: number = 0;
@@ -26,7 +28,7 @@ export function PrimeFactorPageBuilder() {
   NavDestination() {
     PrimeFactorContent()
   }
-  .title('质因数分解')
+  .title($r('app.string.tool_prime_title'))
   .backButtonIcon($r('sys.symbol.chevron_left'))
   .menus([])
 }
@@ -68,13 +70,14 @@ struct PrimeFactorContent {
   }
 
   private primeFactorization(n: number): FactorizeResult {
+    const ctx: Context = this.getUIContext().getHostContext() as Context;
     let factors: PrimeFactorItem[] = [];
     let steps: string[] = [];
     let temp: number = n;
     let divisor: number = 2;
     let stepNum: number = 1;
 
-    steps.push('开始分解 ' + n.toString());
+    steps.push(StrUtil.text(ctx, $r('app.string.prime_step_start', n)));
 
     let count: number = 0;
     let prev: number = temp;
@@ -87,9 +90,9 @@ struct PrimeFactorContent {
         factors.push(new PrimeFactorItem(divisor, true));
       }
       if (count === 1) {
-        steps.push('步骤' + stepNum.toString() + '：' + prev.toString() + ' ÷ ' + divisor.toString() + ' = ' + temp.toString());
+        steps.push(StrUtil.text(ctx, $r('app.string.prime_step_div', stepNum, prev, divisor, temp)));
       } else {
-        steps.push('步骤' + stepNum.toString() + '：' + prev.toString() + ' ÷ ' + divisor.toString() + '^' + count.toString() + ' = ' + temp.toString());
+        steps.push(StrUtil.text(ctx, $r('app.string.prime_step_power', stepNum, prev, divisor, count, temp)));
       }
       stepNum++;
     }
@@ -107,9 +110,9 @@ struct PrimeFactorContent {
           factors.push(new PrimeFactorItem(divisor, true));
         }
         if (count === 1) {
-          steps.push('步骤' + stepNum.toString() + '：' + prev.toString() + ' ÷ ' + divisor.toString() + ' = ' + temp.toString());
+          steps.push(StrUtil.text(ctx, $r('app.string.prime_step_div', stepNum, prev, divisor, temp)));
         } else {
-          steps.push('步骤' + stepNum.toString() + '：' + prev.toString() + ' ÷ ' + divisor.toString() + '^' + count.toString() + ' = ' + temp.toString());
+          steps.push(StrUtil.text(ctx, $r('app.string.prime_step_power', stepNum, prev, divisor, count, temp)));
         }
         stepNum++;
       }
@@ -118,7 +121,7 @@ struct PrimeFactorContent {
 
     if (temp > 1) {
       factors.push(new PrimeFactorItem(temp, true));
-      steps.push('步骤' + stepNum.toString() + '：剩余 ' + temp.toString() + ' 是质数');
+      steps.push(StrUtil.text(ctx, $r('app.string.prime_step_remainder', stepNum, temp)));
     }
 
     let expression: string = '';
@@ -137,8 +140,9 @@ struct PrimeFactorContent {
     this.displayNumber = n.toString();
 
     if (this.isPrimeNumber(n)) {
+      const ctx: Context = this.getUIContext().getHostContext() as Context;
       this.factors = [new PrimeFactorItem(n, true)];
-      this.steps = [n.toString() + ' 是质数，无需分解'];
+      this.steps = [StrUtil.text(ctx, $r('app.string.prime_is_prime_step', n))];
       this.factorExpression = n.toString();
       this.isPrime = true;
       this.showResult = true;
@@ -192,9 +196,9 @@ struct PrimeFactorContent {
       let systemPasteboard: pasteboard.SystemPasteboard = pasteboard.getSystemPasteboard();
       let pasteData: pasteboard.PasteData = pasteboard.createData(pasteboard.MIMETYPE_TEXT_PLAIN, lines.join('\n'));
       systemPasteboard.setData(pasteData);
-      ToastUtil.show(this.getUIContext(), '已复制结果', 1000);
+      ToastUtil.show(this.getUIContext(), $r('app.string.prime_copy_success'), 1000);
     } catch (e) {
-      ToastUtil.show(this.getUIContext(), '复制失败', 1000);
+      ToastUtil.show(this.getUIContext(), $r('app.string.sudoku_copy_failed'), 1000);
     }
   }
 
@@ -224,7 +228,7 @@ struct PrimeFactorContent {
         .padding({ left: 16, right: 16, top: 4, bottom: 8 })
 
         Column() {
-          TextInput({ text: this.inputNumber, placeholder: '输入正整数' })
+          TextInput({ text: this.inputNumber, placeholder: $r('app.string.prime_input_hint') })
             .type(InputType.Number)
             .inputFilter('^[0-9]*$', () => { return 0; })
             .maxLength(12)
@@ -240,7 +244,7 @@ struct PrimeFactorContent {
               this.tryCalculate();
             })
 
-          Text('支持 2 ~ 999,999,999,999')
+          Text($r('app.string.prime_range_hint'))
             .fontSize(11)
             .fontColor($r('app.color.tertiary_text'))
             .margin({ top: 4 })
@@ -284,7 +288,7 @@ struct PrimeFactorContent {
 
               if (this.isPrime) {
                 Row() {
-                  Text(this.displayNumber + ' 本身就是质数，无需分解')
+                  Text($r('app.string.prime_is_prime_note', this.displayNumber))
                     .fontSize(13)
                     .fontColor($r('app.color.warning_amber'))
                     .fontWeight(FontWeight.Medium)
@@ -304,7 +308,7 @@ struct PrimeFactorContent {
 
             if (this.steps.length > 1) {
               Column() {
-                Text('分解过程')
+                Text($r('app.string.prime_steps_title'))
                   .fontSize(13)
                   .fontWeight(FontWeight.Medium)
                   .fontColor($r('app.color.secondary_text'))
@@ -330,7 +334,7 @@ struct PrimeFactorContent {
               .padding({ left: 16, right: 16, top: 8, bottom: 8 })
             }
 
-            Button('复制结果')
+            Button($r('app.string.gcd_copy_result'))
               .fontSize(13)
               .fontColor($r('app.color.on_accent_text'))
               .backgroundColor($r('app.color.idiom_blue'))
@@ -350,13 +354,13 @@ struct PrimeFactorContent {
         }
 
         Column() {
-          Text('什么是质因数分解？')
+          Text($r('app.string.prime_what_title'))
             .fontSize(15)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.primary_text'))
             .width('100%')
             .margin({ bottom: 8 })
-          Text('把一个合数分解成若干个质数相乘的形式')
+          Text($r('app.string.prime_what_desc'))
             .fontSize(13)
             .fontColor($r('app.color.secondary_text'))
           Text('12 = 2 × 2 × 3')

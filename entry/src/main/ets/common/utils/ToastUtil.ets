@@ -1,7 +1,7 @@
 import { BusinessError } from '@kit.BasicServicesKit';
 
 export class ToastUtil {
-  static show(uiContext: UIContext, message: string, duration: number): void {
+  static show(uiContext: UIContext, message: ResourceStr, duration: number): void {
     try {
       uiContext.getPromptAction().showToast({ message: message, duration: duration });
     } catch (e) {

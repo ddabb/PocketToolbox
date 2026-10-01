@@ -53,8 +53,8 @@ export class CheckInReminderUtil {
         hour: CheckInReminderUtil.REMIND_HOUR,
         minute: CheckInReminderUtil.REMIND_MINUTE,
         daysOfWeek: [1, 2, 3, 4, 5, 6, 7],
-        title: '解语珠玑',
-        content: '今天还没签到打卡，每日挑战等你来战！',
+        title: context.resourceManager.getStringByNameSync('EntryAbility_label'),
+        content: context.resourceManager.getStringByNameSync('reminder_checkin_content'),
         wantAgent: wantAgentInfo
       };
       let reminderId: number = await reminderAgentManager.publishReminder(alarm);

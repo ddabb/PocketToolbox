@@ -28,6 +28,6 @@ export class IdiomQueryResultItem {
   leftClass: string = '';
   rightClass: string = '';
   continueWord: string = '';
-  actionText: string = '';
+  actionKind: string = '';
   canContinue: boolean = false;
 }

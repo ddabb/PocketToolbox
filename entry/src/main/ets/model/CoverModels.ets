@@ -17,7 +17,7 @@ export class CoverSlot {
 
 /** 配色方案 */
 export class CoverPalette {
-  name: string = '';
+  name: ResourceStr = '';
   bg: string = '#FFFFFF';
   bg2: string = '';
   accent: string = '#2E6FD6';
@@ -26,7 +26,7 @@ export class CoverPalette {
   block: string = '#F5F5F5';
   grid: string = '#D8231A';
 
-  static of(name: string, bg: string, accent: string, title: string, sub: string,
+  static of(name: ResourceStr, bg: string, accent: string, title: string, sub: string,
     bg2: string = '', block: string = '', grid: string = ''): CoverPalette {
     let p: CoverPalette = new CoverPalette();
     p.name = name;
@@ -44,18 +44,18 @@ export class CoverPalette {
 /** 模板定义 */
 export class CoverTemplate {
   id: string = '';
-  name: string = '';
+  name: ResourceStr = '';
   series: string = '';
   layout: string = '';
   slots: string[] = [];
-  titleLabel: string = '主标题';
+  titleLabel: ResourceStr = $r('app.string.cover_slot_title');
   palettes: CoverPalette[] = [];
   fonts: string[] = [];
   contentKind: string = '';
   seed: Record<string, string> = {};
 
-  static of(id: string, name: string, series: string, layout: string, slots: string[],
-    titleLabel: string, palettes: CoverPalette[], fonts: string[], contentKind: string,
+  static of(id: string, name: ResourceStr, series: string, layout: string, slots: string[],
+    titleLabel: ResourceStr, palettes: CoverPalette[], fonts: string[], contentKind: string,
     seed: Record<string, string>): CoverTemplate {
     let t: CoverTemplate = new CoverTemplate();
     t.id = id;
