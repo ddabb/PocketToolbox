@@ -1,0 +1,3536 @@
+{
+  "string": [
+    {
+      "name": "EntryFormAbility_label",
+      "value": "今日の一首ウィジェット"
+    },
+    {
+      "name": "EntryFormAbility_desc",
+      "value": "解语珠玑の今日の一首ウィジェット"
+    },
+    {
+      "name": "daily_poem_widget_name",
+      "value": "今日の一首"
+    },
+    {
+      "name": "daily_poem_widget_desc",
+      "value": "一日一首。カードをタップして解语珠玑を開く"
+    },
+    {
+      "name": "module_desc",
+      "value": "解语珠玑のメインモジュール"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "解语珠玑アプリ入口"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "解语珠玑"
+    },
+    {
+      "name": "page_poetry_query",
+      "value": "漢詩検索"
+    },
+    {
+      "name": "page_poetry_detail",
+      "value": "詩人詳細"
+    },
+    {
+      "name": "page_poem_content",
+      "value": "漢詩詳細"
+    },
+    {
+      "name": "page_idiom_query",
+      "value": "成語検索"
+    },
+    {
+      "name": "page_xiehouyu_query",
+      "value": "謎かけ検索"
+    },
+    {
+      "name": "page_favorites",
+      "value": "お気に入り"
+    },
+    {
+      "name": "permission_internet_reason",
+      "value": "漢詩・成語などのコンテンツデータの取得に使用します"
+    },
+    {
+      "name": "permission_vibrate_reason",
+      "value": "チェックインやチャレンジ完了などの重要な操作時のバイブレーションフィードバックに使用します"
+    },
+    {
+      "name": "permission_reminder_reason",
+      "value": "毎日のチェックインリマインダー通知の送信に使用します"
+    },
+    {
+      "name": "permission_keep_background_reason",
+      "value": "読み上げコンテンツのバックグラウンド連続再生に使用します"
+    },
+    {
+      "name": "daily_poem_title",
+      "value": "今日の一首"
+    },
+    {
+      "name": "daily_poem_loading",
+      "value": "今日の一句を読み込み中…"
+    },
+    {
+      "name": "widget_date_format",
+      "value": "%1$s月%2$s日"
+    },
+    {
+      "name": "reminder_checkin_content",
+      "value": "今日はまだチェックインしていません。デイリーチャレンジがあなたを待っています！"
+    },
+    {
+      "name": "reading_session_artist",
+      "value": "解语珠玑 · 読み上げリスト"
+    },
+    {
+      "name": "added_to_list",
+      "value": "「%1$s」に追加しました"
+    },
+    {
+      "name": "already_in_list",
+      "value": "すでに「%1$s」に含まれています"
+    },
+    {
+      "name": "ach_fav_10_title",
+      "value": "お気に入りビギナー"
+    },
+    {
+      "name": "ach_fav_10_desc",
+      "value": "累計10件をお気に入りに登録"
+    },
+    {
+      "name": "ach_fav_50_title",
+      "value": "お気に入り達人"
+    },
+    {
+      "name": "ach_fav_50_desc",
+      "value": "累計50件をお気に入りに登録"
+    },
+    {
+      "name": "ach_fav_100_title",
+      "value": "お気に入りマスター"
+    },
+    {
+      "name": "ach_fav_100_desc",
+      "value": "累計100件をお気に入りに登録"
+    },
+    {
+      "name": "ach_poem_fav_20_title",
+      "value": "漢詩愛好家"
+    },
+    {
+      "name": "ach_poem_fav_20_desc",
+      "value": "漢詩を20首お気に入りに登録"
+    },
+    {
+      "name": "ach_poem_fav_50_title",
+      "value": "漢詩鑑賞家"
+    },
+    {
+      "name": "ach_poem_fav_50_desc",
+      "value": "漢詩を50首お気に入りに登録"
+    },
+    {
+      "name": "ach_idiom_fav_20_title",
+      "value": "成語コレクター"
+    },
+    {
+      "name": "ach_idiom_fav_20_desc",
+      "value": "成語を20個お気に入りに登録"
+    },
+    {
+      "name": "ach_checkin_7_title",
+      "value": "1週間継続"
+    },
+    {
+      "name": "ach_checkin_7_desc",
+      "value": "7日連続でチェックイン"
+    },
+    {
+      "name": "ach_checkin_30_title",
+      "value": "月間優等生"
+    },
+    {
+      "name": "ach_checkin_30_desc",
+      "value": "30日連続でチェックイン"
+    },
+    {
+      "name": "ach_checkin_total_30_title",
+      "value": "学習習慣"
+    },
+    {
+      "name": "ach_checkin_total_30_desc",
+      "value": "累計30日チェックイン"
+    },
+    {
+      "name": "ach_challenge_10_title",
+      "value": "チャレンジルーキー"
+    },
+    {
+      "name": "ach_challenge_10_desc",
+      "value": "デイリーチャレンジを10回クリア"
+    },
+    {
+      "name": "ach_challenge_50_title",
+      "value": "チャレンジ達人"
+    },
+    {
+      "name": "ach_challenge_50_desc",
+      "value": "デイリーチャレンジを50回クリア"
+    },
+    {
+      "name": "ach_browse_100_title",
+      "value": "熱心な読者"
+    },
+    {
+      "name": "ach_browse_100_desc",
+      "value": "累計100回閲覧"
+    },
+    {
+      "name": "ach_browse_500_title",
+      "value": "博覧強記"
+    },
+    {
+      "name": "ach_browse_500_desc",
+      "value": "累計500回閲覧"
+    },
+    {
+      "name": "ach_reading_10_title",
+      "value": "朗読者"
+    },
+    {
+      "name": "ach_reading_10_desc",
+      "value": "10件のコンテンツを読み上げ"
+    },
+    {
+      "name": "ach_tool_5_title",
+      "value": "ツール探検家"
+    },
+    {
+      "name": "ach_tool_5_desc",
+      "value": "5種類のツールを使用"
+    },
+    {
+      "name": "challenge_poem_prompt",
+      "value": "空欄の文字を埋めてください：\n%1$s\n——%2$s『%3$s』"
+    },
+    {
+      "name": "challenge_idiom_prompt",
+      "value": "成語の空欄の文字を埋めてください：\n%1$s"
+    },
+    {
+      "name": "challenge_xiehouyu_prompt",
+      "value": "謎かけの後半を当ててください：\n%1$s——？"
+    },
+    {
+      "name": "widget_footer",
+      "value": "解语珠玑 · 今日の一首"
+    },
+    {
+      "name": "tab_home",
+      "value": "ホーム"
+    },
+    {
+      "name": "tab_tools",
+      "value": "ツール"
+    },
+    {
+      "name": "tab_mine",
+      "value": "マイページ"
+    },
+    {
+      "name": "home_slogan",
+      "value": "古典を読み味わい、文字の美しさを感じる"
+    },
+    {
+      "name": "home_poetry_sub",
+      "value": "唐詩・宋詞を時代別に閲覧"
+    },
+    {
+      "name": "home_idiom_sub",
+      "value": "成語しりとり、順引き・逆引き"
+    },
+    {
+      "name": "xiehouyu_short",
+      "value": "謎かけ"
+    },
+    {
+      "name": "home_xiehouyu_sub",
+      "value": "楽しい謎かけクイズ"
+    },
+    {
+      "name": "recent_tools",
+      "value": "最近使用"
+    },
+    {
+      "name": "a11y_recent_used",
+      "value": "最近使用：%1$s"
+    },
+    {
+      "name": "tools_title",
+      "value": "ツールボックス"
+    },
+    {
+      "name": "tools_slogan",
+      "value": "実用的な計算・変換ツール集"
+    },
+    {
+      "name": "search_tools_hint",
+      "value": "ツールを検索"
+    },
+    {
+      "name": "search_results",
+      "value": "検索結果"
+    },
+    {
+      "name": "no_tools_found",
+      "value": "該当するツールがありません"
+    },
+    {
+      "name": "section_creative",
+      "value": "クリエイティブツール"
+    },
+    {
+      "name": "section_math",
+      "value": "数学計算"
+    },
+    {
+      "name": "section_unit",
+      "value": "単位変換"
+    },
+    {
+      "name": "stat_total_checkin",
+      "value": "累計チェックイン"
+    },
+    {
+      "name": "stat_streak",
+      "value": "連続チェックイン"
+    },
+    {
+      "name": "stat_reading_list",
+      "value": "読み上げリスト"
+    },
+    {
+      "name": "mine_feedback",
+      "value": "フィードバック"
+    },
+    {
+      "name": "mine_about",
+      "value": "アプリについて"
+    },
+    {
+      "name": "mine_today_checkin",
+      "value": "今日のチェックイン"
+    },
+    {
+      "name": "checked_in",
+      "value": "✓ チェックイン済み"
+    },
+    {
+      "name": "not_checked_in",
+      "value": "未チェックイン"
+    },
+    {
+      "name": "days_unit",
+      "value": "%1$d日"
+    },
+    {
+      "name": "mine_today_challenge",
+      "value": "今日のチャレンジ"
+    },
+    {
+      "name": "challenge_done",
+      "value": "完了"
+    },
+    {
+      "name": "challenge_not_done",
+      "value": "未完了"
+    },
+    {
+      "name": "stat_browse",
+      "value": "累計閲覧"
+    },
+    {
+      "name": "times_unit",
+      "value": "%1$d回"
+    },
+    {
+      "name": "stat_challenges",
+      "value": "累計チャレンジ"
+    },
+    {
+      "name": "stat_reading_items",
+      "value": "読み上げコンテンツ"
+    },
+    {
+      "name": "items_unit",
+      "value": "%1$d件"
+    },
+    {
+      "name": "daily_idiom_title",
+      "value": "今日の成語"
+    },
+    {
+      "name": "daily_xiehouyu_title",
+      "value": "今日の謎かけ"
+    },
+    {
+      "name": "today_badge",
+      "value": "今日"
+    },
+    {
+      "name": "a11y_back_to_today",
+      "value": "今日のおすすめに戻る"
+    },
+    {
+      "name": "a11y_shuffle_poem",
+      "value": "別の一首にする"
+    },
+    {
+      "name": "a11y_shuffle_idiom",
+      "value": "別の成語にする"
+    },
+    {
+      "name": "a11y_shuffle_xiehouyu",
+      "value": "別の謎かけにする"
+    },
+    {
+      "name": "xiehouyu_answer_prefix",
+      "value": "—— %1$s"
+    },
+    {
+      "name": "daily_checkin",
+      "value": "デイリーチェックイン"
+    },
+    {
+      "name": "streak_days",
+      "value": "%1$d日連続"
+    },
+    {
+      "name": "checkin_success_toast",
+      "value": "チェックインしました！%1$d日連続です"
+    },
+    {
+      "name": "tap_to_checkin",
+      "value": "タップしてチェックイン"
+    },
+    {
+      "name": "streak_so_far",
+      "value": "%1$d日連続中"
+    },
+    {
+      "name": "start_streak",
+      "value": "連続チェックインを始めましょう"
+    },
+    {
+      "name": "daily_challenge",
+      "value": "デイリーチャレンジ"
+    },
+    {
+      "name": "score_label",
+      "value": "スコア %1$d"
+    },
+    {
+      "name": "go_challenge",
+      "value": "挑戦する"
+    },
+    {
+      "name": "quiz_for_points",
+      "value": "クイズでポイント獲得"
+    },
+    {
+      "name": "review_card_title",
+      "value": "温故知新"
+    },
+    {
+      "name": "feedback_subject",
+      "value": "解语珠玑フィードバック"
+    },
+    {
+      "name": "feedback_no_mail_app",
+      "value": "メールアプリが見つかりませんでした。フィードバック先のメールアドレスをコピーしました"
+    },
+    {
+      "name": "unit_temp_subtitle",
+      "value": "摂氏・華氏・ケルビンなど"
+    },
+    {
+      "name": "a11y_tool_item",
+      "value": "%1$s、%2$s"
+    },
+    {
+      "name": "tool_gcd_lcm_title",
+      "value": "公約数・公倍数"
+    },
+    {
+      "name": "tool_gcd_lcm_sub",
+      "value": "最大公約数・最小公倍数"
+    },
+    {
+      "name": "tool_prime_title",
+      "value": "素因数分解"
+    },
+    {
+      "name": "tool_prime_sub",
+      "value": "合成数を素数の積に分解"
+    },
+    {
+      "name": "tool_base_sub",
+      "value": "2進数/8進数/16進数/Base64"
+    },
+    {
+      "name": "tool_timezone_sub",
+      "value": "世界の都市のタイムゾーン比較と会議時間の調整"
+    },
+    {
+      "name": "tool_wordcloud_title",
+      "value": "ワードクラウド生成"
+    },
+    {
+      "name": "tool_wordcloud_sub",
+      "value": "テキストを貼り付けて30秒で画像生成"
+    },
+    {
+      "name": "tool_md2png_title",
+      "value": "テキスト画像化"
+    },
+    {
+      "name": "tool_md2png_sub",
+      "value": "Markdownテキストから画像を生成"
+    },
+    {
+      "name": "tool_cover_title",
+      "value": "カバー画像作成"
+    },
+    {
+      "name": "tool_cover_sub",
+      "value": "カバー画像を30秒で生成"
+    },
+    {
+      "name": "tool_charcard_title",
+      "value": "漢字カード"
+    },
+    {
+      "name": "tool_charcard_sub",
+      "value": "田字マスの漢字カード、ワンタップでピンイン付与"
+    },
+    {
+      "name": "tool_gif_title",
+      "value": "GIF メーカー"
+    },
+    {
+      "name": "tool_gif_sub",
+      "value": "画像・動画の合成とGIF編集"
+    },
+    {
+      "name": "tool_sudoku_title",
+      "value": "数独ソルバー"
+    },
+    {
+      "name": "tool_sudoku_sub",
+      "value": "カメラで読み取り、DLXアルゴリズムで瞬時に解答"
+    },
+    {
+      "name": "wc_shape_circle",
+      "value": "円形"
+    },
+    {
+      "name": "wc_shape_cardioid",
+      "value": "ハート"
+    },
+    {
+      "name": "wc_shape_star5",
+      "value": "星型"
+    },
+    {
+      "name": "wc_shape_diamond",
+      "value": "ひし形"
+    },
+    {
+      "name": "wc_shape_triangle",
+      "value": "逆三角形"
+    },
+    {
+      "name": "wc_shape_triangle_up",
+      "value": "正三角形"
+    },
+    {
+      "name": "wc_shape_triangle_left",
+      "value": "左向き三角形"
+    },
+    {
+      "name": "wc_shape_triangle_right",
+      "value": "右向き三角形"
+    },
+    {
+      "name": "wc_shape_square",
+      "value": "四角形"
+    },
+    {
+      "name": "wc_shape_pentagon",
+      "value": "五角形"
+    },
+    {
+      "name": "wc_shape_hexagon",
+      "value": "六角形"
+    },
+    {
+      "name": "wc_shape_cross",
+      "value": "十字"
+    },
+    {
+      "name": "wc_shape_cloud",
+      "value": "雲"
+    },
+    {
+      "name": "wc_shape_oval",
+      "value": "楕円"
+    },
+    {
+      "name": "wc_shape_leaf",
+      "value": "葉"
+    },
+    {
+      "name": "wc_shape_star8",
+      "value": "八角星"
+    },
+    {
+      "name": "wc_shape_flower",
+      "value": "花"
+    },
+    {
+      "name": "wc_shape_octagon",
+      "value": "八角形"
+    },
+    {
+      "name": "theme_default",
+      "value": "クリーンブルー"
+    },
+    {
+      "name": "theme_wechat",
+      "value": "フレッシュグリーン"
+    },
+    {
+      "name": "theme_xiaohongshu",
+      "value": "チェリーレッド"
+    },
+    {
+      "name": "theme_douyin",
+      "value": "ミッドナイトレッド"
+    },
+    {
+      "name": "theme_ink",
+      "value": "水墨風"
+    },
+    {
+      "name": "theme_cyberpunk",
+      "value": "サイバーパンク"
+    },
+    {
+      "name": "theme_minimalist",
+      "value": "ミニマルホワイト"
+    },
+    {
+      "name": "theme_neon",
+      "value": "ネオン"
+    },
+    {
+      "name": "theme_nature",
+      "value": "ナチュラルグリーン"
+    },
+    {
+      "name": "theme_nordic",
+      "value": "北欧風"
+    },
+    {
+      "name": "tmpl_palette_title",
+      "value": "カラーパレット"
+    },
+    {
+      "name": "cover_slot_title",
+      "value": "メインタイトル"
+    },
+    {
+      "name": "wc_config_hint",
+      "value": "配色：%1 | シェイプ：%2 | フォント：%3"
+    },
+    {
+      "name": "cover_restored",
+      "value": "復元しました：%1"
+    },
+    {
+      "name": "cover_slot_subtitle",
+      "value": "サブタイトル"
+    },
+    {
+      "name": "cover_slot_author",
+      "value": "署名 / アカウント名"
+    },
+    {
+      "name": "cover_slot_issue",
+      "value": "号 / 日付"
+    },
+    {
+      "name": "cover_slot_quote",
+      "value": "引用文"
+    },
+    {
+      "name": "cover_slot_quote_source",
+      "value": "出典"
+    },
+    {
+      "name": "cover_slot_pinyin",
+      "value": "ピンイン（自動生成、音節をタップして読みを選択）"
+    },
+    {
+      "name": "cover_slot_seal",
+      "value": "印章（2〜4文字）"
+    },
+    {
+      "name": "readlist_input_name",
+      "value": "リスト名を入力"
+    },
+    {
+      "name": "readlist_created",
+      "value": "リストを作成しました"
+    },
+    {
+      "name": "readlist_renamed",
+      "value": "名前を変更しました"
+    },
+    {
+      "name": "readlist_confirm_delete",
+      "value": "削除の確認"
+    },
+    {
+      "name": "readlist_delete_msg",
+      "value": "リスト「%1$s」を削除しますか？"
+    },
+    {
+      "name": "readlist_cancel",
+      "value": "キャンセル"
+    },
+    {
+      "name": "readlist_delete",
+      "value": "削除"
+    },
+    {
+      "name": "readlist_deleted",
+      "value": "削除しました"
+    },
+    {
+      "name": "readlist_no_items",
+      "value": "項目はまだありません"
+    },
+    {
+      "name": "readlist_item_poem",
+      "value": "漢詩%1$d"
+    },
+    {
+      "name": "readlist_item_idiom",
+      "value": "成語%1$d"
+    },
+    {
+      "name": "readlist_item_xiehouyu",
+      "value": "謎かけ%1$d"
+    },
+    {
+      "name": "readlist_count_summary",
+      "value": "全%1$d件：%2$s"
+    },
+    {
+      "name": "readlist_count_sep",
+      "value": "、"
+    },
+    {
+      "name": "readlist_updated_at",
+      "value": "%1$s に更新"
+    },
+    {
+      "name": "readlist_empty_title",
+      "value": "読み上げリストはまだありません"
+    },
+    {
+      "name": "readlist_empty_hint",
+      "value": "下のボタンをタップして最初のリストを作成してください"
+    },
+    {
+      "name": "readlist_new_list",
+      "value": "+ 新規リスト"
+    },
+    {
+      "name": "readlist_create_title",
+      "value": "読み上げリストの新規作成"
+    },
+    {
+      "name": "readlist_name_hint",
+      "value": "リスト名を入力（例：毎日の漢詩）"
+    },
+    {
+      "name": "readlist_create",
+      "value": "作成"
+    },
+    {
+      "name": "readlist_rename_title",
+      "value": "リスト名の変更"
+    },
+    {
+      "name": "readlist_rename_hint",
+      "value": "新しいリスト名を入力"
+    },
+    {
+      "name": "readlist_save",
+      "value": "保存"
+    },
+    {
+      "name": "player_title",
+      "value": "読み上げプレイヤー"
+    },
+    {
+      "name": "player_tts_unsupported",
+      "value": "このデバイスでは読み上げに対応していません"
+    },
+    {
+      "name": "player_tts_failed",
+      "value": "読み上げに失敗しました（%1$d）。後でもう一度お試しください"
+    },
+    {
+      "name": "player_status_playing",
+      "value": "読み上げ中 %1$d/%2$d"
+    },
+    {
+      "name": "player_status_playing_short",
+      "value": "読み上げ中"
+    },
+    {
+      "name": "player_paused",
+      "value": "一時停止中"
+    },
+    {
+      "name": "player_tap_to_read",
+      "value": "タップして読み上げ"
+    },
+    {
+      "name": "player_all_done",
+      "value": "すべて読み上げました"
+    },
+    {
+      "name": "player_removed",
+      "value": "削除しました"
+    },
+    {
+      "name": "player_type_poem",
+      "value": "漢詩"
+    },
+    {
+      "name": "player_type_idiom",
+      "value": "成語"
+    },
+    {
+      "name": "player_type_text",
+      "value": "テキスト"
+    },
+    {
+      "name": "player_empty_list",
+      "value": "このリストは空です"
+    },
+    {
+      "name": "player_empty_hint",
+      "value": "漢詩・成語・謎かけの詳細ページから項目を追加してください"
+    },
+    {
+      "name": "player_list_missing",
+      "value": "リストが存在しないか、削除されています"
+    },
+    {
+      "name": "player_speed",
+      "value": "読み上げ速度 %1$s"
+    },
+    {
+      "name": "player_speed_title",
+      "value": "読み上げ速度"
+    },
+    {
+      "name": "player_confirm",
+      "value": "OK"
+    },
+    {
+      "name": "player_move_up",
+      "value": "上へ移動"
+    },
+    {
+      "name": "player_move_down",
+      "value": "下へ移動"
+    },
+    {
+      "name": "player_remove",
+      "value": "削除"
+    },
+    {
+      "name": "poemdetail_search_hint",
+      "value": "作品名を検索..."
+    },
+    {
+      "name": "poemdetail_works",
+      "value": "作品"
+    },
+    {
+      "name": "poemdetail_no_result",
+      "value": "該当する漢詩がありません"
+    },
+    {
+      "name": "poemct_title",
+      "value": "漢詩鑑賞"
+    },
+    {
+      "name": "poemct_copied",
+      "value": "クリップボードにコピーしました"
+    },
+    {
+      "name": "poemct_poet_not_found",
+      "value": "詩人情報が見つかりません"
+    },
+    {
+      "name": "poemct_unfavorited",
+      "value": "お気に入りから削除しました"
+    },
+    {
+      "name": "poemct_fav_full",
+      "value": "お気に入りが上限に達したため、最も古い項目を削除しました"
+    },
+    {
+      "name": "poemct_favorited",
+      "value": "お気に入りに追加しました"
+    },
+    {
+      "name": "poemct_charbook_added",
+      "value": "漢字ノートに%1$d文字を追加しました"
+    },
+    {
+      "name": "poemct_charbook_dup",
+      "value": "選択した文字はすでに漢字ノートに登録されています"
+    },
+    {
+      "name": "poemct_in_reading_list",
+      "value": "すでに読み上げリストに追加されています"
+    },
+    {
+      "name": "poemct_add_to_reading",
+      "value": "読み上げリストに追加"
+    },
+    {
+      "name": "poemct_a11y_unfav",
+      "value": "お気に入り解除"
+    },
+    {
+      "name": "poemct_a11y_fav",
+      "value": "お気に入り"
+    },
+    {
+      "name": "poemct_copy",
+      "value": "コピー"
+    },
+    {
+      "name": "poemct_share_image",
+      "value": "画像を共有"
+    },
+    {
+      "name": "poemct_trace",
+      "value": "なぞり書き"
+    },
+    {
+      "name": "poemct_pick_chars_hint",
+      "value": "文字を選んで漢字ノートに追加"
+    },
+    {
+      "name": "poemct_no_lists",
+      "value": "読み上げリストはまだありません。まず作成してください"
+    },
+    {
+      "name": "poemct_items_count",
+      "value": "%1$d件"
+    },
+    {
+      "name": "poemct_pick_chars_title",
+      "value": "文字の選択"
+    },
+    {
+      "name": "poemct_pick_chars_desc",
+      "value": "詩文の文字をタップして漢字ノートに追加できます。緑の枠は登録済みです。漢字カードでワンタップでインポートできます。"
+    },
+    {
+      "name": "poemct_add_to_book",
+      "value": "漢字ノートに追加（%1$d）"
+    },
+    {
+      "name": "favsp_delete_msg",
+      "value": "「%1$s」をお気に入りから削除しますか？"
+    },
+    {
+      "name": "favsp_tab_all",
+      "value": "すべて"
+    },
+    {
+      "name": "favsp_tab_poem",
+      "value": "漢詩"
+    },
+    {
+      "name": "favsp_tab_idiom",
+      "value": "成語"
+    },
+    {
+      "name": "favsp_empty_all",
+      "value": "お気に入りはまだありません"
+    },
+    {
+      "name": "favsp_empty_poem",
+      "value": "お気に入りの漢詩はまだありません"
+    },
+    {
+      "name": "favsp_empty_idiom",
+      "value": "お気に入りの成語はまだありません"
+    },
+    {
+      "name": "favsp_empty_xiehouyu",
+      "value": "お気に入りの謎かけはまだありません"
+    },
+    {
+      "name": "detail_explanation",
+      "value": "意味"
+    },
+    {
+      "name": "detail_example",
+      "value": "用例"
+    },
+    {
+      "name": "detail_copy_all",
+      "value": "すべてコピー"
+    },
+    {
+      "name": "favd_riddle",
+      "value": "問い"
+    },
+    {
+      "name": "favd_answer",
+      "value": "答え"
+    },
+    {
+      "name": "share_snapshot_failed",
+      "value": "スクリーンショットに失敗しました"
+    },
+    {
+      "name": "share_generated",
+      "value": "画像を生成しました"
+    },
+    {
+      "name": "share_generate_failed",
+      "value": "生成に失敗しました"
+    },
+    {
+      "name": "share_generate_failed_no_share",
+      "value": "画像の生成に失敗したため、共有できません"
+    },
+    {
+      "name": "share_failed",
+      "value": "共有に失敗しました"
+    },
+    {
+      "name": "share_generate_first",
+      "value": "先に画像を生成してください"
+    },
+    {
+      "name": "share_saved_to_album",
+      "value": "ギャラリーに保存しました"
+    },
+    {
+      "name": "share_save_failed",
+      "value": "保存に失敗しました"
+    },
+    {
+      "name": "share_generating",
+      "value": "生成中..."
+    },
+    {
+      "name": "share_generate",
+      "value": "画像を生成"
+    },
+    {
+      "name": "share_share",
+      "value": "共有"
+    },
+    {
+      "name": "imgbar_save_image",
+      "value": "画像を保存"
+    },
+    {
+      "name": "err_load_failed",
+      "value": "読み込みに失敗しました"
+    },
+    {
+      "name": "err_retry",
+      "value": "再試行"
+    },
+    {
+      "name": "poemq_no_results",
+      "value": "関連する結果がありません"
+    },
+    {
+      "name": "poemq_ocr_no_text",
+      "value": "テキストを認識できませんでした"
+    },
+    {
+      "name": "poemq_ocr_failed",
+      "value": "認識に失敗しました。再試行してください"
+    },
+    {
+      "name": "poemq_no_poem_detail",
+      "value": "漢詩の詳細が見つかりません"
+    },
+    {
+      "name": "poemq_no_poet_info",
+      "value": "詩人の情報が見つかりません"
+    },
+    {
+      "name": "poemq_search_poet_hint",
+      "value": "詩人の名前を検索して詳細をご覧ください"
+    },
+    {
+      "name": "poemq_ocr_result_title",
+      "value": "読み取り結果 · 行をタップして検索"
+    },
+    {
+      "name": "poemq_search_hint",
+      "value": "詩人/漢詩を検索..."
+    },
+    {
+      "name": "poemq_search",
+      "value": "検索"
+    },
+    {
+      "name": "poemq_loading",
+      "value": "読み込み中..."
+    },
+    {
+      "name": "poemq_load_failed",
+      "value": "データの読み込みに失敗しました"
+    },
+    {
+      "name": "poemq_load_failed_sub",
+      "value": "データの読み取りでエラーが発生しました。再試行してください"
+    },
+    {
+      "name": "poemq_type_poet",
+      "value": "詩人"
+    },
+    {
+      "name": "poemq_type_poem",
+      "value": "漢詩"
+    },
+    {
+      "name": "poemq_poet_count",
+      "value": "%1$s · %2$d首"
+    },
+    {
+      "name": "poemq_load_more",
+      "value": "さらに読み込む"
+    },
+    {
+      "name": "idiomq_not_in_lib",
+      "value": "この成語は辞書にありません"
+    },
+    {
+      "name": "idiomq_tip_forward",
+      "value": "順引き結果は全%1$d件です"
+    },
+    {
+      "name": "idiomq_tip_reverse",
+      "value": "逆引き結果は全%1$d件です"
+    },
+    {
+      "name": "idiomq_fuzzy_tip",
+      "value": "あいまい検索で%1$d件の成語が見つかりました"
+    },
+    {
+      "name": "idiomq_no_detail",
+      "value": "詳細はまだありません"
+    },
+    {
+      "name": "idiomq_copied",
+      "value": "クリップボードにコピーしました"
+    },
+    {
+      "name": "idiomq_reverse_loading",
+      "value": "逆引きデータを読み込み中です。少々お待ちください..."
+    },
+    {
+      "name": "idiomq_tab_pinyin",
+      "value": "ピンイン検索"
+    },
+    {
+      "name": "idiomq_tab_solitaire",
+      "value": "しりとり検索"
+    },
+    {
+      "name": "idiomq_tab_browse",
+      "value": "頭文字から見る"
+    },
+    {
+      "name": "idiomq_hint_forward",
+      "value": "成語を入力して順引きしりとり..."
+    },
+    {
+      "name": "idiomq_hint_reverse",
+      "value": "成語を入力して逆引きしりとり..."
+    },
+    {
+      "name": "idiomq_mode_forward",
+      "value": "順引き"
+    },
+    {
+      "name": "idiomq_mode_reverse",
+      "value": "逆引き"
+    },
+    {
+      "name": "idiomq_query",
+      "value": "検索"
+    },
+    {
+      "name": "idiomq_copy_results",
+      "value": "結果をコピー"
+    },
+    {
+      "name": "idiomq_empty_solitaire",
+      "value": "成語を入力してしりとり検索を始めましょう"
+    },
+    {
+      "name": "idiomq_letter_header",
+      "value": "%1$s で始まる成語"
+    },
+    {
+      "name": "idiomq_letter_empty",
+      "value": "この頭文字で始まる成語はまだありません"
+    },
+    {
+      "name": "idiomq_letter_pick",
+      "value": "頭文字を選んで成語を見る"
+    },
+    {
+      "name": "idiomq_pinyin_hint",
+      "value": "ピンインまたは漢字で検索（例: bai / 百）"
+    },
+    {
+      "name": "idiomq_total_count",
+      "value": "(全%1$d件)"
+    },
+    {
+      "name": "idiomq_load_more_remaining",
+      "value": "さらに読み込む (残り%1$d件)"
+    },
+    {
+      "name": "idiomq_no_match",
+      "value": "一致する成語が見つかりません"
+    },
+    {
+      "name": "idiomq_pinyin_empty",
+      "value": "ピンインまたは漢字を入力して成語を検索"
+    },
+    {
+      "name": "idiomq_pinyin_example",
+      "value": "例: bai または 百 → 百发百中、百步穿杨"
+    },
+    {
+      "name": "xhyq_guess_correct_streak",
+      "value": "正解！連続%1$d問正解です"
+    },
+    {
+      "name": "xhyq_guess_correct",
+      "value": "正解！"
+    },
+    {
+      "name": "xhyq_guess_wrong",
+      "value": "不正解。答えは「%1$s」です"
+    },
+    {
+      "name": "xhyq_unfaved",
+      "value": "お気に入りから削除しました"
+    },
+    {
+      "name": "xhyq_fav_full",
+      "value": "お気に入りの上限に達したため、最も古い項目を削除しました"
+    },
+    {
+      "name": "xhyq_faved",
+      "value": "お気に入りに追加しました"
+    },
+    {
+      "name": "xhyq_load_failed_sub",
+      "value": "謎かけデータの読み取りでエラーが発生しました。再試行してください"
+    },
+    {
+      "name": "xhyq_tab_search",
+      "value": "検索"
+    },
+    {
+      "name": "xhyq_tab_browse",
+      "value": "カテゴリから見る"
+    },
+    {
+      "name": "xhyq_tab_guess",
+      "value": "謎かけクイズ"
+    },
+    {
+      "name": "xhyq_search_hint",
+      "value": "謎かけを検索..."
+    },
+    {
+      "name": "xhyq_no_match",
+      "value": "一致する謎かけが見つかりません"
+    },
+    {
+      "name": "xhyq_search_empty",
+      "value": "キーワードを入力して謎かけを検索"
+    },
+    {
+      "name": "xhyq_search_hint_sub",
+      "value": "問いまたは答えで検索"
+    },
+    {
+      "name": "xhyq_related",
+      "value": "関連する謎かけ"
+    },
+    {
+      "name": "xhyq_loaded_count",
+      "value": "%1$d件読み込み済み"
+    },
+    {
+      "name": "xhyq_load_more",
+      "value": "さらに読み込む..."
+    },
+    {
+      "name": "xhyq_all_loaded",
+      "value": "すべて読み込み済み"
+    },
+    {
+      "name": "xhyq_category_empty",
+      "value": "このカテゴリには謎かけがまだありません"
+    },
+    {
+      "name": "xhyq_pick_category",
+      "value": "カテゴリを選んで謎かけを見る"
+    },
+    {
+      "name": "xhyq_guess_score",
+      "value": "スコア：%1$d/%2$d"
+    },
+    {
+      "name": "xhyq_skip",
+      "value": "スキップ"
+    },
+    {
+      "name": "xhyq_guess_riddle_label",
+      "value": "問いを当てる"
+    },
+    {
+      "name": "xhyq_guess_input_hint",
+      "value": "答えを入力..."
+    },
+    {
+      "name": "xhyq_submit",
+      "value": "回答を送信"
+    },
+    {
+      "name": "xhyq_hide_answer",
+      "value": "答えを隠す"
+    },
+    {
+      "name": "xhyq_show_answer",
+      "value": "答えを見る"
+    },
+    {
+      "name": "xhyq_next",
+      "value": "次の問題"
+    },
+    {
+      "name": "xhyq_answer_label",
+      "value": "答え：%1$s"
+    },
+    {
+      "name": "xhyq_input_list_name",
+      "value": "リスト名を入力してください"
+    },
+    {
+      "name": "xhyq_in_reading_list",
+      "value": "すでに読み上げリストに追加されています"
+    },
+    {
+      "name": "xhyq_add_to_reading_list",
+      "value": "読み上げリストに追加"
+    },
+    {
+      "name": "xhyq_riddle_label",
+      "value": "問い"
+    },
+    {
+      "name": "xhyq_answer_label_short",
+      "value": "答え"
+    },
+    {
+      "name": "xhyq_copy",
+      "value": "コピー"
+    },
+    {
+      "name": "xhyq_share_image",
+      "value": "画像を共有"
+    },
+    {
+      "name": "xhyq_create_list_title",
+      "value": "読み上げリストを新規作成"
+    },
+    {
+      "name": "xhyq_item_count",
+      "value": "%1$d件"
+    },
+    {
+      "name": "xhyq_no_reading_list",
+      "value": "読み上げリストがまだありません。先に作成してください"
+    },
+    {
+      "name": "xhyq_new_list",
+      "value": "+ 新規リスト"
+    },
+    {
+      "name": "xhyq_list_name_hint",
+      "value": "リスト名を入力（例：毎日の漢詩）"
+    },
+    {
+      "name": "xhyq_cancel",
+      "value": "キャンセル"
+    },
+    {
+      "name": "xhyq_create",
+      "value": "作成"
+    },
+    {
+      "name": "challenge_type_poem",
+      "value": "漢詩の穴埋め"
+    },
+    {
+      "name": "challenge_type_idiom",
+      "value": "成語の穴埋め"
+    },
+    {
+      "name": "challenge_type_xiehouyu",
+      "value": "謎かけクイズ"
+    },
+    {
+      "name": "challenge_type_default",
+      "value": "チャレンジ"
+    },
+    {
+      "name": "challenge_generating",
+      "value": "問題を生成中..."
+    },
+    {
+      "name": "challenge_progress",
+      "value": "第%1$d問 / 全%2$d問"
+    },
+    {
+      "name": "challenge_score",
+      "value": "スコア：%1$d"
+    },
+    {
+      "name": "challenge_correct",
+      "value": "正解！+20点"
+    },
+    {
+      "name": "challenge_correct_answer",
+      "value": "正解：%1$s"
+    },
+    {
+      "name": "challenge_view_result",
+      "value": "結果を見る"
+    },
+    {
+      "name": "challenge_complete",
+      "value": "今日のチャレンジ完了！"
+    },
+    {
+      "name": "challenge_final_score",
+      "value": "スコア：%1$d / 100"
+    },
+    {
+      "name": "challenge_grade_excellent",
+      "value": "優秀"
+    },
+    {
+      "name": "challenge_grade_good",
+      "value": "良"
+    },
+    {
+      "name": "challenge_grade_keep",
+      "value": "がんばろう"
+    },
+    {
+      "name": "challenge_grade_try",
+      "value": "また挑戦しよう"
+    },
+    {
+      "name": "challenge_today_grade",
+      "value": "今日の評価"
+    },
+    {
+      "name": "challenge_come_back",
+      "value": "📅 デイリーチャレンジは毎日更新されます。また明日！"
+    },
+    {
+      "name": "achpage_title",
+      "value": "マイ実績"
+    },
+    {
+      "name": "achpage_unlocked",
+      "value": "解除済みの実績"
+    },
+    {
+      "name": "achpage_list",
+      "value": "実績一覧"
+    },
+    {
+      "name": "about_clear_gif_title",
+      "value": "GIF メーカーの履歴をクリア"
+    },
+    {
+      "name": "about_clear_gif_msg",
+      "value": "GIF メーカーの履歴 %1$d 件すべて（約 %2$s）を削除します。ギャラリーに保存済みのコピーには影響しません。クリアしますか？"
+    },
+    {
+      "name": "about_clear",
+      "value": "クリア"
+    },
+    {
+      "name": "about_reminder_title",
+      "value": "毎日のチェックインリマインダー"
+    },
+    {
+      "name": "about_reminder_desc",
+      "value": "オンにすると、毎日 20:00 にチェックインとデイリーチャレンジを通知します"
+    },
+    {
+      "name": "about_gif_history",
+      "value": "GIF メーカーの履歴"
+    },
+    {
+      "name": "about_gif_history_count",
+      "value": "%1$d 件 · %2$s"
+    },
+    {
+      "name": "about_app_desc",
+      "value": "漢詩検索、成語しりとり、謎かけクイズをはじめ、GIF メーカー、数独（ナンプレ）、単位変換などの便利ツールを搭載。言葉の美しさを味わい、毎日を効率よく過ごせます。"
+    },
+    {
+      "name": "about_copyright",
+      "value": "© 2026 解语珠玑"
+    },
+    {
+      "name": "unitcat_title",
+      "value": "単位変換"
+    },
+    {
+      "name": "unitcat_base_sub",
+      "value": "2進数、8進数、16進数、Base64"
+    },
+    {
+      "name": "unitcat_units_more",
+      "value": "ほか%1$d単位"
+    },
+    {
+      "name": "wc_edit_section_title",
+      "value": "単語編集"
+    },
+    {
+      "name": "wc_restore_source",
+      "value": "元のテキストに戻す"
+    },
+    {
+      "name": "wc_input_hint",
+      "value": "1行に1語、コロンで重みを指定（例: 创新:5）"
+    },
+    {
+      "name": "wc_btn_example",
+      "value": "サンプル"
+    },
+    {
+      "name": "wc_btn_clear",
+      "value": "クリア"
+    },
+    {
+      "name": "wc_extracting",
+      "value": "形態素解析中..."
+    },
+    {
+      "name": "wc_extract_from_text",
+      "value": "テキストから抽出"
+    },
+    {
+      "name": "wc_word_count",
+      "value": "計%1$d語"
+    },
+    {
+      "name": "wc_settings_title",
+      "value": "スタイル設定"
+    },
+    {
+      "name": "wc_btn_done",
+      "value": "完了"
+    },
+    {
+      "name": "wc_section_shape",
+      "value": "シェイプ"
+    },
+    {
+      "name": "wc_section_font",
+      "value": "フォント"
+    },
+    {
+      "name": "wc_label_palette",
+      "value": "配色"
+    },
+    {
+      "name": "wc_force_repeat",
+      "value": "語数が少ない場合は繰り返して埋める"
+    },
+    {
+      "name": "wc_generating",
+      "value": "生成中..."
+    },
+    {
+      "name": "wc_generate",
+      "value": "ワードクラウドを生成"
+    },
+    {
+      "name": "wc_words_dialog_title",
+      "value": "使用する単語（%1$d）"
+    },
+    {
+      "name": "wc_input_word_hint",
+      "value": "単語を入力"
+    },
+    {
+      "name": "wc_weight_hint",
+      "value": "重み"
+    },
+    {
+      "name": "wc_btn_add",
+      "value": "追加"
+    },
+    {
+      "name": "wc_tap_word_to_remove",
+      "value": "単語をタップすると削除できます"
+    },
+    {
+      "name": "wc_empty_hint",
+      "value": "単語を入力してから生成をタップしてください"
+    },
+    {
+      "name": "wc_toast_input_first",
+      "value": "先に上の編集エリアへテキストを入力または貼り付けしてください"
+    },
+    {
+      "name": "wc_toast_no_words",
+      "value": "有効な単語が見つかりませんでした"
+    },
+    {
+      "name": "wc_toast_extract_failed",
+      "value": "形態素解析に失敗しました"
+    },
+    {
+      "name": "wc_toast_add_words_first",
+      "value": "先に単語を抽出または追加してください"
+    },
+    {
+      "name": "wc_phase_layout",
+      "value": "レイアウト中..."
+    },
+    {
+      "name": "wc_phase_coloring",
+      "value": "着色中..."
+    },
+    {
+      "name": "wc_phase_done",
+      "value": "%1$d語を配置しました"
+    },
+    {
+      "name": "wc_toast_generate_failed",
+      "value": "生成に失敗しました"
+    },
+    {
+      "name": "gif_btn_cancel",
+      "value": "キャンセル"
+    },
+    {
+      "name": "gif_btn_delete",
+      "value": "削除"
+    },
+    {
+      "name": "gif_btn_clear",
+      "value": "クリア"
+    },
+    {
+      "name": "gif_coming_soon",
+      "value": "近日公開"
+    },
+    {
+      "name": "gif_privacy_note",
+      "value": "処理はすべて端末内で行われ、画像がアップロードされることはありません。エクスポートに透かしは付きません"
+    },
+    {
+      "name": "gif_mode_images_title",
+      "value": "画像からGIFを作成"
+    },
+    {
+      "name": "gif_mode_images_sub",
+      "value": "2〜30枚の画像を選んでアニメーションGIFを作成できます"
+    },
+    {
+      "name": "gif_mode_video_title",
+      "value": "動画からGIFを作成"
+    },
+    {
+      "name": "gif_mode_video_sub",
+      "value": "動画のシーンを切り取ってGIFにできます"
+    },
+    {
+      "name": "gif_mode_edit_title",
+      "value": "GIFを編集"
+    },
+    {
+      "name": "gif_mode_edit_sub",
+      "value": "既存のGIFを分解して、再編集・加工できます"
+    },
+    {
+      "name": "gif_mode_history_title",
+      "value": "作成履歴"
+    },
+    {
+      "name": "gif_mode_history_sub",
+      "value": "最近の成果物 %1$d件 · 使用容量 %2$s"
+    },
+    {
+      "name": "gif_empty_no_images",
+      "value": "画像が選択されていません"
+    },
+    {
+      "name": "gif_btn_pick_images",
+      "value": "画像を選択"
+    },
+    {
+      "name": "gif_section_clip",
+      "value": "動画クリップ"
+    },
+    {
+      "name": "gif_clip_info",
+      "value": "動画の長さ %1$s秒 · 選択中 %2$s秒"
+    },
+    {
+      "name": "gif_clip_start",
+      "value": "開始位置 %1$s秒"
+    },
+    {
+      "name": "gif_clip_span",
+      "value": "切り取り時間 %1$s秒（最長15秒）"
+    },
+    {
+      "name": "gif_label_fps",
+      "value": "フレームレート"
+    },
+    {
+      "name": "gif_fps_n",
+      "value": "%1$dfps"
+    },
+    {
+      "name": "gif_extract_estimate",
+      "value": "約%1$dフレームを抽出予定（上限%2$dフレーム）"
+    },
+    {
+      "name": "gif_btn_start_extract",
+      "value": "フレーム抽出を開始"
+    },
+    {
+      "name": "gif_btn_rechoose_video",
+      "value": "動画を選び直す"
+    },
+    {
+      "name": "gif_preview",
+      "value": "プレビュー"
+    },
+    {
+      "name": "gif_section_frames",
+      "value": "フレーム管理（サムネイルをタップして調整）"
+    },
+    {
+      "name": "gif_section_overlay",
+      "value": "スタンプとテキスト"
+    },
+    {
+      "name": "gif_section_params",
+      "value": "パラメータ"
+    },
+    {
+      "name": "gif_section_result",
+      "value": "生成結果"
+    },
+    {
+      "name": "gif_preview_info",
+      "value": "実際のフレーム間隔 %1$s秒 · 出力 %2$s×%3$s"
+    },
+    {
+      "name": "gif_overlay_count",
+      "value": "スタンプ数 %1$d"
+    },
+    {
+      "name": "gif_op_move_left",
+      "value": "左へ移動"
+    },
+    {
+      "name": "gif_op_move_right",
+      "value": "右へ移動"
+    },
+    {
+      "name": "gif_op_reverse",
+      "value": "逆順"
+    },
+    {
+      "name": "gif_op_rotate",
+      "value": "回転"
+    },
+    {
+      "name": "gif_frame_strip_hint",
+      "value": "選択済み %1$d/%2$d · 長押しでドラッグして並べ替え"
+    },
+    {
+      "name": "gif_frame_n",
+      "value": "%1$dフレーム目"
+    },
+    {
+      "name": "gif_perframe_duration_hint",
+      "value": "このフレームの表示時間（秒）。空欄の場合は全体設定に従います"
+    },
+    {
+      "name": "gif_op_reset_duration",
+      "value": "全体設定に戻す"
+    },
+    {
+      "name": "gif_overlay_text_hint",
+      "value": "テキストを入力"
+    },
+    {
+      "name": "gif_btn_add_text",
+      "value": "テキストを追加"
+    },
+    {
+      "name": "gif_sticker_cat_emoji",
+      "value": "絵文字"
+    },
+    {
+      "name": "gif_sticker_cat_deco",
+      "value": "デコレーション"
+    },
+    {
+      "name": "gif_sticker_cat_bubble",
+      "value": "フキダシ"
+    },
+    {
+      "name": "gif_overlay_hint_active",
+      "value": "ドラッグで位置を調整、ピンチで拡大・回転。オーバーレイは全フレームに適用されます"
+    },
+    {
+      "name": "gif_overlay_hint_empty",
+      "value": "追加したテキストとスタンプはすべてのフレームに重ねて表示されます"
+    },
+    {
+      "name": "gif_label_content",
+      "value": "テキスト"
+    },
+    {
+      "name": "gif_label_text_color",
+      "value": "文字色"
+    },
+    {
+      "name": "gif_color_sample",
+      "value": "あ"
+    },
+    {
+      "name": "gif_btn_custom",
+      "value": "カスタム"
+    },
+    {
+      "name": "gif_label_size",
+      "value": "サイズ（%1$d）"
+    },
+    {
+      "name": "gif_label_rotation",
+      "value": "回転"
+    },
+    {
+      "name": "gif_btn_delete_overlay",
+      "value": "このオーバーレイを削除"
+    },
+    {
+      "name": "gif_label_frame_duration",
+      "value": "フレームの表示時間（秒）"
+    },
+    {
+      "name": "gif_label_speed",
+      "value": "再生速度（フレームの表示時間に掛け合わせて適用）"
+    },
+    {
+      "name": "gif_label_play_mode",
+      "value": "再生モード"
+    },
+    {
+      "name": "gif_play_forward",
+      "value": "順再生"
+    },
+    {
+      "name": "gif_play_reverse",
+      "value": "逆再生"
+    },
+    {
+      "name": "gif_play_pingpong",
+      "value": "往復再生"
+    },
+    {
+      "name": "gif_label_loop",
+      "value": "ループ再生"
+    },
+    {
+      "name": "gif_loop_infinite",
+      "value": "無制限"
+    },
+    {
+      "name": "gif_loop_n",
+      "value": "%1$d回"
+    },
+    {
+      "name": "gif_label_output_size",
+      "value": "出力サイズ"
+    },
+    {
+      "name": "gif_size_original",
+      "value": "元のサイズ"
+    },
+    {
+      "name": "gif_label_quality",
+      "value": "画質"
+    },
+    {
+      "name": "gif_quality_standard",
+      "value": "標準"
+    },
+    {
+      "name": "gif_quality_hd",
+      "value": "高画質"
+    },
+    {
+      "name": "gif_btn_generate",
+      "value": "GIFを生成"
+    },
+    {
+      "name": "gif_toast_need_two_images",
+      "value": "画像が2枚以上必要です"
+    },
+    {
+      "name": "gif_dialog_size_title",
+      "value": "ファイルサイズの注意"
+    },
+    {
+      "name": "gif_dialog_size_msg",
+      "value": "現在の設定では生成されるファイルが大きくなる可能性があります（30MBを超える場合があります）。サイズを小さくするか、フレーム数を減らすことをお勧めします。続行しますか？"
+    },
+    {
+      "name": "gif_btn_continue",
+      "value": "続行"
+    },
+    {
+      "name": "gif_phase_preparing",
+      "value": "準備中..."
+    },
+    {
+      "name": "gif_phase_decode",
+      "value": "デコード中 %1$d/%2$d"
+    },
+    {
+      "name": "gif_phase_compose",
+      "value": "合成中 %1$d/%2$d"
+    },
+    {
+      "name": "gif_phase_encoding",
+      "value": "エンコード中..."
+    },
+    {
+      "name": "gif_phase_writing",
+      "value": "ファイルを書き込み中..."
+    },
+    {
+      "name": "gif_toast_export_done",
+      "value": "GIFの生成が完了しました"
+    },
+    {
+      "name": "gif_toast_export_cancelled",
+      "value": "エクスポートをキャンセルしました"
+    },
+    {
+      "name": "gif_toast_export_failed",
+      "value": "エクスポートに失敗しました: %1$s"
+    },
+    {
+      "name": "gif_exporting_title",
+      "value": "GIFを生成中"
+    },
+    {
+      "name": "gif_btn_save_album",
+      "value": "ギャラリーに保存"
+    },
+    {
+      "name": "gif_btn_share",
+      "value": "共有"
+    },
+    {
+      "name": "gif_btn_back_edit",
+      "value": "編集に戻る"
+    },
+    {
+      "name": "gif_result_info",
+      "value": "%1$s×%2$s · %3$dフレーム · %4$s"
+    },
+    {
+      "name": "gif_history_summary",
+      "value": "計 %1$d件 · 使用容量 %2$s"
+    },
+    {
+      "name": "gif_btn_clear_all",
+      "value": "すべてクリア"
+    },
+    {
+      "name": "gif_history_empty",
+      "value": "作成履歴はまだありません"
+    },
+    {
+      "name": "gif_history_empty_hint",
+      "value": "エクスポートしたGIFはここに自動的に保存されます（アプリ内、最大50件）"
+    },
+    {
+      "name": "gif_btn_save",
+      "value": "保存"
+    },
+    {
+      "name": "gif_btn_back",
+      "value": "戻る"
+    },
+    {
+      "name": "gif_dialog_delete_title",
+      "value": "履歴を削除"
+    },
+    {
+      "name": "gif_dialog_delete_msg",
+      "value": "削除すると、このGIFはアプリ内から削除されます。ギャラリーに保存済みのコピーには影響しません。削除しますか？"
+    },
+    {
+      "name": "gif_toast_deleted",
+      "value": "削除しました"
+    },
+    {
+      "name": "gif_dialog_clear_title",
+      "value": "履歴をクリア"
+    },
+    {
+      "name": "gif_dialog_clear_msg",
+      "value": "%1$d件すべての履歴（約%2$s）を削除します。ギャラリーに保存済みのコピーには影響しません。クリアしますか？"
+    },
+    {
+      "name": "gif_toast_cleared",
+      "value": "クリアしました"
+    },
+    {
+      "name": "gif_toast_max_images",
+      "value": "画像は最大%1$d枚までです"
+    },
+    {
+      "name": "gif_toast_min_images",
+      "value": "2枚以上の画像を選択してください"
+    },
+    {
+      "name": "gif_toast_max_kept",
+      "value": "画像は最大%1$d枚のため、先頭の%2$d枚を残しました"
+    },
+    {
+      "name": "gif_toast_pick_failed",
+      "value": "画像の選択に失敗しました: %1$s"
+    },
+    {
+      "name": "gif_toast_select_frame_first",
+      "value": "先にフレームを選択してください"
+    },
+    {
+      "name": "gif_toast_frames_below_min",
+      "value": "フレーム数が2枚未満のため、エクスポートできません"
+    },
+    {
+      "name": "gif_phase_parsing",
+      "value": "GIFを解析中..."
+    },
+    {
+      "name": "gif_toast_invalid_gif",
+      "value": "有効なGIFファイルではありません"
+    },
+    {
+      "name": "gif_toast_gif_too_short",
+      "value": "このGIFはフレーム数が足りず、編集できません"
+    },
+    {
+      "name": "gif_toast_frames_truncated",
+      "value": "フレーム数が%1$dを超えたため、先頭の%1$dフレームを残しました"
+    },
+    {
+      "name": "gif_phase_parse_frame",
+      "value": "フレーム解析中 %1$d/%2$d"
+    },
+    {
+      "name": "gif_toast_import_cancelled",
+      "value": "インポートをキャンセルしました"
+    },
+    {
+      "name": "gif_toast_imported_frames",
+      "value": "%1$dフレームをインポートしました"
+    },
+    {
+      "name": "gif_toast_parse_failed",
+      "value": "GIFの解析に失敗しました: %1$s"
+    },
+    {
+      "name": "gif_phase_video_info",
+      "value": "動画情報を読み込み中..."
+    },
+    {
+      "name": "gif_toast_no_duration",
+      "value": "動画の長さを取得できません。サポートされていない形式の可能性があります"
+    },
+    {
+      "name": "gif_toast_read_video_failed",
+      "value": "動画の読み込みに失敗しました: %1$s"
+    },
+    {
+      "name": "gif_phase_prepare_extract",
+      "value": "フレーム抽出を準備中..."
+    },
+    {
+      "name": "gif_phase_extract_frame",
+      "value": "フレーム抽出中 %1$d/%2$d"
+    },
+    {
+      "name": "gif_toast_extract_cancelled",
+      "value": "フレーム抽出をキャンセルしました"
+    },
+    {
+      "name": "gif_toast_extracted_frames",
+      "value": "%1$dフレームを抽出しました"
+    },
+    {
+      "name": "gif_toast_extract_failed",
+      "value": "フレーム抽出に失敗しました: %1$s"
+    },
+    {
+      "name": "gif_err_unsupported_format",
+      "value": "サポートされていない動画フレーム形式です"
+    },
+    {
+      "name": "gif_err_not_enough_frames",
+      "value": "抽出フレーム数が不足しています"
+    },
+    {
+      "name": "gif_toast_enter_text",
+      "value": "テキストを入力してください"
+    },
+    {
+      "name": "gif_toast_invalid_color",
+      "value": "#RRGGBB形式で色を入力してください"
+    },
+    {
+      "name": "gif_toast_saved_album",
+      "value": "ギャラリーに保存しました"
+    },
+    {
+      "name": "gif_toast_save_failed",
+      "value": "保存に失敗しました"
+    },
+    {
+      "name": "gif_unit_sec_per_frame",
+      "value": "秒/フレーム"
+    },
+    {
+      "name": "md2_filled_md_example",
+      "value": "Markdownサンプルを挿入しました"
+    },
+    {
+      "name": "md2_filled_text_example",
+      "value": "テキストサンプルを挿入しました"
+    },
+    {
+      "name": "md2_keyword_exists",
+      "value": "このキーワードは既にハイライト一覧に登録されています"
+    },
+    {
+      "name": "md2_discard_title",
+      "value": "変更を破棄しますか？"
+    },
+    {
+      "name": "md2_discard_message",
+      "value": "現在の位置選択はまだ保存されていません。変更を破棄しますか？"
+    },
+    {
+      "name": "md2_keep_editing",
+      "value": "編集を続ける"
+    },
+    {
+      "name": "md2_discard",
+      "value": "破棄"
+    },
+    {
+      "name": "md2_overwrite_title",
+      "value": "ハイライトキーワードは手動で調整されています"
+    },
+    {
+      "name": "md2_overwrite_message",
+      "value": "現在のハイライトキーワードは手動で調整されています。新しいテキストの抽出結果で上書きしますか？\n\n外側の空白部分をタップするとキャンセルされます（現在のハイライトキーワードは変更されません）。"
+    },
+    {
+      "name": "md2_overwrite_keep",
+      "value": "現在の設定を維持（推奨）"
+    },
+    {
+      "name": "md2_overwrite_apply",
+      "value": "新しい結果で上書き"
+    },
+    {
+      "name": "md2_generate_failed",
+      "value": "生成に失敗しました"
+    },
+    {
+      "name": "md2_generate_first",
+      "value": "先に画像を生成してください"
+    },
+    {
+      "name": "md2_saved_to_album",
+      "value": "ギャラリーに保存しました"
+    },
+    {
+      "name": "md2_save_failed",
+      "value": "保存に失敗しました"
+    },
+    {
+      "name": "md2_input_label",
+      "value": "入力内容"
+    },
+    {
+      "name": "md2_md_example",
+      "value": "Markdownサンプル"
+    },
+    {
+      "name": "md2_text_example",
+      "value": "テキストサンプル"
+    },
+    {
+      "name": "md2_input_hint",
+      "value": "Markdownまたはプレーンテキストを入力..."
+    },
+    {
+      "name": "md2_max_chars",
+      "value": "最大 %1$d 文字"
+    },
+    {
+      "name": "md2_keywords_title",
+      "value": "ハイライトキーワード"
+    },
+    {
+      "name": "md2_reset",
+      "value": "リセット"
+    },
+    {
+      "name": "md2_keywords_hint",
+      "value": "キーワードをタップして位置を調整  ×で削除"
+    },
+    {
+      "name": "md2_add_keyword_hint",
+      "value": "ハイライトキーワードを追加"
+    },
+    {
+      "name": "md2_occurrences_count",
+      "value": "  計 %1$d 回"
+    },
+    {
+      "name": "md2_close",
+      "value": "閉じる"
+    },
+    {
+      "name": "md2_keyword_not_found",
+      "value": "現在のテキスト内にこのキーワードが見つかりません"
+    },
+    {
+      "name": "md2_occurrence_nth",
+      "value": "%1$d 回目"
+    },
+    {
+      "name": "md2_select_all",
+      "value": "すべて選択"
+    },
+    {
+      "name": "md2_select_none",
+      "value": "すべて解除"
+    },
+    {
+      "name": "md2_remove_word",
+      "value": "このキーワードを削除"
+    },
+    {
+      "name": "md2_confirm",
+      "value": "OK"
+    },
+    {
+      "name": "md2_preview_title",
+      "value": "プレビュー"
+    },
+    {
+      "name": "md2_swipe_hint",
+      "value": "左右にスワイプしてテンプレートを切り替え"
+    },
+    {
+      "name": "md2_result_title",
+      "value": "生成結果"
+    },
+    {
+      "name": "md2_share",
+      "value": "共有"
+    },
+    {
+      "name": "md2_save_image",
+      "value": "画像を保存"
+    },
+    {
+      "name": "char_pinyin_show",
+      "value": "表示"
+    },
+    {
+      "name": "char_pinyin_hide",
+      "value": "非表示"
+    },
+    {
+      "name": "char_book_removed",
+      "value": "「%1$s」を削除しました"
+    },
+    {
+      "name": "char_filled_from_book",
+      "value": "漢字ノートから %1$d 文字を挿入しました"
+    },
+    {
+      "name": "char_restored",
+      "value": "復元しました"
+    },
+    {
+      "name": "char_save_cancelled",
+      "value": "保存をキャンセルしました"
+    },
+    {
+      "name": "char_export_failed",
+      "value": "エクスポートに失敗しました：%1$s"
+    },
+    {
+      "name": "char_saved_count",
+      "value": "%1$d 枚をギャラリーに保存しました"
+    },
+    {
+      "name": "char_export_cancelled",
+      "value": "エクスポートをキャンセルしました"
+    },
+    {
+      "name": "char_export_size",
+      "value": "%1$s · %2$d × %3$d"
+    },
+    {
+      "name": "char_label_size",
+      "value": "サイズ"
+    },
+    {
+      "name": "char_label_grid",
+      "value": "マス目"
+    },
+    {
+      "name": "char_label_mode",
+      "value": "モード"
+    },
+    {
+      "name": "char_label_pinyin",
+      "value": "ピンイン"
+    },
+    {
+      "name": "char_chars_label",
+      "value": "漢字（1〜12字）"
+    },
+    {
+      "name": "char_book_title",
+      "value": "漢字ノート"
+    },
+    {
+      "name": "char_pinyin_locked_label",
+      "value": "ピンイン（手動でロック中）"
+    },
+    {
+      "name": "char_pinyin_auto_label",
+      "value": "ピンイン（自動生成、編集可能）"
+    },
+    {
+      "name": "char_pinyin_auto",
+      "value": "自動に戻す"
+    },
+    {
+      "name": "char_book_done",
+      "value": "完了"
+    },
+    {
+      "name": "char_book_manage",
+      "value": "管理"
+    },
+    {
+      "name": "char_count_unit",
+      "value": "%1$d 字"
+    },
+    {
+      "name": "char_book_manage_hint",
+      "value": "管理モード：漢字をタップすると削除されます"
+    },
+    {
+      "name": "char_book_pick_hint",
+      "value": "漢詩ページで選んだ漢字をタップして制作に挿入できます"
+    },
+    {
+      "name": "char_book_empty_hint",
+      "value": "漢字ノートは空です。「ホーム → 漢詩鑑賞」で「なぞり選字」をタップして漢字を収集できます"
+    },
+    {
+      "name": "char_cancel",
+      "value": "キャンセル"
+    },
+    {
+      "name": "char_fill_selected",
+      "value": "選択を挿入(%1$d)"
+    },
+    {
+      "name": "char_fill_all",
+      "value": "すべて挿入"
+    },
+    {
+      "name": "char_recent",
+      "value": "最近の制作"
+    },
+    {
+      "name": "char_clear",
+      "value": "クリア"
+    },
+    {
+      "name": "char_exporting",
+      "value": "エクスポート中…"
+    },
+    {
+      "name": "char_save_album",
+      "value": "ギャラリーに保存"
+    },
+    {
+      "name": "char_batch_exporting",
+      "value": "エクスポート中 %1$d / %2$d"
+    },
+    {
+      "name": "char_batch_export",
+      "value": "すべてエクスポート（1文字につき1枚、計 %1$d 枚）"
+    },
+    {
+      "name": "cover_pick_failed",
+      "value": "おすすめの取得に失敗しました。再試行してください"
+    },
+    {
+      "name": "cover_size_hint",
+      "value": "公式アカウント用カバー画像 900 × 383"
+    },
+    {
+      "name": "cover_title_too_long",
+      "value": "テキストがやや長めです。短くすることをおすすめします（現在 %1$d 字）"
+    },
+    {
+      "name": "cover_tab_text",
+      "value": "テキスト"
+    },
+    {
+      "name": "cover_tab_style",
+      "value": "スタイル"
+    },
+    {
+      "name": "cover_lib_label",
+      "value": "コンテンツライブラリからのおすすめ（漢詩 / 成語 / 謎かけ）"
+    },
+    {
+      "name": "cover_change_quote",
+      "value": "別の一句にする"
+    },
+    {
+      "name": "cover_pinyin_locked",
+      "value": "読み方は手動で選択されています"
+    },
+    {
+      "name": "cover_pinyin_empty_hint",
+      "value": "（文字を入力するとピンインが自動生成されます）"
+    },
+    {
+      "name": "cover_pinyin_mismatch",
+      "value": "ピンインと文字数が一致しないため、文字ごとの編集を一時停止しました"
+    },
+    {
+      "name": "cover_font_label",
+      "value": "フォント"
+    },
+    {
+      "name": "tmpl_series_all",
+      "value": "すべて"
+    },
+    {
+      "name": "tmpl_series_simple",
+      "value": "シンプル"
+    },
+    {
+      "name": "tmpl_series_culture",
+      "value": "文化"
+    },
+    {
+      "name": "tmpl_series_big",
+      "value": "大文字"
+    },
+    {
+      "name": "tmpl_series_magazine",
+      "value": "雑誌"
+    },
+    {
+      "name": "tmpl_series_photo",
+      "value": "写真"
+    },
+    {
+      "name": "tmpl_size_square",
+      "value": "スクエア 1:1"
+    },
+    {
+      "name": "tmpl_size_practice",
+      "value": "練習カード 3:4"
+    },
+    {
+      "name": "tmpl_grid_tian",
+      "value": "田字マス"
+    },
+    {
+      "name": "tmpl_grid_mi",
+      "value": "米字マス"
+    },
+    {
+      "name": "tmpl_mode_read",
+      "value": "読み"
+    },
+    {
+      "name": "tmpl_mode_trace",
+      "value": "なぞり"
+    },
+    {
+      "name": "tmpl_name_solid",
+      "value": "無地ミニマル"
+    },
+    {
+      "name": "tmpl_name_gradient",
+      "value": "大胆グラデーション"
+    },
+    {
+      "name": "tmpl_name_neon_night",
+      "value": "ネオンナイト"
+    },
+    {
+      "name": "tmpl_name_poetic",
+      "value": "詩情"
+    },
+    {
+      "name": "tmpl_name_idiom",
+      "value": "成語故事"
+    },
+    {
+      "name": "tmpl_name_xiehouyu",
+      "value": "おもしろ謎かけ"
+    },
+    {
+      "name": "tmpl_name_solar",
+      "value": "節気の雅"
+    },
+    {
+      "name": "tmpl_name_grid_card",
+      "value": "田字マスカード"
+    },
+    {
+      "name": "tmpl_name_big_type",
+      "value": "大文字ポスター"
+    },
+    {
+      "name": "tmpl_name_issue_number",
+      "value": "号数"
+    },
+    {
+      "name": "tmpl_name_question",
+      "value": "問いかけ"
+    },
+    {
+      "name": "tmpl_name_geoblock",
+      "value": "幾何学ブロック"
+    },
+    {
+      "name": "tmpl_name_twocolumn",
+      "value": "2カラム雑誌"
+    },
+    {
+      "name": "tmpl_name_seal",
+      "value": "印章落款"
+    },
+    {
+      "name": "tmpl_name_texture",
+      "value": "テクスチャ"
+    },
+    {
+      "name": "tmpl_slot_solar_name",
+      "value": "節気名"
+    },
+    {
+      "name": "tmpl_slot_chars",
+      "value": "漢字（1〜8字）"
+    },
+    {
+      "name": "tmpl_slot_big_title",
+      "value": "大見出し（8字以内推奨）"
+    },
+    {
+      "name": "tmpl_slot_question_title",
+      "value": "問いかけタイトル"
+    },
+    {
+      "name": "tmpl_pal_blue_red",
+      "value": "青地×赤マス×黒字"
+    },
+    {
+      "name": "tmpl_pal_cream_red",
+      "value": "クリーム地×赤マス"
+    },
+    {
+      "name": "tmpl_pal_board_green",
+      "value": "黒板緑地×クリームマス"
+    },
+    {
+      "name": "tmpl_pal_maroon_cream",
+      "value": "暗赤地×クリームマス"
+    },
+    {
+      "name": "tmpl_pal_cream_ink",
+      "value": "クリーム地×墨マス"
+    },
+    {
+      "name": "tmpl_pal_serene_blue",
+      "value": "静謐ブルー"
+    },
+    {
+      "name": "tmpl_pal_warm_cream",
+      "value": "ウォームクリーム"
+    },
+    {
+      "name": "tmpl_pal_mint",
+      "value": "ミントグリーン"
+    },
+    {
+      "name": "tmpl_pal_graphite",
+      "value": "グラファイト"
+    },
+    {
+      "name": "tmpl_pal_sakura",
+      "value": "サクラピンク"
+    },
+    {
+      "name": "tmpl_pal_amber",
+      "value": "アンバー"
+    },
+    {
+      "name": "tmpl_pal_green_hill",
+      "value": "青山"
+    },
+    {
+      "name": "tmpl_pal_dusk_blue",
+      "value": "黄昏ブルー"
+    },
+    {
+      "name": "tmpl_pal_rose",
+      "value": "ローズ"
+    },
+    {
+      "name": "tmpl_pal_ink_night",
+      "value": "墨夜"
+    },
+    {
+      "name": "tmpl_pal_neon_purple",
+      "value": "ネオンパープル"
+    },
+    {
+      "name": "tmpl_pal_electric_cyan",
+      "value": "電光シアン"
+    },
+    {
+      "name": "tmpl_pal_neon_pink",
+      "value": "ネオンピンク"
+    },
+    {
+      "name": "tmpl_pal_neon_green",
+      "value": "蛍光グリーン"
+    },
+    {
+      "name": "tmpl_pal_dark_gold",
+      "value": "ダークゴールド"
+    },
+    {
+      "name": "tmpl_pal_rice_paper",
+      "value": "画仙紙色"
+    },
+    {
+      "name": "tmpl_pal_pale_cyan",
+      "value": "淡青"
+    },
+    {
+      "name": "tmpl_pal_moon_white",
+      "value": "月白"
+    },
+    {
+      "name": "tmpl_pal_dusk_purple",
+      "value": "暮山紫"
+    },
+    {
+      "name": "tmpl_pal_ink",
+      "value": "墨色"
+    },
+    {
+      "name": "tmpl_pal_beige",
+      "value": "ベージュ"
+    },
+    {
+      "name": "tmpl_pal_crimson",
+      "value": "深紅"
+    },
+    {
+      "name": "tmpl_pal_indigo",
+      "value": "藍色"
+    },
+    {
+      "name": "tmpl_pal_bright_yellow",
+      "value": "ブライトイエロー"
+    },
+    {
+      "name": "tmpl_pal_warm_orange",
+      "value": "ウォームオレンジ"
+    },
+    {
+      "name": "tmpl_pal_sky_blue",
+      "value": "スカイブルー"
+    },
+    {
+      "name": "tmpl_pal_grass_green",
+      "value": "草緑"
+    },
+    {
+      "name": "tmpl_pal_cherry_pink",
+      "value": "チェリーピンク"
+    },
+    {
+      "name": "tmpl_pal_spring",
+      "value": "春青"
+    },
+    {
+      "name": "tmpl_pal_summer",
+      "value": "夏碧"
+    },
+    {
+      "name": "tmpl_pal_autumn",
+      "value": "秋橙"
+    },
+    {
+      "name": "tmpl_pal_winter",
+      "value": "冬藍"
+    },
+    {
+      "name": "tmpl_pal_plum",
+      "value": "プラム"
+    },
+    {
+      "name": "tmpl_pal_cream_red_black",
+      "value": "クリーム地×赤マス×黒字"
+    },
+    {
+      "name": "tmpl_pal_dark_green_red",
+      "value": "墨緑地×クリームマス×赤字"
+    },
+    {
+      "name": "tmpl_pal_dark_red_black",
+      "value": "暗赤地×クリームマス×黒字"
+    },
+    {
+      "name": "tmpl_pal_true_red",
+      "value": "真紅"
+    },
+    {
+      "name": "tmpl_pal_vivid_yellow",
+      "value": "ビビッドイエロー"
+    },
+    {
+      "name": "tmpl_pal_emerald",
+      "value": "エメラルドグリーン"
+    },
+    {
+      "name": "tmpl_pal_royal_blue",
+      "value": "ロイヤルブルー"
+    },
+    {
+      "name": "tmpl_pal_pure_black",
+      "value": "漆黒"
+    },
+    {
+      "name": "tmpl_pal_navy",
+      "value": "ネイビー"
+    },
+    {
+      "name": "tmpl_pal_dark_night",
+      "value": "暗夜"
+    },
+    {
+      "name": "tmpl_pal_cream",
+      "value": "クリーム"
+    },
+    {
+      "name": "tmpl_pal_wine",
+      "value": "ワインレッド"
+    },
+    {
+      "name": "tmpl_pal_ink_blue",
+      "value": "インクブルー"
+    },
+    {
+      "name": "tmpl_pal_charcoal",
+      "value": "チャコール"
+    },
+    {
+      "name": "tmpl_pal_deep_purple",
+      "value": "深紫"
+    },
+    {
+      "name": "tmpl_pal_dark_green",
+      "value": "ダークグリーン"
+    },
+    {
+      "name": "tmpl_pal_clash_yellow",
+      "value": "ポップイエロー"
+    },
+    {
+      "name": "tmpl_pal_clash_blue",
+      "value": "ポップブルー"
+    },
+    {
+      "name": "tmpl_pal_clash_red",
+      "value": "ポップレッド"
+    },
+    {
+      "name": "tmpl_pal_clash_green",
+      "value": "ポップグリーン"
+    },
+    {
+      "name": "tmpl_pal_mono",
+      "value": "モノクロ"
+    },
+    {
+      "name": "tmpl_pal_red_black",
+      "value": "赤×黒"
+    },
+    {
+      "name": "tmpl_pal_navy_blue",
+      "value": "紺色"
+    },
+    {
+      "name": "tmpl_pal_forest_green",
+      "value": "墨緑"
+    },
+    {
+      "name": "tmpl_pal_warm_brown",
+      "value": "ウォームブラウン"
+    },
+    {
+      "name": "tmpl_pal_plain_white",
+      "value": "真白"
+    },
+    {
+      "name": "tmpl_pal_moon_gray",
+      "value": "ムーングレー"
+    },
+    {
+      "name": "tmpl_pal_morning_mist",
+      "value": "朝霧"
+    },
+    {
+      "name": "tmpl_pal_celadon",
+      "value": "青瓷"
+    },
+    {
+      "name": "tmpl_pal_twilight",
+      "value": "暮色"
+    },
+    {
+      "name": "tmpl_pal_gray_blue",
+      "value": "グレーブルー"
+    },
+    {
+      "name": "sudoku_title",
+      "value": "数独（ナンプレ）ソルバー"
+    },
+    {
+      "name": "sudoku_diff_easy",
+      "value": "初級"
+    },
+    {
+      "name": "sudoku_diff_medium",
+      "value": "中級"
+    },
+    {
+      "name": "sudoku_diff_hard",
+      "value": "上級"
+    },
+    {
+      "name": "sudoku_board_copied",
+      "value": "盤面をクリップボードにコピーしました"
+    },
+    {
+      "name": "sudoku_copy_failed",
+      "value": "コピーに失敗しました"
+    },
+    {
+      "name": "sudoku_parse_failed",
+      "value": "解析できませんでした。81桁の数字を入力してください（0 または . は空欄を表します）"
+    },
+    {
+      "name": "sudoku_paste_success",
+      "value": "貼り付けました！%1$d 個の数字を読み込みました"
+    },
+    {
+      "name": "sudoku_conflict",
+      "value": "盤面に矛盾があります。入力内容を確認してください"
+    },
+    {
+      "name": "sudoku_solved",
+      "value": "解けました！"
+    },
+    {
+      "name": "sudoku_solved_multi",
+      "value": "解けました（注意：この問題には複数の解があります）"
+    },
+    {
+      "name": "sudoku_no_solution",
+      "value": "この数独には解がありません。入力に誤りがないか確認してください"
+    },
+    {
+      "name": "sudoku_hint_result",
+      "value": "ヒント: %1$d行%2$d列 = %3$d"
+    },
+    {
+      "name": "sudoku_congrats",
+      "value": "おめでとうございます！完成して正解です！"
+    },
+    {
+      "name": "sudoku_full_but_wrong",
+      "value": "盤面は埋まっていますが、誤りがあります。確認してください"
+    },
+    {
+      "name": "sudoku_no_next_step",
+      "value": "次の一手を特定できません。ご自身で推理してみてください"
+    },
+    {
+      "name": "sudoku_pick_failed",
+      "value": "画像の選択に失敗しました: %1$s"
+    },
+    {
+      "name": "sudoku_pick_cancelled",
+      "value": "撮影/画像選択がキャンセルされました"
+    },
+    {
+      "name": "sudoku_ocr_processing",
+      "value": "画像内の数独を認識中..."
+    },
+    {
+      "name": "sudoku_ocr_success",
+      "value": "認識しました！%1$d 個の数字を検出しました"
+    },
+    {
+      "name": "sudoku_ocr_failed",
+      "value": "数独を認識できませんでした"
+    },
+    {
+      "name": "sudoku_image_error",
+      "value": "画像処理でエラーが発生しました。再試行してください"
+    },
+    {
+      "name": "sudoku_dbg_header",
+      "value": "=== 認識デバッグ情報 ==="
+    },
+    {
+      "name": "sudoku_dbg_pipeline",
+      "value": "【パイプライン】%1$s"
+    },
+    {
+      "name": "sudoku_dbg_resize",
+      "value": "【リサイズパラメータ】%1$s"
+    },
+    {
+      "name": "sudoku_dbg_bbox",
+      "value": "【画像と盤面】%1$s"
+    },
+    {
+      "name": "sudoku_dbg_probe",
+      "value": "【プローブ画像詳細】%1$s"
+    },
+    {
+      "name": "sudoku_dbg_bbox_diag",
+      "value": "【盤面検出診断】"
+    },
+    {
+      "name": "sudoku_dbg_pixel_bg",
+      "value": "【ピクセル背景分析】%1$s"
+    },
+    {
+      "name": "sudoku_dbg_pixel_bbox",
+      "value": "【ピクセル盤面検出】%1$s"
+    },
+    {
+      "name": "sudoku_dbg_pixel_warp",
+      "value": "【ピクセル透視変換/グリッド】%1$s"
+    },
+    {
+      "name": "sudoku_dbg_pixel_cells",
+      "value": "【ピクセルセル統計】%1$s"
+    },
+    {
+      "name": "sudoku_dbg_raw_digits",
+      "value": "【VisionKit未処理の数字数】%1$d"
+    },
+    {
+      "name": "sudoku_dbg_vk_size",
+      "value": "【VisionKit OCR画像サイズ】%1$s"
+    },
+    {
+      "name": "sudoku_dbg_vk_blocks",
+      "value": "【VisionKit Block数】%1$d"
+    },
+    {
+      "name": "sudoku_dbg_vk_blocks_detail",
+      "value": "【VisionKit Block詳細】\n%1$s"
+    },
+    {
+      "name": "sudoku_dbg_vk_raw",
+      "value": "【VisionKit元テキスト】%1$s"
+    },
+    {
+      "name": "sudoku_dbg_vk_error",
+      "value": "【VisionKitエラー診断】%1$s"
+    },
+    {
+      "name": "sudoku_dbg_vk_grid",
+      "value": "【VisionKitグリッド】"
+    },
+    {
+      "name": "sudoku_dbg_pixel_grid",
+      "value": "【ピクセル解析グリッド】"
+    },
+    {
+      "name": "sudoku_dbg_final_grid",
+      "value": "【最終グリッド】"
+    },
+    {
+      "name": "sudoku_dbg_confidence",
+      "value": "【信頼度】"
+    },
+    {
+      "name": "sudoku_dbg_conflicts",
+      "value": "【矛盾マス】%1$s"
+    },
+    {
+      "name": "sudoku_dbg_low_conf",
+      "value": "【低信頼度マス】%1$s"
+    },
+    {
+      "name": "sudoku_dbg_empty",
+      "value": "【修正待ちの空きマス】%1$d個"
+    },
+    {
+      "name": "sudoku_dbg_fixed",
+      "value": "【実際の修正】%1$d個成功"
+    },
+    {
+      "name": "sudoku_dbg_fix_details",
+      "value": "【マス別修正詳細】"
+    },
+    {
+      "name": "sudoku_dbg_steps",
+      "value": "【ステップ詳細】"
+    },
+    {
+      "name": "sudoku_no_debug",
+      "value": "認識デバッグ情報はまだありません。先に画像認識を実行してください"
+    },
+    {
+      "name": "sudoku_log_copied",
+      "value": "認識ログをクリップボードにコピーしました"
+    },
+    {
+      "name": "sudoku_done",
+      "value": "✔ 完了"
+    },
+    {
+      "name": "sudoku_edit",
+      "value": "✏ 編集"
+    },
+    {
+      "name": "sudoku_clear_board",
+      "value": "盤面をクリア"
+    },
+    {
+      "name": "sudoku_board_cleared",
+      "value": "盤面をクリアしました"
+    },
+    {
+      "name": "sudoku_copy_board",
+      "value": "盤面をコピー"
+    },
+    {
+      "name": "sudoku_paste_puzzle",
+      "value": "問題を貼り付け"
+    },
+    {
+      "name": "sudoku_recognizing_dots",
+      "value": "認識中..."
+    },
+    {
+      "name": "sudoku_scan_photo",
+      "value": "撮影して認識"
+    },
+    {
+      "name": "sudoku_ocr_disclaimer",
+      "value": "撮影認識の精度は現在も改善中です。認識に誤りがある場合は、手動で修正してください。"
+    },
+    {
+      "name": "sudoku_paste_title",
+      "value": "数独の問題を貼り付け"
+    },
+    {
+      "name": "sudoku_example_n",
+      "value": "サンプル%1$d"
+    },
+    {
+      "name": "sudoku_clear",
+      "value": "クリア"
+    },
+    {
+      "name": "sudoku_example_hint",
+      "value": "サンプル1: 0は空欄 | サンプル2: .は空欄 | サンプル3: 複数行形式"
+    },
+    {
+      "name": "sudoku_paste_placeholder",
+      "value": "81桁の数字に対応（0 または . は空欄を表します）。複数行でも入力できます"
+    },
+    {
+      "name": "sudoku_cancel",
+      "value": "キャンセル"
+    },
+    {
+      "name": "sudoku_confirm",
+      "value": "OK"
+    },
+    {
+      "name": "sudoku_candidate_on",
+      "value": "✎ メモ入力中"
+    },
+    {
+      "name": "sudoku_candidate_off",
+      "value": "✎ メモ"
+    },
+    {
+      "name": "sudoku_erase",
+      "value": "⌫ 消去"
+    },
+    {
+      "name": "sudoku_solving",
+      "value": "解いています..."
+    },
+    {
+      "name": "sudoku_solve",
+      "value": "🔍 解く"
+    },
+    {
+      "name": "sudoku_hint",
+      "value": "💡 ヒント"
+    },
+    {
+      "name": "sudoku_copy_log",
+      "value": "認識ログをコピー"
+    },
+    {
+      "name": "sudoku_collapse",
+      "value": "折りたたむ"
+    },
+    {
+      "name": "sudoku_edit_hint",
+      "value": "編集モード：数字をタップして変更・消去できます。認識の誤りはここで修正できます"
+    },
+    {
+      "name": "sudoku_input_hint",
+      "value": "マスをタップして数字を入力 | 同じ数字はハイライト表示 | 長押しでクリア"
+    },
+    {
+      "name": "tz_title",
+      "value": "タイムゾーン変換"
+    },
+    {
+      "name": "tz_tab_meeting",
+      "value": "会議調整"
+    },
+    {
+      "name": "tz_results",
+      "value": "変換結果"
+    },
+    {
+      "name": "tz_work_hours",
+      "value": "勤務時間"
+    },
+    {
+      "name": "tz_off_hours",
+      "value": "勤務時間外"
+    },
+    {
+      "name": "tz_add_city",
+      "value": "都市を追加"
+    },
+    {
+      "name": "tz_base_city",
+      "value": "基準都市"
+    },
+    {
+      "name": "tz_set_time",
+      "value": "🕒 現地時刻を設定"
+    },
+    {
+      "name": "tz_favorites",
+      "value": "⭐ お気に入り都市"
+    },
+    {
+      "name": "tz_duration",
+      "value": "所要時間"
+    },
+    {
+      "name": "tz_duration_30",
+      "value": "30分"
+    },
+    {
+      "name": "tz_duration_60",
+      "value": "1時間"
+    },
+    {
+      "name": "tz_duration_90",
+      "value": "1.5時間"
+    },
+    {
+      "name": "tz_duration_120",
+      "value": "2時間"
+    },
+    {
+      "name": "tz_cities",
+      "value": "参加都市"
+    },
+    {
+      "name": "tz_need_two",
+      "value": "都市を2つ以上追加してください"
+    },
+    {
+      "name": "tz_analysis",
+      "value": "時間帯分析"
+    },
+    {
+      "name": "tz_overtime",
+      "value": "残業時間"
+    },
+    {
+      "name": "tz_suggest_all_work",
+      "value": "すべての都市が勤務時間内です。会議に最適な時間帯です！"
+    },
+    {
+      "name": "tz_suggest_night",
+      "value": "深夜にあたる都市があります。会議時間の調整をご検討ください"
+    },
+    {
+      "name": "tz_suggest_partial",
+      "value": "一部の都市は勤務時間外です。ご調整をお願いします"
+    },
+    {
+      "name": "tz_select_city",
+      "value": "都市を選択"
+    },
+    {
+      "name": "tz_search_city",
+      "value": "都市を検索"
+    },
+    {
+      "name": "tz_load_failed",
+      "value": "⚠️ 都市データの読み込みに失敗しました"
+    },
+    {
+      "name": "tz_load_failed_hint",
+      "value": "ページを開き直すか、アプリを再起動してお試しください"
+    },
+    {
+      "name": "gcd_step_intro",
+      "value": "ユークリッドの互除法で %1$d と %2$d の最大公約数を求めます"
+    },
+    {
+      "name": "gcd_step_div_rem",
+      "value": "%1$d ÷ %2$d = %3$d 余り %4$d"
+    },
+    {
+      "name": "gcd_step_gcd",
+      "value": "余りが0のため、最大公約数は %1$d です"
+    },
+    {
+      "name": "gcd_step_lcm",
+      "value": "最小公倍数 = (%1$d × %2$d) ÷ %3$d = %4$d"
+    },
+    {
+      "name": "gcd_copy_pair",
+      "value": "%1$s と %2$s"
+    },
+    {
+      "name": "gcd_label_gcd",
+      "value": "最大公約数：%1$d"
+    },
+    {
+      "name": "gcd_label_lcm",
+      "value": "最小公倍数：%1$d"
+    },
+    {
+      "name": "gcd_copy_success",
+      "value": "変換結果をコピーしました"
+    },
+    {
+      "name": "gcd_example_pair",
+      "value": "%1$d と %2$d"
+    },
+    {
+      "name": "gcd_input_hint1",
+      "value": "1つ目の正の整数"
+    },
+    {
+      "name": "gcd_input_hint2",
+      "value": "2つ目の正の整数"
+    },
+    {
+      "name": "gcd_result_gcd",
+      "value": "最大公約数 (GCD)"
+    },
+    {
+      "name": "gcd_result_lcm",
+      "value": "最小公倍数 (LCM)"
+    },
+    {
+      "name": "gcd_steps_title",
+      "value": "計算の過程"
+    },
+    {
+      "name": "gcd_copy_result",
+      "value": "結果をコピー"
+    },
+    {
+      "name": "gcd_empty_hint",
+      "value": "2つの正の整数を入力すると、リアルタイムで計算されます"
+    },
+    {
+      "name": "prime_step_start",
+      "value": "%1$d を分解します"
+    },
+    {
+      "name": "prime_step_div",
+      "value": "ステップ%1$d：%2$d ÷ %3$d = %4$d"
+    },
+    {
+      "name": "prime_step_power",
+      "value": "ステップ%1$d：%2$d ÷ %3$d^%4$d = %5$d"
+    },
+    {
+      "name": "prime_step_remainder",
+      "value": "ステップ%1$d：残りの %2$d は素数です"
+    },
+    {
+      "name": "prime_is_prime_step",
+      "value": "%1$d は素数のため、分解は不要です"
+    },
+    {
+      "name": "prime_copy_success",
+      "value": "結果をコピーしました"
+    },
+    {
+      "name": "prime_input_hint",
+      "value": "正の整数を入力"
+    },
+    {
+      "name": "prime_range_hint",
+      "value": "2 ～ 999,999,999,999 に対応"
+    },
+    {
+      "name": "prime_is_prime_note",
+      "value": "%1$s はそれ自体が素数のため、分解は不要です"
+    },
+    {
+      "name": "prime_steps_title",
+      "value": "分解の過程"
+    },
+    {
+      "name": "prime_what_title",
+      "value": "素因数分解とは？"
+    },
+    {
+      "name": "prime_what_desc",
+      "value": "合成数を複数の素数の積の形に分解すること"
+    },
+    {
+      "name": "basec_title",
+      "value": "基数変換"
+    },
+    {
+      "name": "basec_input_placeholder",
+      "value": "数値を入力"
+    },
+    {
+      "name": "basec_radix_dec",
+      "value": "10進数"
+    },
+    {
+      "name": "basec_radix_bin",
+      "value": "2進数"
+    },
+    {
+      "name": "basec_radix_oct",
+      "value": "8進数"
+    },
+    {
+      "name": "basec_radix_hex",
+      "value": "16進数"
+    },
+    {
+      "name": "basec_copy_all",
+      "value": "変換結果をコピー"
+    },
+    {
+      "name": "basec_copy_line",
+      "value": "%1$s：%2$s"
+    },
+    {
+      "name": "basec_err_dec",
+      "value": "有効な10進数を入力してください"
+    },
+    {
+      "name": "basec_err_bin",
+      "value": "有効な2進数を入力してください（0と1）"
+    },
+    {
+      "name": "basec_err_oct",
+      "value": "有効な8進数を入力してください（0-7）"
+    },
+    {
+      "name": "basec_err_hex",
+      "value": "有効な16進数を入力してください（0-9, A-F）"
+    },
+    {
+      "name": "basec_err_b64",
+      "value": "無効なBase64文字が含まれています"
+    },
+    {
+      "name": "basec_examples_title",
+      "value": "クイックサンプル"
+    },
+    {
+      "name": "basec_info_title",
+      "value": "基数について"
+    },
+    {
+      "name": "basec_info_dec_title",
+      "value": "10進数 (DEC)"
+    },
+    {
+      "name": "basec_info_dec_desc",
+      "value": "0～9の10個の数字を使用"
+    },
+    {
+      "name": "basec_info_bin_title",
+      "value": "2進数 (BIN)"
+    },
+    {
+      "name": "basec_info_bin_desc",
+      "value": "0と1を使用。コンピュータの基礎"
+    },
+    {
+      "name": "basec_info_oct_title",
+      "value": "8進数 (OCT)"
+    },
+    {
+      "name": "basec_info_oct_desc",
+      "value": "0～7の8個の数字を使用"
+    },
+    {
+      "name": "basec_info_hex_title",
+      "value": "16進数 (HEX)"
+    },
+    {
+      "name": "basec_info_hex_desc",
+      "value": "0～9とA-Fを使用"
+    },
+    {
+      "name": "basec_info_b64_desc",
+      "value": "バイナリデータをテキストにエンコード"
+    },
+    {
+      "name": "unitcv_ref_title",
+      "value": "クイックリファレンス"
+    },
+    {
+      "name": "idiomq_data_loading",
+      "value": "データを読み込み中…"
+    },
+    {
+      "name": "idiomq_chain_continue",
+      "value": "しりとりを続ける"
+    },
+    {
+      "name": "idiomq_chain_reverse",
+      "value": "逆引きしりとり"
+    },
+    {
+      "name": "poemq_poet_subtitle",
+      "value": "%1 · %2"
+    }
+  ]
+}
