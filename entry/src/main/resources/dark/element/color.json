@@ -46,7 +46,7 @@
     },
     {
       "name": "danger_red",
-      "value": "#ef5350"
+      "value": "#f2615e"
     },
     {
       "name": "success_green",
@@ -54,7 +54,7 @@
     },
     {
       "name": "error_red",
-      "value": "#ef5350"
+      "value": "#f2615e"
     },
     {
       "name": "on_accent_text",
