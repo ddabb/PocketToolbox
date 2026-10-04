@@ -4,14 +4,22 @@ import { formBindingData, formProvider } from '@kit.FormKit';
 import { BusinessError } from '@kit.BasicServicesKit';
 import { PoetryViewModel } from '../../viewmodel/PoetryViewModel';
 import { PoetItem, PoetDetail, PoemItem } from '../../model/PoetryModels';
+import { CheckInWidgetUtil } from './CheckInWidgetUtil';
+
+interface WidgetFormEntry {
+  id: string;
+  type: string;
+  dimension: string;
+}
 
 export class DailyPoemWidgetUtil {
   private static readonly PREFS_NAME: string = 'app_cache';
-  private static readonly KEY_FORM_IDS: string = 'daily_poem_form_ids';
+  private static readonly KEY_FORMS: string = 'widget_forms';
+  private static readonly KEY_LEGACY_IDS: string = 'daily_poem_form_ids';
   private static readonly SEPARATOR: string = '|';
   private static readonly MAX_LINE_LEN: number = 18;
 
-  static buildCardData(context: Context): Record<string, string> {
+  static buildCardData(context: Context, dimension: string = ''): Record<string, string> {
     let title: string = context.resourceManager.getStringByNameSync('daily_poem_title');
     let author: string = '';
     let lines: string = context.resourceManager.getStringByNameSync('daily_poem_loading');
@@ -55,72 +63,123 @@ export class DailyPoemWidgetUtil {
       'author': author,
       'lines': lines,
       'date': date,
-      'poemJson': poemJson
+      'poemJson': poemJson,
+      'dimension': dimension
     };
     return data;
   }
 
+  // 遍历所有已添加卡片，按类型用对应数据刷新（诗词卡/签到卡）
   static updateAllForms(context: Context): void {
-    let formIds: string[] = DailyPoemWidgetUtil.loadFormIds(context);
-    if (formIds.length === 0) {
+    let forms: WidgetFormEntry[] = DailyPoemWidgetUtil.loadForms(context);
+    if (forms.length === 0) {
       return;
     }
-    let data: formBindingData.FormBindingData =
-      formBindingData.createFormBindingData(DailyPoemWidgetUtil.buildCardData(context));
-    for (let i = 0; i < formIds.length; i++) {
-      formProvider.updateForm(formIds[i], data).catch((error: BusinessError) => {
+    for (let i = 0; i < forms.length; i++) {
+      let form: WidgetFormEntry = forms[i];
+      let data: formBindingData.FormBindingData;
+      if (form.type === 'checkin') {
+        data = formBindingData.createFormBindingData(CheckInWidgetUtil.buildCardData(context, form.dimension));
+      } else {
+        data = formBindingData.createFormBindingData(DailyPoemWidgetUtil.buildCardData(context, form.dimension));
+      }
+      formProvider.updateForm(form.id, data).catch((error: BusinessError) => {
         console.error('[DailyPoemWidget] updateForm failed: ' + JSON.stringify(error));
       });
     }
   }
 
-  static saveFormId(context: Context, formId: string): void {
-    let ids: string[] = DailyPoemWidgetUtil.loadFormIds(context);
-    if (ids.indexOf(formId) >= 0) {
-      return;
+  // 注册一张卡片，记录其类型与尺寸（默认 poem；签到卡传 'checkin'）；重复 id 自动去重
+  static saveFormId(context: Context, formId: string, type: string = 'poem', dimension: string = ''): void {
+    let forms: WidgetFormEntry[] = DailyPoemWidgetUtil.loadForms(context);
+    let next: WidgetFormEntry[] = [];
+    for (let i = 0; i < forms.length; i++) {
+      if (forms[i].id !== formId) {
+        next.push(forms[i]);
+      }
     }
-    ids.push(formId);
-    DailyPoemWidgetUtil.saveFormIds(context, ids);
+    let entry: WidgetFormEntry = { id: formId, type: type, dimension: dimension };
+    next.push(entry);
+    DailyPoemWidgetUtil.saveForms(context, next);
+  }
+
+  static getFormType(context: Context, formId: string): string {
+    let forms: WidgetFormEntry[] = DailyPoemWidgetUtil.loadForms(context);
+    for (let i = 0; i < forms.length; i++) {
+      if (forms[i].id === formId) {
+        return forms[i].type;
+      }
+    }
+    return 'poem';
+  }
+
+  static getFormDimension(context: Context, formId: string): string {
+    let forms: WidgetFormEntry[] = DailyPoemWidgetUtil.loadForms(context);
+    for (let i = 0; i < forms.length; i++) {
+      if (forms[i].id === formId) {
+        return forms[i].dimension;
+      }
+    }
+    return '';
   }
 
   static removeFormId(context: Context, formId: string): void {
-    let ids: string[] = DailyPoemWidgetUtil.loadFormIds(context);
-    let next: string[] = [];
-    for (let i = 0; i < ids.length; i++) {
-      if (ids[i] !== formId) {
-        next.push(ids[i]);
+    let forms: WidgetFormEntry[] = DailyPoemWidgetUtil.loadForms(context);
+    let next: WidgetFormEntry[] = [];
+    for (let i = 0; i < forms.length; i++) {
+      if (forms[i].id !== formId) {
+        next.push(forms[i]);
       }
     }
-    DailyPoemWidgetUtil.saveFormIds(context, next);
+    DailyPoemWidgetUtil.saveForms(context, next);
   }
 
-  private static loadFormIds(context: Context): string[] {
+  // 读取卡片注册表；首次调用时把旧版扁平 id 列表（全部视为 poem）迁移为新结构
+  private static loadForms(context: Context): WidgetFormEntry[] {
     try {
       let prefs: preferences.Preferences = preferences.getPreferencesSync(context, { name: DailyPoemWidgetUtil.PREFS_NAME });
-      let raw: string = prefs.getSync(DailyPoemWidgetUtil.KEY_FORM_IDS, '') as string;
+      let legacy: string = prefs.getSync(DailyPoemWidgetUtil.KEY_LEGACY_IDS, '') as string;
+      if (legacy) {
+        let ids: string[] = legacy.split(DailyPoemWidgetUtil.SEPARATOR).filter((s) => s.length > 0);
+        let migrated: WidgetFormEntry[] = [];
+        for (let i = 0; i < ids.length; i++) {
+          migrated.push({ id: ids[i], type: 'poem', dimension: '' });
+        }
+        DailyPoemWidgetUtil.saveForms(context, migrated);
+        try {
+          prefs.deleteSync(DailyPoemWidgetUtil.KEY_LEGACY_IDS);
+        } catch (e) {
+          // ignore
+        }
+        return migrated;
+      }
+      let raw: string = prefs.getSync(DailyPoemWidgetUtil.KEY_FORMS, '') as string;
       if (!raw) {
         return [];
       }
-      let ids: string[] = [];
-      let parts: string[] = raw.split(DailyPoemWidgetUtil.SEPARATOR);
-      for (let i = 0; i < parts.length; i++) {
-        if (parts[i]) {
-          ids.push(parts[i]);
-        }
+      let arr: Object[] = JSON.parse(raw) as Object[];
+      let result: WidgetFormEntry[] = [];
+      for (let i = 0; i < arr.length; i++) {
+        let o: Record<string, Object> = arr[i] as Record<string, Object>;
+        result.push({
+          id: (o['id'] as string) || '',
+          type: (o['type'] as string) || 'poem',
+          dimension: (o['dimension'] as string) || ''
+        });
       }
-      return ids;
+      return result;
     } catch (e) {
       return [];
     }
   }
 
-  private static saveFormIds(context: Context, ids: string[]): void {
+  private static saveForms(context: Context, forms: WidgetFormEntry[]): void {
     try {
       let prefs: preferences.Preferences = preferences.getPreferencesSync(context, { name: DailyPoemWidgetUtil.PREFS_NAME });
-      prefs.putSync(DailyPoemWidgetUtil.KEY_FORM_IDS, ids.join(DailyPoemWidgetUtil.SEPARATOR));
+      prefs.putSync(DailyPoemWidgetUtil.KEY_FORMS, JSON.stringify(forms));
       prefs.flushSync();
     } catch (e) {
-      console.error('[DailyPoemWidget] saveFormIds failed: ' + (e as Error).message);
+      console.error('[DailyPoemWidget] saveForms failed: ' + (e as Error).message);
     }
   }
 

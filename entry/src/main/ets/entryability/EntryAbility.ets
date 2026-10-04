@@ -1,6 +1,7 @@
 import { AbilityConstant, UIAbility, Want } from '@kit.AbilityKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
+import { DailyPoemWidgetUtil } from '../common/utils/DailyPoemWidgetUtil';
 
 const DOMAIN = 0xF0001;
 const TAG = 'PocketToolbox';
@@ -28,6 +29,11 @@ export default class EntryAbility extends UIAbility {
       if (openPoem) {
         AppStorage.setOrCreate('WidgetOpenPoem', openPoem);
         hilog.info(DOMAIN, TAG, '%{public}s', 'widget openPoem received');
+      }
+      let openCheckIn: string = String(cardParams['openCheckIn'] ?? '');
+      if (openCheckIn) {
+        AppStorage.setOrCreate('WidgetOpenCheckIn', openCheckIn);
+        hilog.info(DOMAIN, TAG, '%{public}s', 'widget openCheckIn received');
       }
     } catch (e) {
       hilog.warn(DOMAIN, TAG, 'parse widget params failed: %{public}s', JSON.stringify(e));
@@ -58,6 +64,12 @@ export default class EntryAbility extends UIAbility {
   onForeground(): void {
     // Ability has brought to foreground
     hilog.info(DOMAIN, TAG, '%{public}s', 'Ability onForeground');
+    // 桌面卡片在应用回到前台时即时刷新（诗词卡 + 签到卡）
+    try {
+      DailyPoemWidgetUtil.updateAllForms(this.context);
+    } catch (e) {
+      hilog.warn(DOMAIN, TAG, 'updateAllForms failed: %{public}s', JSON.stringify(e));
+    }
   }
 
   onBackground(): void {

@@ -17,6 +17,14 @@
       "value": "一日一首。カードをタップして解语珠玑を開く"
     },
     {
+      "name": "checkin_widget_name",
+      "value": "毎日チェックイン"
+    },
+    {
+      "name": "checkin_widget_desc",
+      "value": "連続記録を確認し、ワンタップでチェックイン"
+    },
+    {
       "name": "module_desc",
       "value": "解语珠玑のメインモジュール"
     },

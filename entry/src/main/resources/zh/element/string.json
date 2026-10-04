@@ -17,6 +17,14 @@
       "value": "每天一首诗，点击卡片进入解语珠玑"
     },
     {
+      "name": "checkin_widget_name",
+      "value": "每日签到"
+    },
+    {
+      "name": "checkin_widget_desc",
+      "value": "查看连续签到，一键打卡"
+    },
+    {
       "name": "module_desc",
       "value": "解语珠玑主模块"
     },

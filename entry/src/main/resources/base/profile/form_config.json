@@ -7,10 +7,23 @@
       "src": "./ets/widget/pages/DailyPoemWidgetCard.ets",
       "uiSyntax": "arkts",
       "isDefault": true,
-      "supportDimensions": ["2*4"],
+      "supportDimensions": ["2*4", "2*2"],
       "defaultDimension": "2*4",
       "updateEnabled": true,
-      "updateDuration": 48
+      "updateDuration": 48,
+      "scheduledUpdateTime": "09:00"
+    },
+    {
+      "name": "CheckInWidget",
+      "displayName": "$string:checkin_widget_name",
+      "description": "$string:checkin_widget_desc",
+      "src": "./ets/widget/pages/CheckInWidgetCard.ets",
+      "uiSyntax": "arkts",
+      "isDefault": false,
+      "supportDimensions": ["2*2"],
+      "defaultDimension": "2*2",
+      "updateEnabled": true,
+      "scheduledUpdateTime": "00:05"
     }
   ]
 }

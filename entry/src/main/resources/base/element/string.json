@@ -17,6 +17,14 @@
       "value": "A poem a day. Tap the card to open JieYu ZhuJi"
     },
     {
+      "name": "checkin_widget_name",
+      "value": "Daily Check-in"
+    },
+    {
+      "name": "checkin_widget_desc",
+      "value": "Track your streak and check in instantly"
+    },
+    {
       "name": "module_desc",
       "value": "Main module of JieYu ZhuJi"
     },

@@ -1,6 +1,6 @@
-let storage = new LocalStorage();
+let poemCardStorage = new LocalStorage();
 
-@Entry(storage)
+@Entry(poemCardStorage)
 @Component
 struct DailyPoemWidgetCard {
   @LocalStorageProp('title') title: string = '';
@@ -8,6 +8,7 @@ struct DailyPoemWidgetCard {
   @LocalStorageProp('lines') lines: string = '';
   @LocalStorageProp('date') date: string = '';
   @LocalStorageProp('poemJson') poemJson: string = '';
+  @LocalStorageProp('dimension') dimension: string = '';
 
   build() {
     Column() {
@@ -39,13 +40,16 @@ struct DailyPoemWidgetCard {
             .maxLines(1)
             .margin({ top: 2 })
         }
-        Text(this.lines)
-          .fontSize(13)
-          .fontColor($r('app.color.primary_text'))
-          .lineHeight(21)
-          .maxLines(2)
-          .textOverflow({ overflow: TextOverflow.Ellipsis })
-          .margin({ top: 8 })
+        // 2*2 小尺寸仅展示标题与作者，隐藏诗句行
+        if (this.dimension !== '2*2') {
+          Text(this.lines)
+            .fontSize(13)
+            .fontColor($r('app.color.primary_text'))
+            .lineHeight(21)
+            .maxLines(2)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
+            .margin({ top: 8 })
+        }
       }
       .width('100%')
       .alignItems(HorizontalAlign.Start)

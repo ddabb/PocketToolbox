@@ -257,6 +257,7 @@ struct Index {
     this.loadFavCount();
     this.loadStickinessData();
     this.handleWidgetOpenPoem();
+    this.handleWidgetOpenCheckIn();
   }
 
   // 桌面卡片点击深链：打开对应诗词详情页
@@ -288,6 +289,23 @@ struct Index {
     } catch (e) {
       console.error('[Index] widget openPoem parse failed: ' + (e as Error).message);
     }
+  }
+
+  // 桌面签到卡片点击深链：打开应用即打卡并提示；已签到则提示已签
+  private handleWidgetOpenCheckIn(): void {
+    let flag: string = (AppStorage.get('WidgetOpenCheckIn') ?? '') as string;
+    if (!flag) {
+      return;
+    }
+    AppStorage.delete('WidgetOpenCheckIn');
+    if (!this.checkedInToday) {
+      this.doCheckIn();
+    } else {
+      ToastUtil.show(this.getUIContext(), $r('app.string.checked_in'), 1500);
+    }
+    // 打卡后刷新桌面卡片（诗词卡 + 签到卡）
+    let ctx: Context = this.getUIContext().getHostContext() as Context;
+    DailyPoemWidgetUtil.updateAllForms(ctx);
   }
 
   private loadStickinessData(): void {
