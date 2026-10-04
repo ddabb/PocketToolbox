@@ -38,6 +38,7 @@ import { ConverterCategory, UnitConverterData } from '../model/UnitModels';
 import { ToastUtil } from '../common/utils/ToastUtil';
 import { ClipboardUtil } from '../common/utils/ClipboardUtil';
 import { VibrateUtil } from '../common/utils/VibrateUtil';
+import { BreakpointObserver, ScreenBreakpoint } from '../common/utils/BreakpointUtil';
 import { StrUtil } from '../common/utils/StrUtil';
 
 const FEEDBACK_EMAIL: string = '1011888891@qq.com';
@@ -97,10 +98,12 @@ struct Index {
   @State mineUserStats: UserStats = new UserStats();
   @State mineCheckInData: CheckInData = new CheckInData();
   @State mineChallengeProgress: ChallengeProgress = new ChallengeProgress();
+  @State toolGridCols: number = 4;
   @StorageLink('ReadingDataVersion') @Watch('onReadingDataChanged') readingDataVersion: number = 0;
   private poetryVm: PoetryViewModel = PoetryViewModel.getInstance();
   private idiomVm: IdiomViewModel = IdiomViewModel.getInstance();
   private xiehouyuVm: XiehouyuViewModel = XiehouyuViewModel.getInstance();
+  private bpObserver: BreakpointObserver = new BreakpointObserver();
   private readonly DAILY_PADDING: number = 12;
   private readonly DAILY_RADIUS: number = 12;
   private readonly DAILY_HEADER_ICON_SIZE: number = 13;
@@ -136,6 +139,24 @@ struct Index {
     } catch (e) {
       this.appVersionName = '';
     }
+    this.bpObserver.start(this.getUIContext(), (bp: ScreenBreakpoint) => {
+      this.toolGridCols = bp === ScreenBreakpoint.LG ? 8 : (bp === ScreenBreakpoint.MD ? 6 : 4);
+    });
+  }
+
+  aboutToDisappear(): void {
+    this.bpObserver.stop();
+  }
+
+  // 工具网格按断点取列数：手机 4 列 / 折叠屏 6 列 / 平板 8 列（取整百分比避免 Flex 换行取整回退）
+  private gridItemWidth(): string {
+    if (this.toolGridCols === 8) {
+      return '12.5%';
+    }
+    if (this.toolGridCols === 6) {
+      return '16.66%';
+    }
+    return '25%';
   }
 
   private buildToolItems(): void {
@@ -854,7 +875,7 @@ struct Index {
             .textOverflow({ overflow: TextOverflow.Ellipsis })
             .constraintSize({ maxWidth: 72 })
         }
-        .width('25%')
+        .width(this.gridItemWidth())
         .padding({ top: 8, bottom: 12 })
         .alignItems(HorizontalAlign.Center)
         .accessibilityText(this.toolA11yLabel(tool))

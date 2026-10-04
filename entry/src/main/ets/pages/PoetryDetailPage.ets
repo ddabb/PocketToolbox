@@ -58,9 +58,14 @@ export struct PoetryDetailContent {
 
   build() {
     Column() {
-      this.PoetHeader()
-      this.SearchBar()
-      this.PoemList()
+      Column() {
+        this.PoetHeader()
+        this.SearchBar()
+        this.PoemList()
+      }
+      .width('100%')
+      .height('100%')
+      .constraintSize({ maxWidth: 720 })
     }
     .width('100%')
     .height('100%')
