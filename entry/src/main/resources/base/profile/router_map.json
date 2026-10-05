@@ -94,6 +94,16 @@
       "name": "SudokuSolverPage",
       "pageSourceFile": "src/main/ets/pages/SudokuSolverPage.ets",
       "buildFunction": "SudokuSolverPageBuilder"
+    },
+    {
+      "name": "FlyFlowerPage",
+      "pageSourceFile": "src/main/ets/pages/FlyFlowerPage.ets",
+      "buildFunction": "FlyFlowerPageBuilder"
+    },
+    {
+      "name": "DataBackupPage",
+      "pageSourceFile": "src/main/ets/pages/DataBackupPage.ets",
+      "buildFunction": "DataBackupPageBuilder"
     }
   ]
 }

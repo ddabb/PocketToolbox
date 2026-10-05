@@ -3539,6 +3539,166 @@
     {
       "name": "poemq_poet_subtitle",
       "value": "%1 · %2"
+    },
+    {
+      "name": "ff_title",
+      "value": "飛花令"
+    },
+    {
+      "name": "ff_entry_desc",
+      "value": "指定の文字を含む詩句を続けて答える遊び"
+    },
+    {
+      "name": "ff_input_hint",
+      "value": "「%1$s」を含む詩句を入力"
+    },
+    {
+      "name": "ff_submit",
+      "value": "送信"
+    },
+    {
+      "name": "ff_change_char",
+      "value": "文字を変える"
+    },
+    {
+      "name": "ff_hint",
+      "value": "ヒント"
+    },
+    {
+      "name": "ff_hint_toast",
+      "value": "「%1$s…」で始まる詩句を試してみて"
+    },
+    {
+      "name": "ff_miss_char",
+      "value": "詩句に「%1$s」を含めてください"
+    },
+    {
+      "name": "ff_not_found",
+      "value": "詩庫にない句です。別の句をどうぞ"
+    },
+    {
+      "name": "ff_used",
+      "value": "この句は使用済みです"
+    },
+    {
+      "name": "ff_streak_end",
+      "value": "今回%1$d句、最高%2$d句"
+    },
+    {
+      "name": "ff_source",
+      "value": "『%1$s』%2$s"
+    },
+    {
+      "name": "ff_best_streak",
+      "value": "最高連続"
+    },
+    {
+      "name": "ff_total",
+      "value": "累計詩句"
+    },
+    {
+      "name": "ff_current_streak",
+      "value": "現在の連続"
+    },
+    {
+      "name": "ff_empty_history",
+      "value": "答えた詩句はここに表示されます"
+    },
+    {
+      "name": "ff_loading",
+      "value": "詩庫を読み込み中…"
+    },
+    {
+      "name": "ff_load_fail",
+      "value": "詩庫の読み込みに失敗しました"
+    },
+    {
+      "name": "bk_title",
+      "value": "データバックアップ"
+    },
+    {
+      "name": "bk_export",
+      "value": "エクスポート"
+    },
+    {
+      "name": "bk_import",
+      "value": "インポート"
+    },
+    {
+      "name": "bk_scope_title",
+      "value": "バックアップ範囲"
+    },
+    {
+      "name": "bk_scope_desc",
+      "value": "お気に入り、リスト、読み上げ設定、チェックイン・実績、漢字帳、利用統計。JSONファイルとして任意の場所に保存します。インポートはバックアップに含まれるデータで上書きされます。"
+    },
+    {
+      "name": "bk_export_ok",
+      "value": "エクスポートしました"
+    },
+    {
+      "name": "bk_export_cancel",
+      "value": "エクスポートを中止しました"
+    },
+    {
+      "name": "bk_export_fail",
+      "value": "エクスポートに失敗しました。もう一度お試しください"
+    },
+    {
+      "name": "bk_import_confirm_title",
+      "value": "データのインポート"
+    },
+    {
+      "name": "bk_import_confirm_msg",
+      "value": "インポートはバックアップのデータで上書きされ、元に戻せません。先に現在のデータをエクスポートしてください。続行しますか？"
+    },
+    {
+      "name": "bk_import_ok",
+      "value": "インポートしました。一部の画面は戻った後に反映されます"
+    },
+    {
+      "name": "bk_import_cancel",
+      "value": "インポートを中止しました"
+    },
+    {
+      "name": "bk_import_fail",
+      "value": "ファイルが無効か、インポートに失敗しました"
+    },
+    {
+      "name": "mine_data_backup",
+      "value": "データバックアップ"
+    },
+    {
+      "name": "poemct_pinyin",
+      "value": "ふりがな"
+    },
+    {
+      "name": "poemct_pinyin_a11y",
+      "value": "詩句のふりがな表示を切り替え"
+    },
+    {
+      "name": "ach_flyflower_first_title",
+      "value": "はじめの一句"
+    },
+    {
+      "name": "ach_flyflower_first_desc",
+      "value": "飛花令で最初の一句を合わせる"
+    },
+    {
+      "name": "ach_flyflower_streak_10_title",
+      "value": "詩才ほとばしる"
+    },
+    {
+      "name": "ach_flyflower_streak_10_desc",
+      "value": "飛花令で1回に10句連続で合わせる"
+    },
+    {
+      "name": "ach_flyflower_total_30_title",
+      "value": "詩の達人"
+    },
+    {
+      "name": "ach_flyflower_total_30_desc",
+      "value": "飛花令で累計30句を達成"
     }
   ]
 }

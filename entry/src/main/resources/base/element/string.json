@@ -3539,6 +3539,166 @@
     {
       "name": "poemq_poet_subtitle",
       "value": "%1 · %2 poems"
+    },
+    {
+      "name": "ff_title",
+      "value": "Fly-Flower Game"
+    },
+    {
+      "name": "ff_entry_desc",
+      "value": "Chain verses containing the given character"
+    },
+    {
+      "name": "ff_input_hint",
+      "value": "Enter a verse containing \"%1$s\""
+    },
+    {
+      "name": "ff_submit",
+      "value": "Submit"
+    },
+    {
+      "name": "ff_change_char",
+      "value": "New Character"
+    },
+    {
+      "name": "ff_hint",
+      "value": "Hint"
+    },
+    {
+      "name": "ff_hint_toast",
+      "value": "Try a verse starting with \"%1$s…\""
+    },
+    {
+      "name": "ff_miss_char",
+      "value": "The verse must contain \"%1$s\""
+    },
+    {
+      "name": "ff_not_found",
+      "value": "Not in our poetry library. Try another verse"
+    },
+    {
+      "name": "ff_used",
+      "value": "Verse already used"
+    },
+    {
+      "name": "ff_streak_end",
+      "value": "%1$d verses this round, best %2$d"
+    },
+    {
+      "name": "ff_source",
+      "value": "\"%1$s\" by %2$s"
+    },
+    {
+      "name": "ff_best_streak",
+      "value": "Best Streak"
+    },
+    {
+      "name": "ff_total",
+      "value": "Total Verses"
+    },
+    {
+      "name": "ff_current_streak",
+      "value": "Current Streak"
+    },
+    {
+      "name": "ff_empty_history",
+      "value": "Your matched verses will appear here"
+    },
+    {
+      "name": "ff_loading",
+      "value": "Loading library…"
+    },
+    {
+      "name": "ff_load_fail",
+      "value": "Failed to load library"
+    },
+    {
+      "name": "bk_title",
+      "value": "Data Backup"
+    },
+    {
+      "name": "bk_export",
+      "value": "Export Data"
+    },
+    {
+      "name": "bk_import",
+      "value": "Import Data"
+    },
+    {
+      "name": "bk_scope_title",
+      "value": "Backup Scope"
+    },
+    {
+      "name": "bk_scope_desc",
+      "value": "Favorites, reading lists, reading settings, check-ins & achievements, character book, usage stats. Export saves a JSON file to a location you choose; importing overwrites the data included in the backup."
+    },
+    {
+      "name": "bk_export_ok",
+      "value": "Exported successfully"
+    },
+    {
+      "name": "bk_export_cancel",
+      "value": "Export cancelled"
+    },
+    {
+      "name": "bk_export_fail",
+      "value": "Export failed. Please try again"
+    },
+    {
+      "name": "bk_import_confirm_title",
+      "value": "Import Data"
+    },
+    {
+      "name": "bk_import_confirm_msg",
+      "value": "Importing will overwrite the data included in the backup and cannot be undone. Export your current data first. Continue?"
+    },
+    {
+      "name": "bk_import_ok",
+      "value": "Imported successfully. Takes effect on return for some pages"
+    },
+    {
+      "name": "bk_import_cancel",
+      "value": "Import cancelled"
+    },
+    {
+      "name": "bk_import_fail",
+      "value": "Invalid file or import failed"
+    },
+    {
+      "name": "mine_data_backup",
+      "value": "Data Backup"
+    },
+    {
+      "name": "poemct_pinyin",
+      "value": "Pinyin"
+    },
+    {
+      "name": "poemct_pinyin_a11y",
+      "value": "Toggle pinyin annotation for verses"
+    },
+    {
+      "name": "ach_flyflower_first_title",
+      "value": "First Verse"
+    },
+    {
+      "name": "ach_flyflower_first_desc",
+      "value": "Match your first verse in the Fly-Flower game"
+    },
+    {
+      "name": "ach_flyflower_streak_10_title",
+      "value": "Silver Tongue"
+    },
+    {
+      "name": "ach_flyflower_streak_10_desc",
+      "value": "Chain 10 verses in one round of the Fly-Flower game"
+    },
+    {
+      "name": "ach_flyflower_total_30_title",
+      "value": "Verse Master"
+    },
+    {
+      "name": "ach_flyflower_total_30_desc",
+      "value": "Match 30 verses in total in the Fly-Flower game"
     }
   ]
 }

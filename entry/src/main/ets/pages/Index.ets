@@ -21,6 +21,8 @@ import { CoverMakerPageBuilder } from './CoverMakerPage';
 import { CharCardPageBuilder } from './CharCardPage';
 import { GcdLcmPageBuilder } from './GcdLcmPage';
 import { PrimeFactorPageBuilder } from './PrimeFactorPage';
+import { FlyFlowerPageBuilder } from './FlyFlowerPage';
+import { DataBackupPageBuilder } from './DataBackupPage';
 import { registerUnifiedTemplateSets } from '../core/template/UnifiedTemplateSets';
 import { PoetryViewModel } from '../viewmodel/PoetryViewModel';
 import { IdiomViewModel } from '../viewmodel/IdiomViewModel';
@@ -577,6 +579,10 @@ struct Index {
       SudokuSolverPageBuilder()
     } else if (name === 'GifMakerPage') {
       GifMakerPageBuilder()
+    } else if (name === 'FlyFlowerPage') {
+      FlyFlowerPageBuilder()
+    } else if (name === 'DataBackupPage') {
+      DataBackupPageBuilder()
     }
   }
 
@@ -1297,6 +1303,27 @@ struct Index {
           .backgroundColor($r('app.color.card_background'))
           .borderRadius(14)
           .margin({ left: 16, right: 16, top: 12 })
+
+          Row() {
+            Text('\uD83D\uDCBE')
+              .fontSize(20)
+              .margin({ right: 10 })
+            Text($r('app.string.mine_data_backup'))
+              .fontSize(15)
+              .fontColor($r('app.color.primary_text'))
+              .layoutWeight(1)
+            Text('\u203A')
+              .fontSize(18)
+              .fontColor($r('app.color.hint_text'))
+          }
+          .width('100%')
+          .padding({ left: 16, right: 16, top: 14, bottom: 14 })
+          .backgroundColor($r('app.color.card_background'))
+          .borderRadius(14)
+          .margin({ left: 16, right: 16, top: 12 })
+          .onClick(() => {
+            this.mineStack.pushPathByName('DataBackupPage', null);
+          })
 
           Text('解语珠玑' + (this.appVersionName ? ' \u00B7 v' + this.appVersionName : ''))
             .fontSize(12)

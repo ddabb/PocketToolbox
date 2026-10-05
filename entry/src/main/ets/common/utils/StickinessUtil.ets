@@ -47,6 +47,8 @@ export class UserStats {
   readingItems: number = 0;
   readingMinutes: number = 0;
   toolUseCount: number = 0;
+  flyflowerBest: number = 0;
+  flyflowerTotal: number = 0;
 }
 
 class AchievementDef {
@@ -95,6 +97,9 @@ export class StickinessUtil {
     new AchievementDef('browse_500', 'ach_browse_500_title', 'ach_browse_500_desc', '\uD83D\uDC41', '#3498db', 500, 'browseCount'),
     new AchievementDef('reading_10', 'ach_reading_10_title', 'ach_reading_10_desc', '\uD83D\uDD0A', '#1abc9c', 10, 'readingItems'),
     new AchievementDef('tool_5', 'ach_tool_5_title', 'ach_tool_5_desc', '\uD83D\uDD27', '#e67e22', 5, 'toolUseCount'),
+    new AchievementDef('flyflower_first', 'ach_flyflower_first_title', 'ach_flyflower_first_desc', '\uD83C\uDF38', '#d81b60', 1, 'flyflowerTotal'),
+    new AchievementDef('flyflower_streak_10', 'ach_flyflower_streak_10_title', 'ach_flyflower_streak_10_desc', '\uD83C\uDFC6', '#8e44ad', 10, 'flyflowerBest'),
+    new AchievementDef('flyflower_total_30', 'ach_flyflower_total_30_title', 'ach_flyflower_total_30_desc', '\uD83C\uDF38', '#d81b60', 30, 'flyflowerTotal'),
   ];
 
   static todayStr(): string {
@@ -198,6 +203,8 @@ export class StickinessUtil {
       stats.readingItems = (obj['readingItems'] as number) || 0;
       stats.readingMinutes = (obj['readingMinutes'] as number) || 0;
       stats.toolUseCount = (obj['toolUseCount'] as number) || 0;
+      stats.flyflowerBest = (obj['flyflowerBest'] as number) || 0;
+      stats.flyflowerTotal = (obj['flyflowerTotal'] as number) || 0;
       return stats;
     } catch (e) {
       return new UserStats();
@@ -218,7 +225,9 @@ export class StickinessUtil {
         'challengeTotal': stats.challengeTotal as Object,
         'readingItems': stats.readingItems as Object,
         'readingMinutes': stats.readingMinutes as Object,
-        'toolUseCount': stats.toolUseCount as Object
+        'toolUseCount': stats.toolUseCount as Object,
+        'flyflowerBest': stats.flyflowerBest as Object,
+        'flyflowerTotal': stats.flyflowerTotal as Object
       };
       prefs.putSync(StickinessUtil.KEY_STATS, JSON.stringify(obj));
       prefs.flush();
@@ -251,6 +260,20 @@ export class StickinessUtil {
       stats.readingMinutes = value;
     } else if (key === 'toolUseCount') {
       stats.toolUseCount = value;
+    } else if (key === 'flyflowerBest') {
+      stats.flyflowerBest = value;
+    } else if (key === 'flyflowerTotal') {
+      stats.flyflowerTotal = value;
+    }
+    StickinessUtil.saveStats(context, stats);
+    StickinessUtil.checkAchievements(context, stats);
+  }
+
+  static recordFlyFlowerVerse(context: Context, streak: number): void {
+    let stats: UserStats = StickinessUtil.loadStats(context);
+    stats.flyflowerTotal = stats.flyflowerTotal + 1;
+    if (streak > stats.flyflowerBest) {
+      stats.flyflowerBest = streak;
     }
     StickinessUtil.saveStats(context, stats);
     StickinessUtil.checkAchievements(context, stats);
@@ -325,6 +348,10 @@ export class StickinessUtil {
       return stats.readingMinutes;
     } else if (key === 'toolUseCount') {
       return stats.toolUseCount;
+    } else if (key === 'flyflowerBest') {
+      return stats.flyflowerBest;
+    } else if (key === 'flyflowerTotal') {
+      return stats.flyflowerTotal;
     }
     return 0;
   }

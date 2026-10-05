@@ -10,6 +10,7 @@ import { ReadingList, ReadingItem, ReadingListStore } from '../model/ReadingList
 import { StickinessUtil } from '../common/utils/StickinessUtil';
 import { ToastUtil } from '../common/utils/ToastUtil';
 import { CharBookUtil } from '../common/utils/CharBookUtil';
+import { PinyinText } from '../components/PinyinText';
 
 class DynastyQueryParam {
   dynasty: string = '';
@@ -43,6 +44,7 @@ export struct PoemContentContent {
   @State showCreateInPicker: boolean = false;
   @State newListName: string = '';
   @State showCharPicker: boolean = false;
+  @State pinyinOn: boolean = false;
   @State pickerChars: string[] = [];
   @State selectedChars: string[] = [];
   @State bookChars: string[] = [];
@@ -272,13 +274,40 @@ export struct PoemContentContent {
                 .margin({ top: 8 })
             }
 
-            Text(this.poemParam.c)
-              .fontSize(16)
-              .fontColor($r('app.color.secondary_text'))
-              .lineHeight(30)
-              .width('100%')
-              .margin({ top: 20 })
-              .padding({ left: 8, right: 8 })
+            Row() {
+              Blank()
+              Text($r('app.string.poemct_pinyin'))
+                .fontSize(13)
+                .fontColor(this.pinyinOn ? $r('app.color.on_accent_text') : $r('app.color.poetry_green'))
+                .backgroundColor(this.pinyinOn ? $r('app.color.poetry_green') : $r('app.color.poetry_green') + '18')
+                .borderRadius(14)
+                .padding({ left: 16, right: 16, top: 6, bottom: 6 })
+                .accessibilityText($r('app.string.poemct_pinyin_a11y'))
+                .onClick(() => {
+                  this.pinyinOn = !this.pinyinOn;
+                })
+            }
+            .width('100%')
+            .margin({ top: 16 })
+
+            if (this.pinyinOn) {
+              PinyinText({
+                text: this.poemParam.c,
+                charSize: 16,
+                pySize: 10,
+                charColor: $r('app.color.secondary_text')
+              })
+                .margin({ top: 12 })
+                .padding({ left: 8, right: 8 })
+            } else {
+              Text(this.poemParam.c)
+                .fontSize(16)
+                .fontColor($r('app.color.secondary_text'))
+                .lineHeight(30)
+                .width('100%')
+                .margin({ top: 20 })
+                .padding({ left: 8, right: 8 })
+            }
 
             Row({ space: 12 }) {
               Text(this.isFav ? '\u2665' : '\u2661')

@@ -102,9 +102,44 @@ struct DailyChallengeContent {
     return '\uD83D\uDE2E';
   }
 
+  private openFlyFlower(): void {
+    let stack: NavPathStack = AppStorage.get('AppNavPathStack') as NavPathStack;
+    stack.pushPathByName('FlyFlowerPage', null);
+  }
+
   build() {
     Column() {
       Column() {
+      Row() {
+        Text('\uD83C\uDF38')
+          .fontSize(22)
+        Column() {
+          Text($r('app.string.ff_title'))
+            .fontSize(15)
+            .fontWeight(FontWeight.Bold)
+            .fontColor($r('app.color.primary_text'))
+          Text($r('app.string.ff_entry_desc'))
+            .fontSize(11)
+            .fontColor($r('app.color.tertiary_text'))
+            .margin({ top: 2 })
+        }
+        .layoutWeight(1)
+        .alignItems(HorizontalAlign.Start)
+        .margin({ left: 10 })
+
+        Text('\u203A')
+          .fontSize(18)
+          .fontColor($r('app.color.hint_text'))
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, top: 12, bottom: 12 })
+      .backgroundColor($r('app.color.card_background'))
+      .borderRadius(14)
+      .margin({ left: 16, right: 16, top: 12 })
+      .onClick(() => {
+        this.openFlyFlower();
+      })
+
       if (this.isLoading) {
         Column() {
           LoadingProgress()

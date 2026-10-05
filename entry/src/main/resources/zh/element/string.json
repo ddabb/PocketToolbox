@@ -3539,6 +3539,166 @@
     {
       "name": "poemq_poet_subtitle",
       "value": "%1 · %2"
+    },
+    {
+      "name": "ff_title",
+      "value": "飞花令"
+    },
+    {
+      "name": "ff_entry_desc",
+      "value": "含字诗句接龙，看看你能连对几句"
+    },
+    {
+      "name": "ff_input_hint",
+      "value": "输入含「%1$s」的诗句"
+    },
+    {
+      "name": "ff_submit",
+      "value": "提交"
+    },
+    {
+      "name": "ff_change_char",
+      "value": "换一字"
+    },
+    {
+      "name": "ff_hint",
+      "value": "提示"
+    },
+    {
+      "name": "ff_hint_toast",
+      "value": "试试「%1$s…」开头的诗句"
+    },
+    {
+      "name": "ff_miss_char",
+      "value": "诗句中需含「%1$s」"
+    },
+    {
+      "name": "ff_not_found",
+      "value": "诗库未收录此句，换一句试试"
+    },
+    {
+      "name": "ff_used",
+      "value": "此句已用过"
+    },
+    {
+      "name": "ff_streak_end",
+      "value": "本轮连对%1$d句，最佳%2$d句"
+    },
+    {
+      "name": "ff_source",
+      "value": "《%1$s》·%2$s"
+    },
+    {
+      "name": "ff_best_streak",
+      "value": "最佳连对"
+    },
+    {
+      "name": "ff_total",
+      "value": "累计诗句"
+    },
+    {
+      "name": "ff_current_streak",
+      "value": "当前连对"
+    },
+    {
+      "name": "ff_empty_history",
+      "value": "对出的诗句会显示在这里"
+    },
+    {
+      "name": "ff_loading",
+      "value": "诗库加载中…"
+    },
+    {
+      "name": "ff_load_fail",
+      "value": "诗库加载失败"
+    },
+    {
+      "name": "bk_title",
+      "value": "数据备份"
+    },
+    {
+      "name": "bk_export",
+      "value": "导出数据"
+    },
+    {
+      "name": "bk_import",
+      "value": "导入数据"
+    },
+    {
+      "name": "bk_scope_title",
+      "value": "备份范围"
+    },
+    {
+      "name": "bk_scope_desc",
+      "value": "收藏、阅读清单、朗读设置、签到与成就、生字簿、使用统计。导出为JSON文件保存到您选择的位置；导入时备份中包含的数据将覆盖当前数据。"
+    },
+    {
+      "name": "bk_export_ok",
+      "value": "导出成功"
+    },
+    {
+      "name": "bk_export_cancel",
+      "value": "已取消导出"
+    },
+    {
+      "name": "bk_export_fail",
+      "value": "导出失败，请重试"
+    },
+    {
+      "name": "bk_import_confirm_title",
+      "value": "导入数据"
+    },
+    {
+      "name": "bk_import_confirm_msg",
+      "value": "导入将覆盖备份中包含的数据，且无法撤销。建议先导出当前数据。确定继续吗？"
+    },
+    {
+      "name": "bk_import_ok",
+      "value": "导入成功，部分页面返回后生效"
+    },
+    {
+      "name": "bk_import_cancel",
+      "value": "已取消导入"
+    },
+    {
+      "name": "bk_import_fail",
+      "value": "文件无效或导入失败"
+    },
+    {
+      "name": "mine_data_backup",
+      "value": "数据备份"
+    },
+    {
+      "name": "poemct_pinyin",
+      "value": "注音"
+    },
+    {
+      "name": "poemct_pinyin_a11y",
+      "value": "切换诗句注音显示"
+    },
+    {
+      "name": "ach_flyflower_first_title",
+      "value": "初试啼声"
+    },
+    {
+      "name": "ach_flyflower_first_desc",
+      "value": "飞花令对出第一句诗句"
+    },
+    {
+      "name": "ach_flyflower_streak_10_title",
+      "value": "出口成章"
+    },
+    {
+      "name": "ach_flyflower_streak_10_desc",
+      "value": "飞花令单轮连对10句"
+    },
+    {
+      "name": "ach_flyflower_total_30_title",
+      "value": "诗中蛟龙"
+    },
+    {
+      "name": "ach_flyflower_total_30_desc",
+      "value": "飞花令累计对出30句"
     }
   ]
 }
