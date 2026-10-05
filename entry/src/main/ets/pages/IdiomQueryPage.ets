@@ -317,14 +317,19 @@ struct IdiomQueryContent {
 
   build() {
     Column() {
-      this.TabBar()
-      if (this.activeTab === 'solitaire') {
-        this.SolitaireTab()
-      } else if (this.activeTab === 'browse') {
-        this.BrowseTab()
-      } else {
-        this.SearchTab()
+      Column() {
+        this.TabBar()
+        if (this.activeTab === 'solitaire') {
+          this.SolitaireTab()
+        } else if (this.activeTab === 'browse') {
+          this.BrowseTab()
+        } else {
+          this.SearchTab()
+        }
       }
+      .width('100%')
+      .height('100%')
+      .constraintSize({ maxWidth: 720 })
     }
     .width('100%')
     .height('100%')

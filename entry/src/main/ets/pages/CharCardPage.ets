@@ -421,6 +421,7 @@ struct CharCardContent {
       }
       .width('100%')
       .height('100%')
+      .constraintSize({ maxWidth: 760 })
 
       if (this.showCharBook) {
         this.CharBookOverlay()

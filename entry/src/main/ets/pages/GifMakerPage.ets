@@ -2631,6 +2631,7 @@ struct GifMakerPage {
 
   build() {
     Column() {
+      Column() {
       if (this.exporting) {
         Column({ space: 16 }) {
           Text('⏳')
@@ -2753,6 +2754,10 @@ struct GifMakerPage {
         .width('100%')
         .layoutWeight(1)
       }
+      }
+      .width('100%')
+      .height('100%')
+      .constraintSize({ maxWidth: 760 })
     }
     .width('100%')
     .height('100%')

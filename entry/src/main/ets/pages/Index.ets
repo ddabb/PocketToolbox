@@ -775,6 +775,7 @@ struct Index {
         }
         .width('100%')
         .padding({ bottom: 8 })
+        .constraintSize({ maxWidth: 720 })
       }
       .width('100%')
       .height('100%')
@@ -1306,6 +1307,7 @@ struct Index {
             })
         }
         .width('100%')
+        .constraintSize({ maxWidth: 720 })
       }
       .width('100%')
       .height('100%')

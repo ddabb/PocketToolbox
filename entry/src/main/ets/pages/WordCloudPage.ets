@@ -24,6 +24,7 @@ export function WordCloudPageBuilder() {
   .title($r('app.string.tool_wordcloud_title'))
   .backButtonIcon($r('sys.symbol.chevron_left'))
   .menus([])
+  .backgroundColor($r('app.color.page_background'))
 }
 
 @Component
@@ -260,7 +261,7 @@ struct WordCloudContent {
     .height('100%')
     .scrollable(ScrollDirection.Vertical)
     .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
-    .backgroundColor($r('app.color.page_background'))
+    .constraintSize({ maxWidth: 760 })
     .bindContentCover(this.showWordsDialog, this.WordsEditCover(), {
       modalTransition: ModalTransition.NONE,
       onDisappear: () => {

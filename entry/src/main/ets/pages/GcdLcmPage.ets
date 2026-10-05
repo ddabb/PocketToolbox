@@ -11,6 +11,7 @@ export function GcdLcmPageBuilder() {
   .title($r('app.string.tool_gcd_lcm_title'))
   .backButtonIcon($r('sys.symbol.chevron_left'))
   .menus([])
+  .backgroundColor($r('app.color.page_background'))
 }
 
 @Component
@@ -319,7 +320,7 @@ struct GcdLcmContent {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor($r('app.color.page_background'))
+    .constraintSize({ maxWidth: 640 })
     .scrollable(ScrollDirection.Vertical)
     .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
   }

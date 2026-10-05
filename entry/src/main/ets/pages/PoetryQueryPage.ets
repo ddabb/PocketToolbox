@@ -297,7 +297,7 @@ struct PoetryQueryContent {
       }
       .width('100%')
       .height('100%')
-      .backgroundColor($r('app.color.page_background'))
+      .constraintSize({ maxWidth: 720 })
 
       if (this.ocrSheetVisible) {
         this.OcrSheetOverlay()
@@ -305,6 +305,7 @@ struct PoetryQueryContent {
     }
     .width('100%')
     .height('100%')
+    .backgroundColor($r('app.color.page_background'))
   }
 
   @Builder

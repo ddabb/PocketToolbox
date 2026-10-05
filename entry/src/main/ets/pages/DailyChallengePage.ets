@@ -104,6 +104,7 @@ struct DailyChallengeContent {
 
   build() {
     Column() {
+      Column() {
       if (this.isLoading) {
         Column() {
           LoadingProgress()
@@ -123,6 +124,10 @@ struct DailyChallengeContent {
       } else {
         this.QuestionSection()
       }
+      }
+      .width('100%')
+      .height('100%')
+      .constraintSize({ maxWidth: 720 })
     }
     .width('100%')
     .height('100%')

@@ -918,7 +918,7 @@ struct Md2PngContent {
       }
       .width('100%')
       .height('100%')
-      .backgroundColor($r('app.color.page_background'))
+      .constraintSize({ maxWidth: 760 })
 
       if (this.showPositionPanel) {
         this.PositionPanel()
@@ -926,6 +926,7 @@ struct Md2PngContent {
     }
     .width('100%')
     .height('100%')
+    .backgroundColor($r('app.color.page_background'))
   }
 
   @Builder

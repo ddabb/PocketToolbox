@@ -31,6 +31,7 @@ export function PrimeFactorPageBuilder() {
   .title($r('app.string.tool_prime_title'))
   .backButtonIcon($r('sys.symbol.chevron_left'))
   .menus([])
+  .backgroundColor($r('app.color.page_background'))
 }
 
 @Component
@@ -384,7 +385,7 @@ struct PrimeFactorContent {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor($r('app.color.page_background'))
+    .constraintSize({ maxWidth: 640 })
     .scrollable(ScrollDirection.Vertical)
     .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
   }

@@ -329,40 +329,45 @@ struct XiehouyuQueryContent {
 
   build() {
     Column() {
-      this.TabBar()
-      if (this.loading) {
-        Column() {
-          LoadingProgress()
-            .width(48)
-            .height(48)
-            .color($r('app.color.idiom_orange'))
-          Text($r('app.string.poemq_loading'))
-            .fontSize(16)
-            .fontColor($r('app.color.tertiary_text'))
-            .margin({ top: 12 })
+      Column() {
+        this.TabBar()
+        if (this.loading) {
+          Column() {
+            LoadingProgress()
+              .width(48)
+              .height(48)
+              .color($r('app.color.idiom_orange'))
+            Text($r('app.string.poemq_loading'))
+              .fontSize(16)
+              .fontColor($r('app.color.tertiary_text'))
+              .margin({ top: 12 })
+          }
+          .width('100%')
+          .layoutWeight(1)
+          .justifyContent(FlexAlign.Center)
+        } else if (this.hasError) {
+          Column() {
+            ErrorState({
+              text: StrUtil.text(this.uiContext.getHostContext() as Context, $r('app.string.poemq_load_failed')),
+              subText: StrUtil.text(this.uiContext.getHostContext() as Context, $r('app.string.xhyq_load_failed_sub')),
+              onRetry: () => {
+                this.loadData();
+              }
+            })
+          }
+          .width('100%')
+          .layoutWeight(1)
+        } else if (this.activeTab === 'search') {
+          this.SearchTab()
+        } else if (this.activeTab === 'browse') {
+          this.BrowseTab()
+        } else {
+          this.GuessTab()
         }
-        .width('100%')
-        .layoutWeight(1)
-        .justifyContent(FlexAlign.Center)
-      } else if (this.hasError) {
-        Column() {
-          ErrorState({
-            text: StrUtil.text(this.uiContext.getHostContext() as Context, $r('app.string.poemq_load_failed')),
-            subText: StrUtil.text(this.uiContext.getHostContext() as Context, $r('app.string.xhyq_load_failed_sub')),
-            onRetry: () => {
-              this.loadData();
-            }
-          })
-        }
-        .width('100%')
-        .layoutWeight(1)
-      } else if (this.activeTab === 'search') {
-        this.SearchTab()
-      } else if (this.activeTab === 'browse') {
-        this.BrowseTab()
-      } else {
-        this.GuessTab()
       }
+      .width('100%')
+      .height('100%')
+      .constraintSize({ maxWidth: 720 })
     }
     .width('100%')
     .height('100%')

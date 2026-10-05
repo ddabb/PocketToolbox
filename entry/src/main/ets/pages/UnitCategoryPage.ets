@@ -9,6 +9,7 @@ export function UnitCategoryPageBuilder(param?: Object) {
   .title($r('app.string.unitcat_title'))
   .backButtonIcon($r('sys.symbol.chevron_left'))
   .menus([])
+  .backgroundColor($r('app.color.page_background'))
 }
 
 @Component
@@ -65,7 +66,7 @@ struct UnitCategoryContent {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor($r('app.color.page_background'))
+    .constraintSize({ maxWidth: 720 })
     .scrollable(ScrollDirection.Vertical)
     .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
   }

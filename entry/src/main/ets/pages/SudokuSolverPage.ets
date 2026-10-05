@@ -727,6 +727,7 @@ struct SudokuSolverPage {
 
   build() {
     Column() {
+      Column() {
       this.TopBar()
 
       if (this.message !== '') {
@@ -742,6 +743,9 @@ struct SudokuSolverPage {
         .backgroundColor(this.getMessageColor())
         .margin({ left: 16, right: 16 })
       }
+      }
+      .width('100%')
+      .constraintSize({ maxWidth: 760 })
 
       Stack() {
         Scroll(this.scroller) {
@@ -765,6 +769,7 @@ struct SudokuSolverPage {
           .width('100%')
         }
         .width('100%')
+        .constraintSize({ maxWidth: 760 })
         .layoutWeight(1)
         .scrollable(ScrollDirection.Vertical)
         .scrollBar(BarState.Off)
