@@ -3819,6 +3819,94 @@
     {
       "name": "ach_dictation_total_30_desc",
       "value": "默写练习累计完成30句"
+    },
+    {
+      "name": "mb_title",
+      "value": "错题本"
+    },
+    {
+      "name": "mb_entry_desc",
+      "value": "%1$d句待重练"
+    },
+    {
+      "name": "mb_entry_none",
+      "value": "暂无错题，继续保持"
+    },
+    {
+      "name": "mb_empty",
+      "value": "答错的句子会收进这里，重练全对即可消灭"
+    },
+    {
+      "name": "mb_retry",
+      "value": "重练"
+    },
+    {
+      "name": "mb_removed",
+      "value": "已消灭，掌握得不错"
+    },
+    {
+      "name": "mb_wrong_times",
+      "value": "错%1$d次"
+    },
+    {
+      "name": "rv_title",
+      "value": "今日复习"
+    },
+    {
+      "name": "rv_entry_desc",
+      "value": "%1$d句待复习"
+    },
+    {
+      "name": "rv_done_short",
+      "value": "今日复习已完成"
+    },
+    {
+      "name": "rv_reminder",
+      "value": "复习提醒"
+    },
+    {
+      "name": "rv_queue_title",
+      "value": "今日待复习"
+    },
+    {
+      "name": "rv_count",
+      "value": "%1$d句"
+    },
+    {
+      "name": "rv_start",
+      "value": "开始复习"
+    },
+    {
+      "name": "rv_empty",
+      "value": "今日没有待复习的句子，去默写一首新诗吧"
+    },
+    {
+      "name": "rv_done_title",
+      "value": "今日复习完成"
+    },
+    {
+      "name": "rv_done_desc",
+      "value": "坚持复习，诗句自然熟记于心"
+    },
+    {
+      "name": "reminder_review_content",
+      "value": "今日有诗句待复习，来检验一下记忆吧"
+    },
+    {
+      "name": "ach_review_first_title",
+      "value": "温故知新"
+    },
+    {
+      "name": "ach_review_first_desc",
+      "value": "完成第一次复习"
+    },
+    {
+      "name": "ach_review_30_title",
+      "value": "学而时习"
+    },
+    {
+      "name": "ach_review_30_desc",
+      "value": "累计复习30句"
     }
   ]
 }

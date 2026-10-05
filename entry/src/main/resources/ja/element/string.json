@@ -3819,6 +3819,94 @@
     {
       "name": "ach_dictation_total_30_desc",
       "value": "書き取りで累計30句を完了"
+    },
+    {
+      "name": "mb_title",
+      "value": "間違いノート"
+    },
+    {
+      "name": "mb_entry_desc",
+      "value": "要復習の間違い%1$d句"
+    },
+    {
+      "name": "mb_entry_none",
+      "value": "間違いはまだありません"
+    },
+    {
+      "name": "mb_empty",
+      "value": "間違えた句はここに集まります。全問正解で消除"
+    },
+    {
+      "name": "mb_retry",
+      "value": "やり直す"
+    },
+    {
+      "name": "mb_removed",
+      "value": "消除しました。お見事"
+    },
+    {
+      "name": "mb_wrong_times",
+      "value": "%1$d回ミス"
+    },
+    {
+      "name": "rv_title",
+      "value": "今日の復習"
+    },
+    {
+      "name": "rv_entry_desc",
+      "value": "%1$d句が復習待ち"
+    },
+    {
+      "name": "rv_done_short",
+      "value": "今日の復習は完了"
+    },
+    {
+      "name": "rv_reminder",
+      "value": "復習リマインダー"
+    },
+    {
+      "name": "rv_queue_title",
+      "value": "今日の復習キュー"
+    },
+    {
+      "name": "rv_count",
+      "value": "%1$d句"
+    },
+    {
+      "name": "rv_start",
+      "value": "復習を始める"
+    },
+    {
+      "name": "rv_empty",
+      "value": "今日の復習はありません。新しい詩を書き取ってみましょう"
+    },
+    {
+      "name": "rv_done_title",
+      "value": "今日の復習完了"
+    },
+    {
+      "name": "rv_done_desc",
+      "value": "復習を続ければ句は自然と身につきます"
+    },
+    {
+      "name": "reminder_review_content",
+      "value": "今日復習すべき詩句があります"
+    },
+    {
+      "name": "ach_review_first_title",
+      "value": "温故知新"
+    },
+    {
+      "name": "ach_review_first_desc",
+      "value": "最初の復習を完了"
+    },
+    {
+      "name": "ach_review_30_title",
+      "value": "学びて時に習う"
+    },
+    {
+      "name": "ach_review_30_desc",
+      "value": "累計30句を復習"
     }
   ]
 }

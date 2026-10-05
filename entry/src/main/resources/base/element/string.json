@@ -3819,6 +3819,94 @@
     {
       "name": "ach_dictation_total_30_desc",
       "value": "Complete 30 dictation sentences in total"
+    },
+    {
+      "name": "mb_title",
+      "value": "Mistake Book"
+    },
+    {
+      "name": "mb_entry_desc",
+      "value": "%1$d sentences to retry"
+    },
+    {
+      "name": "mb_entry_none",
+      "value": "No mistakes yet, keep it up"
+    },
+    {
+      "name": "mb_empty",
+      "value": "Wrong sentences land here. Retry until perfect to clear them"
+    },
+    {
+      "name": "mb_retry",
+      "value": "Retry"
+    },
+    {
+      "name": "mb_removed",
+      "value": "Cleared. Well mastered"
+    },
+    {
+      "name": "mb_wrong_times",
+      "value": "Missed %1$d times"
+    },
+    {
+      "name": "rv_title",
+      "value": "Today's Review"
+    },
+    {
+      "name": "rv_entry_desc",
+      "value": "%1$d sentences due"
+    },
+    {
+      "name": "rv_done_short",
+      "value": "All reviews done for today"
+    },
+    {
+      "name": "rv_reminder",
+      "value": "Review Reminder"
+    },
+    {
+      "name": "rv_queue_title",
+      "value": "Due Today"
+    },
+    {
+      "name": "rv_count",
+      "value": "%1$d sentences"
+    },
+    {
+      "name": "rv_start",
+      "value": "Start Review"
+    },
+    {
+      "name": "rv_empty",
+      "value": "Nothing due today. Try dictating a new poem"
+    },
+    {
+      "name": "rv_done_title",
+      "value": "Review Complete!"
+    },
+    {
+      "name": "rv_done_desc",
+      "value": "Keep reviewing and verses will stick with you"
+    },
+    {
+      "name": "reminder_review_content",
+      "value": "Poems are waiting for your review today"
+    },
+    {
+      "name": "ach_review_first_title",
+      "value": "Review Rookie"
+    },
+    {
+      "name": "ach_review_first_desc",
+      "value": "Complete your first review"
+    },
+    {
+      "name": "ach_review_30_title",
+      "value": "Review Regular"
+    },
+    {
+      "name": "ach_review_30_desc",
+      "value": "Complete 30 review sentences in total"
     }
   ]
 }

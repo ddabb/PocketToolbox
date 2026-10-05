@@ -30,6 +30,10 @@ export class DictationUtil {
   }
 
   static buildSentence(raw: string): DictationSentence {
+    return DictationUtil.buildSentenceWithBlanks(raw, []);
+  }
+
+  static buildSentenceWithBlanks(raw: string, preferIdx: number[]): DictationSentence {
     let sentence: DictationSentence = new DictationSentence();
     sentence.raw = raw;
     let chars: string[] = Array.from(raw);
@@ -53,6 +57,12 @@ export class DictationUtil {
       blankCount = hanIdx.length;
     }
     let picked: Set<number> = new Set<number>();
+    for (let i = 0; i < preferIdx.length && picked.size < blankCount; i++) {
+      let idx: number = preferIdx[i];
+      if (idx >= 0 && idx < chars.length && DictationUtil.isHan(chars[idx])) {
+        picked.add(idx);
+      }
+    }
     let guard: number = 0;
     let guardMax: number = blankCount * 20 + 50;
     while (picked.size < blankCount && guard < guardMax) {

@@ -109,6 +109,16 @@
       "name": "DictationPage",
       "pageSourceFile": "src/main/ets/pages/DictationPage.ets",
       "buildFunction": "DictationPageBuilder"
+    },
+    {
+      "name": "MistakeBookPage",
+      "pageSourceFile": "src/main/ets/pages/MistakeBookPage.ets",
+      "buildFunction": "MistakeBookPageBuilder"
+    },
+    {
+      "name": "ReviewPage",
+      "pageSourceFile": "src/main/ets/pages/ReviewPage.ets",
+      "buildFunction": "ReviewPageBuilder"
     }
   ]
 }

@@ -1,5 +1,6 @@
 import { ChallengeQuestion, DailyChallengeUtil } from '../common/utils/DailyChallengeUtil';
 import { StickinessUtil, ChallengeProgress } from '../common/utils/StickinessUtil';
+import { ReviewStore } from '../common/utils/ReviewStore';
 import { VibrateUtil } from '../common/utils/VibrateUtil';
 
 @Builder
@@ -22,11 +23,15 @@ struct DailyChallengeContent {
   @State finished: boolean = false;
   @State progress: ChallengeProgress = new ChallengeProgress();
   @State isLoading: boolean = true;
+  @State dueCount: number = 0;
+  @State mistakeCount: number = 0;
+  @StorageLink('ReviewDataVersion') @Watch('onReviewDataChanged') reviewDataVersion: number = 0;
   private uiContext: UIContext = this.getUIContext();
 
   aboutToAppear(): void {
     let ctx: Context = this.uiContext.getHostContext() as Context;
     this.progress = StickinessUtil.loadChallengeProgress(ctx);
+    this.refreshReviewCounts();
     let today: string = StickinessUtil.todayStr();
     if (this.progress.date === today && this.progress.completed) {
       this.finished = true;
@@ -112,6 +117,26 @@ struct DailyChallengeContent {
     stack.pushPathByName('DictationPage', null);
   }
 
+  private openReview(): void {
+    let stack: NavPathStack = AppStorage.get('AppNavPathStack') as NavPathStack;
+    stack.pushPathByName('ReviewPage', null);
+  }
+
+  private openMistakeBook(): void {
+    let stack: NavPathStack = AppStorage.get('AppNavPathStack') as NavPathStack;
+    stack.pushPathByName('MistakeBookPage', null);
+  }
+
+  private refreshReviewCounts(): void {
+    let ctx: Context = this.uiContext.getHostContext() as Context;
+    this.dueCount = ReviewStore.getDueCount(ctx);
+    this.mistakeCount = ReviewStore.getMistakeCount(ctx);
+  }
+
+  private onReviewDataChanged(): void {
+    this.refreshReviewCounts();
+  }
+
   build() {
     Column() {
       Column() {
@@ -173,6 +198,67 @@ struct DailyChallengeContent {
       .margin({ left: 16, right: 16, top: 8 })
       .onClick(() => {
         this.openDictation();
+      })
+
+      Row() {
+        Text('\uD83D\uDD01')
+          .fontSize(22)
+        Column() {
+          Text($r('app.string.rv_title'))
+            .fontSize(15)
+            .fontWeight(FontWeight.Bold)
+            .fontColor($r('app.color.primary_text'))
+          Text(this.dueCount > 0 ? $r('app.string.rv_entry_desc', this.dueCount) : $r('app.string.rv_done_short'))
+            .fontSize(11)
+            .fontColor(this.dueCount > 0 ? $r('app.color.poetry_green') : $r('app.color.tertiary_text'))
+            .margin({ top: 2 })
+        }
+        .layoutWeight(1)
+        .alignItems(HorizontalAlign.Start)
+        .margin({ left: 10 })
+
+        Text('\u203A')
+          .fontSize(18)
+          .fontColor($r('app.color.hint_text'))
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, top: 12, bottom: 12 })
+      .backgroundColor($r('app.color.card_background'))
+      .borderRadius(14)
+      .margin({ left: 16, right: 16, top: 8 })
+      .onClick(() => {
+        this.openReview();
+      })
+
+      Row() {
+        Text('\uD83D\uDCDD')
+          .fontSize(22)
+        Column() {
+          Text($r('app.string.mb_title'))
+            .fontSize(15)
+            .fontWeight(FontWeight.Bold)
+            .fontColor($r('app.color.primary_text'))
+          Text(this.mistakeCount > 0 ? $r('app.string.mb_entry_desc', this.mistakeCount)
+            : $r('app.string.mb_entry_none'))
+            .fontSize(11)
+            .fontColor($r('app.color.tertiary_text'))
+            .margin({ top: 2 })
+        }
+        .layoutWeight(1)
+        .alignItems(HorizontalAlign.Start)
+        .margin({ left: 10 })
+
+        Text('\u203A')
+          .fontSize(18)
+          .fontColor($r('app.color.hint_text'))
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, top: 12, bottom: 12 })
+      .backgroundColor($r('app.color.card_background'))
+      .borderRadius(14)
+      .margin({ left: 16, right: 16, top: 8 })
+      .onClick(() => {
+        this.openMistakeBook();
       })
 
       if (this.isLoading) {

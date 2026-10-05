@@ -51,6 +51,7 @@ export class UserStats {
   flyflowerTotal: number = 0;
   dictationTotal: number = 0;
   dictationPerfect: number = 0;
+  reviewTotal: number = 0;
 }
 
 class AchievementDef {
@@ -105,6 +106,8 @@ export class StickinessUtil {
     new AchievementDef('dictation_first', 'ach_dictation_first_title', 'ach_dictation_first_desc', '\uD83D\uDCDD', '#16a085', 1, 'dictationTotal'),
     new AchievementDef('dictation_perfect_10', 'ach_dictation_perfect_10_title', 'ach_dictation_perfect_10_desc', '\uD83D\uDCD8', '#c0392b', 10, 'dictationPerfect'),
     new AchievementDef('dictation_total_30', 'ach_dictation_total_30_title', 'ach_dictation_total_30_desc', '\uD83D\uDCDD', '#16a085', 30, 'dictationTotal'),
+    new AchievementDef('review_first', 'ach_review_first_title', 'ach_review_first_desc', '\uD83D\uDD01', '#2980b9', 1, 'reviewTotal'),
+    new AchievementDef('review_30', 'ach_review_30_title', 'ach_review_30_desc', '\uD83D\uDD01', '#2980b9', 30, 'reviewTotal'),
   ];
 
   static todayStr(): string {
@@ -212,6 +215,7 @@ export class StickinessUtil {
       stats.flyflowerTotal = (obj['flyflowerTotal'] as number) || 0;
       stats.dictationTotal = (obj['dictationTotal'] as number) || 0;
       stats.dictationPerfect = (obj['dictationPerfect'] as number) || 0;
+      stats.reviewTotal = (obj['reviewTotal'] as number) || 0;
       return stats;
     } catch (e) {
       return new UserStats();
@@ -236,7 +240,8 @@ export class StickinessUtil {
         'flyflowerBest': stats.flyflowerBest as Object,
         'flyflowerTotal': stats.flyflowerTotal as Object,
         'dictationTotal': stats.dictationTotal as Object,
-        'dictationPerfect': stats.dictationPerfect as Object
+        'dictationPerfect': stats.dictationPerfect as Object,
+        'reviewTotal': stats.reviewTotal as Object
       };
       prefs.putSync(StickinessUtil.KEY_STATS, JSON.stringify(obj));
       prefs.flush();
@@ -277,6 +282,8 @@ export class StickinessUtil {
       stats.dictationTotal = value;
     } else if (key === 'dictationPerfect') {
       stats.dictationPerfect = value;
+    } else if (key === 'reviewTotal') {
+      stats.reviewTotal = value;
     }
     StickinessUtil.saveStats(context, stats);
     StickinessUtil.checkAchievements(context, stats);
@@ -298,6 +305,13 @@ export class StickinessUtil {
     if (perfect) {
       stats.dictationPerfect = stats.dictationPerfect + 1;
     }
+    StickinessUtil.saveStats(context, stats);
+    StickinessUtil.checkAchievements(context, stats);
+  }
+
+  static recordReviewSentence(context: Context): void {
+    let stats: UserStats = StickinessUtil.loadStats(context);
+    stats.reviewTotal = stats.reviewTotal + 1;
     StickinessUtil.saveStats(context, stats);
     StickinessUtil.checkAchievements(context, stats);
   }

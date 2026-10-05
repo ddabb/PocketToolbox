@@ -24,6 +24,8 @@ import { PrimeFactorPageBuilder } from './PrimeFactorPage';
 import { FlyFlowerPageBuilder } from './FlyFlowerPage';
 import { DataBackupPageBuilder } from './DataBackupPage';
 import { DictationPageBuilder } from './DictationPage';
+import { MistakeBookPageBuilder } from './MistakeBookPage';
+import { ReviewPageBuilder } from './ReviewPage';
 import { registerUnifiedTemplateSets } from '../core/template/UnifiedTemplateSets';
 import { PoetryViewModel } from '../viewmodel/PoetryViewModel';
 import { IdiomViewModel } from '../viewmodel/IdiomViewModel';
@@ -607,6 +609,10 @@ struct Index {
       DataBackupPageBuilder()
     } else if (name === 'DictationPage') {
       DictationPageBuilder(param)
+    } else if (name === 'MistakeBookPage') {
+      MistakeBookPageBuilder()
+    } else if (name === 'ReviewPage') {
+      ReviewPageBuilder()
     }
   }
 

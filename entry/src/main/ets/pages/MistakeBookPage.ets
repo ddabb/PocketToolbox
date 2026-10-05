@@ -1,126 +1,83 @@
 import { Context } from '@kit.AbilityKit';
 import { PoemItem } from '../model/PoetryModels';
-import { PoetryViewModel } from '../viewmodel/PoetryViewModel';
+import { ReviewStore, SentenceRecord } from '../common/utils/ReviewStore';
 import { DictationUtil, DictationSentence, DictationChar } from '../common/utils/DictationUtil';
-import { StickinessUtil } from '../common/utils/StickinessUtil';
-import { ReviewStore } from '../common/utils/ReviewStore';
-import { StrUtil } from '../common/utils/StrUtil';
-import { ErrorState } from '../components/ErrorState';
-
-function buildDictationPoem(param: Object): PoemItem | null {
-  if (!param) {
-    return null;
-  }
-  let rec: Record<string, Object> = param as Record<string, Object>;
-  let n: string = (rec['n'] as string) || '';
-  let c: string = (rec['c'] as string) || '';
-  if (n === '' || c === '') {
-    return null;
-  }
-  return PoetryViewModel.getInstance().parsePoemFromParam(rec);
-}
+import { ToastUtil } from '../common/utils/ToastUtil';
 
 @Builder
-export function DictationPageBuilder(param: Object) {
+export function MistakeBookPageBuilder() {
   NavDestination() {
-    DictationContent({ poemParam: buildDictationPoem(param) })
+    MistakeBookContent()
   }
-  .title($r('app.string.dc_title'))
+  .title($r('app.string.mb_title'))
   .backButtonIcon($r('sys.symbol.chevron_left'))
   .menus([])
 }
 
 @Component
-struct DictationContent {
-  @Prop poemParam: PoemItem | null = null;
-  @State isLoading: boolean = true;
-  @State loadFailed: boolean = false;
-  @State fromSeed: boolean = false;
-  @State failText: string = '';
-  @State poem: PoemItem = new PoemItem();
-  @State sentences: DictationSentence[] = [];
-  @State currentIdx: number = 0;
+struct MistakeBookContent {
+  @State mode: string = 'list';
+  @State mistakes: SentenceRecord[] = [];
+  @State practiceIdx: number = 0;
+  @State sentence: DictationSentence = new DictationSentence();
   @State inputText: string = '';
   @State judged: boolean = false;
-  @State finished: boolean = false;
-  @State perfectCount: number = 0;
-  @State scorePercent: number = 0;
-  private recordedSet: Set<number> = new Set<number>();
-  private perfectSet: Set<number> = new Set<number>();
   private uiContext: UIContext = this.getUIContext();
 
   aboutToAppear(): void {
-    this.loadData();
+    this.reloadList();
   }
 
-  private loadData(): void {
-    let param: PoemItem | null = this.poemParam;
-    if (param !== null) {
-      this.fromSeed = false;
-      this.preparePoem(param);
-      return;
-    }
-    this.fromSeed = true;
-    this.isLoading = true;
-    this.loadFailed = false;
-    setTimeout(() => {
-      try {
-        let ctx: Context = this.uiContext.getHostContext() as Context;
-        let loaded: PoemItem | null = DictationUtil.loadTodayPoem(ctx);
-        if (loaded === null) {
-          this.enterFail();
-          return;
-        }
-        this.preparePoem(loaded);
-      } catch (e) {
-        console.error('[Dictation] loadTodayPoem failed: ' + (e as Error).message);
-        this.enterFail();
-      }
-    }, 0);
-  }
-
-  private enterFail(): void {
+  private reloadList(): void {
     let ctx: Context = this.uiContext.getHostContext() as Context;
-    this.failText = StrUtil.text(ctx, $r('app.string.dc_no_poem'));
-    this.isLoading = false;
-    this.loadFailed = true;
+    this.mistakes = ReviewStore.getMistakes(ctx);
+    this.mode = 'list';
   }
 
-  private preparePoem(poem: PoemItem): void {
-    let raws: string[] = DictationUtil.splitSentences(poem.c);
-    if (raws.length === 0) {
-      this.enterFail();
+  private curRec(): SentenceRecord | null {
+    if (this.practiceIdx < 0 || this.practiceIdx >= this.mistakes.length) {
+      return null;
+    }
+    return this.mistakes[this.practiceIdx];
+  }
+
+  private buildPoemItem(rec: SentenceRecord): PoemItem {
+    let poem: PoemItem = new PoemItem();
+    poem.n = rec.poemName;
+    poem.a = rec.poemAuthor;
+    poem.d = rec.poemDynasty;
+    return poem;
+  }
+
+  private enterPractice(idx: number): void {
+    if (idx < 0 || idx >= this.mistakes.length) {
       return;
     }
-    let list: DictationSentence[] = [];
-    for (let i = 0; i < raws.length; i++) {
-      list.push(DictationUtil.buildSentence(raws[i]));
-    }
-    this.poem = poem;
-    this.sentences = list;
-    this.currentIdx = 0;
+    let rec: SentenceRecord = this.mistakes[idx];
+    this.practiceIdx = idx;
+    this.sentence = DictationUtil.buildSentenceWithBlanks(rec.raw, rec.wrongChars);
     this.inputText = '';
     this.judged = false;
-    this.finished = false;
-    this.perfectCount = 0;
-    this.scorePercent = 0;
-    this.isLoading = false;
-    this.loadFailed = false;
+    this.mode = 'practice';
   }
 
   private submitSentence(): void {
-    if (this.judged || this.finished || this.sentences.length === 0) {
+    if (this.judged || this.mode !== 'practice') {
       return;
     }
-    let chars: DictationChar[] = this.curChars();
+    let rec: SentenceRecord | null = this.curRec();
+    if (rec === null) {
+      return;
+    }
+    let chars: DictationChar[] = this.sentence.chars;
     let cnt: number = this.blankCountOf(chars);
     let input: string = DictationUtil.filterHan(this.inputText);
     if (input.length !== cnt) {
       return;
     }
     let perfect: boolean = true;
-    let k: number = 0;
     let wrongIdx: number[] = [];
+    let k: number = 0;
     for (let i = 0; i < chars.length; i++) {
       if (chars[i].blank) {
         if (input.charAt(k) !== chars[i].ch) {
@@ -132,65 +89,32 @@ struct DictationContent {
     }
     this.judged = true;
     let ctx: Context = this.uiContext.getHostContext() as Context;
-    if (this.poem.n !== '') {
-      ReviewStore.recordResult(ctx, this.poem, this.sentences[this.currentIdx].raw, wrongIdx, perfect);
-    }
-    if (!this.recordedSet.has(this.currentIdx)) {
-      this.recordedSet.add(this.currentIdx);
-      StickinessUtil.recordDictationSentence(ctx, perfect);
-    }
+    ReviewStore.recordResult(ctx, this.buildPoemItem(rec), this.sentence.raw, wrongIdx, perfect);
     if (perfect) {
-      this.perfectSet.add(this.currentIdx);
-    } else {
-      this.perfectSet.delete(this.currentIdx);
+      ToastUtil.show(this.uiContext, $r('app.string.mb_removed'), 1200);
     }
   }
 
   private retrySentence(): void {
-    if (this.sentences.length === 0) {
+    let rec: SentenceRecord | null = this.curRec();
+    if (rec === null) {
       return;
     }
-    let raw: string = this.sentences[this.currentIdx].raw;
-    let rebuilt: DictationSentence = DictationUtil.buildSentence(raw);
-    let next: DictationSentence[] = [];
-    for (let i = 0; i < this.sentences.length; i++) {
-      if (i === this.currentIdx) {
-        next.push(rebuilt);
-      } else {
-        next.push(this.sentences[i]);
-      }
-    }
-    this.sentences = next;
+    this.sentence = DictationUtil.buildSentenceWithBlanks(rec.raw, rec.wrongChars);
     this.inputText = '';
     this.judged = false;
   }
 
   private goNext(): void {
-    if (this.sentences.length === 0) {
+    if (this.practiceIdx + 1 >= this.mistakes.length) {
+      this.reloadList();
       return;
     }
-    if (this.currentIdx + 1 >= this.sentences.length) {
-      this.perfectCount = this.perfectSet.size;
-      this.scorePercent = Math.round(this.perfectCount * 100 / this.sentences.length);
-      this.finished = true;
-      return;
-    }
-    this.currentIdx = this.currentIdx + 1;
+    let rec: SentenceRecord = this.mistakes[this.practiceIdx + 1];
+    this.practiceIdx = this.practiceIdx + 1;
+    this.sentence = DictationUtil.buildSentenceWithBlanks(rec.raw, rec.wrongChars);
     this.inputText = '';
     this.judged = false;
-  }
-
-  private playAgain(): void {
-    this.recordedSet.clear();
-    this.perfectSet.clear();
-    this.preparePoem(this.poem);
-  }
-
-  private curChars(): DictationChar[] {
-    if (this.currentIdx < 0 || this.currentIdx >= this.sentences.length) {
-      return [];
-    }
-    return this.sentences[this.currentIdx].chars;
   }
 
   private blankCountOf(chars: DictationChar[]): number {
@@ -204,11 +128,11 @@ struct DictationContent {
   }
 
   private curBlankCount(): number {
-    return this.blankCountOf(this.curChars());
+    return this.blankCountOf(this.sentence.chars);
   }
 
   private blankOrderAt(ci: number): number {
-    let chars: DictationChar[] = this.curChars();
+    let chars: DictationChar[] = this.sentence.chars;
     let cnt: number = 0;
     for (let i = 0; i <= ci && i < chars.length; i++) {
       if (chars[i].blank) {
@@ -231,16 +155,6 @@ struct DictationContent {
 
   private canSubmit(): boolean {
     return !this.judged && this.inputText.length === this.curBlankCount();
-  }
-
-  private authorLine(): string {
-    if (this.poem.a !== '' && this.poem.d !== '') {
-      return this.poem.a + ' \u00B7 ' + this.poem.d;
-    }
-    if (this.poem.a !== '') {
-      return this.poem.a;
-    }
-    return this.poem.d;
   }
 
   private cellText(dc: DictationChar, ci: number): string {
@@ -277,17 +191,34 @@ struct DictationContent {
     return $r('app.color.page_background');
   }
 
+  private isWrongIdx(rec: SentenceRecord, ci: number): boolean {
+    for (let i = 0; i < rec.wrongChars.length; i++) {
+      if (rec.wrongChars[i] === ci) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private curPoemName(): string {
+    let rec: SentenceRecord | null = this.curRec();
+    return rec === null ? '' : rec.poemName;
+  }
+
+  private curPoemAuthor(): string {
+    let rec: SentenceRecord | null = this.curRec();
+    return rec === null ? '' : rec.poemAuthor;
+  }
+
   build() {
     Column() {
       Column() {
-        if (this.isLoading) {
-          this.LoadingSection()
-        } else if (this.loadFailed) {
-          this.FailSection()
-        } else if (this.finished) {
-          this.FinishSection()
-        } else {
+        if (this.mode === 'practice') {
           this.PracticeSection()
+        } else if (this.mistakes.length === 0) {
+          this.EmptySection()
+        } else {
+          this.ListSection()
         }
       }
       .width('100%')
@@ -301,12 +232,15 @@ struct DictationContent {
   }
 
   @Builder
-  LoadingSection() {
+  EmptySection() {
     Column() {
-      LoadingProgress()
-        .width(48)
-        .height(48)
-        .color($r('app.color.poetry_green'))
+      Text('📝')
+        .fontSize(56)
+      Text($r('app.string.mb_empty'))
+        .fontSize(14)
+        .fontColor($r('app.color.tertiary_text'))
+        .margin({ top: 16 })
+        .textAlign(TextAlign.Center)
     }
     .width('100%')
     .layoutWeight(1)
@@ -315,57 +249,78 @@ struct DictationContent {
   }
 
   @Builder
-  FailSection() {
-    Column() {
-      ErrorState({
-        text: this.failText,
-        onRetry: () => {
-          this.loadData();
-        }
-      })
+  ListSection() {
+    Scroll() {
+      Column() {
+        ForEach(this.mistakes, (rec: SentenceRecord, idx: number) => {
+          Column() {
+            Text() {
+              ForEach(Array.from(rec.raw), (ch: string, ci: number) => {
+                Span(ch)
+                  .fontSize(15)
+                  .fontColor(this.isWrongIdx(rec, ci) ? $r('app.color.danger_red') : $r('app.color.secondary_text'))
+              }, (ch: string, ci: number) => ci.toString() + '-' + ch)
+            }
+            .width('100%')
+
+            Text($r('app.string.mb_wrong_times', rec.errCount))
+              .fontSize(11)
+              .fontColor($r('app.color.danger_red'))
+              .margin({ top: 6 })
+
+            Row() {
+              Text($r('app.string.ff_source', rec.poemName, rec.poemAuthor))
+                .fontSize(12)
+                .fontColor($r('app.color.tertiary_text'))
+                .maxLines(1)
+                .textOverflow({ overflow: TextOverflow.Ellipsis })
+                .layoutWeight(1)
+              Text($r('app.string.mb_retry'))
+                .fontSize(13)
+                .fontWeight(FontWeight.Bold)
+                .fontColor($r('app.color.on_accent_text'))
+                .backgroundColor($r('app.color.poetry_green'))
+                .borderRadius(12)
+                .padding({ left: 14, right: 14, top: 5, bottom: 5 })
+                .margin({ left: 10 })
+            }
+            .width('100%')
+            .margin({ top: 10 })
+            .alignItems(VerticalAlign.Center)
+          }
+          .width('100%')
+          .alignItems(HorizontalAlign.Start)
+          .backgroundColor($r('app.color.card_background'))
+          .borderRadius(14)
+          .padding(14)
+          .margin({ bottom: 12 })
+          .onClick(() => {
+            this.enterPractice(idx);
+          })
+        }, (rec: SentenceRecord) => rec.key + '-' + rec.errCount.toString() + '-' + rec.wrongChars.length.toString())
+      }
+      .width('100%')
+      .padding({ top: 4, bottom: 24 })
     }
     .width('100%')
-    .layoutWeight(1)
-    .justifyContent(FlexAlign.Center)
-    .alignItems(HorizontalAlign.Center)
+    .height('100%')
+    .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
   }
 
   @Builder
   PracticeSection() {
     Scroll() {
       Column() {
-        Text(this.poem.n)
-          .fontSize(20)
+        Text($r('app.string.ff_source', this.curPoemName(), this.curPoemAuthor()))
+          .fontSize(16)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.primary_text'))
           .width('100%')
           .textAlign(TextAlign.Center)
 
-        if (this.authorLine() !== '') {
-          Text(this.authorLine())
-            .fontSize(13)
-            .fontColor($r('app.color.tertiary_text'))
-            .margin({ top: 6 })
-        }
-
-        if (this.fromSeed) {
-          Text($r('app.string.dc_today_poem'))
-            .fontSize(11)
-            .fontColor($r('app.color.poetry_green'))
-            .backgroundColor('#1A2D7D46')
-            .borderRadius(10)
-            .padding({ left: 10, right: 10, top: 3, bottom: 3 })
-            .margin({ top: 8 })
-        }
-
-        Text($r('app.string.dc_progress', this.currentIdx + 1, this.sentences.length))
-          .fontSize(12)
-          .fontColor($r('app.color.tertiary_text'))
-          .margin({ top: 12 })
-
         Column() {
           Flex({ wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Center }) {
-            ForEach(this.curChars(), (dc: DictationChar, ci: number) => {
+            ForEach(this.sentence.chars, (dc: DictationChar, ci: number) => {
               Column() {
                 Text(dc.py)
                   .fontSize(9)
@@ -400,7 +355,7 @@ struct DictationContent {
         .backgroundColor($r('app.color.card_background'))
         .borderRadius(14)
         .padding(12)
-        .margin({ top: 12 })
+        .margin({ top: 16 })
 
         TextInput({
           placeholder: $r('app.string.dc_input_hint', this.curBlankCount()),
@@ -473,52 +428,5 @@ struct DictationContent {
     .width('100%')
     .height('100%')
     .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
-  }
-
-  @Builder
-  FinishSection() {
-    Column() {
-      Text($r('app.string.dc_finish_title'))
-        .fontSize(20)
-        .fontWeight(FontWeight.Bold)
-        .fontColor($r('app.color.primary_text'))
-
-      Text($r('app.string.dc_finish_score', this.scorePercent))
-        .fontSize(40)
-        .fontWeight(FontWeight.Bold)
-        .fontColor($r('app.color.poetry_green'))
-        .margin({ top: 20 })
-
-      Text($r('app.string.dc_finish_perfect', this.perfectCount, this.sentences.length))
-        .fontSize(14)
-        .fontColor($r('app.color.secondary_text'))
-        .margin({ top: 8 })
-
-      if (this.perfectCount === this.sentences.length) {
-        Text($r('app.string.dc_all_perfect'))
-          .fontSize(13)
-          .fontColor($r('app.color.on_accent_text'))
-          .backgroundColor($r('app.color.poetry_green'))
-          .borderRadius(16)
-          .padding({ left: 20, right: 20, top: 8, bottom: 8 })
-          .margin({ top: 16 })
-      }
-
-      Text($r('app.string.dc_again'))
-        .fontSize(15)
-        .fontWeight(FontWeight.Bold)
-        .fontColor($r('app.color.on_accent_text'))
-        .backgroundColor($r('app.color.poetry_green'))
-        .borderRadius(22)
-        .padding({ left: 32, right: 32, top: 10, bottom: 10 })
-        .margin({ top: 32 })
-        .onClick(() => {
-          this.playAgain();
-        })
-    }
-    .width('100%')
-    .layoutWeight(1)
-    .justifyContent(FlexAlign.Center)
-    .alignItems(HorizontalAlign.Center)
   }
 }
