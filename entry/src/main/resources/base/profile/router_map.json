@@ -104,6 +104,11 @@
       "name": "DataBackupPage",
       "pageSourceFile": "src/main/ets/pages/DataBackupPage.ets",
       "buildFunction": "DataBackupPageBuilder"
+    },
+    {
+      "name": "DictationPage",
+      "pageSourceFile": "src/main/ets/pages/DictationPage.ets",
+      "buildFunction": "DictationPageBuilder"
     }
   ]
 }

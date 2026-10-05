@@ -3699,6 +3699,126 @@
     {
       "name": "ach_flyflower_total_30_desc",
       "value": "Match 30 verses in total in the Fly-Flower game"
+    },
+    {
+      "name": "dc_title",
+      "value": "Dictation Practice"
+    },
+    {
+      "name": "dc_entry_desc",
+      "value": "Fill in the blanks by pinyin"
+    },
+    {
+      "name": "dc_progress",
+      "value": "Sentence %1$d of %2$d"
+    },
+    {
+      "name": "dc_input_hint",
+      "value": "Enter the %1$d missing characters in order"
+    },
+    {
+      "name": "dc_submit",
+      "value": "Submit"
+    },
+    {
+      "name": "dc_retry",
+      "value": "Retry Sentence"
+    },
+    {
+      "name": "dc_next",
+      "value": "Next"
+    },
+    {
+      "name": "dc_finish_title",
+      "value": "Finished!"
+    },
+    {
+      "name": "dc_finish_score",
+      "value": "Score: %1$d%%"
+    },
+    {
+      "name": "dc_finish_perfect",
+      "value": "Perfect: %1$d of %2$d"
+    },
+    {
+      "name": "dc_all_perfect",
+      "value": "🎉 All perfect, well done!"
+    },
+    {
+      "name": "dc_again",
+      "value": "Practice Again"
+    },
+    {
+      "name": "dc_loading",
+      "value": "Loading library…"
+    },
+    {
+      "name": "dc_today_poem",
+      "value": "Today's Poem"
+    },
+    {
+      "name": "dc_no_poem",
+      "value": "Today's poem is not ready. Please try again later"
+    },
+    {
+      "name": "poemct_dictation",
+      "value": "Dictate"
+    },
+    {
+      "name": "poemct_dictation_a11y",
+      "value": "Start dictation for this poem"
+    },
+    {
+      "name": "wr_title",
+      "value": "This Week"
+    },
+    {
+      "name": "wr_checkin_week",
+      "value": "Week Check-ins"
+    },
+    {
+      "name": "wr_checkin_streak",
+      "value": "Streak Days"
+    },
+    {
+      "name": "wr_flyflower",
+      "value": "Fly-Flower"
+    },
+    {
+      "name": "wr_dictation",
+      "value": "Dictation"
+    },
+    {
+      "name": "wr_days",
+      "value": "%1$d days"
+    },
+    {
+      "name": "wr_sentences",
+      "value": "%1$d verses"
+    },
+    {
+      "name": "ach_dictation_first_title",
+      "value": "First Dictation"
+    },
+    {
+      "name": "ach_dictation_first_desc",
+      "value": "Complete your first dictation sentence"
+    },
+    {
+      "name": "ach_dictation_perfect_10_title",
+      "value": "Flawless Ten"
+    },
+    {
+      "name": "ach_dictation_perfect_10_desc",
+      "value": "Get 10 perfect dictation sentences"
+    },
+    {
+      "name": "ach_dictation_total_30_title",
+      "value": "Recite by Heart"
+    },
+    {
+      "name": "ach_dictation_total_30_desc",
+      "value": "Complete 30 dictation sentences in total"
     }
   ]
 }

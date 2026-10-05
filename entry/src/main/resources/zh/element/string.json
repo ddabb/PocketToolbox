@@ -3699,6 +3699,126 @@
     {
       "name": "ach_flyflower_total_30_desc",
       "value": "飞花令累计对出30句"
+    },
+    {
+      "name": "dc_title",
+      "value": "默写练习"
+    },
+    {
+      "name": "dc_entry_desc",
+      "value": "看拼音补全诗句，练一手好字"
+    },
+    {
+      "name": "dc_progress",
+      "value": "第%1$d/%2$d句"
+    },
+    {
+      "name": "dc_input_hint",
+      "value": "依次输入%1$d个空缺字"
+    },
+    {
+      "name": "dc_submit",
+      "value": "提交"
+    },
+    {
+      "name": "dc_retry",
+      "value": "重练本句"
+    },
+    {
+      "name": "dc_next",
+      "value": "下一句"
+    },
+    {
+      "name": "dc_finish_title",
+      "value": "默写完成"
+    },
+    {
+      "name": "dc_finish_score",
+      "value": "完成度%1$d%%"
+    },
+    {
+      "name": "dc_finish_perfect",
+      "value": "完美%1$d/%2$d句"
+    },
+    {
+      "name": "dc_all_perfect",
+      "value": "🎉 全部答对，太棒了"
+    },
+    {
+      "name": "dc_again",
+      "value": "再练一次"
+    },
+    {
+      "name": "dc_loading",
+      "value": "诗库加载中…"
+    },
+    {
+      "name": "dc_today_poem",
+      "value": "今日诗词"
+    },
+    {
+      "name": "dc_no_poem",
+      "value": "今日诗词未就绪，请稍后再试"
+    },
+    {
+      "name": "poemct_dictation",
+      "value": "默写"
+    },
+    {
+      "name": "poemct_dictation_a11y",
+      "value": "开始默写本诗"
+    },
+    {
+      "name": "wr_title",
+      "value": "本周学习"
+    },
+    {
+      "name": "wr_checkin_week",
+      "value": "本周签到"
+    },
+    {
+      "name": "wr_checkin_streak",
+      "value": "连续签到"
+    },
+    {
+      "name": "wr_flyflower",
+      "value": "飞花令"
+    },
+    {
+      "name": "wr_dictation",
+      "value": "默写"
+    },
+    {
+      "name": "wr_days",
+      "value": "%1$d天"
+    },
+    {
+      "name": "wr_sentences",
+      "value": "%1$d句"
+    },
+    {
+      "name": "ach_dictation_first_title",
+      "value": "落笔成章"
+    },
+    {
+      "name": "ach_dictation_first_desc",
+      "value": "默写练习完成第一句"
+    },
+    {
+      "name": "ach_dictation_perfect_10_title",
+      "value": "字字珠玑"
+    },
+    {
+      "name": "ach_dictation_perfect_10_desc",
+      "value": "默写练习完美默出10句"
+    },
+    {
+      "name": "ach_dictation_total_30_title",
+      "value": "熟读成诵"
+    },
+    {
+      "name": "ach_dictation_total_30_desc",
+      "value": "默写练习累计完成30句"
     }
   ]
 }

@@ -3699,6 +3699,126 @@
     {
       "name": "ach_flyflower_total_30_desc",
       "value": "飛花令で累計30句を達成"
+    },
+    {
+      "name": "dc_title",
+      "value": "書き取り練習"
+    },
+    {
+      "name": "dc_entry_desc",
+      "value": "ピンインを見て空欄を補おう"
+    },
+    {
+      "name": "dc_progress",
+      "value": "第%1$d句 / 全%2$d句"
+    },
+    {
+      "name": "dc_input_hint",
+      "value": "空欄%1$d文字を順に入力"
+    },
+    {
+      "name": "dc_submit",
+      "value": "送信"
+    },
+    {
+      "name": "dc_retry",
+      "value": "もう一度"
+    },
+    {
+      "name": "dc_next",
+      "value": "次へ"
+    },
+    {
+      "name": "dc_finish_title",
+      "value": "書き取り完了"
+    },
+    {
+      "name": "dc_finish_score",
+      "value": "正答率%1$d%%"
+    },
+    {
+      "name": "dc_finish_perfect",
+      "value": "満点%1$d/%2$d句"
+    },
+    {
+      "name": "dc_all_perfect",
+      "value": "🎉 全問正解、お見事！"
+    },
+    {
+      "name": "dc_again",
+      "value": "もう一度練習"
+    },
+    {
+      "name": "dc_loading",
+      "value": "詩庫を読み込み中…"
+    },
+    {
+      "name": "dc_today_poem",
+      "value": "今日の一首"
+    },
+    {
+      "name": "dc_no_poem",
+      "value": "今日の一首の準備ができていません。少し待ってからお試しください"
+    },
+    {
+      "name": "poemct_dictation",
+      "value": "書き取り"
+    },
+    {
+      "name": "poemct_dictation_a11y",
+      "value": "この詩の書き取りを開始"
+    },
+    {
+      "name": "wr_title",
+      "value": "今週の学習"
+    },
+    {
+      "name": "wr_checkin_week",
+      "value": "今週のチェックイン"
+    },
+    {
+      "name": "wr_checkin_streak",
+      "value": "連続チェックイン"
+    },
+    {
+      "name": "wr_flyflower",
+      "value": "飛花令"
+    },
+    {
+      "name": "wr_dictation",
+      "value": "書き取り"
+    },
+    {
+      "name": "wr_days",
+      "value": "%1$d日"
+    },
+    {
+      "name": "wr_sentences",
+      "value": "%1$d句"
+    },
+    {
+      "name": "ach_dictation_first_title",
+      "value": "最初の書き取り"
+    },
+    {
+      "name": "ach_dictation_first_desc",
+      "value": "書き取りで最初の一句を完了"
+    },
+    {
+      "name": "ach_dictation_perfect_10_title",
+      "value": "完璧十句"
+    },
+    {
+      "name": "ach_dictation_perfect_10_desc",
+      "value": "書き取りで10句満点を達成"
+    },
+    {
+      "name": "ach_dictation_total_30_title",
+      "value": "暗誦の達人"
+    },
+    {
+      "name": "ach_dictation_total_30_desc",
+      "value": "書き取りで累計30句を完了"
     }
   ]
 }

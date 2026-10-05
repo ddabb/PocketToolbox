@@ -221,6 +221,11 @@ export struct PoemContentContent {
       })
   }
 
+  private openDictation(): void {
+    let stack: NavPathStack = AppStorage.get('AppNavPathStack') as NavPathStack;
+    stack.pushPathByName('DictationPage', this.poemParam);
+  }
+
   build() {
     Stack() {
       Column() {
@@ -276,6 +281,17 @@ export struct PoemContentContent {
 
             Row() {
               Blank()
+              Text($r('app.string.poemct_dictation'))
+                .fontSize(13)
+                .fontColor($r('app.color.poetry_green'))
+                .backgroundColor($r('app.color.poetry_green') + '18')
+                .borderRadius(14)
+                .padding({ left: 16, right: 16, top: 6, bottom: 6 })
+                .margin({ right: 8 })
+                .accessibilityText($r('app.string.poemct_dictation_a11y'))
+                .onClick(() => {
+                  this.openDictation();
+                })
               Text($r('app.string.poemct_pinyin'))
                 .fontSize(13)
                 .fontColor(this.pinyinOn ? $r('app.color.on_accent_text') : $r('app.color.poetry_green'))

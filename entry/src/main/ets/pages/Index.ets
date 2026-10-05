@@ -23,6 +23,7 @@ import { GcdLcmPageBuilder } from './GcdLcmPage';
 import { PrimeFactorPageBuilder } from './PrimeFactorPage';
 import { FlyFlowerPageBuilder } from './FlyFlowerPage';
 import { DataBackupPageBuilder } from './DataBackupPage';
+import { DictationPageBuilder } from './DictationPage';
 import { registerUnifiedTemplateSets } from '../core/template/UnifiedTemplateSets';
 import { PoetryViewModel } from '../viewmodel/PoetryViewModel';
 import { IdiomViewModel } from '../viewmodel/IdiomViewModel';
@@ -98,6 +99,7 @@ struct Index {
   @State reviewVisible: boolean = false;
   @State appVersionName: string = '';
   @State mineUserStats: UserStats = new UserStats();
+  @State mineWeekCheckIn: number = 0;
   @State mineCheckInData: CheckInData = new CheckInData();
   @State mineChallengeProgress: ChallengeProgress = new ChallengeProgress();
   @State toolGridCols: number = 4;
@@ -331,6 +333,24 @@ struct Index {
     DailyPoemWidgetUtil.updateAllForms(ctx);
   }
 
+  private calcWeekCheckInDays(): void {
+    let now: Date = new Date();
+    let monday: Date = new Date(now.getFullYear(), now.getMonth(), now.getDate() - ((now.getDay() + 6) % 7));
+    let y: number = monday.getFullYear();
+    let m: number = monday.getMonth() + 1;
+    let d: number = monday.getDate();
+    let mondayStr: string = y.toString() + '-' + (m < 10 ? '0' : '') + m.toString() + '-' +
+      (d < 10 ? '0' : '') + d.toString();
+    let count: number = 0;
+    let dates: string[] = this.mineCheckInData.dates;
+    for (let i = 0; i < dates.length; i++) {
+      if (dates[i] >= mondayStr) {
+        count++;
+      }
+    }
+    this.mineWeekCheckIn = count;
+  }
+
   private loadStickinessData(): void {
     let ctx: Context = this.getUIContext().getHostContext() as Context;
     this.checkInData = StickinessUtil.loadCheckIn(ctx);
@@ -355,6 +375,7 @@ struct Index {
     }
     StickinessUtil.syncFavStats(ctx, poemCount, idiomCount, xiehouyuCount);
     this.refreshMineReadingStats();
+    this.calcWeekCheckInDays();
   }
 
   onReadingDataChanged(): void {
@@ -381,6 +402,7 @@ struct Index {
       this.checkInData = StickinessUtil.loadCheckIn(ctx);
       this.checkedInToday = true;
       this.mineCheckInData = StickinessUtil.loadCheckIn(ctx);
+      this.calcWeekCheckInDays();
       ToastUtil.show(this.getUIContext(), $r('app.string.checkin_success_toast', this.checkInData.streak), 1500);
     }
   }
@@ -583,6 +605,8 @@ struct Index {
       FlyFlowerPageBuilder()
     } else if (name === 'DataBackupPage') {
       DataBackupPageBuilder()
+    } else if (name === 'DictationPage') {
+      DictationPageBuilder(param)
     }
   }
 
@@ -1045,6 +1069,79 @@ struct Index {
           .backgroundColor($r('app.color.card_background'))
           .borderRadius(14)
           .margin({ left: 16, right: 16 })
+
+          Column() {
+            Text($r('app.string.wr_title'))
+              .fontSize(15)
+              .fontWeight(FontWeight.Bold)
+              .fontColor($r('app.color.primary_text'))
+              .alignSelf(ItemAlign.Start)
+
+            Row() {
+              Column() {
+                Text($r('app.string.wr_days', this.mineWeekCheckIn))
+                  .fontSize(20)
+                  .fontWeight(FontWeight.Bold)
+                  .fontColor($r('app.color.success_green'))
+                Text($r('app.string.wr_checkin_week'))
+                  .fontSize(11)
+                  .fontColor($r('app.color.tertiary_text'))
+                  .margin({ top: 2 })
+              }
+              .layoutWeight(1)
+              .alignItems(HorizontalAlign.Center)
+
+              Column() {
+                Text($r('app.string.wr_days', this.mineUserStats.checkInStreak))
+                  .fontSize(20)
+                  .fontWeight(FontWeight.Bold)
+                  .fontColor($r('app.color.idiom_orange'))
+                Text($r('app.string.wr_checkin_streak'))
+                  .fontSize(11)
+                  .fontColor($r('app.color.tertiary_text'))
+                  .margin({ top: 2 })
+              }
+              .layoutWeight(1)
+              .alignItems(HorizontalAlign.Center)
+            }
+            .width('100%')
+            .margin({ top: 12 })
+
+            Row() {
+              Column() {
+                Text($r('app.string.wr_sentences', this.mineUserStats.flyflowerTotal))
+                  .fontSize(20)
+                  .fontWeight(FontWeight.Bold)
+                  .fontColor($r('app.color.poetry_green'))
+                Text($r('app.string.wr_flyflower'))
+                  .fontSize(11)
+                  .fontColor($r('app.color.tertiary_text'))
+                  .margin({ top: 2 })
+              }
+              .layoutWeight(1)
+              .alignItems(HorizontalAlign.Center)
+
+              Column() {
+                Text($r('app.string.wr_sentences', this.mineUserStats.dictationTotal))
+                  .fontSize(20)
+                  .fontWeight(FontWeight.Bold)
+                  .fontColor($r('app.color.danger_red'))
+                Text($r('app.string.wr_dictation'))
+                  .fontSize(11)
+                  .fontColor($r('app.color.tertiary_text'))
+                  .margin({ top: 2 })
+              }
+              .layoutWeight(1)
+              .alignItems(HorizontalAlign.Center)
+            }
+            .width('100%')
+            .margin({ top: 10 })
+          }
+          .width('100%')
+          .padding(16)
+          .backgroundColor($r('app.color.card_background'))
+          .borderRadius(14)
+          .margin({ left: 16, right: 16, top: 12 })
 
           Column() {
             Row() {

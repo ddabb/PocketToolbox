@@ -49,6 +49,8 @@ export class UserStats {
   toolUseCount: number = 0;
   flyflowerBest: number = 0;
   flyflowerTotal: number = 0;
+  dictationTotal: number = 0;
+  dictationPerfect: number = 0;
 }
 
 class AchievementDef {
@@ -100,6 +102,9 @@ export class StickinessUtil {
     new AchievementDef('flyflower_first', 'ach_flyflower_first_title', 'ach_flyflower_first_desc', '\uD83C\uDF38', '#d81b60', 1, 'flyflowerTotal'),
     new AchievementDef('flyflower_streak_10', 'ach_flyflower_streak_10_title', 'ach_flyflower_streak_10_desc', '\uD83C\uDFC6', '#8e44ad', 10, 'flyflowerBest'),
     new AchievementDef('flyflower_total_30', 'ach_flyflower_total_30_title', 'ach_flyflower_total_30_desc', '\uD83C\uDF38', '#d81b60', 30, 'flyflowerTotal'),
+    new AchievementDef('dictation_first', 'ach_dictation_first_title', 'ach_dictation_first_desc', '\uD83D\uDCDD', '#16a085', 1, 'dictationTotal'),
+    new AchievementDef('dictation_perfect_10', 'ach_dictation_perfect_10_title', 'ach_dictation_perfect_10_desc', '\uD83D\uDCD8', '#c0392b', 10, 'dictationPerfect'),
+    new AchievementDef('dictation_total_30', 'ach_dictation_total_30_title', 'ach_dictation_total_30_desc', '\uD83D\uDCDD', '#16a085', 30, 'dictationTotal'),
   ];
 
   static todayStr(): string {
@@ -205,6 +210,8 @@ export class StickinessUtil {
       stats.toolUseCount = (obj['toolUseCount'] as number) || 0;
       stats.flyflowerBest = (obj['flyflowerBest'] as number) || 0;
       stats.flyflowerTotal = (obj['flyflowerTotal'] as number) || 0;
+      stats.dictationTotal = (obj['dictationTotal'] as number) || 0;
+      stats.dictationPerfect = (obj['dictationPerfect'] as number) || 0;
       return stats;
     } catch (e) {
       return new UserStats();
@@ -227,7 +234,9 @@ export class StickinessUtil {
         'readingMinutes': stats.readingMinutes as Object,
         'toolUseCount': stats.toolUseCount as Object,
         'flyflowerBest': stats.flyflowerBest as Object,
-        'flyflowerTotal': stats.flyflowerTotal as Object
+        'flyflowerTotal': stats.flyflowerTotal as Object,
+        'dictationTotal': stats.dictationTotal as Object,
+        'dictationPerfect': stats.dictationPerfect as Object
       };
       prefs.putSync(StickinessUtil.KEY_STATS, JSON.stringify(obj));
       prefs.flush();
@@ -264,6 +273,10 @@ export class StickinessUtil {
       stats.flyflowerBest = value;
     } else if (key === 'flyflowerTotal') {
       stats.flyflowerTotal = value;
+    } else if (key === 'dictationTotal') {
+      stats.dictationTotal = value;
+    } else if (key === 'dictationPerfect') {
+      stats.dictationPerfect = value;
     }
     StickinessUtil.saveStats(context, stats);
     StickinessUtil.checkAchievements(context, stats);
@@ -274,6 +287,16 @@ export class StickinessUtil {
     stats.flyflowerTotal = stats.flyflowerTotal + 1;
     if (streak > stats.flyflowerBest) {
       stats.flyflowerBest = streak;
+    }
+    StickinessUtil.saveStats(context, stats);
+    StickinessUtil.checkAchievements(context, stats);
+  }
+
+  static recordDictationSentence(context: Context, perfect: boolean): void {
+    let stats: UserStats = StickinessUtil.loadStats(context);
+    stats.dictationTotal = stats.dictationTotal + 1;
+    if (perfect) {
+      stats.dictationPerfect = stats.dictationPerfect + 1;
     }
     StickinessUtil.saveStats(context, stats);
     StickinessUtil.checkAchievements(context, stats);

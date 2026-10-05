@@ -107,6 +107,11 @@ struct DailyChallengeContent {
     stack.pushPathByName('FlyFlowerPage', null);
   }
 
+  private openDictation(): void {
+    let stack: NavPathStack = AppStorage.get('AppNavPathStack') as NavPathStack;
+    stack.pushPathByName('DictationPage', null);
+  }
+
   build() {
     Column() {
       Column() {
@@ -138,6 +143,36 @@ struct DailyChallengeContent {
       .margin({ left: 16, right: 16, top: 12 })
       .onClick(() => {
         this.openFlyFlower();
+      })
+
+      Row() {
+        Text('\uD83D\uDCDD')
+          .fontSize(22)
+        Column() {
+          Text($r('app.string.dc_title'))
+            .fontSize(15)
+            .fontWeight(FontWeight.Bold)
+            .fontColor($r('app.color.primary_text'))
+          Text($r('app.string.dc_entry_desc'))
+            .fontSize(11)
+            .fontColor($r('app.color.tertiary_text'))
+            .margin({ top: 2 })
+        }
+        .layoutWeight(1)
+        .alignItems(HorizontalAlign.Start)
+        .margin({ left: 10 })
+
+        Text('\u203A')
+          .fontSize(18)
+          .fontColor($r('app.color.hint_text'))
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, top: 12, bottom: 12 })
+      .backgroundColor($r('app.color.card_background'))
+      .borderRadius(14)
+      .margin({ left: 16, right: 16, top: 8 })
+      .onClick(() => {
+        this.openDictation();
       })
 
       if (this.isLoading) {
