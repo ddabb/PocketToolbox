@@ -34,7 +34,7 @@ import { PoemItem, PoetDetail, PoetItem } from '../model/PoetryModels';
 import { IdiomDetailItem } from '../model/IdiomModels';
 import { XiehouyuItem } from '../model/XiehouyuModels';
 import { FavoritesUtil, FavoriteItem } from '../common/utils/FavoritesUtil';
-import { StickinessUtil, CheckInData, ChallengeProgress, UserStats, ReviewShownRecord } from '../common/utils/StickinessUtil';
+import { StickinessUtil, CheckInData, ChallengeProgress, UserStats, ReviewShownRecord, AchievementItem } from '../common/utils/StickinessUtil';
 import { RecentToolsUtil } from '../common/utils/RecentToolsUtil';
 import { DailyPoemWidgetUtil } from '../common/utils/DailyPoemWidgetUtil';
 import { ReadingListStore, ReadingList } from '../model/ReadingListModels';
@@ -104,6 +104,8 @@ struct Index {
   @State mineWeekCheckIn: number = 0;
   @State mineCheckInData: CheckInData = new CheckInData();
   @State mineChallengeProgress: ChallengeProgress = new ChallengeProgress();
+  @State mineAchievementUnlocked: number = 0;
+  @State mineAchievementTotal: number = 0;
   @State toolGridCols: number = 4;
   @StorageLink('ReadingDataVersion') @Watch('onReadingDataChanged') readingDataVersion: number = 0;
   private poetryVm: PoetryViewModel = PoetryViewModel.getInstance();
@@ -361,6 +363,15 @@ struct Index {
     this.loadReviewItem(ctx);
     this.mineCheckInData = StickinessUtil.loadCheckIn(ctx);
     this.mineChallengeProgress = StickinessUtil.loadChallengeProgress(ctx);
+    let achievements: AchievementItem[] = StickinessUtil.loadAchievements(ctx);
+    let unlockedCount: number = 0;
+    for (let i = 0; i < achievements.length; i++) {
+      if (achievements[i].unlocked) {
+        unlockedCount++;
+      }
+    }
+    this.mineAchievementUnlocked = unlockedCount;
+    this.mineAchievementTotal = achievements.length;
     FavoritesUtil.invalidateCache();
     let favs: FavoriteItem[] = FavoritesUtil.load(ctx);
     let poemCount: number = 0;
@@ -1406,6 +1417,31 @@ struct Index {
           .backgroundColor($r('app.color.card_background'))
           .borderRadius(14)
           .margin({ left: 16, right: 16, top: 12 })
+
+          Row() {
+            Text('\uD83C\uDFC6')
+              .fontSize(20)
+              .margin({ right: 10 })
+            Text($r('app.string.achpage_title'))
+              .fontSize(15)
+              .fontColor($r('app.color.primary_text'))
+              .layoutWeight(1)
+            Text(this.mineAchievementUnlocked.toString() + '/' + this.mineAchievementTotal.toString())
+              .fontSize(14)
+              .fontColor($r('app.color.tertiary_text'))
+              .margin({ right: 6 })
+            Text('\u203A')
+              .fontSize(18)
+              .fontColor($r('app.color.hint_text'))
+          }
+          .width('100%')
+          .padding({ left: 16, right: 16, top: 14, bottom: 14 })
+          .backgroundColor($r('app.color.card_background'))
+          .borderRadius(14)
+          .margin({ left: 16, right: 16, top: 12 })
+          .onClick(() => {
+            this.mineStack.pushPathByName('AchievementPage', null);
+          })
 
           Row() {
             Text('\uD83D\uDCBE')

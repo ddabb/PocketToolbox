@@ -222,10 +222,17 @@ struct ReviewContent {
           this.PracticeSection()
         } else if (this.mode === 'done') {
           this.DoneSection()
-        } else if (this.queue.length === 0) {
-          this.EmptySection()
         } else {
-          this.QueueSection()
+          Column() {
+            this.ReminderRow()
+            if (this.queue.length === 0) {
+              this.EmptySection()
+            } else {
+              this.QueueSection()
+            }
+          }
+          .width('100%')
+          .height('100%')
         }
       }
       .width('100%')
@@ -255,25 +262,29 @@ struct ReviewContent {
     .alignItems(HorizontalAlign.Center)
   }
 
+  /** 提醒开关行：queue/empty 态共用，practice/done 沉浸练习不显示 */
+  @Builder
+  ReminderRow() {
+    Row() {
+      Text($r('app.string.rv_reminder'))
+        .fontSize(15)
+        .fontColor($r('app.color.primary_text'))
+      Toggle({ type: ToggleType.Switch, isOn: this.reminderOn })
+        .onChange((isOn: boolean) => {
+          this.onReminderToggle(isOn);
+        })
+    }
+    .width('100%')
+    .justifyContent(FlexAlign.SpaceBetween)
+    .alignItems(VerticalAlign.Center)
+    .backgroundColor($r('app.color.card_background'))
+    .borderRadius(14)
+    .padding({ left: 16, right: 16, top: 12, bottom: 12 })
+  }
+
   @Builder
   QueueSection() {
     Column() {
-      Row() {
-        Text($r('app.string.rv_reminder'))
-          .fontSize(15)
-          .fontColor($r('app.color.primary_text'))
-        Toggle({ type: ToggleType.Switch, isOn: this.reminderOn })
-          .onChange((isOn: boolean) => {
-            this.onReminderToggle(isOn);
-          })
-      }
-      .width('100%')
-      .justifyContent(FlexAlign.SpaceBetween)
-      .alignItems(VerticalAlign.Center)
-      .backgroundColor($r('app.color.card_background'))
-      .borderRadius(14)
-      .padding({ left: 16, right: 16, top: 12, bottom: 12 })
-
       Column() {
         Column() {
           Text($r('app.string.rv_queue_title'))
