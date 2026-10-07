@@ -2541,6 +2541,10 @@
       "value": "练习卡 3:4"
     },
     {
+      "name": "tmpl_size_cover",
+      "value": "公众号首图 2.35:1"
+    },
+    {
       "name": "tmpl_grid_tian",
       "value": "田字格"
     },

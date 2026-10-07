@@ -1,6 +1,6 @@
 /**
  * 生字卡页面：尺寸/格型/字色/配色选择 + 整课生字输入 + 自动注音
- * 单卡导出（1080x1080 / 1080x1440）+ 批量导出（每字一卡）+ 制作历史
+ * 单卡导出（1080x1080 / 1080x1440 / 1080x460）+ 批量导出（每字一卡）+ 制作历史
  */
 import { display, mediaquery } from '@kit.ArkUI';
 import { image } from '@kit.ImageKit';
@@ -65,6 +65,7 @@ struct CharCardContent {
   private sizeOptions: ChipOption[] = [
     ChipOption.of(CharCardSize.SQUARE, CharCardSize.label(CharCardSize.SQUARE)),
     ChipOption.of(CharCardSize.PRACTICE, CharCardSize.label(CharCardSize.PRACTICE)),
+    ChipOption.of(CharCardSize.COVER, CharCardSize.label(CharCardSize.COVER)),
   ];
   private gridOptions: ChipOption[] = [
     ChipOption.of(CharCardGridType.TIAN, CharCardGridType.label(CharCardGridType.TIAN)),

@@ -2541,6 +2541,10 @@
       "value": "Practice 3:4"
     },
     {
+      "name": "tmpl_size_cover",
+      "value": "Article Cover 2.35:1"
+    },
+    {
       "name": "tmpl_grid_tian",
       "value": "Tian grid"
     },

@@ -1,6 +1,6 @@
 /**
- * 生字卡卡面渲染组件：设计稿 900x900（方卡）/ 900x1200（练习卡）等比渲染
- * 结构：拼音（可关，逐字对齐：每音节对准其上方格子） + 田字格/米字格格区（1-12 字，>8 字两行）
+ * 生字卡卡面渲染组件：设计稿 900x900（方卡）/ 900x1200（练习卡）/ 900x383（公众号首图，恒单行）等比渲染
+ * 结构：拼音（可关，逐字对齐：每音节对准其上方格子，系统字体防部分设备声调字符渲染异常） + 田字格/米字格格区（1-12 字，>8 字两行）
  */
 import { CoverPalette } from '../../model/CoverModels';
 import { CharCards, CharCardCharMode, CharCardGridType } from '../../core/cover/CharCardTemplates';
@@ -40,7 +40,15 @@ export struct CharCardPreview {
   }
 
   private rowLens(): number[] {
-    return CharCards.splitRows(this.chars().length);
+    return CharCards.splitRowsFor(this.sizeKind, this.chars().length);
+  }
+
+  private maxCell(): number {
+    return CharCards.maxCellFor(this.sizeKind);
+  }
+
+  private cellOf(rowIndex: number): number {
+    return CharCards.cellSize(this.rowLens()[rowIndex], this.maxCell());
   }
 
   private lineW(): number {
@@ -82,15 +90,18 @@ export struct CharCardPreview {
           this.PinyinSlots(rowIndex, this.rowSyllables(rowIndex, pinyinRow))
         } else {
           Text(pinyinRow)
-            .fontSize(this.f(CharCards.pinyinSize(CharCards.cellSize(this.rowLens()[rowIndex]))))
+            .fontSize(this.f(CharCards.pinyinSize(this.cellOf(rowIndex))))
+            .minFontSize(this.f(16))
+            .maxFontSize(this.f(CharCards.pinyinSize(this.cellOf(rowIndex))))
+            .heightAdaptivePolicy(TextHeightAdaptivePolicy.MIN_FONT_SIZE_FIRST)
+            .constraintSize({ maxWidth: '100%' })
             .fontColor(this.pal().sub)
-            .fontFamily(KAI_FONT)
             .maxLines(1)
         }
       }
       Row({ space: this.f(CharCards.GAP) }) {
         ForEach(this.rowChars(rowIndex), (ch: string, ci: number) => {
-          this.GridCell(this.f(CharCards.cellSize(this.rowLens()[rowIndex])), ch)
+          this.GridCell(this.f(this.cellOf(rowIndex)), ch)
         }, (ch: string, ci: number) => ch + ci.toString())
       }
       .alignItems(VerticalAlign.Center)
@@ -114,13 +125,12 @@ export struct CharCardPreview {
     Row({ space: this.f(CharCards.GAP) }) {
       ForEach(syllables, (sy: string, ci: number) => {
         Text(sy)
-          .width(this.f(CharCards.cellSize(this.rowLens()[rowIndex])))
-          .fontSize(this.f(CharCards.pinyinSize(CharCards.cellSize(this.rowLens()[rowIndex]))))
+          .width(this.f(this.cellOf(rowIndex)))
+          .fontSize(this.f(CharCards.pinyinSize(this.cellOf(rowIndex))))
           .minFontSize(this.f(16))
-          .maxFontSize(this.f(CharCards.pinyinSize(CharCards.cellSize(this.rowLens()[rowIndex]))))
+          .maxFontSize(this.f(CharCards.pinyinSize(this.cellOf(rowIndex))))
           .heightAdaptivePolicy(TextHeightAdaptivePolicy.MIN_FONT_SIZE_FIRST)
           .fontColor(this.pal().sub)
-          .fontFamily(KAI_FONT)
           .maxLines(1)
           .textAlign(TextAlign.Center)
       }, (sy: string, ci: number) => sy + ci.toString())

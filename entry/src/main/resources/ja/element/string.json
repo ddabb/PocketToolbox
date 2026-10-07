@@ -2541,6 +2541,10 @@
       "value": "練習カード 3:4"
     },
     {
+      "name": "tmpl_size_cover",
+      "value": "記事カバー 2.35:1"
+    },
+    {
       "name": "tmpl_grid_tian",
       "value": "田字マス"
     },
