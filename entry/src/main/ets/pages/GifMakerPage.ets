@@ -1669,23 +1669,83 @@ struct GifMakerPage {
   }
 
   @Builder
-  OptionChips(labels: ResourceStr[], selected: number, onPick: (index: number) => void) {
+  OptionChips(labels: ResourceStr[], kind: string) {
     Row({ space: 8 }) {
       ForEach(labels, (label: ResourceStr, index: number) => {
         Text(label)
           .fontSize(13)
-          .fontColor(index === selected ? Color.White : $r('app.color.secondary_text'))
+          .fontColor(index === this.paramChipSelected(kind) ? Color.White : $r('app.color.secondary_text'))
           .padding({ left: 14, right: 14, top: 7, bottom: 7 })
-          .backgroundColor(index === selected ? $r('app.color.idiom_blue') : $r('app.color.page_background'))
+          .backgroundColor(index === this.paramChipSelected(kind) ? $r('app.color.idiom_blue') : $r('app.color.page_background'))
           .borderRadius(14)
           .border({
             width: 1,
-            color: index === selected ? $r('app.color.idiom_blue') : $r('app.color.border_color')
+            color: index === this.paramChipSelected(kind) ? $r('app.color.idiom_blue') : $r('app.color.border_color')
           })
           .onClick(() => {
-            onPick(index);
+            this.pickParamChip(kind, index);
           })
-      }, (label: ResourceStr, index: number) => index.toString())
+      }, (label: ResourceStr, index: number) => kind + '_' + index.toString())
+    }
+  }
+
+  private paramChipSelected(kind: string): number {
+    if (kind === 'speed') {
+      return this.speedIndex;
+    }
+    if (kind === 'playMode') {
+      return this.playModeIndex;
+    }
+    if (kind === 'loop') {
+      return this.loopIndex;
+    }
+    if (kind === 'size') {
+      return this.sizeIndex;
+    }
+    if (kind === 'quality') {
+      return this.qualityIndex;
+    }
+    if (kind === 'stickerCategory') {
+      return this.stickerCategoryIndex;
+    }
+    if (kind === 'videoFps') {
+      return this.videoFpsIndex;
+    }
+    return -1;
+  }
+
+  private pickParamChip(kind: string, index: number): void {
+    if (kind === 'speed') {
+      this.speedIndex = index;
+      this.syncPreviewTimer();
+      return;
+    }
+    if (kind === 'playMode') {
+      this.playModeIndex = index;
+      this.previewPos = 0;
+      this.onFramesChanged();
+      return;
+    }
+    if (kind === 'loop') {
+      this.loopIndex = index;
+      return;
+    }
+    if (kind === 'size') {
+      this.sizeIndex = index;
+      this.syncPreviewBox();
+      return;
+    }
+    if (kind === 'quality') {
+      this.qualityIndex = index;
+      return;
+    }
+    if (kind === 'stickerCategory') {
+      this.stickerCategoryIndex = index;
+      return;
+    }
+    if (kind === 'videoFps') {
+      this.videoFpsIndex = index;
+      return;
     }
   }
 
@@ -1841,9 +1901,7 @@ struct GifMakerPage {
 
           Column({ space: 6 }) {
             this.ParamLabel($r('app.string.gif_label_fps'))
-            this.OptionChips(this.videoFpsLabels(), this.videoFpsIndex, (index: number) => {
-              this.videoFpsIndex = index;
-            })
+            this.OptionChips(this.videoFpsLabels(), 'videoFps')
           }
 
           Text($r('app.string.gif_extract_estimate', this.plannedVideoFrameCount(), MAX_FRAMES))
@@ -2130,9 +2188,7 @@ struct GifMakerPage {
       .width('100%')
 
       Column({ space: 8 }) {
-        this.OptionChips(this.stickerCategories(), this.stickerCategoryIndex, (index: number) => {
-          this.stickerCategoryIndex = index;
-        })
+        this.OptionChips(this.stickerCategories(), 'stickerCategory')
         Flex({ wrap: FlexWrap.Wrap }) {
           ForEach(STICKER_SETS[this.stickerCategoryIndex], (sticker: string) => {
             Text(sticker)
@@ -2337,41 +2393,27 @@ struct GifMakerPage {
 
       Column({ space: 6 }) {
         this.ParamLabel($r('app.string.gif_label_speed'))
-        this.OptionChips(SPEED_LABELS, this.speedIndex, (index: number) => {
-          this.speedIndex = index;
-          this.syncPreviewTimer();
-        })
+        this.OptionChips(SPEED_LABELS, 'speed')
       }
 
       Column({ space: 6 }) {
         this.ParamLabel($r('app.string.gif_label_play_mode'))
-        this.OptionChips(this.playModeLabels(), this.playModeIndex, (index: number) => {
-          this.playModeIndex = index;
-          this.previewPos = 0;
-          this.onFramesChanged();
-        })
+        this.OptionChips(this.playModeLabels(), 'playMode')
       }
 
       Column({ space: 6 }) {
         this.ParamLabel($r('app.string.gif_label_loop'))
-        this.OptionChips(this.loopLabels(), this.loopIndex, (index: number) => {
-          this.loopIndex = index;
-        })
+        this.OptionChips(this.loopLabels(), 'loop')
       }
 
       Column({ space: 6 }) {
         this.ParamLabel($r('app.string.gif_label_output_size'))
-        this.OptionChips(this.sizeLabels(), this.sizeIndex, (index: number) => {
-          this.sizeIndex = index;
-          this.syncPreviewBox();
-        })
+        this.OptionChips(this.sizeLabels(), 'size')
       }
 
       Column({ space: 6 }) {
         this.ParamLabel($r('app.string.gif_label_quality'))
-        this.OptionChips(this.qualityLabels(), this.qualityIndex, (index: number) => {
-          this.qualityIndex = index;
-        })
+        this.OptionChips(this.qualityLabels(), 'quality')
       }
     }
     .width('100%')

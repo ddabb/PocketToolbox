@@ -139,6 +139,7 @@ struct DailyChallengeContent {
 
   build() {
     Column() {
+      Scroll() {
       Column() {
       Row() {
         Text('\uD83C\uDF38')
@@ -273,7 +274,7 @@ struct DailyChallengeContent {
             .margin({ top: 12 })
         }
         .width('100%')
-        .layoutWeight(1)
+        .height(420)
         .justifyContent(FlexAlign.Center)
       } else if (this.finished) {
         this.ResultSection()
@@ -282,8 +283,15 @@ struct DailyChallengeContent {
       }
       }
       .width('100%')
+      .constraintSize({ maxWidth: 720 })
+      .padding({ bottom: 24 })
+      }
+      .width('100%')
       .height('100%')
       .constraintSize({ maxWidth: 720 })
+      .align(Alignment.Top)
+      .scrollBar(BarState.Off)
+      .edgeEffect(EdgeEffect.Spring)
     }
     .width('100%')
     .height('100%')
@@ -424,7 +432,6 @@ struct DailyChallengeContent {
       }
     }
     .width('100%')
-    .height('100%')
   }
 
   private getNextButtonText(): ResourceStr {
@@ -501,8 +508,7 @@ struct DailyChallengeContent {
 
   @Builder
   ResultSection() {
-    Scroll() {
-      Column() {
+    Column() {
         Text(this.getScoreEmoji())
           .fontSize(64)
           .margin({ top: 32, bottom: 12 })
@@ -565,8 +571,5 @@ struct DailyChallengeContent {
         .alignItems(HorizontalAlign.Center)
       }
       .width('100%')
-    }
-    .width('100%')
-    .height('100%')
   }
 }
