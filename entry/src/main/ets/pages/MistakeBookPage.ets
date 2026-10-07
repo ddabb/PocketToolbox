@@ -89,7 +89,11 @@ struct MistakeBookContent {
     }
     this.judged = true;
     let ctx: Context = this.uiContext.getHostContext() as Context;
-    ReviewStore.recordResult(ctx, this.buildPoemItem(rec), this.sentence.raw, wrongIdx, perfect);
+    let updated: SentenceRecord | null =
+      ReviewStore.recordResult(ctx, this.buildPoemItem(rec), this.sentence.raw, wrongIdx, perfect);
+    if (updated !== null) {
+      this.mistakes[this.practiceIdx] = updated;
+    }
     if (perfect) {
       ToastUtil.show(this.uiContext, $r('app.string.mb_removed'), 1200);
     }

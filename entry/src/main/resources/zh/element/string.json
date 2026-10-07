@@ -3889,6 +3889,10 @@
       "value": "坚持复习，诗句自然熟记于心"
     },
     {
+      "name": "rv_back_to_list",
+      "value": "返回列表"
+    },
+    {
       "name": "reminder_review_content",
       "value": "今日有诗句待复习，来检验一下记忆吧"
     },

@@ -4,6 +4,7 @@ import { ReviewStore, SentenceRecord } from '../common/utils/ReviewStore';
 import { DictationUtil, DictationSentence, DictationChar } from '../common/utils/DictationUtil';
 import { StickinessUtil } from '../common/utils/StickinessUtil';
 import { ReviewReminderUtil } from '../common/utils/ReviewReminderUtil';
+import { StrUtil } from '../common/utils/StrUtil';
 
 @Builder
 export function ReviewPageBuilder() {
@@ -25,7 +26,7 @@ struct ReviewContent {
   @State inputText: string = '';
   @State judged: boolean = false;
   private uiContext: UIContext = this.getUIContext();
-  private countedSet: Set<number> = new Set<number>();
+  private countedSet: Set<string> = new Set<string>();
 
   aboutToAppear(): void {
     let ctx: Context = this.uiContext.getHostContext() as Context;
@@ -102,11 +103,25 @@ struct ReviewContent {
     }
     this.judged = true;
     let ctx: Context = this.uiContext.getHostContext() as Context;
-    if (!this.countedSet.has(this.practiceIdx)) {
-      this.countedSet.add(this.practiceIdx);
+    if (!this.countedSet.has(rec.key)) {
+      this.countedSet.add(rec.key);
       StickinessUtil.recordReviewSentence(ctx);
     }
-    ReviewStore.recordResult(ctx, this.buildPoemItem(rec), this.sentence.raw, wrongIdx, perfect);
+    let updated: SentenceRecord | null =
+      ReviewStore.recordResult(ctx, this.buildPoemItem(rec), this.sentence.raw, wrongIdx, perfect);
+    if (updated !== null) {
+      this.queue[this.practiceIdx] = updated;
+    }
+  }
+
+  private backToQueue(): void {
+    let ctx: Context = this.uiContext.getHostContext() as Context;
+    this.queue = ReviewStore.getDueReviews(ctx);
+    this.practiceIdx = 0;
+    this.sentence = new DictationSentence();
+    this.inputText = '';
+    this.judged = false;
+    this.mode = 'queue';
   }
 
   private retrySentence(): void {
@@ -341,6 +356,17 @@ struct ReviewContent {
         .fontColor($r('app.color.secondary_text'))
         .margin({ top: 10 })
         .textAlign(TextAlign.Center)
+      Text($r('app.string.rv_back_to_list'))
+        .fontSize(15)
+        .fontWeight(FontWeight.Bold)
+        .fontColor($r('app.color.on_accent_text'))
+        .backgroundColor($r('app.color.poetry_green'))
+        .borderRadius(16)
+        .padding({ left: 32, right: 32, top: 12, bottom: 12 })
+        .margin({ top: 24 })
+        .onClick(() => {
+          this.backToQueue();
+        })
     }
     .width('100%')
     .layoutWeight(1)
@@ -352,6 +378,17 @@ struct ReviewContent {
   PracticeSection() {
     Scroll() {
       Column() {
+        Row() {
+          Text('‹ ' + StrUtil.text(this.uiContext.getHostContext() as Context, $r('app.string.rv_back_to_list')))
+            .fontSize(13)
+            .fontColor($r('app.color.tertiary_text'))
+            .onClick(() => {
+              this.backToQueue();
+            })
+          Blank()
+        }
+        .width('100%')
+
         Text($r('app.string.ff_source', this.curPoemName(), this.curPoemAuthor()))
           .fontSize(16)
           .fontWeight(FontWeight.Bold)

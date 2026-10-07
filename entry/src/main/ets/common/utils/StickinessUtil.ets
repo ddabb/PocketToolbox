@@ -446,6 +446,8 @@ export class StickinessUtil {
     }
     if (newlyUnlocked.length > 0) {
       StickinessUtil.saveUnlockedMap(context, unlockedMap);
+      let ver: number = (AppStorage.get('AchievementDataVersion') ?? 0) as number;
+      AppStorage.setOrCreate('AchievementDataVersion', ver + 1);
     }
     return newlyUnlocked;
   }

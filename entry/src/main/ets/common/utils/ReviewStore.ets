@@ -23,9 +23,10 @@ export class ReviewStore {
   private static readonly STAGE_DAYS: number[] = [1, 2, 4, 7, 15];
   private static readonly DAY_MS: number = 24 * 60 * 60 * 1000;
 
-  static recordResult(context: Context, poem: PoemItem, raw: string, wrongIdx: number[], perfect: boolean): void {
+  static recordResult(context: Context, poem: PoemItem, raw: string, wrongIdx: number[], perfect: boolean):
+  SentenceRecord | null {
     if (raw === '') {
-      return;
+      return null;
     }
     let records: SentenceRecord[] = ReviewStore.loadRecords(context);
     let key: string = ReviewStore.buildKey(poem, raw);
@@ -81,6 +82,7 @@ export class ReviewStore {
     }
     records = ReviewStore.evictIfNeeded(records);
     ReviewStore.saveRecords(context, records);
+    return records.length > 0 && records.indexOf(rec) >= 0 ? rec : null;
   }
 
   static loadRecords(context: Context): SentenceRecord[] {

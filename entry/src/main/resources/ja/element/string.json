@@ -3889,6 +3889,10 @@
       "value": "復習を続ければ句は自然と身につきます"
     },
     {
+      "name": "rv_back_to_list",
+      "value": "リストに戻る"
+    },
+    {
       "name": "reminder_review_content",
       "value": "今日復習すべき詩句があります"
     },

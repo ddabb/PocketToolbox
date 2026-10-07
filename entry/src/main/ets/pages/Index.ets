@@ -106,6 +106,7 @@ struct Index {
   @State mineChallengeProgress: ChallengeProgress = new ChallengeProgress();
   @State mineAchievementUnlocked: number = 0;
   @State mineAchievementTotal: number = 0;
+  @StorageLink('AchievementDataVersion') @Watch('onAchievementDataChanged') achievementDataVersion: number = 0;
   @State toolGridCols: number = 4;
   @StorageLink('ReadingDataVersion') @Watch('onReadingDataChanged') readingDataVersion: number = 0;
   private poetryVm: PoetryViewModel = PoetryViewModel.getInstance();
@@ -363,15 +364,7 @@ struct Index {
     this.loadReviewItem(ctx);
     this.mineCheckInData = StickinessUtil.loadCheckIn(ctx);
     this.mineChallengeProgress = StickinessUtil.loadChallengeProgress(ctx);
-    let achievements: AchievementItem[] = StickinessUtil.loadAchievements(ctx);
-    let unlockedCount: number = 0;
-    for (let i = 0; i < achievements.length; i++) {
-      if (achievements[i].unlocked) {
-        unlockedCount++;
-      }
-    }
-    this.mineAchievementUnlocked = unlockedCount;
-    this.mineAchievementTotal = achievements.length;
+    this.refreshMineAchievements();
     FavoritesUtil.invalidateCache();
     let favs: FavoriteItem[] = FavoritesUtil.load(ctx);
     let poemCount: number = 0;
@@ -393,6 +386,23 @@ struct Index {
 
   onReadingDataChanged(): void {
     this.refreshMineReadingStats();
+  }
+
+  onAchievementDataChanged(): void {
+    this.refreshMineAchievements();
+  }
+
+  private refreshMineAchievements(): void {
+    let ctx: Context = this.getUIContext().getHostContext() as Context;
+    let achievements: AchievementItem[] = StickinessUtil.loadAchievements(ctx);
+    let unlockedCount: number = 0;
+    for (let i = 0; i < achievements.length; i++) {
+      if (achievements[i].unlocked) {
+        unlockedCount++;
+      }
+    }
+    this.mineAchievementUnlocked = unlockedCount;
+    this.mineAchievementTotal = achievements.length;
   }
 
   private refreshMineReadingStats(): void {
