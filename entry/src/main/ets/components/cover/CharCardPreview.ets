@@ -148,15 +148,10 @@ export struct CharCardPreview {
     return all.slice(start, start + lens[rowIndex]);
   }
 
-  /** 田字格/米字格单元格：外框实线 + 十字虚线（米字格加对角虚线）+ 居中楷体字 */
+  /** 田字格/米字格单元格：外框实线 + 十字虚线（米字格加对角虚线）+ 居中楷体字（字在最上层压住格线） */
   @Builder
   GridCell(size: number, ch: string) {
     Stack({ alignContent: Alignment.Center }) {
-      Text(ch)
-        .fontSize(size * 0.7)
-        .fontColor(this.pal().title)
-        .fontFamily(KAI_FONT)
-        .opacity(this.charMode === CharCardCharMode.TRACE ? 0.3 : 1)
       Row()
         .width('100%')
         .height(this.lineW())
@@ -179,6 +174,11 @@ export struct CharCardPreview {
           .opacity(0.6)
           .rotate({ angle: -45, centerX: '50%', centerY: '50%' })
       }
+      Text(ch)
+        .fontSize(size * 0.7)
+        .fontColor(this.pal().title)
+        .fontFamily(KAI_FONT)
+        .opacity(this.charMode === CharCardCharMode.TRACE ? 0.3 : 1)
     }
     .width(size)
     .height(size)

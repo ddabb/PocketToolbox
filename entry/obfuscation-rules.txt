@@ -17,7 +17,10 @@
 # -keep-property-name: specifies property names that you want to keep
 # -keep-global-name: specifies names that you want to keep in the global scope
 
--enable-property-obfuscation
+# 属性混淆已关闭：会把 pinyin-pro 字典的拼音字符串属性名（xué 等）混淆成 u252 之类的短名，
+# 运行时反向查表把混淆名当拼音返回，导致 release 包拼音显示为 "u252 n258..."（1.4.1 真机问题根因）。
+# 字典属性名有 2 万+，无法逐个 -keep-property-name，必须整体关闭属性混淆。
+# -enable-property-obfuscation
 -enable-toplevel-obfuscation
 -enable-filename-obfuscation
 -enable-export-obfuscation
