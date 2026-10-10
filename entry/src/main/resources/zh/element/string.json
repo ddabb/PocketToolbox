@@ -3915,6 +3915,266 @@
     {
       "name": "ach_review_30_desc",
       "value": "累计复习30句"
+    },
+    {
+      "name": "tool_poster_title",
+      "value": "文案海报"
+    },
+    {
+      "name": "tool_poster_sub",
+      "value": "一句话生成精美分享图"
+    },
+    {
+      "name": "poster_label_ratio",
+      "value": "比例"
+    },
+    {
+      "name": "poster_ratio_square",
+      "value": "方图 1:1"
+    },
+    {
+      "name": "poster_ratio_portrait",
+      "value": "竖图 3:4"
+    },
+    {
+      "name": "poster_slot_body",
+      "value": "主文案"
+    },
+    {
+      "name": "poster_slot_sign",
+      "value": "署名"
+    },
+    {
+      "name": "poster_slot_tag",
+      "value": "标签"
+    },
+    {
+      "name": "poster_body_hint",
+      "value": "输入主文案…"
+    },
+    {
+      "name": "poster_sign_hint",
+      "value": "署名（可选）"
+    },
+    {
+      "name": "poster_tag_hint",
+      "value": "标签（可选）"
+    },
+    {
+      "name": "poster_tmpl_t1",
+      "value": "暖调标签卡"
+    },
+    {
+      "name": "poster_tmpl_t2",
+      "value": "纯色简约"
+    },
+    {
+      "name": "poster_tmpl_t3",
+      "value": "文艺手写"
+    },
+    {
+      "name": "poster_tmpl_t4",
+      "value": "大字冲击"
+    },
+    {
+      "name": "poster_insp_label",
+      "value": "灵感文案"
+    },
+    {
+      "name": "poster_empty_hint",
+      "value": "输入文字开始创作"
+    },
+    {
+      "name": "ach_poster_first_title",
+      "value": "首张海报"
+    },
+    {
+      "name": "ach_poster_first_desc",
+      "value": "导出第一张文案海报"
+    },
+    {
+      "name": "ach_poster_10_title",
+      "value": "海报达人"
+    },
+    {
+      "name": "ach_poster_10_desc",
+      "value": "累计导出 10 张文案海报"
+    },
+    {
+      "name": "char_label_input",
+      "value": "输入"
+    },
+    {
+      "name": "char_mode_chars",
+      "value": "单字"
+    },
+    {
+      "name": "char_mode_sentence",
+      "value": "句子"
+    },
+    {
+      "name": "char_sentence_hint",
+      "value": "输入句子，自动按词换行…"
+    },
+    {
+      "name": "poster_insp_1",
+      "value": "把日子过成诗，简单而精致。"
+    },
+    {
+      "name": "poster_insp_2",
+      "value": "愿所有的努力都不被辜负。"
+    },
+    {
+      "name": "poster_insp_3",
+      "value": "生活明朗，万物可爱。"
+    },
+    {
+      "name": "poster_insp_4",
+      "value": "保持热爱，奔赴山海。"
+    },
+    {
+      "name": "poster_insp_5",
+      "value": "慢慢来，比较快。"
+    },
+    {
+      "name": "poster_insp_6",
+      "value": "今天也要元气满满哦。"
+    },
+    {
+      "name": "poster_insp_7",
+      "value": "做自己的太阳，无需借谁的光。"
+    },
+    {
+      "name": "poster_insp_8",
+      "value": "心中有光，慢食三餐。"
+    },
+    {
+      "name": "poster_insp_9",
+      "value": "世界很大，我们去看看。"
+    },
+    {
+      "name": "poster_insp_10",
+      "value": "平凡的日子里，藏着小欢喜。"
+    },
+    {
+      "name": "poster_insp_11",
+      "value": "万物皆有裂痕，那是光照进来的地方。"
+    },
+    {
+      "name": "poster_insp_12",
+      "value": "你若盛开，清风自来。"
+    },
+    {
+      "name": "poster_insp_13",
+      "value": "星光不问赶路人，时光不负有心人。"
+    },
+    {
+      "name": "poster_insp_14",
+      "value": "生活的美好，藏在细枝末节里。"
+    },
+    {
+      "name": "poster_insp_15",
+      "value": "与其在别处仰望，不如在这里并肩。"
+    },
+    {
+      "name": "poster_insp_16",
+      "value": "山野万里，你是我藏在星星里的浪漫。"
+    },
+    {
+      "name": "poster_insp_17",
+      "value": "认真生活，就能找到生活藏起来的糖果。"
+    },
+    {
+      "name": "poster_insp_18",
+      "value": "温柔半两，从容一生。"
+    },
+    {
+      "name": "poster_insp_19",
+      "value": "日日是好日。"
+    },
+    {
+      "name": "poster_insp_20",
+      "value": "人间烟火气，最抚凡人心。"
+    },
+    {
+      "name": "poster_insp_21",
+      "value": "往事清零，爱恨随意。"
+    },
+    {
+      "name": "poster_insp_22",
+      "value": "凡是过往，皆为序章。"
+    },
+    {
+      "name": "poster_insp_23",
+      "value": "前方无绝路，希望在转角。"
+    },
+    {
+      "name": "poster_insp_24",
+      "value": "熬过漫长无戏可演的日子，才能迎来人生的春天。"
+    },
+    {
+      "name": "poster_insp_25",
+      "value": "人生没有白走的路，每一步都算数。"
+    },
+    {
+      "name": "poster_insp_26",
+      "value": "生活原本沉闷，但跑起来就有风。"
+    },
+    {
+      "name": "poster_insp_27",
+      "value": "满怀希望就会所向披靡。"
+    },
+    {
+      "name": "poster_insp_28",
+      "value": "顺其自然，是对生活最大的成全。"
+    },
+    {
+      "name": "poster_insp_29",
+      "value": "别慌，月亮也正在大海某处迷茫。"
+    },
+    {
+      "name": "poster_insp_30",
+      "value": "把普通的日子过得浪漫一些。"
+    },
+    {
+      "name": "poster_insp_31",
+      "value": "治愈自己的最好方式是忙碌和早睡。"
+    },
+    {
+      "name": "poster_insp_32",
+      "value": "春风得意的时候不多，且行且珍惜。"
+    },
+    {
+      "name": "poster_insp_33",
+      "value": "见惯了量产的温柔，对笨拙的真诚格外心动。"
+    },
+    {
+      "name": "poster_insp_34",
+      "value": "落日归山海，山海藏深意。"
+    },
+    {
+      "name": "poster_insp_35",
+      "value": "家人闲坐，灯火可亲。"
+    },
+    {
+      "name": "poster_insp_36",
+      "value": "心之所向，素履以往。"
+    },
+    {
+      "name": "poster_insp_37",
+      "value": "岁月不饶人，我亦未曾饶过岁月。"
+    },
+    {
+      "name": "poster_insp_38",
+      "value": "读书，走路，识人，看世界。"
+    },
+    {
+      "name": "poster_insp_39",
+      "value": "愿你走出半生，归来仍是少年。"
+    },
+    {
+      "name": "poster_insp_40",
+      "value": "热爱可抵岁月漫长。"
     }
   ]
 }

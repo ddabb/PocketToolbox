@@ -52,6 +52,7 @@ export class UserStats {
   dictationTotal: number = 0;
   dictationPerfect: number = 0;
   reviewTotal: number = 0;
+  posterTotal: number = 0;
 }
 
 class AchievementDef {
@@ -108,6 +109,8 @@ export class StickinessUtil {
     new AchievementDef('dictation_total_30', 'ach_dictation_total_30_title', 'ach_dictation_total_30_desc', '\uD83D\uDCDD', '#16a085', 30, 'dictationTotal'),
     new AchievementDef('review_first', 'ach_review_first_title', 'ach_review_first_desc', '\uD83D\uDD01', '#2980b9', 1, 'reviewTotal'),
     new AchievementDef('review_30', 'ach_review_30_title', 'ach_review_30_desc', '\uD83D\uDD01', '#2980b9', 30, 'reviewTotal'),
+    new AchievementDef('poster_first', 'ach_poster_first_title', 'ach_poster_first_desc', '\uD83D\uDDBC', '#f59e0b', 1, 'posterTotal'),
+    new AchievementDef('poster_10', 'ach_poster_10_title', 'ach_poster_10_desc', '\uD83D\uDDBC', '#f59e0b', 10, 'posterTotal'),
   ];
 
   static todayStr(): string {
@@ -216,6 +219,7 @@ export class StickinessUtil {
       stats.dictationTotal = (obj['dictationTotal'] as number) || 0;
       stats.dictationPerfect = (obj['dictationPerfect'] as number) || 0;
       stats.reviewTotal = (obj['reviewTotal'] as number) || 0;
+      stats.posterTotal = (obj['posterTotal'] as number) || 0;
       return stats;
     } catch (e) {
       return new UserStats();
@@ -241,7 +245,8 @@ export class StickinessUtil {
         'flyflowerTotal': stats.flyflowerTotal as Object,
         'dictationTotal': stats.dictationTotal as Object,
         'dictationPerfect': stats.dictationPerfect as Object,
-        'reviewTotal': stats.reviewTotal as Object
+        'reviewTotal': stats.reviewTotal as Object,
+        'posterTotal': stats.posterTotal as Object
       };
       prefs.putSync(StickinessUtil.KEY_STATS, JSON.stringify(obj));
       prefs.flush();
@@ -284,6 +289,8 @@ export class StickinessUtil {
       stats.dictationPerfect = value;
     } else if (key === 'reviewTotal') {
       stats.reviewTotal = value;
+    } else if (key === 'posterTotal') {
+      stats.posterTotal = value;
     }
     StickinessUtil.saveStats(context, stats);
     StickinessUtil.checkAchievements(context, stats);
@@ -312,6 +319,13 @@ export class StickinessUtil {
   static recordReviewSentence(context: Context): void {
     let stats: UserStats = StickinessUtil.loadStats(context);
     stats.reviewTotal = stats.reviewTotal + 1;
+    StickinessUtil.saveStats(context, stats);
+    StickinessUtil.checkAchievements(context, stats);
+  }
+
+  static recordPosterExport(context: Context): void {
+    let stats: UserStats = StickinessUtil.loadStats(context);
+    stats.posterTotal = stats.posterTotal + 1;
     StickinessUtil.saveStats(context, stats);
     StickinessUtil.checkAchievements(context, stats);
   }
@@ -389,6 +403,14 @@ export class StickinessUtil {
       return stats.flyflowerBest;
     } else if (key === 'flyflowerTotal') {
       return stats.flyflowerTotal;
+    } else if (key === 'dictationTotal') {
+      return stats.dictationTotal;
+    } else if (key === 'dictationPerfect') {
+      return stats.dictationPerfect;
+    } else if (key === 'reviewTotal') {
+      return stats.reviewTotal;
+    } else if (key === 'posterTotal') {
+      return stats.posterTotal;
     }
     return 0;
   }

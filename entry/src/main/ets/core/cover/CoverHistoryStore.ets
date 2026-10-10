@@ -11,6 +11,7 @@ const MAX_RECORDS: number = 20;
 export class CoverHistoryStore {
   static readonly DIR_COVER: string = 'cover_history';
   static readonly DIR_CHAR_CARD: string = 'card_history';
+  static readonly DIR_POSTER: string = 'poster_history';
 
   private static dir(context: common.Context, dirName: string = CoverHistoryStore.DIR_COVER): string {
     return context.filesDir + '/' + dirName;

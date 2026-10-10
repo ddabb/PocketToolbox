@@ -3915,6 +3915,266 @@
     {
       "name": "ach_review_30_desc",
       "value": "累計30句を復習"
+    },
+    {
+      "name": "tool_poster_title",
+      "value": "コピー ポスター"
+    },
+    {
+      "name": "tool_poster_sub",
+      "value": "一文でシェア画像を作成"
+    },
+    {
+      "name": "poster_label_ratio",
+      "value": "比率"
+    },
+    {
+      "name": "poster_ratio_square",
+      "value": "スクエア 1:1"
+    },
+    {
+      "name": "poster_ratio_portrait",
+      "value": "縦長 3:4"
+    },
+    {
+      "name": "poster_slot_body",
+      "value": "メインテキスト"
+    },
+    {
+      "name": "poster_slot_sign",
+      "value": "署名"
+    },
+    {
+      "name": "poster_slot_tag",
+      "value": "タグ"
+    },
+    {
+      "name": "poster_body_hint",
+      "value": "メインテキストを入力…"
+    },
+    {
+      "name": "poster_sign_hint",
+      "value": "署名（任意）"
+    },
+    {
+      "name": "poster_tag_hint",
+      "value": "タグ（任意）"
+    },
+    {
+      "name": "poster_tmpl_t1",
+      "value": "ウォームラベル"
+    },
+    {
+      "name": "poster_tmpl_t2",
+      "value": "ピュアミニマル"
+    },
+    {
+      "name": "poster_tmpl_t3",
+      "value": "手書き風"
+    },
+    {
+      "name": "poster_tmpl_t4",
+      "value": "ビッグインパクト"
+    },
+    {
+      "name": "poster_insp_label",
+      "value": "インスピレーション"
+    },
+    {
+      "name": "poster_empty_hint",
+      "value": "テキストを入力して開始"
+    },
+    {
+      "name": "ach_poster_first_title",
+      "value": "初ポスター"
+    },
+    {
+      "name": "ach_poster_first_desc",
+      "value": "初めてコピーポスターを書き出す"
+    },
+    {
+      "name": "ach_poster_10_title",
+      "value": "ポスター好き"
+    },
+    {
+      "name": "ach_poster_10_desc",
+      "value": "コピーポスターを合計10枚書き出す"
+    },
+    {
+      "name": "char_label_input",
+      "value": "入力"
+    },
+    {
+      "name": "char_mode_chars",
+      "value": "一文字"
+    },
+    {
+      "name": "char_mode_sentence",
+      "value": "文章"
+    },
+    {
+      "name": "char_sentence_hint",
+      "value": "文章を入力、単語ごとに折り返し…"
+    },
+    {
+      "name": "poster_insp_1",
+      "value": "日々を詩のように、シンプルに美しく。"
+    },
+    {
+      "name": "poster_insp_2",
+      "value": "すべての努力が報われますように。"
+    },
+    {
+      "name": "poster_insp_3",
+      "value": "生活は明るく、何もかも愛おしい。"
+    },
+    {
+      "name": "poster_insp_4",
+      "value": "好きを貫いて、山へ海へ。"
+    },
+    {
+      "name": "poster_insp_5",
+      "value": "ゆっくり進むのが、いちばん早い。"
+    },
+    {
+      "name": "poster_insp_6",
+      "value": "今日も元気にいこう。"
+    },
+    {
+      "name": "poster_insp_7",
+      "value": "自分の太陽になれば、誰の光もいらない。"
+    },
+    {
+      "name": "poster_insp_8",
+      "value": "心に光を灯して、食事をゆっくり味わう。"
+    },
+    {
+      "name": "poster_insp_9",
+      "value": "世界は広い。見に行こう。"
+    },
+    {
+      "name": "poster_insp_10",
+      "value": "平凡な日々に、小さな喜びが潜んでいる。"
+    },
+    {
+      "name": "poster_insp_11",
+      "value": "傷跡があるから、光が差し込む。"
+    },
+    {
+      "name": "poster_insp_12",
+      "value": "花が咲けば、風は自ずと訪れる。"
+    },
+    {
+      "name": "poster_insp_13",
+      "value": "星は旅人を選ばず、時は努力を裏切らない。"
+    },
+    {
+      "name": "poster_insp_14",
+      "value": "暮らしの美しさは、細部に宿る。"
+    },
+    {
+      "name": "poster_insp_15",
+      "value": "遠くで仰ぐより、ここで並んで歩こう。"
+    },
+    {
+      "name": "poster_insp_16",
+      "value": "広い世界のきみは、星に隠した私のロマンス。"
+    },
+    {
+      "name": "poster_insp_17",
+      "value": "真剣に暮らせば、生活が隠したキャンディが見つかる。"
+    },
+    {
+      "name": "poster_insp_18",
+      "value": "優しさを少し、ゆとりを一生に。"
+    },
+    {
+      "name": "poster_insp_19",
+      "value": "毎日が良い日。"
+    },
+    {
+      "name": "poster_insp_20",
+      "value": "人の営みの温もりが、何より心を癒す。"
+    },
+    {
+      "name": "poster_insp_21",
+      "value": "過去はリセットして、軽やかに生きよう。"
+    },
+    {
+      "name": "poster_insp_22",
+      "value": "過ぎたことは、すべて序章にすぎない。"
+    },
+    {
+      "name": "poster_insp_23",
+      "value": "行き止まりの先に、希望の曲がり角がある。"
+    },
+    {
+      "name": "poster_insp_24",
+      "value": "長い冬を越えてこそ、春が来る。"
+    },
+    {
+      "name": "poster_insp_25",
+      "value": "無駄な道はない。一歩一歩が財産。"
+    },
+    {
+      "name": "poster_insp_26",
+      "value": "走り出せば、風は起きる。"
+    },
+    {
+      "name": "poster_insp_27",
+      "value": "希望に満ちれば、何ものも恐れない。"
+    },
+    {
+      "name": "poster_insp_28",
+      "value": "あるがままに任せるのが、自分への最大のやさしさ。"
+    },
+    {
+      "name": "poster_insp_29",
+      "value": "慌てないで。月も海のどこかで迷っている。"
+    },
+    {
+      "name": "poster_insp_30",
+      "value": "ありふれた日々を、少しだけロマンチックに。"
+    },
+    {
+      "name": "poster_insp_31",
+      "value": "自分を癒す最善の方法は、忙しさと早寝。"
+    },
+    {
+      "name": "poster_insp_32",
+      "value": "好調な日は多くない。一歩一歩大切に。"
+    },
+    {
+      "name": "poster_insp_33",
+      "value": "量産された優しさより、不器用な誠実に心が動く。"
+    },
+    {
+      "name": "poster_insp_34",
+      "value": "夕日は山と海に帰り、深い意味を残す。"
+    },
+    {
+      "name": "poster_insp_35",
+      "value": "家族とゆったり、灯りの下で過ごす。"
+    },
+    {
+      "name": "poster_insp_36",
+      "value": "心の向かうところへ、素朴なまま進む。"
+    },
+    {
+      "name": "poster_insp_37",
+      "value": "月日は人を待たない。だから今を楽しむ。"
+    },
+    {
+      "name": "poster_insp_38",
+      "value": "本を読み、道を歩き、人に会い、世界を見る。"
+    },
+    {
+      "name": "poster_insp_39",
+      "value": "半生を歩いても、帰ればまだ少年。"
+    },
+    {
+      "name": "poster_insp_40",
+      "value": "好きという気持ちが、長い歳月を埋めてくれる。"
     }
   ]
 }

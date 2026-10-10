@@ -19,6 +19,7 @@ import { SudokuSolverPageBuilder } from './SudokuSolverPage';
 import { GifMakerPageBuilder } from './GifMakerPage';
 import { CoverMakerPageBuilder } from './CoverMakerPage';
 import { CharCardPageBuilder } from './CharCardPage';
+import { CopyPosterPageBuilder } from './CopyPosterPage';
 import { GcdLcmPageBuilder } from './GcdLcmPage';
 import { PrimeFactorPageBuilder } from './PrimeFactorPage';
 import { FlyFlowerPageBuilder } from './FlyFlowerPage';
@@ -198,6 +199,7 @@ struct Index {
       new ToolItem('md2png', $r('app.string.tool_md2png_title'), $r('app.string.tool_md2png_sub'), 'creative_md2png', '#9b59b6', 'Md2PngPage'),
       new ToolItem('gzh_cover', $r('app.string.tool_cover_title'), $r('app.string.tool_cover_sub'), 'creative_cover', '#2E6FD6', 'CoverMakerPage'),
       new ToolItem('char_card', $r('app.string.tool_charcard_title'), $r('app.string.tool_charcard_sub'), 'creative_charcard', '#D8231A', 'CharCardPage'),
+      new ToolItem('copy_poster', $r('app.string.tool_poster_title'), $r('app.string.tool_poster_sub'), 'creative_poster', '#F59E0B', 'CopyPosterPage'),
       new ToolItem('gif_maker', $r('app.string.tool_gif_title'), $r('app.string.tool_gif_sub'), 'creative_gif', '#ec4899', 'GifMakerPage'),
       new ToolItem('sudoku_solver', $r('app.string.tool_sudoku_title'), $r('app.string.tool_sudoku_sub'), 'creative_sudoku', '#6366f1', 'SudokuSolverPage')
     ];
@@ -598,6 +600,8 @@ struct Index {
         CoverMakerPageBuilder()
       } else if (name === 'CharCardPage') {
         CharCardPageBuilder()
+      } else if (name === 'CopyPosterPage') {
+        CopyPosterPageBuilder()
     } else if (name === 'UnitCategoryPage') {
       UnitCategoryPageBuilder()
     } else if (name === 'UnitConverterPage') {

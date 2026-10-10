@@ -3,7 +3,7 @@
  * 结构：拼音（可关，逐字对齐：每音节对准其上方格子，系统字体防部分设备声调字符渲染异常） + 田字格/米字格格区（1-12 字，>8 字两行）
  */
 import { CoverPalette } from '../../model/CoverModels';
-import { CharCards, CharCardCharMode, CharCardGridType } from '../../core/cover/CharCardTemplates';
+import { CharCardCharMode, CharCardGridType, CharCardInputMode, CharCards } from '../../core/cover/CharCardTemplates';
 
 const KAI_FONT: string = 'LXGWWenKai';
 
@@ -17,6 +17,10 @@ export struct CharCardPreview {
   @Prop charMode: string;
   @Prop sizeKind: string;
   @Prop previewWidth: number;
+  /** 输入模式：chars（单字）/ sentence（句子分词） */
+  @Prop inputMode: string;
+  /** 句子模式：空格分隔的词串（词内不含空格，可无损还原） */
+  @Prop wordsText: string;
 
   /** 设计稿 px -> vp */
   private f(px: number): number {
@@ -35,11 +39,30 @@ export struct CharCardPreview {
     return list[0];
   }
 
+  /** 句子模式词数组（空格分隔串还原） */
+  private words(): string[] {
+    let t: string = this.wordsText.trim();
+    if (t === '') {
+      return [];
+    }
+    return t.split(new RegExp('\\s+', 'g')).filter((s: string) => s !== '');
+  }
+
+  private isSentence(): boolean {
+    return this.inputMode === CharCardInputMode.SENTENCE;
+  }
+
   private chars(): string[] {
+    if (this.isSentence()) {
+      return this.words().join('').split('');
+    }
     return CharCards.cleanChars(this.charsText).split('');
   }
 
   private rowLens(): number[] {
+    if (this.isSentence()) {
+      return CharCards.splitRowsByWords(this.sizeKind, this.words());
+    }
     return CharCards.splitRowsFor(this.sizeKind, this.chars().length);
   }
 

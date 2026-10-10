@@ -13,6 +13,7 @@ export class UnifiedToolKind {
   static readonly CHAR_CARD: string = 'charcard';
   static readonly MD2PNG: string = 'md2png';
   static readonly WORD_CLOUD: string = 'wordcloud';
+  static readonly COPY_POSTER: string = 'copyposter';
 }
 
 /** 槽位类型常量 */

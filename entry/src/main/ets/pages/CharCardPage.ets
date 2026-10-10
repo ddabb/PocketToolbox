@@ -8,7 +8,7 @@ import { fileIo as fs } from '@kit.CoreFileKit';
 import { common } from '@kit.AbilityKit';
 import { BusinessError } from '@kit.BasicServicesKit';
 import { CoverHistoryRecord, CoverPalette } from '../model/CoverModels';
-import { CharCards, CharCardCharMode, CharCardGridType, CharCardSize } from '../core/cover/CharCardTemplates';
+import { CharCards, CharCardCharMode, CharCardGridType, CharCardInputMode, CharCardSize } from '../core/cover/CharCardTemplates';
 import { CoverContentUtil } from '../core/cover/CoverContentUtil';
 import { CoverHistoryStore } from '../core/cover/CoverHistoryStore';
 import { CharCardPreview } from '../components/cover/CharCardPreview';
@@ -19,6 +19,7 @@ import { FontUtil } from '../common/utils/FontUtil';
 import { ToastUtil } from '../common/utils/ToastUtil';
 import { StrUtil } from '../common/utils/StrUtil';
 import { CharBookUtil } from '../common/utils/CharBookUtil';
+import { WordSegmentUtil } from '../common/utils/WordSegmentUtil';
 import { savePixelMapToAlbum, saveFilesToAlbum, shareImageViaPanel } from '../common/utils/ShareImageUtil';
 
 const PREVIEW_ID: string = 'charcard_preview';
@@ -44,6 +45,12 @@ struct CharCardContent {
   @State gridType: string = CharCardGridType.TIAN;
   @State charMode: string = CharCardCharMode.READ;
   @State sizeKind: string = CharCardSize.SQUARE;
+  /** 输入模式：chars 单字 / sentence 句子（分词换行） */
+  @State inputMode: string = CharCardInputMode.CHARS;
+  /** 句子模式原始输入 */
+  @State sentenceText: string = '';
+  /** 句子模式：空格分隔的已截断词串（渲染/导出用） */
+  @State wordsText: string = '';
   @State exporting: boolean = false;
   @State batchRunning: boolean = false;
   @State batchProgress: number = 0;
@@ -59,6 +66,8 @@ struct CharCardContent {
   batchChar: string = '';
   /** 焦点守卫：拼音框仅在聚焦时才把 onChange 视为手动编辑（防止程序化 text 更新误触发锁定） */
   pinyinFocused: boolean = false;
+  /** 句子分词防抖定时器 id */
+  private segmentTimer: number = -1;
   private darkListener: mediaquery.MediaQueryListener | null = null;
   /** 配色/选项数据（静态，构建一次） */
   private paletteList: CoverPalette[] = CharCards.palettes();
@@ -78,6 +87,10 @@ struct CharCardContent {
   private pinyinOptions: ChipOption[] = [
     ChipOption.of('on', $r('app.string.char_pinyin_show')),
     ChipOption.of('off', $r('app.string.char_pinyin_hide')),
+  ];
+  private inputModeOptions: ChipOption[] = [
+    ChipOption.of(CharCardInputMode.CHARS, CharCardInputMode.label(CharCardInputMode.CHARS)),
+    ChipOption.of(CharCardInputMode.SENTENCE, CharCardInputMode.label(CharCardInputMode.SENTENCE)),
   ];
 
   aboutToAppear(): void {
@@ -104,6 +117,13 @@ struct CharCardContent {
     this.historyRecords = CoverHistoryStore.loadRecords(this.context(), HISTORY_DIR);
   }
 
+  aboutToDisappear(): void {
+    if (this.segmentTimer >= 0) {
+      clearTimeout(this.segmentTimer);
+      this.segmentTimer = -1;
+    }
+  }
+
   // ---------- 状态与业务 ----------
 
   private context(): common.UIAbilityContext {
@@ -112,6 +132,59 @@ struct CharCardContent {
 
   private cleanChars(): string {
     return CharCards.cleanChars(this.charsText);
+  }
+
+  private isSentence(): boolean {
+    return this.inputMode === CharCardInputMode.SENTENCE;
+  }
+
+  /** 句子模式当前展示字串（去空白） */
+  private sentenceChars(): string {
+    return this.wordsText.replace(new RegExp('\\s', 'g'), '');
+  }
+
+  /** 分词结果按当前尺寸截断后写入 wordsText */
+  private applyWords(words: string[]): void {
+    let capped: string[] = CharCards.capWords(words,
+      CharCards.maxCharsFor(this.sizeKind, CharCardInputMode.SENTENCE));
+    this.wordsText = capped.join(' ');
+  }
+
+  /** 句子输入：同步快路径即时预览 + 250ms 防抖后 NLK 精细分词 */
+  private onSentenceChange(value: string): void {
+    this.sentenceText = value;
+    this.applyWords(WordSegmentUtil.segmentFast(value));
+    if (!this.pinyinLocked) {
+      this.pinyinText = CoverContentUtil.autoPinyin(this.sentenceChars());
+    }
+    if (this.segmentTimer >= 0) {
+      clearTimeout(this.segmentTimer);
+    }
+    this.segmentTimer = setTimeout(() => {
+      this.segmentTimer = -1;
+      WordSegmentUtil.segment(value).then((words: string[]) => {
+        this.applyWords(words);
+      });
+    }, 250);
+  }
+
+  /** 输入模式切换：携带已有内容互转（单字 <-> 句子） */
+  private onModeChange(value: string): void {
+    if (this.inputMode === value || this.exporting || this.batchRunning) {
+      return;
+    }
+    this.inputMode = value;
+    if (value === CharCardInputMode.SENTENCE) {
+      if (this.sentenceText.trim() === '' && this.cleanChars() !== '') {
+        this.onSentenceChange(this.cleanChars());
+      }
+    } else {
+      if (this.cleanChars() === '' && this.sentenceChars() !== '') {
+        this.charsText = CharCards.cleanChars(this.sentenceChars());
+        this.pinyinLocked = false;
+        this.pinyinText = CoverContentUtil.autoPinyin(this.charsText);
+      }
+    }
   }
 
   /** 预览/导出使用的字串：批量模式下逐字替换 */
@@ -188,6 +261,9 @@ struct CharCardContent {
   }
 
   private canExport(): boolean {
+    if (this.isSentence()) {
+      return this.sentenceChars().length > 0;
+    }
     return this.cleanChars().length > 0;
   }
 
@@ -199,10 +275,13 @@ struct CharCardContent {
 
   private currentRecord(fileName: string): CoverHistoryRecord {
     let r: Record<string, Object> = {
-      'chars': this.charsText,
+      'chars': this.isSentence() ? this.sentenceChars() : this.charsText,
       'pinyin': this.pinyinText,
       'pinyinOn': this.pinyinOn,
       'locked': this.pinyinLocked,
+      'mode': this.inputMode,
+      'sentence': this.sentenceText,
+      'words': this.wordsText,
     };
     return CoverHistoryRecord.of(
       Date.now().toString(36) + Math.floor(Math.random() * 1000).toString(),
@@ -220,10 +299,20 @@ struct CharCardContent {
     this.paletteIndex = r.paletteIndex;
     try {
       let t: Record<string, Object> = JSON.parse(r.textsJson) as Record<string, Object>;
+      let mode: string = String(t['mode'] ?? CharCardInputMode.CHARS);
+      this.inputMode = mode === CharCardInputMode.SENTENCE ? mode : CharCardInputMode.CHARS;
       this.charsText = String(t['chars'] ?? '');
       this.pinyinText = String(t['pinyin'] ?? '');
       this.pinyinOn = Boolean(t['pinyinOn'] ?? true);
       this.pinyinLocked = Boolean(t['locked'] ?? false);
+      this.sentenceText = String(t['sentence'] ?? '');
+      this.wordsText = String(t['words'] ?? '');
+      if (this.isSentence()) {
+        if (this.wordsText.trim() === '' && this.sentenceText.trim() !== '') {
+          this.applyWords(WordSegmentUtil.segmentFast(this.sentenceText));
+        }
+        this.charsText = CharCards.cleanChars(this.charsText);
+      }
     } catch (e) {
       console.error('[CharCard] restore failed: ' + (e as Error).message);
     }
@@ -310,10 +399,10 @@ struct CharCardContent {
     this.exporting = false;
   }
 
-  /** 批量导出：每字一卡逐张渲染落盘，最后单次保存弹窗统一入相册 */
+  /** 批量导出：每字一卡逐张渲染落盘，最后单次保存弹窗统一入相册（仅单字模式） */
   private async doBatchExport(): Promise<void> {
     let chars: string[] = this.cleanChars().split('');
-    if (chars.length < 2 || this.batchRunning || this.exporting) {
+    if (this.isSentence() || chars.length < 2 || this.batchRunning || this.exporting) {
       return;
     }
     this.batchRunning = true;
@@ -446,6 +535,8 @@ struct CharCardContent {
             charMode: this.charMode,
             sizeKind: this.sizeKind,
             previewWidth: this.previewVp,
+            inputMode: this.inputMode,
+            wordsText: this.wordsText,
           })
         }
         .width(this.previewVp)
@@ -477,6 +568,9 @@ struct CharCardContent {
       chipText: this.chipText(),
       onSelect: (value: string) => {
         this.sizeKind = value;
+        if (this.isSentence()) {
+          this.applyWords(WordSegmentUtil.segmentFast(this.sentenceText));
+        }
       },
     })
   }
@@ -535,36 +629,65 @@ struct CharCardContent {
   @Builder
   TextEditor() {
     Column({ space: 12 }) {
-      Column({ space: 5 }) {
-        Row() {
-          Text($r('app.string.char_chars_label'))
-            .fontSize(12)
-            .fontColor(this.labelColor())
-            .layoutWeight(1)
-          Text($r('app.string.char_book_title'))
-            .fontSize(12)
-            .fontColor(this.accent())
-            .padding({ left: 10, right: 10, top: 5, bottom: 5 })
-            .backgroundColor($r('app.color.char_accent_tint'))
-            .borderRadius(12)
-            .onClick(() => {
-              this.openCharBook();
+      ChipRow({
+        label: StrUtil.text(this.context(), $r('app.string.char_label_input')),
+        labelColor: this.labelColor(),
+        options: this.inputModeOptions,
+        selected: this.inputMode,
+        accent: this.accent(),
+        chipBg: this.chipBg(),
+        chipText: this.chipText(),
+        onSelect: (value: string) => {
+          this.onModeChange(value);
+        },
+      })
+
+      if (this.isSentence()) {
+        Column({ space: 5 }) {
+          TextArea({ text: this.sentenceText, placeholder: $r('app.string.char_sentence_hint') })
+            .height(72)
+            .fontSize(15)
+            .maxLength(44)
+            .backgroundColor(this.inputBg())
+            .borderRadius(8)
+            .onChange((value: string) => {
+              this.onSentenceChange(value);
             })
         }
         .width('100%')
-        .alignItems(VerticalAlign.Center)
-        TextInput({ text: this.charsText })
-          .height(40)
-          .fontSize(16)
-          .maxLength(CharCards.MAX_CHARS)
-          .backgroundColor(this.inputBg())
-          .borderRadius(8)
-          .onChange((value: string) => {
-            this.onCharsChange(value);
-          })
+        .alignItems(HorizontalAlign.Start)
+      } else {
+        Column({ space: 5 }) {
+          Row() {
+            Text($r('app.string.char_chars_label'))
+              .fontSize(12)
+              .fontColor(this.labelColor())
+              .layoutWeight(1)
+            Text($r('app.string.char_book_title'))
+              .fontSize(12)
+              .fontColor(this.accent())
+              .padding({ left: 10, right: 10, top: 5, bottom: 5 })
+              .backgroundColor($r('app.color.char_accent_tint'))
+              .borderRadius(12)
+              .onClick(() => {
+                this.openCharBook();
+              })
+          }
+          .width('100%')
+          .alignItems(VerticalAlign.Center)
+          TextInput({ text: this.charsText })
+            .height(40)
+            .fontSize(16)
+            .maxLength(CharCards.MAX_CHARS)
+            .backgroundColor(this.inputBg())
+            .borderRadius(8)
+            .onChange((value: string) => {
+              this.onCharsChange(value);
+            })
+        }
+        .width('100%')
+        .alignItems(HorizontalAlign.Start)
       }
-      .width('100%')
-      .alignItems(HorizontalAlign.Start)
 
       if (this.pinyinOn) {
         Column({ space: 5 }) {
@@ -823,7 +946,7 @@ struct CharCardContent {
       }
       .width('100%')
 
-      if (this.cleanChars().length >= 2) {
+      if (!this.isSentence() && this.cleanChars().length >= 2) {
         Button(this.batchRunning ?
           $r('app.string.char_batch_exporting', this.batchProgress, this.batchTotal) :
           $r('app.string.char_batch_export', this.cleanChars().length))

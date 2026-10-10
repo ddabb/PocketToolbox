@@ -3915,6 +3915,266 @@
     {
       "name": "ach_review_30_desc",
       "value": "Complete 30 review sentences in total"
+    },
+    {
+      "name": "tool_poster_title",
+      "value": "Copy Poster"
+    },
+    {
+      "name": "tool_poster_sub",
+      "value": "Turn a line of text into a shareable poster"
+    },
+    {
+      "name": "poster_label_ratio",
+      "value": "Ratio"
+    },
+    {
+      "name": "poster_ratio_square",
+      "value": "Square 1:1"
+    },
+    {
+      "name": "poster_ratio_portrait",
+      "value": "Portrait 3:4"
+    },
+    {
+      "name": "poster_slot_body",
+      "value": "Main text"
+    },
+    {
+      "name": "poster_slot_sign",
+      "value": "Signature"
+    },
+    {
+      "name": "poster_slot_tag",
+      "value": "Tag"
+    },
+    {
+      "name": "poster_body_hint",
+      "value": "Enter the main text…"
+    },
+    {
+      "name": "poster_sign_hint",
+      "value": "Signature (optional)"
+    },
+    {
+      "name": "poster_tag_hint",
+      "value": "Tag (optional)"
+    },
+    {
+      "name": "poster_tmpl_t1",
+      "value": "Warm Label"
+    },
+    {
+      "name": "poster_tmpl_t2",
+      "value": "Pure Minimal"
+    },
+    {
+      "name": "poster_tmpl_t3",
+      "value": "Handwriting"
+    },
+    {
+      "name": "poster_tmpl_t4",
+      "value": "Big Impact"
+    },
+    {
+      "name": "poster_insp_label",
+      "value": "Inspiration"
+    },
+    {
+      "name": "poster_empty_hint",
+      "value": "Type something to start"
+    },
+    {
+      "name": "ach_poster_first_title",
+      "value": "First Poster"
+    },
+    {
+      "name": "ach_poster_first_desc",
+      "value": "Export your first copy poster"
+    },
+    {
+      "name": "ach_poster_10_title",
+      "value": "Poster Maker"
+    },
+    {
+      "name": "ach_poster_10_desc",
+      "value": "Export 10 copy posters in total"
+    },
+    {
+      "name": "char_label_input",
+      "value": "Input"
+    },
+    {
+      "name": "char_mode_chars",
+      "value": "Single chars"
+    },
+    {
+      "name": "char_mode_sentence",
+      "value": "Sentence"
+    },
+    {
+      "name": "char_sentence_hint",
+      "value": "Type a sentence and it will wrap by word…"
+    },
+    {
+      "name": "poster_insp_1",
+      "value": "Live each day like a poem, simple and fine."
+    },
+    {
+      "name": "poster_insp_2",
+      "value": "May every effort find its reward."
+    },
+    {
+      "name": "poster_insp_3",
+      "value": "Life is bright, and everything is lovely."
+    },
+    {
+      "name": "poster_insp_4",
+      "value": "Keep your passion, and run to the mountains and seas."
+    },
+    {
+      "name": "poster_insp_5",
+      "value": "Slow and steady wins the race."
+    },
+    {
+      "name": "poster_insp_6",
+      "value": "Full of energy today, too."
+    },
+    {
+      "name": "poster_insp_7",
+      "value": "Be your own sun, and you will need no one's light."
+    },
+    {
+      "name": "poster_insp_8",
+      "value": "Light in the heart, joy in every meal."
+    },
+    {
+      "name": "poster_insp_9",
+      "value": "The world is wide — let's go see it."
+    },
+    {
+      "name": "poster_insp_10",
+      "value": "Small joys hide in ordinary days."
+    },
+    {
+      "name": "poster_insp_11",
+      "value": "There is a crack in everything; that is how the light gets in."
+    },
+    {
+      "name": "poster_insp_12",
+      "value": "Bloom, and the breeze will come to you."
+    },
+    {
+      "name": "poster_insp_13",
+      "value": "The stars ask no questions of travelers; time rewards those who try."
+    },
+    {
+      "name": "poster_insp_14",
+      "value": "Life's beauty lives in the little things."
+    },
+    {
+      "name": "poster_insp_15",
+      "value": "Better to walk side by side here than gaze up from afar."
+    },
+    {
+      "name": "poster_insp_16",
+      "value": "Across wild miles, you are the romance I hid among the stars."
+    },
+    {
+      "name": "poster_insp_17",
+      "value": "Live earnestly, and you will find the candy life has hidden away."
+    },
+    {
+      "name": "poster_insp_18",
+      "value": "A little gentleness, a lifetime of ease."
+    },
+    {
+      "name": "poster_insp_19",
+      "value": "Every day is a good day."
+    },
+    {
+      "name": "poster_insp_20",
+      "value": "The warmth of daily life soothes every ordinary heart."
+    },
+    {
+      "name": "poster_insp_21",
+      "value": "Let the past go, and live light."
+    },
+    {
+      "name": "poster_insp_22",
+      "value": "What is past is prologue."
+    },
+    {
+      "name": "poster_insp_23",
+      "value": "No road truly ends — hope waits around the corner."
+    },
+    {
+      "name": "poster_insp_24",
+      "value": "Only those who weather the longest winters get to see spring."
+    },
+    {
+      "name": "poster_insp_25",
+      "value": "No step is ever wasted; each one of them counts."
+    },
+    {
+      "name": "poster_insp_26",
+      "value": "Life may seem dull, but run and you will feel the wind."
+    },
+    {
+      "name": "poster_insp_27",
+      "value": "Fill your heart with hope, and nothing can stop you."
+    },
+    {
+      "name": "poster_insp_28",
+      "value": "Let things be — the kindest gift you can give yourself."
+    },
+    {
+      "name": "poster_insp_29",
+      "value": "Don't panic; even the moon gets lost at sea sometimes."
+    },
+    {
+      "name": "poster_insp_30",
+      "value": "Make ordinary days a little more romantic."
+    },
+    {
+      "name": "poster_insp_31",
+      "value": "The best self-care: stay busy and sleep early."
+    },
+    {
+      "name": "poster_insp_32",
+      "value": "Bright days are few — treasure each one as you go."
+    },
+    {
+      "name": "poster_insp_33",
+      "value": "Amid mass-produced kindness, clumsy sincerity steals the heart."
+    },
+    {
+      "name": "poster_insp_34",
+      "value": "The sunset returns to the hills, and the hills keep its meaning."
+    },
+    {
+      "name": "poster_insp_35",
+      "value": "Family seated close, a lamp burning warm."
+    },
+    {
+      "name": "poster_insp_36",
+      "value": "Go where your heart points, in the simplest of shoes."
+    },
+    {
+      "name": "poster_insp_37",
+      "value": "Time spares no one — so I made time my friend."
+    },
+    {
+      "name": "poster_insp_38",
+      "value": "Read, walk, meet people, and see the world."
+    },
+    {
+      "name": "poster_insp_39",
+      "value": "May you come back from half a life away still young at heart."
+    },
+    {
+      "name": "poster_insp_40",
+      "value": "Love what you do, and the long years will feel short."
     }
   ]
 }

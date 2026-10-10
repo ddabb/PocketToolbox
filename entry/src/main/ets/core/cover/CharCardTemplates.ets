@@ -38,8 +38,23 @@ export class CharCardCharMode {
   }
 }
 
+/** 输入模式：单字（传统 1-12 字） / 句子（分词后按词换行，最多 32 字） */
+export class CharCardInputMode {
+  static readonly CHARS: string = 'chars';
+  static readonly SENTENCE: string = 'sentence';
+
+  static label(mode: string): ResourceStr {
+    return mode === CharCardInputMode.SENTENCE ?
+      $r('app.string.char_mode_sentence') : $r('app.string.char_mode_chars');
+  }
+}
+
 export class CharCards {
   static readonly MAX_CHARS: number = 12;
+  /** 句子模式最大字数（方卡/练习卡） */
+  static readonly MAX_SENTENCE_CHARS: number = 32;
+  /** 单行最大字数（行拆分装箱上限） */
+  static readonly MAX_ROW_CHARS: number = 8;
   static readonly DESIGN_W: number = 900;
   static readonly DESIGN_H_SQUARE: number = 900;
   static readonly DESIGN_H_PRACTICE: number = 1200;
@@ -98,6 +113,84 @@ export class CharCards {
       return n <= 0 ? [] : [n];
     }
     return CharCards.splitRows(n);
+  }
+
+  /** 句子模式各尺寸最大字数：首图恒单行 12；方卡/练习卡 32 */
+  static maxCharsFor(sizeKind: string, inputMode: string): number {
+    if (sizeKind === CharCardSize.COVER) {
+      return CharCards.MAX_CHARS;
+    }
+    return inputMode === CharCardInputMode.SENTENCE ?
+      CharCards.MAX_SENTENCE_CHARS : CharCards.MAX_CHARS;
+  }
+
+  /** 句子模式词截断：去空白总字数 ≤ maxChars；整词溢出即丢弃，首词超长时截断首词 */
+  static capWords(words: string[], maxChars: number): string[] {
+    let out: string[] = [];
+    let total: number = 0;
+    for (let i = 0; i < words.length; i++) {
+      let w: string = words[i];
+      if (w.length === 0) {
+        continue;
+      }
+      if (total + w.length <= maxChars) {
+        out.push(w);
+        total += w.length;
+        continue;
+      }
+      if (total === 0 && w.length > maxChars) {
+        out.push(w.substring(0, maxChars));
+      }
+      break;
+    }
+    return out;
+  }
+
+  /**
+   * 句子模式行拆分：贪心装箱 ≤8 字/行，词不跨行（超 8 字长词按 8 切块独行）；
+   * 公众号首图恒单行（全部词并入一行）
+   */
+  static splitRowsByWords(sizeKind: string, words: string[]): number[] {
+    if (words.length === 0) {
+      return [];
+    }
+    if (sizeKind === CharCardSize.COVER) {
+      let total: number = 0;
+      for (let i = 0; i < words.length; i++) {
+        total += words[i].length;
+      }
+      return total > 0 ? [total] : [];
+    }
+    let lens: number[] = [];
+    let cur: number = 0;
+    for (let i = 0; i < words.length; i++) {
+      let w: string = words[i];
+      if (w.length === 0) {
+        continue;
+      }
+      if (w.length > CharCards.MAX_ROW_CHARS) {
+        if (cur > 0) {
+          lens.push(cur);
+          cur = 0;
+        }
+        while (w.length > CharCards.MAX_ROW_CHARS) {
+          lens.push(CharCards.MAX_ROW_CHARS);
+          w = w.substring(CharCards.MAX_ROW_CHARS);
+        }
+        cur = w.length;
+        continue;
+      }
+      if (cur + w.length <= CharCards.MAX_ROW_CHARS) {
+        cur += w.length;
+      } else {
+        lens.push(cur);
+        cur = w.length;
+      }
+    }
+    if (cur > 0) {
+      lens.push(cur);
+    }
+    return lens;
   }
 
   /** 单格边长上限（设计稿 px）：首图 280 防纵向溢出，其余 320 */

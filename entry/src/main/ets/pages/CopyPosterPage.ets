@@ -1,0 +1,624 @@
+/**
+ * 文案海报页面：预览 + 比例(1:1/3:4) + 模板选择(T1-T4) + 文字/样式编辑 + 换一句灵感 + 导出 + 历史
+ * 需求文档：docs/文案海报生成器需求文档.md
+ */
+import { display } from '@kit.ArkUI';
+import { image } from '@kit.ImageKit';
+import { fileIo as fs } from '@kit.CoreFileKit';
+import { common } from '@kit.AbilityKit';
+import { BusinessError } from '@kit.BasicServicesKit';
+import { CoverHistoryRecord } from '../model/CoverModels';
+import { CopyPosterContent, CopyPosterRatio, CopyPosterSlot, CopyPosterTemplate } from '../model/CopyPosterModels';
+import { CopyPosterTemplates } from '../core/cover/CopyPosterTemplates';
+import { CoverFont } from '../core/cover/CoverTemplates';
+import { CoverContentUtil } from '../core/cover/CoverContentUtil';
+import { CoverHistoryStore } from '../core/cover/CoverHistoryStore';
+import { CopyPosterPreview } from '../components/cover/CopyPosterPreview';
+import { PaletteSection } from '../components/template/PaletteSection';
+import { ChipRow } from '../components/template/ChipRow';
+import { ChipOption } from '../core/template/UnifiedTemplateModels';
+import { StickinessUtil } from '../common/utils/StickinessUtil';
+import { FontUtil } from '../common/utils/FontUtil';
+import { ToastUtil } from '../common/utils/ToastUtil';
+import { StrUtil } from '../common/utils/StrUtil';
+import { savePixelMapToAlbum, shareImageViaPanel } from '../common/utils/ShareImageUtil';
+
+const PREVIEW_ID: string = 'copyposter_preview';
+const INSPIRATION_COUNT: number = 40;
+
+@Builder
+export function CopyPosterPageBuilder() {
+  NavDestination() {
+    CopyPosterEditor()
+  }
+  .title($r('app.string.tool_poster_title'))
+  .backButtonIcon($r('sys.symbol.chevron_left'))
+  .menus([])
+}
+
+@Component
+struct CopyPosterEditor {
+  @State currentTemplateId: string = 'T1';
+  @State ratioKind: string = CopyPosterRatio.SQUARE;
+  @State content: CopyPosterContent = new CopyPosterContent();
+  @State paletteIndex: number = 0;
+  @State fontIndex: number = 0;
+  @State editorTab: number = 0;
+  @State exporting: boolean = false;
+  @State historyRecords: CoverHistoryRecord[] = [];
+  previewVp: number = 300;
+  snapshotScale: number = 1;
+  /** 「换一句」已推荐文案（会话内去重） */
+  private usedInspiration: Set<string> = new Set<string>();
+  private ratioOptions: ChipOption[] = [
+    ChipOption.of(CopyPosterRatio.SQUARE, CopyPosterRatio.label(CopyPosterRatio.SQUARE)),
+    ChipOption.of(CopyPosterRatio.PORTRAIT, CopyPosterRatio.label(CopyPosterRatio.PORTRAIT)),
+  ];
+
+  aboutToAppear(): void {
+    FontUtil.registerAll(this.getUIContext());
+    try {
+      let d: display.Display = display.getDefaultDisplaySync();
+      let density: number = d.densityPixels;
+      let availVp: number = d.width / density - 32;
+      this.previewVp = Math.min(900 / density, availVp);
+      this.snapshotScale = CopyPosterTemplates.EXPORT_W / (this.previewVp * density);
+    } catch (e) {
+      console.error('[CopyPoster] getDefaultDisplaySync failed: ' + (e as Error).message);
+      this.previewVp = 360;
+      this.snapshotScale = 3;
+    }
+    this.selectTemplate(CopyPosterTemplates.getById('T1'));
+    this.historyRecords = CoverHistoryStore.loadRecords(this.context(), CoverHistoryStore.DIR_POSTER);
+  }
+
+  // ---------- 状态与业务 ----------
+
+  private currentTemplate(): CopyPosterTemplate {
+    return CopyPosterTemplates.getById(this.currentTemplateId);
+  }
+
+  private context(): common.UIAbilityContext {
+    return this.getUIContext().getHostContext() as common.UIAbilityContext;
+  }
+
+  /** 切换模板：保留已输入内容，仅补空槽默认值 */
+  private selectTemplate(t: CopyPosterTemplate): void {
+    this.currentTemplateId = t.id;
+    this.paletteIndex = 0;
+    this.fontIndex = 0;
+    let c: CopyPosterContent = this.content.copy();
+    let d: Record<string, string> = t.defaults;
+    if (c.body.trim() === '') {
+      c.body = d['body'] ?? '';
+    }
+    if (c.sign.trim() === '') {
+      c.sign = d['sign'] ?? '';
+    }
+    if (c.tag.trim() === '') {
+      c.tag = d['tag'] ?? '';
+    }
+    this.content = c;
+  }
+
+  private onSlotChange(slot: string, value: string): void {
+    let c: CopyPosterContent = this.content.copy();
+    if (slot === CopyPosterSlot.BODY) {
+      c.body = value;
+    } else if (slot === CopyPosterSlot.SIGN) {
+      c.sign = value;
+    } else if (slot === CopyPosterSlot.TAG) {
+      c.tag = value;
+    } else {
+      return;
+    }
+    this.content = c;
+  }
+
+  /** 换一句：自有内容库（诗词/成语/歇后语，出处入署名）+ 预置灵感文案，会话内去重 */
+  private changeBody(): void {
+    let context: common.UIAbilityContext = this.context();
+    if (Math.random() < 0.5) {
+      let kinds: string[] = ['poem', 'idiom', 'xiehouyu'];
+      let kind: string = kinds[Math.floor(Math.random() * kinds.length)];
+      let pick = CoverContentUtil.pickByKind(context, kind);
+      if (pick !== null) {
+        let c: CopyPosterContent = this.content.copy();
+        c.body = pick.quote;
+        c.sign = pick.source.length > CopyPosterTemplates.MAX_SIGN ?
+          pick.source.substring(0, CopyPosterTemplates.MAX_SIGN) : pick.source;
+        this.content = c;
+        return;
+      }
+    }
+    let text: string = this.randomInspiration(context);
+    if (text !== '') {
+      let c: CopyPosterContent = this.content.copy();
+      c.body = text;
+      this.content = c;
+      return;
+    }
+    ToastUtil.show(this.getUIContext(), $r('app.string.cover_pick_failed'), 1500);
+  }
+
+  private randomInspiration(context: common.UIAbilityContext): string {
+    if (this.usedInspiration.size >= INSPIRATION_COUNT) {
+      this.usedInspiration.clear();
+    }
+    for (let tries = 0; tries < INSPIRATION_COUNT + 10; tries++) {
+      let idx: number = Math.floor(Math.random() * INSPIRATION_COUNT) + 1;
+      let text: string = '';
+      try {
+        text = context.resourceManager.getStringByNameSync('poster_insp_' + idx.toString());
+      } catch (e) {
+        console.error('[CopyPoster] load inspiration failed: ' + (e as Error).message);
+        return '';
+      }
+      if (text === '') {
+        return '';
+      }
+      if (!this.usedInspiration.has(text)) {
+        this.usedInspiration.add(text);
+        return text;
+      }
+    }
+    this.usedInspiration.clear();
+    try {
+      return context.resourceManager.getStringByNameSync('poster_insp_1');
+    } catch (e) {
+      return '';
+    }
+  }
+
+  private restoreFromHistory(r: CoverHistoryRecord): void {
+    let parts: string[] = r.templateId.split('|');
+    let t: CopyPosterTemplate = CopyPosterTemplates.getById(parts.length > 0 ? parts[0] : 'T1');
+    this.currentTemplateId = t.id;
+    if (parts.length > 1) {
+      this.ratioKind = parts[1];
+    }
+    this.paletteIndex = r.paletteIndex;
+    this.fontIndex = r.fontIndex;
+    this.content = CopyPosterContent.fromJson(r.textsJson);
+    this.editorTab = 0;
+    ToastUtil.show(this.getUIContext(), $r('app.string.cover_restored', StrUtil.text(this.context(), t.name)), 1200);
+  }
+
+  private clearHistory(): void {
+    CoverHistoryStore.clearAll(this.context(), CoverHistoryStore.DIR_POSTER);
+    this.historyRecords = [];
+  }
+
+  private canExport(): boolean {
+    return this.content.body.trim() !== '';
+  }
+
+  private async doExport(save: boolean): Promise<void> {
+    if (!this.canExport() || this.exporting) {
+      return;
+    }
+    this.exporting = true;
+    try {
+      await new Promise<void>((resolve: () => void) => {
+        setTimeout(resolve, 150);
+      });
+      let uiCtx: UIContext = this.getUIContext();
+      let snapshot = uiCtx.getComponentSnapshot();
+      let pixelMap: image.PixelMap =
+        await snapshot.get(PREVIEW_ID, { scale: this.snapshotScale, waitUntilRenderFinished: true });
+      let packer: image.ImagePacker = image.createImagePacker();
+      let context: common.UIAbilityContext = this.context();
+      let fileName: string = 'poster_' + Date.now() + '.png';
+      let filePath: string = context.cacheDir + '/' + fileName;
+      let file: fs.File = fs.openSync(filePath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.TRUNC);
+      try {
+        await packer.packToFile(pixelMap, file.fd, { format: 'image/png', quality: 100 });
+      } catch (e) {
+        let err: BusinessError = e as BusinessError;
+        console.error('[CopyPoster] packToFile failed: ' + err.message);
+        throw new Error(err.message);
+      } finally {
+        fs.closeSync(file.fd);
+        packer.release();
+      }
+      let record: CoverHistoryRecord = CoverHistoryRecord.of(
+        Date.now().toString(36) + Math.floor(Math.random() * 1000).toString(),
+        CoverHistoryStore.makeFileName(),
+        this.currentTemplateId + '|' + this.ratioKind,
+        this.paletteIndex, this.fontIndex, this.content.toJson(), Date.now());
+      if (CoverHistoryStore.saveRecord(context, filePath, record, CoverHistoryStore.DIR_POSTER)) {
+        this.historyRecords = CoverHistoryStore.loadRecords(context, CoverHistoryStore.DIR_POSTER);
+      }
+      StickinessUtil.recordPosterExport(context);
+      if (save) {
+        let ok: boolean = await savePixelMapToAlbum(uiCtx, pixelMap);
+        ToastUtil.show(uiCtx, ok ? $r('app.string.md2_saved_to_album') : $r('app.string.char_save_cancelled'), 1500);
+      } else {
+        shareImageViaPanel(uiCtx, filePath);
+      }
+    } catch (e) {
+      let err: BusinessError = e as BusinessError;
+      console.error('[CopyPoster] export failed: ' + err.code + ' ' + err.message);
+      ToastUtil.show(this.getUIContext(), $r('app.string.char_export_failed', err.message), 2000);
+    }
+    this.exporting = false;
+  }
+
+  // ---------- 主题色 ----------
+
+  private inputBg(): ResourceColor {
+    return $r('app.color.editor_input_bg');
+  }
+
+  private labelColor(): ResourceColor {
+    return $r('app.color.editor_label_text');
+  }
+
+  private chipBg(): ResourceColor {
+    return $r('app.color.editor_chip_bg');
+  }
+
+  private chipText(): ResourceColor {
+    return $r('app.color.editor_chip_text');
+  }
+
+  private lineColor(): ResourceColor {
+    return $r('app.color.editor_line');
+  }
+
+  // ---------- UI ----------
+
+  build() {
+    Column() {
+      Scroll() {
+        Column({ space: 14 }) {
+          this.PreviewSection()
+          this.RatioChips()
+          this.TemplateScroller()
+          this.EditorTabs()
+          if (this.editorTab === 0) {
+            this.TextEditor()
+          } else {
+            this.StyleEditor()
+          }
+          this.HistorySection()
+        }
+        .width('100%')
+        .padding({ left: 16, right: 16, top: 12, bottom: 16 })
+      }
+      .layoutWeight(1)
+      .scrollBar(BarState.Off)
+      .width('100%')
+
+      this.ExportBar()
+    }
+    .width('100%')
+    .height('100%')
+    .constraintSize({ maxWidth: 760 })
+  }
+
+  @Builder
+  PreviewSection() {
+    Column({ space: 8 }) {
+      Row() {
+        Column() {
+          CopyPosterPreview({
+            template: this.currentTemplate(),
+            content: this.content,
+            paletteIndex: this.paletteIndex,
+            fontIndex: this.fontIndex,
+            ratioKind: this.ratioKind,
+            previewWidth: this.previewVp,
+          })
+        }
+        .width(this.previewVp)
+        .height(this.previewVp * CopyPosterRatio.designHeight(this.ratioKind) / 900)
+        .clip(true)
+        .id(PREVIEW_ID)
+      }
+      .width('100%')
+      .justifyContent(FlexAlign.Center)
+
+      Text($r('app.string.char_export_size',
+        StrUtil.text(this.context(), CopyPosterRatio.label(this.ratioKind)),
+        CopyPosterTemplates.EXPORT_W, CopyPosterRatio.exportHeight(this.ratioKind)))
+        .fontSize(11)
+        .fontColor(this.labelColor())
+    }
+    .width('100%')
+  }
+
+  @Builder
+  RatioChips() {
+    ChipRow({
+      label: StrUtil.text(this.context(), $r('app.string.poster_label_ratio')),
+      labelColor: this.labelColor(),
+      options: this.ratioOptions,
+      selected: this.ratioKind,
+      accent: $r('app.color.brand_blue'),
+      chipBg: this.chipBg(),
+      chipText: this.chipText(),
+      onSelect: (value: string) => {
+        this.ratioKind = value;
+      },
+    })
+  }
+
+  /** 模板横滑条：缩略图用当前用户内容实时渲染（提升模板切换转化） */
+  @Builder
+  TemplateScroller() {
+    List({ space: 10 }) {
+      ForEach(CopyPosterTemplates.all(), (t: CopyPosterTemplate) => {
+        ListItem() {
+          Column({ space: 5 }) {
+            Column() {
+              CopyPosterPreview({
+                template: t,
+                content: this.content,
+                paletteIndex: this.currentTemplateId === t.id ? this.paletteIndex : 0,
+                fontIndex: this.currentTemplateId === t.id ? this.fontIndex : 0,
+                ratioKind: CopyPosterRatio.SQUARE,
+                previewWidth: 96,
+              })
+            }
+            .width(96)
+            .height(96)
+            .clip(true)
+            .borderRadius(8)
+            .border({
+              width: this.currentTemplateId === t.id ? 2 : 1,
+              color: this.currentTemplateId === t.id ? $r('app.color.brand_blue') : this.lineColor(),
+            })
+            .onClick(() => {
+              this.selectTemplate(t);
+            })
+
+            Text(StrUtil.text(this.context(), t.name))
+              .fontSize(10)
+              .fontColor(this.currentTemplateId === t.id ? $r('app.color.brand_blue') : this.labelColor())
+              .maxLines(1)
+          }
+          .alignItems(HorizontalAlign.Center)
+        }
+      }, (t: CopyPosterTemplate) => t.id)
+    }
+    .listDirection(Axis.Horizontal)
+    .scrollBar(BarState.Off)
+    .width('100%')
+    .height(126)
+    .edgeEffect(EdgeEffect.Spring)
+  }
+
+  @Builder
+  EditorTabs() {
+    Row({ space: 0 }) {
+      Text($r('app.string.cover_tab_text'))
+        .fontSize(14)
+        .fontWeight(this.editorTab === 0 ? FontWeight.Bold : FontWeight.Normal)
+        .fontColor(this.editorTab === 0 ? $r('app.color.brand_blue') : this.labelColor())
+        .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+        .onClick(() => {
+          this.editorTab = 0;
+        })
+      Text($r('app.string.cover_tab_style'))
+        .fontSize(14)
+        .fontWeight(this.editorTab === 1 ? FontWeight.Bold : FontWeight.Normal)
+        .fontColor(this.editorTab === 1 ? $r('app.color.brand_blue') : this.labelColor())
+        .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+        .onClick(() => {
+          this.editorTab = 1;
+        })
+    }
+    .width('100%')
+    .border({ width: { bottom: 1 }, color: this.lineColor() })
+  }
+
+  @Builder
+  TextEditor() {
+    Column({ space: 12 }) {
+      Row() {
+        Text($r('app.string.poster_insp_label'))
+          .fontSize(12)
+          .fontColor(this.labelColor())
+          .layoutWeight(1)
+        Text($r('app.string.cover_change_quote'))
+          .fontSize(13)
+          .fontColor($r('app.color.idiom_blue'))
+          .padding({ left: 14, right: 14, top: 7, bottom: 7 })
+          .backgroundColor($r('app.color.brand_blue_tint'))
+          .borderRadius(14)
+          .onClick(() => {
+            this.changeBody();
+          })
+      }
+      .width('100%')
+      .alignItems(VerticalAlign.Center)
+
+      Column({ space: 5 }) {
+        Text($r('app.string.poster_slot_body'))
+          .fontSize(12)
+          .fontColor(this.labelColor())
+        TextArea({ text: this.content.body, placeholder: $r('app.string.poster_body_hint') })
+          .height(88)
+          .fontSize(15)
+          .maxLength(CopyPosterTemplates.MAX_BODY)
+          .backgroundColor(this.inputBg())
+          .borderRadius(8)
+          .onChange((value: string) => {
+            this.onSlotChange(CopyPosterSlot.BODY, value);
+          })
+      }
+      .width('100%')
+      .alignItems(HorizontalAlign.Start)
+
+      Row({ space: 12 }) {
+        Column({ space: 5 }) {
+          Text($r('app.string.poster_slot_sign'))
+            .fontSize(12)
+            .fontColor(this.labelColor())
+          TextInput({ text: this.content.sign, placeholder: $r('app.string.poster_sign_hint') })
+            .height(40)
+            .fontSize(14)
+            .maxLength(CopyPosterTemplates.MAX_SIGN)
+            .backgroundColor(this.inputBg())
+            .borderRadius(8)
+            .onChange((value: string) => {
+              this.onSlotChange(CopyPosterSlot.SIGN, value);
+            })
+        }
+        .layoutWeight(1)
+        .alignItems(HorizontalAlign.Start)
+
+        Column({ space: 5 }) {
+          Text($r('app.string.poster_slot_tag'))
+            .fontSize(12)
+            .fontColor(this.labelColor())
+          TextInput({ text: this.content.tag, placeholder: $r('app.string.poster_tag_hint') })
+            .height(40)
+            .fontSize(14)
+            .maxLength(CopyPosterTemplates.MAX_TAG)
+            .backgroundColor(this.inputBg())
+            .borderRadius(8)
+            .onChange((value: string) => {
+              this.onSlotChange(CopyPosterSlot.TAG, value);
+            })
+        }
+        .layoutWeight(1)
+        .alignItems(HorizontalAlign.Start)
+      }
+      .width('100%')
+      .alignItems(VerticalAlign.Top)
+    }
+    .width('100%')
+    .padding({ top: 12 })
+  }
+
+  @Builder
+  StyleEditor() {
+    Column({ space: 16 }) {
+      PaletteSection({
+        palettes: this.currentTemplate().palettes,
+        selectedIndex: this.paletteIndex,
+        accentColor: $r('app.color.brand_blue'),
+        labelColor: this.labelColor(),
+        onSelect: (idx: number) => {
+          this.paletteIndex = idx;
+        },
+      })
+
+      Column({ space: 10 }) {
+        Text($r('app.string.cover_font_label'))
+          .fontSize(12)
+          .fontColor(this.labelColor())
+        Flex({ wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
+          ForEach(this.currentTemplate().fonts, (f: string, idx: number) => {
+            Text(CoverFont.label(f))
+              .fontSize(13)
+              .fontFamily(f)
+              .padding({ left: 14, right: 14, top: 7, bottom: 7 })
+              .backgroundColor(this.fontIndex === idx ? $r('app.color.brand_blue') : this.chipBg())
+              .fontColor(this.fontIndex === idx ? $r('app.color.on_accent_text') : this.chipText())
+              .borderRadius(14)
+              .margin(4)
+              .onClick(() => {
+                this.fontIndex = idx;
+              })
+          }, (f: string, idx: number) => f + idx.toString())
+        }
+        .width('100%')
+      }
+      .width('100%')
+      .alignItems(HorizontalAlign.Start)
+    }
+    .width('100%')
+    .padding({ top: 12 })
+  }
+
+  @Builder
+  HistorySection() {
+    if (this.historyRecords.length > 0) {
+      Column({ space: 8 }) {
+        Row() {
+          Text($r('app.string.char_recent'))
+            .fontSize(12)
+            .fontColor(this.labelColor())
+            .layoutWeight(1)
+          Text($r('app.string.char_clear'))
+            .fontSize(12)
+            .fontColor(this.labelColor())
+            .padding(6)
+            .onClick(() => {
+              this.clearHistory();
+            })
+        }
+        .width('100%')
+        .alignItems(VerticalAlign.Center)
+
+        List({ space: 10 }) {
+          ForEach(this.historyRecords, (r: CoverHistoryRecord) => {
+            ListItem() {
+              Column({ space: 4 }) {
+                Image('file://' + CoverHistoryStore.filePath(this.context(), r.fileName, CoverHistoryStore.DIR_POSTER))
+                  .width(64)
+                  .height(64)
+                  .objectFit(ImageFit.Cover)
+                  .borderRadius(4)
+                  .border({ width: 1, color: this.lineColor() })
+                Text(this.historyLabel(r))
+                  .fontSize(10)
+                  .fontColor(this.labelColor())
+                  .maxLines(1)
+              }
+              .alignItems(HorizontalAlign.Center)
+              .onClick(() => {
+                this.restoreFromHistory(r);
+              })
+            }
+          }, (r: CoverHistoryRecord) => r.id)
+        }
+        .listDirection(Axis.Horizontal)
+        .scrollBar(BarState.Off)
+        .width('100%')
+        .height(92)
+        .edgeEffect(EdgeEffect.Spring)
+      }
+      .width('100%')
+      .padding({ top: 8 })
+      .border({ width: { top: 1 }, color: this.lineColor() })
+    }
+  }
+
+  private historyLabel(r: CoverHistoryRecord): string {
+    let parts: string[] = r.templateId.split('|');
+    let t: CopyPosterTemplate = CopyPosterTemplates.getById(parts.length > 0 ? parts[0] : 'T1');
+    return StrUtil.text(this.context(), t.name);
+  }
+
+  @Builder
+  ExportBar() {
+    Row({ space: 12 }) {
+      Button(this.exporting ? $r('app.string.char_exporting') : $r('app.string.char_save_album'))
+        .layoutWeight(1)
+        .height(44)
+        .fontSize(15)
+        .backgroundColor($r('app.color.brand_blue'))
+        .enabled(this.canExport() && !this.exporting)
+        .onClick(() => {
+          this.doExport(true);
+        })
+      Button($r('app.string.md2_share'))
+        .layoutWeight(1)
+        .height(44)
+        .fontSize(15)
+        .backgroundColor(this.chipBg())
+        .fontColor(this.chipText())
+        .enabled(this.canExport() && !this.exporting)
+        .onClick(() => {
+          this.doExport(false);
+        })
+    }
+    .width('100%')
+    .padding({ left: 16, right: 16, top: 10, bottom: 12 })
+    .border({ width: { top: 1 }, color: this.lineColor() })
+  }
+}

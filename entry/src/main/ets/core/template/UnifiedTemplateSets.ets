@@ -22,4 +22,7 @@ export function registerUnifiedTemplateSets(): void {
   UnifiedTemplateRegistry.register(UnifiedToolDescriptor.of(
     UnifiedToolKind.WORD_CLOUD, $r('app.string.tool_wordcloud_title'), $r('app.string.tool_wordcloud_sub'), 'WordCloudPage', 'creative_wordcloud', '#8b5cf6'
   ), []);
+  UnifiedTemplateRegistry.register(UnifiedToolDescriptor.of(
+    UnifiedToolKind.COPY_POSTER, $r('app.string.tool_poster_title'), $r('app.string.tool_poster_sub'), 'CopyPosterPage', 'creative_poster', '#F59E0B'
+  ), []);
 }
