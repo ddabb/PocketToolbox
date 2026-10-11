@@ -12,14 +12,26 @@ export class CoverContentUtil {
   private static usedIdiom: Set<string> = new Set<string>();
   private static usedXhy: Set<string> = new Set<string>();
 
-  /** 生字自动注音（带音调），失败返回空串 */
+  /** 生字自动注音（带音调，仅汉字注音；非汉字不输出，失败返回空串） */
   static autoPinyin(text: string): string {
     let clean: string = text.replace(new RegExp('\\s', 'g'), '');
     if (clean === '') {
       return '';
     }
     try {
-      return pinyin(clean, { toneType: 'symbol', type: 'string' });
+      let raw: string[] = pinyin(clean, { toneType: 'symbol', type: 'array' });
+      let han: RegExp = new RegExp('[\\u4e00-\\u9fff]');
+      let out: string[] = [];
+      for (let i = 0; i < clean.length && i < raw.length; i++) {
+        if (!han.test(clean.charAt(i))) {
+          continue;
+        }
+        let s: string = raw[i].trim();
+        if (s !== '') {
+          out.push(s);
+        }
+      }
+      return out.join(' ');
     } catch (e) {
       console.error('[Cover] autoPinyin failed: ' + (e as Error).message);
       return '';

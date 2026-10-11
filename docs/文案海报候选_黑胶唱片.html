@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>黑胶唱片 · 文案海报候选</title>
+<!-- 槽位映射：tag=唱片标题（POCKET LP） / body=曲目标题 / sign=另一曲目；配色字段：bg=舞台底 accent=标签色 block=标签文字色 title=曲目文字 sub=次要文字 grid=唱片纹色 -->
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #141109;
+    overflow: hidden;
+    font-family: Georgia, "SimSun", "宋体", serif;
+  }
+
+  .stage {
+    width: 560px;
+    height: 560px;
+    margin: 10px auto;
+    position: relative;
+    background: radial-gradient(ellipse at 50% 26%, #241D14 0%, #14100C 58%, #0B0906 100%);
+    overflow: hidden;
+  }
+
+  .spot {
+    position: absolute;
+    left: 50%;
+    top: 130px;
+    width: 460px;
+    height: 460px;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(232, 131, 58, 0.13) 0%, transparent 62%);
+  }
+
+  .disc {
+    position: absolute;
+    left: 50%;
+    top: 66px;
+    width: 332px;
+    height: 332px;
+    transform: translateX(-50%) rotate(14deg);
+    border-radius: 50%;
+    background:
+      repeating-radial-gradient(circle at 50% 50%, #1C1A18 0px, #14120F 3px, #1E1B18 4px, #12100D 7px);
+    box-shadow: 0 24px 60px rgba(0,0,0,0.75), 0 0 0 1px #2A2620;
+  }
+
+  .sheen {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(from 210deg,
+      rgba(255,255,255,0.11) 0deg, rgba(255,255,255,0.02) 42deg,
+      transparent 70deg, transparent 178deg,
+      rgba(255,255,255,0.07) 196deg, transparent 232deg,
+      transparent 360deg);
+  }
+
+  .label {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 118px;
+    height: 118px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 38%, #F09048 0%, #E8833A 70%, #D2742C 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.4);
+  }
+  .label .lt {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    color: #241708;
+  }
+  .label .lr {
+    font-size: 8px;
+    letter-spacing: 2px;
+    color: rgba(36, 23, 8, 0.75);
+    font-family: Arial, sans-serif;
+  }
+  .hole {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #14100C;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.9);
+  }
+
+  .tracklist {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 428px;
+    text-align: center;
+  }
+  .side {
+    font-size: 11px;
+    letter-spacing: 6px;
+    color: #8A7C68;
+    font-family: Arial, sans-serif;
+    text-indent: 6px;
+  }
+  .sideline {
+    width: 34px;
+    height: 2px;
+    background: #3A332A;
+    margin: 10px auto 16px;
+  }
+  .track {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .track .no {
+    font-size: 11px;
+    color: #8A7C68;
+    font-family: Arial, sans-serif;
+    letter-spacing: 1px;
+  }
+  .track .t {
+    font-size: 19px;
+    color: #F2E8D8;
+    letter-spacing: 2px;
+  }
+  .track .dur {
+    font-size: 10px;
+    color: #8A7C68;
+    font-family: Arial, sans-serif;
+  }
+
+  .bottomlabel {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 18px;
+    text-align: center;
+    font-size: 9px;
+    letter-spacing: 5px;
+    color: #5E5442;
+    font-family: Arial, sans-serif;
+    text-indent: 5px;
+  }
+
+  .vignette {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.66) 100%);
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="spot"></div>
+  <div class="disc">
+    <div class="sheen"></div>
+    <div class="label">
+      <div class="lt">POCKET LP</div>
+      <div class="lr">33⅓ RPM · STEREO</div>
+      <div class="hole"></div>
+    </div>
+  </div>
+  <div class="tracklist">
+    <div class="side">SIDE A</div>
+    <div class="sideline"></div>
+    <div class="track"><span class="no">A1</span><span class="t">欢迎来访公众号「随身工具宝」</span><span class="dur">4:26</span></div>
+    <div class="track"><span class="no">B1</span><span class="t">请你喝茶呀</span><span class="dur">3:05</span></div>
+  </div>
+  <div class="bottomlabel">POCKET RECORDS · 2026</div>
+  <div class="vignette"></div>
+</div>
+
+</body>
+</html>

@@ -79,6 +79,7 @@ struct CharCardContent {
   private gridOptions: ChipOption[] = [
     ChipOption.of(CharCardGridType.TIAN, CharCardGridType.label(CharCardGridType.TIAN)),
     ChipOption.of(CharCardGridType.MI, CharCardGridType.label(CharCardGridType.MI)),
+    ChipOption.of(CharCardGridType.NONE, CharCardGridType.label(CharCardGridType.NONE)),
   ];
   private modeOptions: ChipOption[] = [
     ChipOption.of(CharCardCharMode.READ, CharCardCharMode.label(CharCardCharMode.READ)),

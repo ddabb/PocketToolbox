@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>公告栏启事 · 文案海报候选</title>
+<!-- 槽位映射：tag=启事标题（寻物启事） / body=正文便签 / sign=署名便签；配色字段：bg=软木板 accent=图钉红线 title=便签墨 sub=次要墨 block=便签纸 grid=木框色 -->
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #141109;
+    overflow: hidden;
+    font-family: "KaiTi", "STKaiti", "楷体", cursive;
+  }
+
+  .stage {
+    width: 560px;
+    height: 560px;
+    margin: 10px auto;
+    position: relative;
+    box-sizing: border-box;
+    border: 18px solid #6E4A2A;
+    background:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='46'><circle cx='9' cy='13' r='1.6' fill='%238A6640' opacity='0.55'/><circle cx='31' cy='7' r='1.2' fill='%23604828' opacity='0.5'/><circle cx='24' cy='33' r='1.8' fill='%239B7448' opacity='0.45'/><circle cx='42' cy='26' r='1.1' fill='%23604828' opacity='0.5'/><circle cx='15' cy='42' r='1.4' fill='%238A6640' opacity='0.5'/><rect x='35' y='40' width='7' height='1.6' rx='0.8' fill='%23604828' opacity='0.4'/></svg>"),
+      radial-gradient(ellipse at 50% 40%, #C29468 0%, #B58A5F 55%, #A0764A 100%);
+    box-shadow: inset 0 0 34px rgba(60, 38, 18, 0.55);
+  }
+
+  .note {
+    position: absolute;
+    box-shadow: 0 12px 26px rgba(40, 24, 10, 0.42);
+  }
+
+  .pin {
+    position: absolute;
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 36% 32%, #E06050 0%, #C0392B 62%, #8E2418 100%);
+    box-shadow: 0 3px 5px rgba(30, 16, 8, 0.55), inset 0 -2px 3px rgba(90, 20, 12, 0.6);
+  }
+  .pin::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #6E1810;
+    transform: translate(-50%, -50%);
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.8);
+  }
+
+  .string {
+    position: absolute;
+    height: 2.5px;
+    background: #C0392B;
+    transform-origin: 0 50%;
+    border-radius: 2px;
+    opacity: 0.85;
+  }
+
+  .noteA {
+    left: 300px;
+    top: 62px;
+    width: 178px;
+    padding: 20px 14px 13px;
+    background: linear-gradient(170deg, #F2E3B3 0%, #EBD89A 100%);
+    transform: rotate(2.5deg);
+    text-align: center;
+    box-sizing: border-box;
+  }
+  .noteA .t {
+    font-size: 25px;
+    font-weight: bold;
+    color: #3A2E20;
+    letter-spacing: 3px;
+  }
+  .noteA .s {
+    font-size: 11px;
+    color: #7A6A4E;
+    margin-top: 5px;
+    letter-spacing: 1px;
+  }
+
+  .noteB {
+    left: 128px;
+    top: 216px;
+    width: 302px;
+    padding: 26px 22px 18px;
+    background: linear-gradient(165deg, #FBF5E6 0%, #F6EFDE 100%);
+    transform: rotate(-1.5deg);
+    text-align: center;
+    box-sizing: border-box;
+  }
+  .noteB .body {
+    font-size: 25px;
+    color: #3A2E20;
+    line-height: 1.65;
+    letter-spacing: 1px;
+  }
+  .noteB .date {
+    font-size: 11px;
+    color: #7A6A4E;
+    margin-top: 12px;
+    letter-spacing: 2px;
+    font-family: Arial, sans-serif;
+  }
+
+  .noteC {
+    left: 328px;
+    top: 398px;
+    width: 190px;
+    padding: 18px 14px 12px;
+    background: linear-gradient(170deg, #FFFDF4 0%, #F4EDDA 100%);
+    transform: rotate(3deg);
+    text-align: center;
+    box-sizing: border-box;
+  }
+  .noteC .sign {
+    font-size: 19px;
+    color: #3A2E20;
+    letter-spacing: 1px;
+  }
+  .noteC .dash {
+    width: 74px;
+    height: 2px;
+    background: #B03A2B;
+    opacity: 0.65;
+    margin: 9px auto 0;
+  }
+
+  .pinA { left: 380px; top: 54px; }
+  .pinB { left: 271px; top: 208px; }
+  .pinC { left: 414px; top: 390px; }
+
+  .stringAB { left: 388px; top: 62px; width: 188px; transform: rotate(125deg); }
+  .stringBC { left: 279px; top: 217px; width: 229px; transform: rotate(51.2deg); }
+
+  .lostlabel {
+    position: absolute;
+    left: 34px;
+    bottom: 30px;
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: rgba(70, 48, 26, 0.65);
+    font-family: Arial, "Microsoft YaHei", sans-serif;
+    transform: rotate(-1deg);
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="note noteA">
+    <div class="t">寻物启事</div>
+    <div class="s">急寻 · 酬谢一杯热茶</div>
+  </div>
+  <div class="note noteB">
+    <div class="body">欢迎来访公众号<br>「随身工具宝」</div>
+    <div class="date">2026.10.11</div>
+  </div>
+  <div class="note noteC">
+    <div class="sign">—— 请你喝茶呀</div>
+    <div class="dash"></div>
+  </div>
+  <div class="string stringAB"></div>
+  <div class="string stringBC"></div>
+  <div class="pin pinA"></div>
+  <div class="pin pinB"></div>
+  <div class="pin pinC"></div>
+  <div class="lostlabel">CORK BOARD · 公告栏</div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>霓虹灯招牌 · 文案海报候选</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #05070d;
+    overflow: hidden;
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+  }
+
+  .stage {
+    width: 600px;
+    height: 660px;
+    margin: 10px auto;
+    position: relative;
+    background:
+      radial-gradient(ellipse at 50% 30%, rgba(70,90,160,0.16) 0%, transparent 55%),
+      linear-gradient(180deg, #0c1120 0%, #070a14 60%, #04060c 100%);
+  }
+
+  .wall {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(0deg,
+      transparent 0 30px,
+      rgba(255,255,255,0.02) 30px 31px);
+  }
+
+  .wire {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 2px;
+    height: 96px;
+    margin-left: 118px;
+    background: linear-gradient(180deg, transparent, #1c2230 45%);
+  }
+  .wire::after {
+    content: "";
+    position: absolute;
+    left: -4px;
+    bottom: -7px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #1c2230;
+  }
+
+  .sign {
+    position: absolute;
+    left: 50%;
+    top: 104px;
+    transform: translateX(-50%);
+    width: 478px;
+    box-sizing: border-box;
+    padding: 46px 30px 40px;
+    border: 5px solid rgba(190,245,255,0.92);
+    border-radius: 34px;
+    box-shadow:
+      0 0 6px rgba(60,232,255,0.9),
+      0 0 24px rgba(60,232,255,0.6),
+      0 0 70px rgba(60,232,255,0.32),
+      inset 0 0 10px rgba(60,232,255,0.55),
+      inset 0 0 34px rgba(60,232,255,0.18);
+    text-align: center;
+    animation: neonBreath 5s ease-in-out infinite;
+  }
+  @keyframes neonBreath {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.94; }
+  }
+
+  .tag {
+    font-size: 15px;
+    letter-spacing: 8px;
+    color: #ffd9f6;
+    margin-bottom: 24px;
+    text-shadow: 0 0 3px #fff, 0 0 8px #ff4fd8, 0 0 20px rgba(255,79,216,0.7);
+  }
+
+  .body {
+    font-size: 44px;
+    font-weight: 800;
+    line-height: 1.42;
+    color: #fff;
+    text-shadow:
+      0 0 4px #fff,
+      0 0 9px #ff4fd8,
+      0 0 24px #ff2cc7,
+      0 0 52px rgba(255,44,199,0.55);
+    animation: neonFlick 7s linear infinite;
+  }
+  @keyframes neonFlick {
+    0%, 84%, 88%, 92%, 100% { opacity: 1; }
+    85% { opacity: 0.5; }
+    86% { opacity: 0.95; }
+    90% { opacity: 0.62; }
+    91% { opacity: 1; }
+  }
+
+  .sig {
+    margin-top: 26px;
+    font-size: 19px;
+    letter-spacing: 6px;
+    color: #dffaff;
+    text-shadow: 0 0 3px #fff, 0 0 9px #3ce8ff, 0 0 24px rgba(60,232,255,0.65);
+  }
+
+  .screw {
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #d8dee9, #6f7683 70%);
+  }
+  .screw.tl { left: 12px; top: 12px; }
+  .screw.tr { right: 12px; top: 12px; }
+  .screw.bl { left: 12px; bottom: 12px; }
+  .screw.br { right: 12px; bottom: 12px; }
+
+  .glowfloor {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 220px;
+    background: radial-gradient(ellipse at 50% 100%, rgba(255,44,199,0.12) 0%, transparent 65%);
+  }
+
+  .noise {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 8;
+    opacity: 0.12;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.7'/></svg>");
+    mix-blend-mode: screen;
+  }
+
+  .vignette {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9;
+    background: radial-gradient(ellipse at center, transparent 46%, rgba(0,0,0,0.8) 100%);
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="wall"></div>
+  <div class="wire"></div>
+  <div class="sign">
+    <div class="tag">✦ hi 朋友 ✦</div>
+    <div class="body">欢迎来访<br>公众号「随身工具宝」</div>
+    <div class="sig">—— 请你喝茶呀 ——</div>
+    <div class="screw tl"></div><div class="screw tr"></div>
+    <div class="screw bl"></div><div class="screw br"></div>
+  </div>
+  <div class="glowfloor"></div>
+  <div class="noise"></div>
+  <div class="vignette"></div>
+</div>
+
+</body>
+</html>

@@ -3,7 +3,7 @@
  * 结构：拼音（可关，逐字对齐：每音节对准其上方格子，系统字体防部分设备声调字符渲染异常） + 田字格/米字格格区（1-12 字，>8 字两行）
  */
 import { CoverPalette } from '../../model/CoverModels';
-import { CharCardCharMode, CharCardGridType, CharCardInputMode, CharCards } from '../../core/cover/CharCardTemplates';
+import { CharCardCharMode, CharCardGridType, CharCardInputMode, CharCardSize, CharCards } from '../../core/cover/CharCardTemplates';
 
 const KAI_FONT: string = 'LXGWWenKai';
 
@@ -66,12 +66,19 @@ export struct CharCardPreview {
     return CharCards.splitRowsFor(this.sizeKind, this.chars().length);
   }
 
-  private maxCell(): number {
-    return CharCards.maxCellFor(this.sizeKind);
+  private maxCell(rowIndex: number): number {
+    let cap: number = CharCards.maxCellFor(this.sizeKind);
+    if (this.sizeKind === CharCardSize.COVER && this.pinyinOn) {
+      let rows: string[] = this.pinyinRows();
+      if (rowIndex < rows.length && rows[rowIndex] !== '') {
+        cap = Math.min(cap, CharCards.MAX_CELL_COVER_PINYIN);
+      }
+    }
+    return cap;
   }
 
   private cellOf(rowIndex: number): number {
-    return CharCards.cellSize(this.rowLens()[rowIndex], this.maxCell());
+    return CharCards.cellSize(this.rowLens()[rowIndex], this.maxCell(rowIndex));
   }
 
   private lineW(): number {
@@ -79,6 +86,9 @@ export struct CharCardPreview {
   }
 
   private outerW(): number {
+    if (this.gridType === CharCardGridType.NONE) {
+      return 0;
+    }
     return Math.max(1, this.f(3));
   }
 
@@ -171,31 +181,33 @@ export struct CharCardPreview {
     return all.slice(start, start + lens[rowIndex]);
   }
 
-  /** 田字格/米字格单元格：外框实线 + 十字虚线（米字格加对角虚线）+ 居中楷体字（字在最上层压住格线） */
+  /** 田字格/米字格/无边框单元格：外框实线 + 十字虚线（米字格加对角虚线，无边框仅保留字）+ 居中楷体字（字在最上层压住格线） */
   @Builder
   GridCell(size: number, ch: string) {
     Stack({ alignContent: Alignment.Center }) {
-      Row()
-        .width('100%')
-        .height(this.lineW())
-        .border({ width: { top: this.lineW() }, color: this.pal().accent, style: BorderStyle.Dashed })
-      Column()
-        .height('100%')
-        .width(this.lineW())
-        .border({ width: { left: this.lineW() }, color: this.pal().accent, style: BorderStyle.Dashed })
-      if (this.gridType === CharCardGridType.MI) {
+      if (this.gridType !== CharCardGridType.NONE) {
         Row()
-          .width(size * 1.4142)
+          .width('100%')
           .height(this.lineW())
           .border({ width: { top: this.lineW() }, color: this.pal().accent, style: BorderStyle.Dashed })
-          .opacity(0.6)
-          .rotate({ angle: 45, centerX: '50%', centerY: '50%' })
-        Row()
-          .width(size * 1.4142)
-          .height(this.lineW())
-          .border({ width: { top: this.lineW() }, color: this.pal().accent, style: BorderStyle.Dashed })
-          .opacity(0.6)
-          .rotate({ angle: -45, centerX: '50%', centerY: '50%' })
+        Column()
+          .height('100%')
+          .width(this.lineW())
+          .border({ width: { left: this.lineW() }, color: this.pal().accent, style: BorderStyle.Dashed })
+        if (this.gridType === CharCardGridType.MI) {
+          Row()
+            .width(size * 1.4142)
+            .height(this.lineW())
+            .border({ width: { top: this.lineW() }, color: this.pal().accent, style: BorderStyle.Dashed })
+            .opacity(0.6)
+            .rotate({ angle: 45, centerX: '50%', centerY: '50%' })
+          Row()
+            .width(size * 1.4142)
+            .height(this.lineW())
+            .border({ width: { top: this.lineW() }, color: this.pal().accent, style: BorderStyle.Dashed })
+            .opacity(0.6)
+            .rotate({ angle: -45, centerX: '50%', centerY: '50%' })
+        }
       }
       Text(ch)
         .fontSize(size * 0.7)

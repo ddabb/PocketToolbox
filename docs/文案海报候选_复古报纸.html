@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>复古报纸 · 文案海报候选</title>
+<!-- 槽位映射：tag=报头刊名（随身日报） / body=头条标题 / sign=副题署名；配色字段：bg=纸色 accent=号外红章 title=标题墨 sub=次要墨 block=亮纸 grid=分隔线 -->
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #141109;
+    overflow: hidden;
+    font-family: Georgia, "SimSun", "宋体", serif;
+  }
+
+  .stage {
+    width: 560px;
+    height: 560px;
+    margin: 10px auto;
+    position: relative;
+    background: radial-gradient(ellipse at 50% 28%, #F4ECD8 0%, #EDE3CB 55%, #E0D2B0 100%);
+  }
+
+  .paper {
+    position: absolute;
+    inset: 0;
+    padding: 30px 42px 26px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .topmeta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: #6E5F44;
+    letter-spacing: 1.5px;
+    font-family: Arial, "Microsoft YaHei", sans-serif;
+  }
+
+  .rule {
+    height: 3px;
+    border-top: 1.5px solid #2B2317;
+    border-bottom: 1px solid #2B2317;
+    margin: 7px 0 10px;
+  }
+
+  .masthead { text-align: center; position: relative; }
+  .masthead .en {
+    font-size: 11px;
+    letter-spacing: 7px;
+    color: #6E5F44;
+    font-family: Arial, sans-serif;
+    text-indent: 7px;
+  }
+  .masthead .zh {
+    font-size: 42px;
+    font-weight: 900;
+    letter-spacing: 12px;
+    color: #2B2317;
+    margin-top: 6px;
+    text-indent: 12px;
+    font-family: "SimSun", "宋体", serif;
+  }
+
+  .rule2 {
+    height: 5px;
+    border-top: 3px solid #2B2317;
+    border-bottom: 1px solid #2B2317;
+    margin: 10px 0 20px;
+  }
+
+  .headline {
+    text-align: center;
+    font-size: 33px;
+    font-weight: 900;
+    color: #2B2317;
+    line-height: 1.4;
+    letter-spacing: 2px;
+  }
+
+  .subhead {
+    text-align: center;
+    font-style: italic;
+    font-size: 15px;
+    color: #6E5F44;
+    margin-top: 12px;
+    letter-spacing: 2px;
+  }
+
+  .cols {
+    display: flex;
+    gap: 20px;
+    margin-top: 22px;
+    flex: 1;
+  }
+  .col { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .ln { height: 6px; background: #C9B995; border-radius: 2px; }
+
+  .footer {
+    border-top: 1px solid #8A7A5C;
+    margin-top: 14px;
+    padding-top: 8px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: #8A7A5C;
+    font-family: Arial, sans-serif;
+  }
+
+  .extra {
+    position: absolute;
+    top: 96px;
+    right: 34px;
+    border: 2.5px solid #C0392B;
+    color: #C0392B;
+    font-size: 19px;
+    font-weight: bold;
+    padding: 5px 12px 5px 16px;
+    letter-spacing: 6px;
+    transform: rotate(8deg);
+    border-radius: 4px;
+    opacity: 0.85;
+    font-family: Arial, sans-serif;
+  }
+
+  .stain {
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    left: -45px;
+    bottom: -35px;
+    background: radial-gradient(circle, rgba(150, 118, 66, 0.16), transparent 70%);
+  }
+
+  .fold {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(0,0,0,0.05) 0%, transparent 6%, transparent 94%, rgba(0,0,0,0.07) 100%);
+  }
+
+  .vignette {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 52%, rgba(88, 66, 34, 0.24) 100%);
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="paper">
+    <div class="topmeta"><span>No. 128</span><span>SUNDAY · OCT 11, 2026</span><span>PRICE 0.5</span></div>
+    <div class="rule"></div>
+    <div class="masthead">
+      <div class="en">POCKET DAILY</div>
+      <div class="zh">随身日报</div>
+    </div>
+    <div class="rule2"></div>
+    <div class="extra">EXTRA</div>
+    <div class="headline">欢迎来访公众号<br>「随身工具宝」</div>
+    <div class="subhead">—— 请你喝茶呀</div>
+    <div class="cols">
+      <div class="col">
+        <div class="ln"></div><div class="ln" style="width:82%"></div><div class="ln" style="width:95%"></div>
+        <div class="ln" style="width:70%"></div><div class="ln" style="width:90%"></div><div class="ln" style="width:60%"></div>
+      </div>
+      <div class="col">
+        <div class="ln" style="width:88%"></div><div class="ln"></div><div class="ln" style="width:75%"></div>
+        <div class="ln" style="width:96%"></div><div class="ln" style="width:52%"></div>
+      </div>
+      <div class="col">
+        <div class="ln" style="width:92%"></div><div class="ln" style="width:65%"></div><div class="ln"></div>
+        <div class="ln" style="width:84%"></div><div class="ln" style="width:45%"></div>
+      </div>
+    </div>
+    <div class="footer"><span>POCKET PRESS</span><span>EDITOR · JIEYU ZHUJI</span><span>PAGE 04</span></div>
+  </div>
+  <div class="stain"></div>
+  <div class="fold"></div>
+  <div class="vignette"></div>
+</div>
+
+</body>
+</html>

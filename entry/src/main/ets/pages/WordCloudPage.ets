@@ -83,7 +83,7 @@ struct WordCloudContent {
 
   private cfgHint(): string {
     let ctx: Context = this.getUIContext().getHostContext() as Context;
-    return ctx.resourceManager.getStringSync($r('app.string.wc_config_hint',
+    return StrUtil.text(ctx, $r('app.string.wc_config_hint',
       StrUtil.text(ctx, this.templates[this.currentPaletteIndex].name),
       StrUtil.text(ctx, this.shapes[this.currentShapeIndex].label),
       this.fontLabels[this.currentFontIndex]));

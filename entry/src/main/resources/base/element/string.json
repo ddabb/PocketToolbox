@@ -1,4 +1,4 @@
-{
+﻿{
   "string": [
     {
       "name": "EntryFormAbility_label",
@@ -2553,6 +2553,10 @@
       "value": "Mi grid"
     },
     {
+      "name": "tmpl_grid_none",
+      "value": "No grid"
+    },
+    {
       "name": "tmpl_mode_read",
       "value": "Read"
     },
@@ -4175,6 +4179,282 @@
     {
       "name": "poster_insp_40",
       "value": "Love what you do, and the long years will feel short."
+    },
+    {
+      "name": "poster_tmpl_t5",
+      "value": "LCD Pixel Screen"
+    },
+    {
+      "name": "tmpl_pal_night_glow",
+      "value": "Night Glow"
+    },
+    {
+      "name": "tmpl_pal_jade_lcd",
+      "value": "Jade Screen"
+    },
+    {
+      "name": "tmpl_pal_amber_lcd",
+      "value": "Amber Screen"
+    },
+    {
+      "name": "tmpl_pal_warm_desk",
+      "value": "Warm Desk"
+    },
+    {
+      "name": "tmpl_pal_neon_magenta",
+      "value": "Neon Magenta"
+    },
+    {
+      "name": "poster_soft_left",
+      "value": "Options"
+    },
+    {
+      "name": "poster_soft_right",
+      "value": "Clear"
+    },
+    {
+      "name": "poster_tmpl_t6",
+      "value": "CRT Terminal"
+    },
+    {
+      "name": "tmpl_pal_emerald_phosphor",
+      "value": "Emerald Phosphor"
+    },
+    {
+      "name": "tmpl_pal_amber_terminal",
+      "value": "Amber Terminal"
+    },
+    {
+      "name": "tmpl_pal_ice_glow",
+      "value": "Ice Glow"
+    },
+    {
+      "name": "tmpl_pal_rose_ray",
+      "value": "Rose Ray"
+    },
+    {
+      "name": "tmpl_pal_paper_white",
+      "value": "Paper White"
+    },
+    {
+      "name": "poster_tmpl_t7",
+      "value": "Neon Sign"
+    },
+    {
+      "name": "tmpl_pal_pink_haze",
+      "value": "Pink Haze"
+    },
+    {
+      "name": "tmpl_pal_cyan_flame",
+      "value": "Cyan Flame"
+    },
+    {
+      "name": "tmpl_pal_gold_purple",
+      "value": "Gold & Violet"
+    },
+    {
+      "name": "tmpl_pal_lime_light",
+      "value": "Lime Light"
+    },
+    {
+      "name": "tmpl_pal_ice_nocturne",
+      "value": "Ice Nocturne"
+    },
+    {
+      "name": "poster_tmpl_t8",
+      "value": "Handheld Console"
+    },
+    {
+      "name": "tmpl_pal_classic_gray",
+      "value": "Classic Gray"
+    },
+    {
+      "name": "tmpl_pal_clear_purple",
+      "value": "Clear Purple"
+    },
+    {
+      "name": "tmpl_pal_berry_pink",
+      "value": "Berry Pink"
+    },
+    {
+      "name": "tmpl_pal_mint_teal",
+      "value": "Mint Teal"
+    },
+    {
+      "name": "tmpl_pal_amber_shell",
+      "value": "Amber Shell"
+    },
+    {
+      "name": "poster_tmpl_t9",
+      "value": "Vintage Ticket"
+    },
+    {
+      "name": "tmpl_pal_classic_red_seal",
+      "value": "Classic Red Seal"
+    },
+    {
+      "name": "tmpl_pal_indigo_seal",
+      "value": "Indigo Seal"
+    },
+    {
+      "name": "tmpl_pal_pine_postmark",
+      "value": "Pine Postmark"
+    },
+    {
+      "name": "tmpl_pal_coffee_paper",
+      "value": "Coffee Paper"
+    },
+    {
+      "name": "tmpl_pal_midnight_gold",
+      "value": "Midnight Gold"
+    },
+    {
+      "name": "poster_tmpl_t10",
+      "value": "Split-Flap Board"
+    },
+    {
+      "name": "tmpl_pal_classic_platform",
+      "value": "Classic Platform"
+    },
+    {
+      "name": "tmpl_pal_subway_blue",
+      "value": "Subway Blue"
+    },
+    {
+      "name": "tmpl_pal_signal_green",
+      "value": "Signal Green"
+    },
+    {
+      "name": "tmpl_pal_station_red",
+      "value": "Station Red"
+    },
+    {
+      "name": "tmpl_pal_steel_slate",
+      "value": "Steel Slate"
+    },
+    {
+      "name": "poster_tmpl_t11",
+      "value": "Vintage Newspaper"
+    },
+    {
+      "name": "tmpl_pal_aged_press",
+      "value": "Aged Press"
+    },
+    {
+      "name": "tmpl_pal_morning_paper",
+      "value": "Morning Paper"
+    },
+    {
+      "name": "tmpl_pal_evening_edition",
+      "value": "Evening Edition"
+    },
+    {
+      "name": "tmpl_pal_ink_reprint",
+      "value": "Ink Reprint"
+    },
+    {
+      "name": "tmpl_pal_rose_gazette",
+      "value": "Rose Gazette"
+    },
+    {
+      "name": "poster_tmpl_t12",
+      "value": "Chat Bubbles"
+    },
+    {
+      "name": "tmpl_pal_wechat_green",
+      "value": "Classic Green"
+    },
+    {
+      "name": "tmpl_pal_midnight_chat",
+      "value": "Midnight Chat"
+    },
+    {
+      "name": "tmpl_pal_bubblegum_pink",
+      "value": "Bubblegum Pink"
+    },
+    {
+      "name": "tmpl_pal_business_blue",
+      "value": "Business Blue"
+    },
+    {
+      "name": "tmpl_pal_cream_talk",
+      "value": "Cream Talk"
+    },
+    {
+      "name": "poster_tmpl_t13",
+      "value": "Vinyl Record"
+    },
+    {
+      "name": "tmpl_pal_retro_orange_label",
+      "value": "Retro Orange"
+    },
+    {
+      "name": "tmpl_pal_blue_jazz",
+      "value": "Blue Jazz"
+    },
+    {
+      "name": "tmpl_pal_midnight_vinyl",
+      "value": "Midnight Vinyl"
+    },
+    {
+      "name": "tmpl_pal_rose_label",
+      "value": "Rose Label"
+    },
+    {
+      "name": "tmpl_pal_emerald_groove",
+      "value": "Emerald Groove"
+    },
+    {
+      "name": "poster_tmpl_t14",
+      "value": "Cinema Title Card"
+    },
+    {
+      "name": "tmpl_pal_midnight_premiere",
+      "value": "Midnight Premiere"
+    },
+    {
+      "name": "tmpl_pal_sepia_film",
+      "value": "Sepia Film"
+    },
+    {
+      "name": "tmpl_pal_cool_blue_ray",
+      "value": "Cool Blue-Ray"
+    },
+    {
+      "name": "tmpl_pal_rose_premiere",
+      "value": "Rose Premiere"
+    },
+    {
+      "name": "tmpl_pal_neon_green_reel",
+      "value": "Neon Green Reel"
+    },
+    {
+      "name": "poster_tmpl_t15",
+      "value": "Cork Notice Board"
+    },
+    {
+      "name": "tmpl_pal_classic_cork",
+      "value": "Classic Cork"
+    },
+    {
+      "name": "tmpl_pal_blue_pin",
+      "value": "Blue Pin"
+    },
+    {
+      "name": "tmpl_pal_cream_notes",
+      "value": "Cream Notes"
+    },
+    {
+      "name": "tmpl_pal_midnight_chalk",
+      "value": "Midnight Chalk"
+    },
+    {
+      "name": "tmpl_pal_kraft_paper",
+      "value": "Kraft Paper"
+    },
+    {
+      "name": "poster_chat_sub",
+      "value": "Official Account"
     }
   ]
 }

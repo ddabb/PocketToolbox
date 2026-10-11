@@ -1,4 +1,4 @@
-{
+﻿{
   "string": [
     {
       "name": "EntryFormAbility_label",
@@ -2553,6 +2553,10 @@
       "value": "米字格"
     },
     {
+      "name": "tmpl_grid_none",
+      "value": "无边框"
+    },
+    {
       "name": "tmpl_mode_read",
       "value": "认读"
     },
@@ -4175,6 +4179,282 @@
     {
       "name": "poster_insp_40",
       "value": "热爱可抵岁月漫长。"
+    },
+    {
+      "name": "poster_tmpl_t5",
+      "value": "LCD 像素屏"
+    },
+    {
+      "name": "tmpl_pal_night_glow",
+      "value": "夜幕蓝光"
+    },
+    {
+      "name": "tmpl_pal_jade_lcd",
+      "value": "翡翠绿屏"
+    },
+    {
+      "name": "tmpl_pal_amber_lcd",
+      "value": "琥珀橙屏"
+    },
+    {
+      "name": "tmpl_pal_warm_desk",
+      "value": "暖木桌面"
+    },
+    {
+      "name": "tmpl_pal_neon_magenta",
+      "value": "霓虹紫光"
+    },
+    {
+      "name": "poster_soft_left",
+      "value": "选项"
+    },
+    {
+      "name": "poster_soft_right",
+      "value": "清除"
+    },
+    {
+      "name": "poster_tmpl_t6",
+      "value": "CRT 终端屏"
+    },
+    {
+      "name": "tmpl_pal_emerald_phosphor",
+      "value": "翡翠荧光"
+    },
+    {
+      "name": "tmpl_pal_amber_terminal",
+      "value": "琥珀终端"
+    },
+    {
+      "name": "tmpl_pal_ice_glow",
+      "value": "冰蓝荧光"
+    },
+    {
+      "name": "tmpl_pal_rose_ray",
+      "value": "玫瑰红光"
+    },
+    {
+      "name": "tmpl_pal_paper_white",
+      "value": "纸白单色"
+    },
+    {
+      "name": "poster_tmpl_t7",
+      "value": "霓虹灯招牌"
+    },
+    {
+      "name": "tmpl_pal_pink_haze",
+      "value": "粉雾霓虹"
+    },
+    {
+      "name": "tmpl_pal_cyan_flame",
+      "value": "青焰霓虹"
+    },
+    {
+      "name": "tmpl_pal_gold_purple",
+      "value": "金紫夜市"
+    },
+    {
+      "name": "tmpl_pal_lime_light",
+      "value": "青柠绿光"
+    },
+    {
+      "name": "tmpl_pal_ice_nocturne",
+      "value": "冰蓝夜曲"
+    },
+    {
+      "name": "poster_tmpl_t8",
+      "value": "掌机游戏机"
+    },
+    {
+      "name": "tmpl_pal_classic_gray",
+      "value": "经典灰"
+    },
+    {
+      "name": "tmpl_pal_clear_purple",
+      "value": "透明紫"
+    },
+    {
+      "name": "tmpl_pal_berry_pink",
+      "value": "浆果粉"
+    },
+    {
+      "name": "tmpl_pal_mint_teal",
+      "value": "薄荷青"
+    },
+    {
+      "name": "tmpl_pal_amber_shell",
+      "value": "琥珀黄"
+    },
+    {
+      "name": "poster_tmpl_t9",
+      "value": "复古车票"
+    },
+    {
+      "name": "tmpl_pal_classic_red_seal",
+      "value": "经典红章"
+    },
+    {
+      "name": "tmpl_pal_indigo_seal",
+      "value": "靛蓝印章"
+    },
+    {
+      "name": "tmpl_pal_pine_postmark",
+      "value": "松绿邮戳"
+    },
+    {
+      "name": "tmpl_pal_coffee_paper",
+      "value": "咖啡旧纸"
+    },
+    {
+      "name": "tmpl_pal_midnight_gold",
+      "value": "午夜金章"
+    },
+    {
+      "name": "poster_tmpl_t10",
+      "value": "翻牌显示屏"
+    },
+    {
+      "name": "tmpl_pal_classic_platform",
+      "value": "经典站台"
+    },
+    {
+      "name": "tmpl_pal_subway_blue",
+      "value": "地铁深蓝"
+    },
+    {
+      "name": "tmpl_pal_signal_green",
+      "value": "信号绿"
+    },
+    {
+      "name": "tmpl_pal_station_red",
+      "value": "车站红棕"
+    },
+    {
+      "name": "tmpl_pal_steel_slate",
+      "value": "钢铁蓝灰"
+    },
+    {
+      "name": "poster_tmpl_t11",
+      "value": "复古报纸"
+    },
+    {
+      "name": "tmpl_pal_aged_press",
+      "value": "老纸咖印"
+    },
+    {
+      "name": "tmpl_pal_morning_paper",
+      "value": "晨报白"
+    },
+    {
+      "name": "tmpl_pal_evening_edition",
+      "value": "晚报米黄"
+    },
+    {
+      "name": "tmpl_pal_ink_reprint",
+      "value": "墨黑重印"
+    },
+    {
+      "name": "tmpl_pal_rose_gazette",
+      "value": "玫瑰公报"
+    },
+    {
+      "name": "poster_tmpl_t12",
+      "value": "聊天气泡"
+    },
+    {
+      "name": "tmpl_pal_wechat_green",
+      "value": "经典绿聊"
+    },
+    {
+      "name": "tmpl_pal_midnight_chat",
+      "value": "午夜深聊"
+    },
+    {
+      "name": "tmpl_pal_bubblegum_pink",
+      "value": "粉彩气泡"
+    },
+    {
+      "name": "tmpl_pal_business_blue",
+      "value": "商务蓝"
+    },
+    {
+      "name": "tmpl_pal_cream_talk",
+      "value": "奶油闲谈"
+    },
+    {
+      "name": "poster_tmpl_t13",
+      "value": "黑胶唱片"
+    },
+    {
+      "name": "tmpl_pal_retro_orange_label",
+      "value": "复古橙标"
+    },
+    {
+      "name": "tmpl_pal_blue_jazz",
+      "value": "蓝调爵士"
+    },
+    {
+      "name": "tmpl_pal_midnight_vinyl",
+      "value": "午夜黑胶"
+    },
+    {
+      "name": "tmpl_pal_rose_label",
+      "value": "玫瑰粉标"
+    },
+    {
+      "name": "tmpl_pal_emerald_groove",
+      "value": "翡翠绿纹"
+    },
+    {
+      "name": "poster_tmpl_t14",
+      "value": "电影字幕卡"
+    },
+    {
+      "name": "tmpl_pal_midnight_premiere",
+      "value": "午夜首映"
+    },
+    {
+      "name": "tmpl_pal_sepia_film",
+      "value": "怀旧胶片"
+    },
+    {
+      "name": "tmpl_pal_cool_blue_ray",
+      "value": "蓝光冷调"
+    },
+    {
+      "name": "tmpl_pal_rose_premiere",
+      "value": "玫瑰首映"
+    },
+    {
+      "name": "tmpl_pal_neon_green_reel",
+      "value": "绿幕霓虹"
+    },
+    {
+      "name": "poster_tmpl_t15",
+      "value": "公告栏启事"
+    },
+    {
+      "name": "tmpl_pal_classic_cork",
+      "value": "软木经典"
+    },
+    {
+      "name": "tmpl_pal_blue_pin",
+      "value": "蓝钉公告"
+    },
+    {
+      "name": "tmpl_pal_cream_notes",
+      "value": "奶油便签"
+    },
+    {
+      "name": "tmpl_pal_midnight_chalk",
+      "value": "深夜黑板"
+    },
+    {
+      "name": "tmpl_pal_kraft_paper",
+      "value": "牛皮纸板"
+    },
+    {
+      "name": "poster_chat_sub",
+      "value": "公众号"
     }
   ]
 }

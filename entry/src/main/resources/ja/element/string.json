@@ -1,4 +1,4 @@
-{
+﻿{
   "string": [
     {
       "name": "EntryFormAbility_label",
@@ -2553,6 +2553,10 @@
       "value": "米字マス"
     },
     {
+      "name": "tmpl_grid_none",
+      "value": "枠なし"
+    },
+    {
       "name": "tmpl_mode_read",
       "value": "読み"
     },
@@ -4175,6 +4179,282 @@
     {
       "name": "poster_insp_40",
       "value": "好きという気持ちが、長い歳月を埋めてくれる。"
+    },
+    {
+      "name": "poster_tmpl_t5",
+      "value": "LCD ピクセル"
+    },
+    {
+      "name": "tmpl_pal_night_glow",
+      "value": "夜光ブルー"
+    },
+    {
+      "name": "tmpl_pal_jade_lcd",
+      "value": "翡翠グリーン"
+    },
+    {
+      "name": "tmpl_pal_amber_lcd",
+      "value": "アンバースクリーン"
+    },
+    {
+      "name": "tmpl_pal_warm_desk",
+      "value": "ウォームデスク"
+    },
+    {
+      "name": "tmpl_pal_neon_magenta",
+      "value": "ネオンパープル"
+    },
+    {
+      "name": "poster_soft_left",
+      "value": "オプション"
+    },
+    {
+      "name": "poster_soft_right",
+      "value": "クリア"
+    },
+    {
+      "name": "poster_tmpl_t6",
+      "value": "CRT端末モニタ"
+    },
+    {
+      "name": "tmpl_pal_emerald_phosphor",
+      "value": "エメラルド蛍光"
+    },
+    {
+      "name": "tmpl_pal_amber_terminal",
+      "value": "アンバーターミナル"
+    },
+    {
+      "name": "tmpl_pal_ice_glow",
+      "value": "アイスグロー"
+    },
+    {
+      "name": "tmpl_pal_rose_ray",
+      "value": "ローズレイ"
+    },
+    {
+      "name": "tmpl_pal_paper_white",
+      "value": "ペーパーホワイト"
+    },
+    {
+      "name": "poster_tmpl_t7",
+      "value": "ネオンサイン"
+    },
+    {
+      "name": "tmpl_pal_pink_haze",
+      "value": "ピンクヘイズ"
+    },
+    {
+      "name": "tmpl_pal_cyan_flame",
+      "value": "シアンフレーム"
+    },
+    {
+      "name": "tmpl_pal_gold_purple",
+      "value": "ゴールドヴァイオレット"
+    },
+    {
+      "name": "tmpl_pal_lime_light",
+      "value": "ライムライト"
+    },
+    {
+      "name": "tmpl_pal_ice_nocturne",
+      "value": "アイスノクターン"
+    },
+    {
+      "name": "poster_tmpl_t8",
+      "value": "携帯ゲーム機"
+    },
+    {
+      "name": "tmpl_pal_classic_gray",
+      "value": "クラシックグレー"
+    },
+    {
+      "name": "tmpl_pal_clear_purple",
+      "value": "クリアパープル"
+    },
+    {
+      "name": "tmpl_pal_berry_pink",
+      "value": "ベリーピンク"
+    },
+    {
+      "name": "tmpl_pal_mint_teal",
+      "value": "ミントティール"
+    },
+    {
+      "name": "tmpl_pal_amber_shell",
+      "value": "アンバーシェル"
+    },
+    {
+      "name": "poster_tmpl_t9",
+      "value": "レトロチケット"
+    },
+    {
+      "name": "tmpl_pal_classic_red_seal",
+      "value": "クラシックレッド"
+    },
+    {
+      "name": "tmpl_pal_indigo_seal",
+      "value": "インディゴシール"
+    },
+    {
+      "name": "tmpl_pal_pine_postmark",
+      "value": "パインポストマーク"
+    },
+    {
+      "name": "tmpl_pal_coffee_paper",
+      "value": "コーヒーペーパー"
+    },
+    {
+      "name": "tmpl_pal_midnight_gold",
+      "value": "ミッドナイトゴールド"
+    },
+    {
+      "name": "poster_tmpl_t10",
+      "value": "フラップ表示板"
+    },
+    {
+      "name": "tmpl_pal_classic_platform",
+      "value": "クラシックホーム"
+    },
+    {
+      "name": "tmpl_pal_subway_blue",
+      "value": "サブウェイブルー"
+    },
+    {
+      "name": "tmpl_pal_signal_green",
+      "value": "シグナルグリーン"
+    },
+    {
+      "name": "tmpl_pal_station_red",
+      "value": "ステーションレッド"
+    },
+    {
+      "name": "tmpl_pal_steel_slate",
+      "value": "スチールスレート"
+    },
+    {
+      "name": "poster_tmpl_t11",
+      "value": "復古新聞"
+    },
+    {
+      "name": "tmpl_pal_aged_press",
+      "value": "エイジドプレス"
+    },
+    {
+      "name": "tmpl_pal_morning_paper",
+      "value": "モーニングペーパー"
+    },
+    {
+      "name": "tmpl_pal_evening_edition",
+      "value": "イブニング版"
+    },
+    {
+      "name": "tmpl_pal_ink_reprint",
+      "value": "インク再版"
+    },
+    {
+      "name": "tmpl_pal_rose_gazette",
+      "value": "ローズガゼット"
+    },
+    {
+      "name": "poster_tmpl_t12",
+      "value": "チャット画面"
+    },
+    {
+      "name": "tmpl_pal_wechat_green",
+      "value": "クラシックグリーン"
+    },
+    {
+      "name": "tmpl_pal_midnight_chat",
+      "value": "ミッドナイトチャット"
+    },
+    {
+      "name": "tmpl_pal_bubblegum_pink",
+      "value": "バブルガムピンク"
+    },
+    {
+      "name": "tmpl_pal_business_blue",
+      "value": "ビジネスブルー"
+    },
+    {
+      "name": "tmpl_pal_cream_talk",
+      "value": "クリームトーク"
+    },
+    {
+      "name": "poster_tmpl_t13",
+      "value": "レコード盤"
+    },
+    {
+      "name": "tmpl_pal_retro_orange_label",
+      "value": "レトロオレンジ"
+    },
+    {
+      "name": "tmpl_pal_blue_jazz",
+      "value": "ブルージャズ"
+    },
+    {
+      "name": "tmpl_pal_midnight_vinyl",
+      "value": "ミッドナイトヴァイナル"
+    },
+    {
+      "name": "tmpl_pal_rose_label",
+      "value": "ローズレーベル"
+    },
+    {
+      "name": "tmpl_pal_emerald_groove",
+      "value": "エメラルドグルーヴ"
+    },
+    {
+      "name": "poster_tmpl_t14",
+      "value": "シネマ字幕"
+    },
+    {
+      "name": "tmpl_pal_midnight_premiere",
+      "value": "ミッドナイトプレミア"
+    },
+    {
+      "name": "tmpl_pal_sepia_film",
+      "value": "セピアフィルム"
+    },
+    {
+      "name": "tmpl_pal_cool_blue_ray",
+      "value": "クールブルーレイ"
+    },
+    {
+      "name": "tmpl_pal_rose_premiere",
+      "value": "ローズプレミア"
+    },
+    {
+      "name": "tmpl_pal_neon_green_reel",
+      "value": "ネオングリーンリール"
+    },
+    {
+      "name": "poster_tmpl_t15",
+      "value": "コルク掲示板"
+    },
+    {
+      "name": "tmpl_pal_classic_cork",
+      "value": "クラシックコルク"
+    },
+    {
+      "name": "tmpl_pal_blue_pin",
+      "value": "ブルーピン"
+    },
+    {
+      "name": "tmpl_pal_cream_notes",
+      "value": "クリームノート"
+    },
+    {
+      "name": "tmpl_pal_midnight_chalk",
+      "value": "ミッドナイトチョーク"
+    },
+    {
+      "name": "tmpl_pal_kraft_paper",
+      "value": "クラフトボード"
+    },
+    {
+      "name": "poster_chat_sub",
+      "value": "公式アカウント"
     }
   ]
 }

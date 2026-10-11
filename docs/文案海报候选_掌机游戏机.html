@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>掌机游戏机 · 文案海报候选</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #000;
+    overflow: hidden;
+    font-family: "SimSun", "宋体", monospace;
+  }
+
+  .stage {
+    width: 560px;
+    height: 700px;
+    margin: 10px auto;
+    position: relative;
+    perspective: 1100px;
+  }
+
+  .device {
+    position: absolute;
+    left: 50%;
+    top: 30px;
+    transform: translateX(-50%) rotate(-2.5deg) rotateX(7deg);
+    width: 330px;
+    height: 620px;
+    box-sizing: border-box;
+    padding: 18px 22px 26px;
+    background: linear-gradient(170deg, #4a4d56 0%, #37393f 45%, #2a2c33 100%);
+    border-radius: 18px 18px 46px 46px;
+    box-shadow:
+      0 26px 60px rgba(0,0,0,0.8),
+      inset 0 2px 0 rgba(255,255,255,0.16),
+      inset 0 -3px 8px rgba(0,0,0,0.45);
+  }
+
+  .toprow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 18px;
+  }
+  .pwr {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 8px;
+    color: #8b909a;
+    letter-spacing: 1px;
+    font-family: Arial, sans-serif;
+  }
+  .pwr i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #ff9d8a, #e33b22 65%);
+    box-shadow: 0 0 6px rgba(255,68,51,0.85);
+  }
+  .brand {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: #aeb3bd;
+    font-family: Arial, sans-serif;
+    font-weight: bold;
+  }
+
+  .bezel {
+    margin-top: 14px;
+    background: linear-gradient(180deg, #171920, #121419);
+    border-radius: 10px 10px 28px 28px;
+    padding: 16px 16px 14px;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.7), inset 0 -1px 0 rgba(255,255,255,0.05);
+  }
+
+  .screen {
+    position: relative;
+    height: 232px;
+    overflow: hidden;
+    background: linear-gradient(165deg, #9bb069 0%, #8ca25d 55%, #7f9455 100%);
+    border: 2px solid #1f2d16;
+    border-radius: 4px;
+    box-shadow:
+      inset 0 0 0 2px rgba(255,255,255,0.14),
+      inset 0 6px 14px rgba(31,45,22,0.4);
+    color: #1f2d16;
+    padding: 14px;
+    box-sizing: border-box;
+  }
+  .screen::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: radial-gradient(rgba(31,45,22,0.15) 1px, transparent 1px);
+    background-size: 3px 3px;
+  }
+
+  .hud {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 1px;
+  }
+
+  .dialog {
+    margin-top: 12px;
+    border: 2px solid #1f2d16;
+    padding: 12px 12px 14px;
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 1.65;
+    letter-spacing: 1px;
+  }
+
+  .signline {
+    margin-top: 12px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 2px;
+  }
+  .signline .more {
+    animation: blink 1s steps(1) infinite;
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  .bezeltext {
+    margin-top: 10px;
+    text-align: center;
+    font-size: 8px;
+    letter-spacing: 3px;
+    color: #7d828d;
+    font-family: Arial, sans-serif;
+  }
+
+  .controls {
+    margin-top: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .dpad {
+    position: relative;
+    width: 96px;
+    height: 96px;
+  }
+  .dpad .h {
+    position: absolute;
+    left: 0;
+    top: 33px;
+    width: 96px;
+    height: 30px;
+    background: linear-gradient(180deg, #26282e, #1c1e23);
+    border-radius: 6px;
+    box-shadow: 0 3px 0 #101115, inset 0 1px 0 rgba(255,255,255,0.12);
+  }
+  .dpad .v {
+    position: absolute;
+    left: 33px;
+    top: 0;
+    width: 30px;
+    height: 96px;
+    background: linear-gradient(90deg, #26282e, #1c1e23);
+    border-radius: 6px;
+    box-shadow: 0 3px 0 #101115, inset 0 1px 0 rgba(255,255,255,0.12);
+  }
+  .dpad .c {
+    position: absolute;
+    left: 37px;
+    top: 37px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, #1e2025, #14161a 70%);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.6);
+  }
+
+  .ab {
+    display: flex;
+    gap: 16px;
+    align-items: flex-end;
+    transform: rotate(-16deg);
+    margin-right: 2px;
+  }
+  .ab .b {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .ab .btn {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 38% 30%, #b04a70, #7c2a4c 65%);
+    box-shadow: 0 5px 0 #4e1a30, inset 0 2px 4px rgba(255,255,255,0.4);
+  }
+  .ab span {
+    font-size: 11px;
+    font-weight: bold;
+    color: #c9cdd6;
+    font-family: Arial, sans-serif;
+  }
+
+  .startsel {
+    margin-top: 26px;
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+  }
+  .ss {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    transform: rotate(-16deg);
+  }
+  .ss .pill {
+    width: 44px;
+    height: 13px;
+    border-radius: 8px;
+    background: linear-gradient(180deg, #26282e, #191b20);
+    box-shadow: 0 2px 0 #0e1013, inset 0 1px 0 rgba(255,255,255,0.14);
+  }
+  .ss span {
+    font-size: 8px;
+    letter-spacing: 2px;
+    color: #aeb3bd;
+    font-family: Arial, sans-serif;
+  }
+
+  .speaker {
+    position: absolute;
+    right: 26px;
+    bottom: 26px;
+    display: flex;
+    gap: 6px;
+    transform: rotate(-28deg);
+  }
+  .speaker i {
+    width: 38px;
+    height: 5px;
+    border-radius: 3px;
+    background: #1c1e23;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.07);
+  }
+
+  .noise {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 8;
+    opacity: 0.13;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.7'/></svg>");
+    mix-blend-mode: screen;
+  }
+
+  .vignette {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9;
+    background: radial-gradient(ellipse at center, transparent 48%, rgba(0,0,0,0.8) 100%);
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="device">
+    <div class="toprow">
+      <div class="pwr"><i></i>BATTERY</div>
+      <div class="brand">POCKET-8</div>
+    </div>
+    <div class="bezel">
+      <div class="screen">
+        <div class="hud"><span>♥♥♥✦</span><span>SCORE 128</span></div>
+        <div class="dialog">欢迎来访公众号「随身工具宝」</div>
+        <div class="signline">▶ 请你喝茶呀 <span class="more">▼</span></div>
+      </div>
+      <div class="bezeltext">DOT MATRIX TEXT SYSTEM</div>
+    </div>
+    <div class="controls">
+      <div class="dpad"><div class="h"></div><div class="v"></div><div class="c"></div></div>
+      <div class="ab">
+        <div class="b"><div class="btn"></div><span>B</span></div>
+        <div class="b"><div class="btn"></div><span>A</span></div>
+      </div>
+    </div>
+    <div class="startsel">
+      <div class="ss"><div class="pill"></div><span>SELECT</span></div>
+      <div class="ss"><div class="pill"></div><span>START</span></div>
+    </div>
+    <div class="speaker"><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="noise"></div>
+    <div class="vignette"></div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>翻牌显示屏 · 文案海报候选</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #07080a;
+    overflow: hidden;
+    font-family: "Microsoft YaHei", "SimHei", sans-serif;
+  }
+
+  .stage {
+    width: 620px;
+    height: 500px;
+    margin: 10px auto;
+    position: relative;
+    background: radial-gradient(ellipse at 50% 30%, #1a1d21 0%, #0d0f12 65%, #08090b 100%);
+  }
+
+  .board {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) rotate(-1.5deg);
+    width: 520px;
+    box-sizing: border-box;
+    padding: 20px 24px 24px;
+    background: linear-gradient(180deg, #232528 0%, #1a1c1f 100%);
+    border-radius: 12px;
+    border: 1px solid #2e3136;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.08);
+  }
+
+  .bhead {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+  }
+  .blabel {
+    font-size: 12px;
+    letter-spacing: 4px;
+    color: #e8b84b;
+    font-weight: bold;
+  }
+  .bled {
+    display: flex;
+    gap: 6px;
+  }
+  .bled i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+  }
+  .bled .g {
+    background: #39d353;
+    box-shadow: 0 0 6px rgba(57,211,83,0.8);
+  }
+  .bled .r {
+    background: #ff5544;
+    box-shadow: 0 0 6px rgba(255,85,68,0.8);
+  }
+
+  .rows {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+  }
+  .row {
+    display: flex;
+    gap: 6px;
+  }
+
+  .mod {
+    width: 50px;
+    height: 74px;
+    border-radius: 5px;
+    position: relative;
+    background: linear-gradient(180deg,
+      #45484f 0%, #363a40 45%,
+      #26292e 55%, #3a3e45 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.15),
+      inset 0 -1px 2px rgba(0,0,0,0.55),
+      0 2px 4px rgba(0,0,0,0.5);
+  }
+  .mod::after {
+    content: "";
+    position: absolute;
+    left: 2px;
+    right: 2px;
+    top: 50%;
+    height: 2px;
+    background: rgba(0,0,0,0.65);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.05);
+  }
+  .mod span {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 38px;
+    font-weight: 700;
+    color: #f5efdc;
+    text-shadow: 0 1px 0 rgba(0,0,0,0.45);
+  }
+
+  .bfoot {
+    margin-top: 18px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+  }
+  .bfoot .dash {
+    color: #5a5f68;
+    font-size: 14px;
+  }
+  .bfoot .sig {
+    font-size: 15px;
+    letter-spacing: 5px;
+    color: #e8b84b;
+  }
+  .bfoot i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #39d353;
+    box-shadow: 0 0 6px rgba(57,211,83,0.7);
+  }
+
+  .noise {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 8;
+    opacity: 0.12;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.7'/></svg>");
+    mix-blend-mode: screen;
+  }
+
+  .vignette {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9;
+    background: radial-gradient(ellipse at center, transparent 46%, rgba(0,0,0,0.78) 100%);
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="board">
+    <div class="bhead">
+      <div class="blabel">QUOTE BOARD · 文案站</div>
+      <div class="bled"><i class="g"></i><i class="r"></i></div>
+    </div>
+    <div class="rows">
+      <div class="row">
+        <div class="mod"><span>欢</span></div>
+        <div class="mod"><span>迎</span></div>
+        <div class="mod"><span>来</span></div>
+        <div class="mod"><span>访</span></div>
+        <div class="mod"><span>公</span></div>
+        <div class="mod"><span>众</span></div>
+        <div class="mod"><span>号</span></div>
+      </div>
+      <div class="row">
+        <div class="mod"><span>「</span></div>
+        <div class="mod"><span>随</span></div>
+        <div class="mod"><span>身</span></div>
+        <div class="mod"><span>工</span></div>
+        <div class="mod"><span>具</span></div>
+        <div class="mod"><span>宝</span></div>
+        <div class="mod"><span>」</span></div>
+      </div>
+    </div>
+    <div class="bfoot">
+      <i></i><span class="dash">——</span><span class="sig">请你喝茶呀</span><span class="dash">——</span><i></i>
+    </div>
+  </div>
+  <div class="noise"></div>
+  <div class="vignette"></div>
+</div>
+
+</body>
+</html>

@@ -23,9 +23,16 @@ export class CharCardSize {
 export class CharCardGridType {
   static readonly TIAN: string = 'tian';
   static readonly MI: string = 'mi';
+  static readonly NONE: string = 'none';
 
   static label(kind: string): ResourceStr {
-    return kind === CharCardGridType.MI ? $r('app.string.tmpl_grid_mi') : $r('app.string.tmpl_grid_tian');
+    if (kind === CharCardGridType.MI) {
+      return $r('app.string.tmpl_grid_mi');
+    }
+    if (kind === CharCardGridType.NONE) {
+      return $r('app.string.tmpl_grid_none');
+    }
+    return $r('app.string.tmpl_grid_tian');
   }
 }
 
@@ -69,8 +76,14 @@ export class CharCards {
   static readonly GAP: number = 20;
   /** 单格最大边长（设计稿 px） */
   static readonly MAX_CELL: number = 320;
-  /** 公众号首图单格边长上限（设计稿 px）：拼音+格子纵向合计须 ≤ 383 */
+  /** 公众号首图单格边长上限（设计稿 px，拼音关闭时）：格子纵向 ≤ 383 */
   static readonly MAX_CELL_COVER: number = 280;
+  /**
+   * 公众号首图单格边长上限（设计稿 px，拼音行渲染时）：
+   * 拼音行高（实测 ≈1.3×字号，字号=0.28×格）+ 间距 18 + 格子 ≤ 383
+   */
+  static readonly MAX_CELL_COVER_PINYIN: number =
+    (CharCards.DESIGN_H_COVER - CharCards.GAP) / (1 + 0.28 * 1.3);
 
   static designHeight(sizeKind: string): number {
     if (sizeKind === CharCardSize.PRACTICE) {

@@ -48,6 +48,8 @@ struct CopyPosterEditor {
   @State historyRecords: CoverHistoryRecord[] = [];
   previewVp: number = 300;
   snapshotScale: number = 1;
+  /** 屏幕密度（vp->px），透传给预览组件做 3D 透视 */
+  densityPx: number = 3;
   /** 「换一句」已推荐文案（会话内去重） */
   private usedInspiration: Set<string> = new Set<string>();
   private ratioOptions: ChipOption[] = [
@@ -63,6 +65,7 @@ struct CopyPosterEditor {
       let availVp: number = d.width / density - 32;
       this.previewVp = Math.min(900 / density, availVp);
       this.snapshotScale = CopyPosterTemplates.EXPORT_W / (this.previewVp * density);
+      this.densityPx = density;
     } catch (e) {
       console.error('[CopyPoster] getDefaultDisplaySync failed: ' + (e as Error).message);
       this.previewVp = 360;
@@ -309,6 +312,7 @@ struct CopyPosterEditor {
             fontIndex: this.fontIndex,
             ratioKind: this.ratioKind,
             previewWidth: this.previewVp,
+            density: this.densityPx,
           })
         }
         .width(this.previewVp)
@@ -359,6 +363,7 @@ struct CopyPosterEditor {
                 fontIndex: this.currentTemplateId === t.id ? this.fontIndex : 0,
                 ratioKind: CopyPosterRatio.SQUARE,
                 previewWidth: 96,
+                density: this.densityPx,
               })
             }
             .width(96)

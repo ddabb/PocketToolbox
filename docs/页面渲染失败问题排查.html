@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>LCD pinyin</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #000;
+    overflow: hidden;
+    font-family: "SimSun", "宋体", monospace;
+  }
+
+  .stage {
+    width: 520px;
+    height: 420px;
+    margin: 40px auto;
+    position: relative;
+    perspective: 900px;
+  }
+
+  .lcd {
+    width: 470px;
+    min-height: 340px;
+    background: #05070b;
+    position: absolute;
+    left: 20px;
+    top: 15px;
+    transform: rotate(-11deg) rotateX(13deg) rotateY(-8deg) skewX(-3deg);
+    transform-origin: 35% 30%;
+    box-shadow:
+      0 0 22px rgba(70,120,220,0.18),
+      inset 0 0 35px rgba(0,0,0,0.55);
+    padding: 20px 22px 16px;
+    box-sizing: border-box;
+  }
+
+  .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 20px;
+    color: #d8e4f5;
+    text-shadow: 0 0 2px #9ec9ff, 0 0 7px rgba(120,170,255,0.55);
+  }
+
+  .left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .signal {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 14px;
+  }
+  .signal i {
+    width: 3px;
+    background: #9ec9ff;
+    box-shadow: 0 0 4px rgba(120,170,255,0.8);
+  }
+  .signal i:nth-child(1) { height: 4px; }
+  .signal i:nth-child(2) { height: 7px; }
+  .signal i:nth-child(3) { height: 10px; }
+  .signal i:nth-child(4) { height: 14px; }
+
+  .pinyin {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .pen {
+    width: 16px;
+    height: 8px;
+    border-top: 2px solid #d8e4f5;
+    border-left: 2px solid #d8e4f5;
+    transform: rotate(-35deg);
+    position: relative;
+  }
+  .pen::after {
+    content: "";
+    position: absolute;
+    right: -5px;
+    top: -1px;
+    border-left: 5px solid #d8e4f5;
+    border-top: 3px solid transparent;
+    border-bottom: 3px solid transparent;
+  }
+
+  .right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .count {
+    color: #8fd4ff;
+    font-size: 20px;
+    text-shadow: 0 0 5px rgba(120,210,255,0.7);
+  }
+
+  .mute {
+    width: 14px;
+    height: 12px;
+    border: 2px solid #cfdcff;
+    position: relative;
+  }
+  .mute::before {
+    content: "";
+    position: absolute;
+    left: 1px; top: 4px;
+    width: 8px; height: 2px;
+    background: #cfdcff;
+  }
+  .mute::after {
+    content: "";
+    position: absolute;
+    left: 4px; top: 1px;
+    width: 7px; height: 10px;
+    border-top: 2px solid #cfdcff;
+    border-right: 2px solid #cfdcff;
+    transform: rotate(45deg);
+  }
+
+  .battery {
+    width: 18px;
+    height: 10px;
+    border: 2px solid #cfdcff;
+    position: relative;
+  }
+  .battery::before {
+    content: "";
+    position: absolute;
+    right: -5px; top: 3px;
+    width: 3px; height: 4px;
+    background: #cfdcff;
+  }
+  .battery::after {
+    content: "";
+    position: absolute;
+    left: 2px; top: 2px;
+    width: 10px; height: 6px;
+    background: #cfdcff;
+  }
+
+  .box {
+    background: #c9c9c9;
+    color: #111;
+    border: 2px solid #eee;
+    padding: 12px 13px 16px;
+    font-size: 25px;
+    line-height: 1.34;
+    letter-spacing: 1px;
+    min-height: 92px;
+    height: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    position: relative;
+    box-shadow:
+      inset 0 0 0 1px #888,
+      inset 0 0 18px rgba(255,255,255,0.35),
+      0 0 12px rgba(180,210,255,0.12);
+  }
+
+  .box::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    background-image:
+      radial-gradient(rgba(0,0,0,0.2) 1px, transparent 1px),
+      radial-gradient(rgba(255,255,255,0.38) 1px, transparent 1px);
+    background-size: 3px 3px, 4px 4px;
+    background-position: 0 0, 1px 2px;
+    mix-blend-mode: multiply;
+    opacity: 0.78;
+  }
+
+  #text {
+    position: relative;
+    z-index: 2;
+    outline: none;
+  }
+
+  .soft {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    font-size: 20px;
+    color: #d8e4f5;
+    padding: 0 4px;
+    text-shadow: 0 0 2px #9ec9ff, 0 0 7px rgba(120,170,255,0.55);
+  }
+
+  .noise {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 6;
+    opacity: 0.18;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.7'/></svg>");
+    mix-blend-mode: screen;
+  }
+
+  .vignette {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 7;
+    background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.82) 100%);
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="lcd">
+    <div class="top">
+      <div class="left">
+        <div class="signal">
+          <i></i><i></i><i></i><i></i>
+        </div>
+        <div class="pinyin">
+          <span class="pen"></span>
+          <span>pinyin</span>
+        </div>
+      </div>
+
+      <div class="right">
+        <div class="count"><span id="count">0</span>/900</div>
+        <div class="mute"></div>
+        <div class="battery"></div>
+      </div>
+    </div>
+
+    <div class="box">
+      <span id="text" contenteditable="true">欢迎来访公众号"木舟居"，木木请你喝茶呀。今天测试六十字内容，看屏幕会不会自动撑高，功能机像素屏效果仍然保持，斜着拍的感觉也要在。一二三四五六七八九十。</span>
+    </div>
+
+    <div class="soft">
+      <div>选项</div>
+      <div>清除</div>
+    </div>
+
+    <div class="noise"></div>
+    <div class="vignette"></div>
+  </div>
+</div>
+
+<script>
+  var textEl = document.getElementById("text");
+  var countEl = document.getElementById("count");
+
+  function updateCount() {
+    var text = textEl.innerText || textEl.textContent;
+    // 去掉换行符统计（换行不占字数）
+    var clean = text.replace(/\n/g, "").replace(/\r/g, "");
+    var len = clean.length;
+    countEl.textContent = len;
+  }
+
+  textEl.addEventListener("input", updateCount);
+  textEl.addEventListener("keyup", updateCount);
+
+  // 初始统计
+  updateCount();
+</script>
+
+</body>
+</html>
