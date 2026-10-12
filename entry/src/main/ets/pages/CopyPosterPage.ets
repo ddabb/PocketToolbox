@@ -313,8 +313,6 @@ struct CopyPosterEditor {
       Scroll() {
         Column({ space: 14 }) {
           this.PreviewSection()
-          this.RatioChips()
-          this.TemplateScroller()
           this.EditorTabs()
           if (this.editorTab === 0) {
             if (this.showClipHint) {
@@ -331,6 +329,8 @@ struct CopyPosterEditor {
           } else {
             this.StyleEditor()
           }
+          this.RatioChips()
+          this.TemplateScroller()
           this.HistorySection()
         }
         .width('100%')

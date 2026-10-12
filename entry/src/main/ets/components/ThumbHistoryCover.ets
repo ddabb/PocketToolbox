@@ -39,18 +39,19 @@ export struct ThumbHistoryCover {
           .fontColor($r('app.color.primary_text'))
         Blank()
         Button($r('app.string.history_btn_close'))
-          .fontSize(14)
+          .fontSize(15)
           .fontColor($r('app.color.on_accent_text'))
           .backgroundColor($r('app.color.brand_blue'))
-          .borderRadius(18)
-          .height(32)
-          .padding({ left: 16, right: 16 })
+          .borderRadius(20)
+          .height(40)
+          .padding({ left: 20, right: 20 })
           .onClick(() => {
             this.onClose();
           })
       }
       .width('100%')
-      .padding({ left: 16, right: 16, top: 16, bottom: 12 })
+      .alignItems(VerticalAlign.Center)
+      .padding({ left: 16, right: 16, top: 28, bottom: 14 })
 
       if (this.records.length === 0) {
         Column() {

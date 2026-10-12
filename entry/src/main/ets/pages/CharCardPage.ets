@@ -501,17 +501,6 @@ struct CharCardContent {
         Scroll() {
           Column({ space: 14 }) {
             this.PreviewSection()
-            this.SizeChips()
-            this.StyleChips()
-            PaletteSection({
-              palettes: this.paletteList,
-              selectedIndex: this.paletteIndex,
-              accentColor: this.accent(),
-              labelColor: this.labelColor(),
-              onSelect: (idx: number) => {
-                this.paletteIndex = idx;
-              },
-            })
             if (this.showClipHint) {
               ClipboardHintBar({
                 onFill: (text: string) => {
@@ -523,6 +512,17 @@ struct CharCardContent {
               })
             }
             this.TextEditor()
+            this.SizeChips()
+            this.StyleChips()
+            PaletteSection({
+              palettes: this.paletteList,
+              selectedIndex: this.paletteIndex,
+              accentColor: this.accent(),
+              labelColor: this.labelColor(),
+              onSelect: (idx: number) => {
+                this.paletteIndex = idx;
+              },
+            })
             this.HistorySection()
           }
           .width('100%')
