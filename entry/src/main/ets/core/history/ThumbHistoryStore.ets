@@ -134,8 +134,10 @@ export class ThumbHistoryStore {
       let file: fs.File = fs.openSync(thumbPath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.TRUNC);
       let packer: image.ImagePacker = image.createImagePacker();
       let packOpts: image.PackingOption = { format: 'image/png', quality: 90 };
+      let packOk: boolean = false;
       try {
         await packer.packToFile(thumbPixelMap, file.fd, packOpts);
+        packOk = true;
       } finally {
         try {
           fs.closeSync(file.fd);
@@ -143,6 +145,11 @@ export class ThumbHistoryStore {
           console.error('[ThumbHistoryStore] closeSync failed: ' + (e as Error).message);
         }
         packer.release();
+      }
+      if (!packOk) {
+        // 打包失败清理刚创建的空缩略图，防孤儿文件干扰记录数与目录扫描对账
+        ThumbHistoryStore.removeFile(context, dirName, record);
+        return false;
       }
       let records: ThumbHistoryRecord[] = ThumbHistoryStore.loadRecords(context, dirName);
       records.unshift(record);
