@@ -1620,15 +1620,27 @@ struct GifMakerPage {
   // ---------- UI ----------
 
   @Builder
-  ModeCard(icon: string, title: ResourceStr, subtitle: ResourceStr, color: string, enabled: boolean, action: () => void) {
+  ModeCard(icon: ResourceStr, title: ResourceStr, subtitle: ResourceStr, color: string, enabled: boolean, action: () => void) {
     Row({ space: 14 }) {
-      Text(icon)
-        .fontSize(28)
+      if (typeof icon === 'string') {
+        Text(icon)
+          .fontSize(28)
+          .width(52)
+          .height(52)
+          .textAlign(TextAlign.Center)
+          .backgroundColor(color + '18')
+          .borderRadius(14)
+      } else {
+        Stack() {
+          Image(icon)
+            .width(28)
+            .height(28)
+        }
         .width(52)
         .height(52)
-        .textAlign(TextAlign.Center)
         .backgroundColor(color + '18')
         .borderRadius(14)
+      }
       Column({ space: 4 }) {
         Row({ space: 6 }) {
           Text(title)
@@ -1827,7 +1839,7 @@ struct GifMakerPage {
       this.ModeCard('✏️', $r('app.string.gif_mode_edit_title'), $r('app.string.gif_mode_edit_sub'), '#10b981', true, () => {
         this.pickGif();
       })
-      this.ModeCard('🕘', $r('app.string.gif_mode_history_title'), $r('app.string.gif_mode_history_sub', this.historyRecords.length, formatGifBytes(this.historyBytes)), '#6366f1', true, () => {
+      this.ModeCard($r('app.media.gif_history'), $r('app.string.gif_mode_history_title'), $r('app.string.gif_mode_history_sub', this.historyRecords.length, formatGifBytes(this.historyBytes)), '#6366f1', true, () => {
         this.openHistory();
       })
       Text($r('app.string.gif_privacy_note'))
@@ -2615,8 +2627,9 @@ struct GifMakerPage {
 
       if (this.historyRecords.length === 0) {
         Column({ space: 10 }) {
-          Text('🕘')
-            .fontSize(40)
+          Image($r('app.media.gif_history'))
+            .width(40)
+            .height(40)
           Text($r('app.string.gif_history_empty'))
             .fontSize(14)
             .fontColor($r('app.color.secondary_text'))

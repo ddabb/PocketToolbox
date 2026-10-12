@@ -1501,6 +1501,58 @@
       "value": "My Achievements"
     },
     {
+      "name": "ach_unlock_toast",
+      "value": "Unlocked %1$d new achievement(s)"
+    },
+    {
+      "name": "history_recent_title",
+      "value": "Recent creations"
+    },
+    {
+      "name": "history_entry_count",
+      "value": "Recent creations (%1$d)"
+    },
+    {
+      "name": "history_btn_restore",
+      "value": "Restore"
+    },
+    {
+      "name": "history_btn_delete",
+      "value": "Delete"
+    },
+    {
+      "name": "history_btn_close",
+      "value": "Close"
+    },
+    {
+      "name": "history_empty",
+      "value": "No creations yet"
+    },
+    {
+      "name": "clip_hint_text",
+      "value": "Clipboard text detected"
+    },
+    {
+      "name": "poster_watermark_label",
+      "value": "Watermark"
+    },
+    {
+      "name": "poster_watermark_on",
+      "value": "On"
+    },
+    {
+      "name": "poster_watermark_off",
+      "value": "Off"
+    },
+    {
+      "name": "poster_watermark_hint",
+      "value": "Brand / nickname"
+    },
+    {
+      "name": "poster_watermark_default",
+      "value": "@解语珠玑"
+    },
+    {
       "name": "achpage_unlocked",
       "value": "Achievements Unlocked"
     },

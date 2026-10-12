@@ -22,6 +22,8 @@ import { FontUtil } from '../common/utils/FontUtil';
 import { ToastUtil } from '../common/utils/ToastUtil';
 import { StrUtil } from '../common/utils/StrUtil';
 import { savePixelMapToAlbum, shareImageViaPanel } from '../common/utils/ShareImageUtil';
+import { ClipboardFillUtil } from '../common/utils/ClipboardFillUtil';
+import { ClipboardHintBar } from '../components/ClipboardHintBar';
 
 const PREVIEW_ID: string = 'copyposter_preview';
 const INSPIRATION_COUNT: number = 60;
@@ -47,6 +49,7 @@ struct CopyPosterEditor {
   @State editorTab: number = 0;
   @State exporting: boolean = false;
   @State historyRecords: CoverHistoryRecord[] = [];
+  @State showClipHint: boolean = false;
   previewVp: number = 300;
   /** 屏幕密度（vp->px），透传给预览组件做 3D 透视 */
   densityPx: number = 3;
@@ -72,6 +75,13 @@ struct CopyPosterEditor {
     }
     this.selectTemplate(CopyPosterTemplates.getById('T1'));
     this.historyRecords = CoverHistoryStore.loadRecords(this.context(), CoverHistoryStore.DIR_POSTER);
+    this.showClipHint = ClipboardFillUtil.hasClipboardText();
+  }
+
+  /** 剪贴板填入主文案：按上限截断后走既有 onSlotChange 管道，本会话不再提示 */
+  private onClipFill(text: string): void {
+    this.showClipHint = false;
+    this.onSlotChange(CopyPosterSlot.BODY, text.substring(0, CopyPosterTemplates.MAX_BODY));
   }
 
   // ---------- 状态与业务 ----------
@@ -124,6 +134,22 @@ struct CopyPosterEditor {
     } else {
       return;
     }
+    this.content = c;
+  }
+
+  /** 水印开关：首次开启且文字为空时预填品牌文案；关闭仅停渲染，保留已输入文字 */
+  private onWatermarkToggle(): void {
+    let c: CopyPosterContent = this.content.copy();
+    c.watermarkOn = !c.watermarkOn;
+    if (c.watermarkOn && c.watermarkText.trim() === '') {
+      c.watermarkText = StrUtil.text(this.context(), $r('app.string.poster_watermark_default'));
+    }
+    this.content = c;
+  }
+
+  private onWatermarkTextChange(value: string): void {
+    let c: CopyPosterContent = this.content.copy();
+    c.watermarkText = value;
     this.content = c;
   }
 
@@ -291,6 +317,16 @@ struct CopyPosterEditor {
           this.TemplateScroller()
           this.EditorTabs()
           if (this.editorTab === 0) {
+            if (this.showClipHint) {
+              ClipboardHintBar({
+                onFill: (text: string) => {
+                  this.onClipFill(text);
+                },
+                onDismiss: () => {
+                  this.showClipHint = false;
+                },
+              })
+            }
             this.TextEditor()
           } else {
             this.StyleEditor()
@@ -376,6 +412,7 @@ struct CopyPosterEditor {
                 ratioKind: CopyPosterRatio.SQUARE,
                 previewWidth: 96,
                 density: this.densityPx,
+                showWatermark: false,
               })
             }
             .width(96)
@@ -565,6 +602,34 @@ struct CopyPosterEditor {
         .width('100%')
         .alignItems(HorizontalAlign.Start)
       }
+
+      Column({ space: 10 }) {
+        Text($r('app.string.poster_watermark_label'))
+          .fontSize(12)
+          .fontColor(this.labelColor())
+        Text(this.content.watermarkOn ? $r('app.string.poster_watermark_on') : $r('app.string.poster_watermark_off'))
+          .fontSize(13)
+          .padding({ left: 14, right: 14, top: 7, bottom: 7 })
+          .backgroundColor(this.content.watermarkOn ? $r('app.color.brand_blue') : this.chipBg())
+          .fontColor(this.content.watermarkOn ? $r('app.color.on_accent_text') : this.chipText())
+          .borderRadius(14)
+          .onClick(() => {
+            this.onWatermarkToggle();
+          })
+        if (this.content.watermarkOn) {
+          TextInput({ text: this.content.watermarkText, placeholder: $r('app.string.poster_watermark_hint') })
+            .height(40)
+            .fontSize(14)
+            .maxLength(CopyPosterTemplates.MAX_WATERMARK)
+            .backgroundColor(this.inputBg())
+            .borderRadius(8)
+            .onChange((value: string) => {
+              this.onWatermarkTextChange(value);
+            })
+        }
+      }
+      .width('100%')
+      .alignItems(HorizontalAlign.Start)
     }
     .width('100%')
     .padding({ top: 12 })

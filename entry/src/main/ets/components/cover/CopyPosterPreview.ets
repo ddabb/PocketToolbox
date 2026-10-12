@@ -25,6 +25,8 @@ export struct CopyPosterPreview {
   @Prop density: number;
   /** 主文案拼音注音开关（固定构图模板不生效） */
   @Prop pinyinOn: boolean = false;
+  /** 是否渲染根层水印（主预览/导出开，模板缩略图关防糊点） */
+  @Prop showWatermark: boolean = true;
 
   /** 设计稿 px -> vp */
   private f(px: number): number {
@@ -183,6 +185,9 @@ export struct CopyPosterPreview {
       } else {
         this.BigImpact()
       }
+      if (this.showWatermark && this.content.watermarkOn && this.content.watermarkText.trim() !== '') {
+        this.WatermarkLayer()
+      }
     }
     .width(this.previewWidth)
     .height(this.h())
@@ -199,6 +204,25 @@ export struct CopyPosterPreview {
     } else {
       Column().width('100%').height('100%').backgroundColor(this.pal().bg)
     }
+  }
+
+  /** 根层水印：右下角小字（模板无关，palette title 色 50% 透明，18 布局一次生效） */
+  @Builder
+  WatermarkLayer() {
+    Column() {
+      Blank()
+      Row() {
+        Blank()
+        Text(this.content.watermarkText.trim())
+          .fontSize(this.f(22))
+          .fontColor(this.hexA(this.pal().title, '80'))
+          .maxLines(1)
+      }
+      .width('100%')
+      .padding({ right: this.f(24), bottom: this.f(18) })
+    }
+    .width('100%')
+    .height('100%')
   }
 
   /** 顶部装饰标签胶囊（示例图 "pinyin" 位） */

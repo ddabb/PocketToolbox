@@ -12,6 +12,8 @@ import { shareImageViaPanel } from '../common/utils/ShareImageUtil';
 import { KeywordUtil } from '../common/utils/KeywordUtil';
 import { FontUtil } from '../common/utils/FontUtil';
 import { ToastUtil } from '../common/utils/ToastUtil';
+import { ThumbHistoryRecord, ThumbHistoryStore, makeHistoryId } from '../core/history/ThumbHistoryStore';
+import { ThumbHistoryCover } from '../components/ThumbHistoryCover';
 
 const PREF_NAME: string = 'md2png_settings';
 const KEY_HIGHLIGHT_CONFIG: string = 'highlight_config';
@@ -129,6 +131,8 @@ struct Md2PngContent {
   @State customKeyword: string = '';
   // 位置选择浮层状态
   @State showPositionPanel: boolean = false;
+  @State showHistoryCover: boolean = false;
+  @State historyRecords: ThumbHistoryRecord[] = [];
   @State editingWord: string = '';
   @State editingWordOccurrences: KeywordOccurrenceContext[] = [];
   @State editingWordSelectedIndices: number[] = [];
@@ -157,6 +161,7 @@ struct Md2PngContent {
   private generateTimer: number = -1;
   private readonly markdownExample: string = '# 欢迎使用文字转图片\n\n输入 **Markdown** 或普通文本，选择喜欢的模板，一键生成精美图片！\n\n## 功能特点\n\n- 支持多种精美模板\n- 支持Markdown语法\n- 一键保存到相册\n\n> 让文字更有表现力\n\n`代码片段` 也能高亮显示';
   private readonly textExample: string = '今天天气真好，阳光明媚，微风不燥。\n出门走走，看花开花落，心情格外舒畅。\n把生活里的美好，藏进最平凡的句子。';
+  private readonly HISTORY_DIR: string = 'md2png_history';
 
   aboutToAppear(): void {
     this.inputText = '';
@@ -173,6 +178,8 @@ struct Md2PngContent {
     }
     this.cardHeights = heights;
     this.highlightedTexts = texts;
+    let context: common.UIAbilityContext = this.getUIContext().getHostContext() as common.UIAbilityContext;
+    this.historyRecords = ThumbHistoryStore.loadRecords(context, this.HISTORY_DIR);
   }
 
   private initAllControllers(): void {
@@ -818,8 +825,9 @@ struct Md2PngContent {
         let desFile: fs.File = await fs.open(desFileUris[0], fs.OpenMode.WRITE_ONLY);
         await fs.copyFile(srcFile.fd, desFile.fd);
         await fs.close(srcFile);
-        await fs.close(desFile.fd);
+        await fs.close(desFile);
         ToastUtil.show(uiCtx, $r('app.string.md2_saved_to_album'), 1000);
+        this.saveHistoryAsync();
       }
     } catch (e) {
       let err: BusinessError = e as BusinessError;
@@ -832,7 +840,106 @@ struct Md2PngContent {
     if (!this.generatedImageUri) {
       return;
     }
+    this.saveHistoryAsync();
     shareImageViaPanel(this.getUIContext(), this.generatedImageUri);
+  }
+
+  /** 历史记录保存：markdown 源 + 模板 id + 缩略图，最新一条参数相同则跳过 */
+  private async saveHistoryAsync(): Promise<void> {
+    try {
+      if (!this.generatedImageUri) {
+        return;
+      }
+      let context: common.UIAbilityContext = this.getUIContext().getHostContext() as common.UIAbilityContext;
+      let params: Record<string, Object> = {
+        'markdown': this.inputText.substring(0, 2000),
+        'templateId': this.templates[this.currentTemplateIndex].id
+      };
+      let paramsText: string = JSON.stringify(params);
+      if (ThumbHistoryStore.isSameAsLatest(context, this.HISTORY_DIR, paramsText)) {
+        return;
+      }
+      let thumbPm: image.PixelMap | null = await this.makeThumbPixelMap(this.generatedImageUri);
+      if (thumbPm === null) {
+        return;
+      }
+      let id: string = makeHistoryId('md2');
+      let record: ThumbHistoryRecord = new ThumbHistoryRecord();
+      record.id = id;
+      record.thumbName = id + '.png';
+      record.createdAt = Date.now();
+      record.summary = this.inputText.replace(new RegExp('\\s+'), ' ').substring(0, 60);
+      record.paramsText = paramsText;
+      let ok: boolean = await ThumbHistoryStore.saveRecord(context, this.HISTORY_DIR, record, thumbPm);
+      if (ok) {
+        this.historyRecords = ThumbHistoryStore.loadRecords(context, this.HISTORY_DIR);
+      }
+    } catch (e) {
+      console.error('[Md2Png] save history failed: ' + (e as Error).message);
+    }
+  }
+
+  /** 从已生成图片解码约 360px 宽缩略图（超高图按高度 1080 等比收敛） */
+  private async makeThumbPixelMap(filePath: string): Promise<image.PixelMap | null> {
+    try {
+      let src: image.ImageSource = image.createImageSource(filePath);
+      let info: image.ImageInfo = await src.getImageInfo();
+      let w: number = info.size.width;
+      let h: number = info.size.height;
+      if (w <= 0 || h <= 0) {
+        await src.release();
+        return null;
+      }
+      let targetW: number = 360;
+      let targetH: number = Math.round(h * (targetW / w));
+      if (targetH > 1080) {
+        targetH = 1080;
+        targetW = Math.round(w * (1080 / h));
+      }
+      let decodeOpts: image.DecodingOptions = {
+        desiredSize: { width: targetW, height: targetH }
+      };
+      let pm: image.PixelMap = await src.createPixelMap(decodeOpts);
+      await src.release();
+      return pm;
+    } catch (e) {
+      console.error('[Md2Png] make thumb failed: ' + (e as Error).message);
+      return null;
+    }
+  }
+
+  private restoreFromHistory(record: ThumbHistoryRecord): void {
+    try {
+      let obj: Record<string, Object> = JSON.parse(record.paramsText) as Record<string, Object>;
+      let md: string = obj['markdown'] as string;
+      if (typeof md !== 'string' || md.length === 0) {
+        return;
+      }
+      let tplId: string = obj['templateId'] as string;
+      let targetIdx: number = this.currentTemplateIndex;
+      if (typeof tplId === 'string' && tplId.length > 0) {
+        for (let i: number = 0; i < this.templates.length; i++) {
+          if (this.templates[i].id === tplId) {
+            targetIdx = i;
+            break;
+          }
+        }
+      }
+      this.showHistoryCover = false;
+      this.inputText = md;
+      if (targetIdx !== this.currentTemplateIndex) {
+        this.swiperController.changeIndex(targetIdx, false);
+      }
+      this.scheduleRegenerate();
+    } catch (e) {
+      console.error('[Md2Png] restore history failed: ' + (e as Error).message);
+    }
+  }
+
+  private deleteHistoryRecord(record: ThumbHistoryRecord): void {
+    let context: common.UIAbilityContext = this.getUIContext().getHostContext() as common.UIAbilityContext;
+    ThumbHistoryStore.deleteRecord(context, this.HISTORY_DIR, record.id);
+    this.historyRecords = ThumbHistoryStore.loadRecords(context, this.HISTORY_DIR);
   }
 
   /**
@@ -927,6 +1034,29 @@ struct Md2PngContent {
     .width('100%')
     .height('100%')
     .backgroundColor($r('app.color.page_background'))
+    .bindContentCover(this.showHistoryCover, this.HistoryCoverView(), {
+      modalTransition: ModalTransition.NONE,
+      onDisappear: () => {
+        this.showHistoryCover = false;
+      }
+    })
+  }
+
+  @Builder
+  HistoryCoverView() {
+    ThumbHistoryCover({
+      records: this.historyRecords,
+      dirName: this.HISTORY_DIR,
+      onRestore: (record: ThumbHistoryRecord) => {
+        this.restoreFromHistory(record);
+      },
+      onDelete: (record: ThumbHistoryRecord) => {
+        this.deleteHistoryRecord(record);
+      },
+      onClose: () => {
+        this.showHistoryCover = false;
+      }
+    })
   }
 
   @Builder
@@ -1474,6 +1604,21 @@ struct Md2PngContent {
       .width('100%')
       .margin({ top: 12 })
       .visibility(this.generatedImageUri ? Visibility.Visible : Visibility.Hidden)
+
+      // 最近制作入口
+      Button(this.historyRecords.length > 0
+        ? $r('app.string.history_entry_count', this.historyRecords.length)
+        : $r('app.string.history_recent_title'))
+        .fontSize(13)
+        .fontColor($r('app.color.secondary_text'))
+        .backgroundColor($r('app.color.card_background'))
+        .borderRadius(19)
+        .height(36)
+        .width('100%')
+        .margin({ top: 16, bottom: 8 })
+        .onClick(() => {
+          this.showHistoryCover = true;
+        })
     }
     .width('100%')
   }

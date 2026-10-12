@@ -21,6 +21,8 @@ import { StrUtil } from '../common/utils/StrUtil';
 import { CharBookUtil } from '../common/utils/CharBookUtil';
 import { WordSegmentUtil } from '../common/utils/WordSegmentUtil';
 import { savePixelMapToAlbum, saveFilesToAlbum, shareImageViaPanel } from '../common/utils/ShareImageUtil';
+import { ClipboardFillUtil } from '../common/utils/ClipboardFillUtil';
+import { ClipboardHintBar } from '../components/ClipboardHintBar';
 
 const PREVIEW_ID: string = 'charcard_preview';
 const HISTORY_DIR: string = CoverHistoryStore.DIR_CHAR_CARD;
@@ -57,6 +59,7 @@ struct CharCardContent {
   @State batchTotal: number = 0;
   @State historyRecords: CoverHistoryRecord[] = [];
   @State isDark: boolean = false;
+  @State showClipHint: boolean = false;
   @State showCharBook: boolean = false;
   @State bookChars: string[] = [];
   @State bookSelected: string[] = [];
@@ -116,6 +119,17 @@ struct CharCardContent {
     }
     this.pinyinText = CoverContentUtil.autoPinyin(CharCards.cleanChars(this.charsText));
     this.historyRecords = CoverHistoryStore.loadRecords(this.context(), HISTORY_DIR);
+    this.showClipHint = ClipboardFillUtil.hasClipboardText();
+  }
+
+  /** 剪贴板填入：按当前输入模式（单字/句子）各自上限截断后走既有 onChange 管道，本会话不再提示 */
+  private onClipFill(text: string): void {
+    this.showClipHint = false;
+    if (this.isSentence()) {
+      this.onSentenceChange(text.substring(0, 44));
+    } else {
+      this.onCharsChange(text.substring(0, CharCards.MAX_CHARS));
+    }
   }
 
   aboutToDisappear(): void {
@@ -498,6 +512,16 @@ struct CharCardContent {
                 this.paletteIndex = idx;
               },
             })
+            if (this.showClipHint) {
+              ClipboardHintBar({
+                onFill: (text: string) => {
+                  this.onClipFill(text);
+                },
+                onDismiss: () => {
+                  this.showClipHint = false;
+                },
+              })
+            }
             this.TextEditor()
             this.HistorySection()
           }

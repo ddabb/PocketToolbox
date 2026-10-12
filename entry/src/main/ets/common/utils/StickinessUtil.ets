@@ -84,6 +84,7 @@ export class StickinessUtil {
   private static readonly KEY_CHALLENGE: string = 'stickiness_challenge';
   private static readonly KEY_PREFS: string = 'stickiness_prefs';
   private static readonly KEY_REVIEW_SHOWN: string = 'review_shown_records';
+  private static readonly KEY_ACH_UNSEEN: string = 'achievement_unseen_count';
 
   private static readonly ACHIEVEMENT_DEFS: AchievementDef[] = [
     new AchievementDef('fav_10', 'ach_fav_10_title', 'ach_fav_10_desc', '\u2665', '#e74c3c', 10, 'favTotal'),
@@ -470,8 +471,42 @@ export class StickinessUtil {
       StickinessUtil.saveUnlockedMap(context, unlockedMap);
       let ver: number = (AppStorage.get('AchievementDataVersion') ?? 0) as number;
       AppStorage.setOrCreate('AchievementDataVersion', ver + 1);
+      // 1.4.4二批 P0-1：新解锁计数持久化（我的页红点）+ 解锁事件计数（合并提示）
+      let unseen: number = StickinessUtil.loadAchievementUnseen(context) + newlyUnlocked.length;
+      StickinessUtil.saveAchievementUnseen(context, unseen);
+      AppStorage.setOrCreate('AchievementUnseenCount', unseen);
+      let evt: number = (AppStorage.get('AchievementUnlockEvent') ?? 0) as number;
+      AppStorage.setOrCreate('AchievementUnlockEvent', evt + newlyUnlocked.length);
     }
     return newlyUnlocked;
+  }
+
+  /** 新解锁未查看计数（红点数据源，持久化防杀进程丢失） */
+  static loadAchievementUnseen(context: Context): number {
+    try {
+      let prefs: preferences.Preferences = preferences.getPreferencesSync(context,
+        { name: StickinessUtil.PREFS_NAME });
+      return prefs.getSync(StickinessUtil.KEY_ACH_UNSEEN, 0) as number;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  private static saveAchievementUnseen(context: Context, count: number): void {
+    try {
+      let prefs: preferences.Preferences = preferences.getPreferencesSync(context,
+        { name: StickinessUtil.PREFS_NAME });
+      prefs.putSync(StickinessUtil.KEY_ACH_UNSEEN, count);
+      prefs.flush();
+    } catch (e) {
+      console.error('[Stickiness] saveAchievementUnseen failed: ' + (e as Error).message);
+    }
+  }
+
+  /** 进入成就页时清零未查看计数（红点消除） */
+  static clearAchievementUnseen(context: Context): void {
+    StickinessUtil.saveAchievementUnseen(context, 0);
+    AppStorage.setOrCreate('AchievementUnseenCount', 0);
   }
 
   static loadChallengeProgress(context: Context): ChallengeProgress {

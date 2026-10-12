@@ -100,6 +100,7 @@ struct Index {
   @State challengeProgress: ChallengeProgress = new ChallengeProgress();
   @State reviewItem: FavoriteItem | null = null;
   @State reviewVisible: boolean = false;
+  @State reviewPoemItem: PoemItem | null = null;
   @State appVersionName: string = '';
   @State mineUserStats: UserStats = new UserStats();
   @State mineWeekCheckIn: number = 0;
@@ -108,12 +109,19 @@ struct Index {
   @State mineAchievementUnlocked: number = 0;
   @State mineAchievementTotal: number = 0;
   @StorageLink('AchievementDataVersion') @Watch('onAchievementDataChanged') achievementDataVersion: number = 0;
+  @StorageLink('AchievementUnseenCount') achievementUnseenCount: number = 0;
+  @StorageLink('AchievementUnlockEvent') @Watch('onAchievementUnlockEvent') achievementUnlockEvent: number = 0;
   @State toolGridCols: number = 4;
   @StorageLink('ReadingDataVersion') @Watch('onReadingDataChanged') readingDataVersion: number = 0;
   private poetryVm: PoetryViewModel = PoetryViewModel.getInstance();
   private idiomVm: IdiomViewModel = IdiomViewModel.getInstance();
   private xiehouyuVm: XiehouyuViewModel = XiehouyuViewModel.getInstance();
   private bpObserver: BreakpointObserver = new BreakpointObserver();
+  private lastUnlockEventTotal: number = 0;
+  private pendingUnlockDelta: number = 0;
+  private unlockToastTimerId: number = -1;
+  /** 近 7 天每日诗词池（复习回退用），title -> PoemItem，复习卡点击直达诗词详情 */
+  private dailyPoemPoolMap: Record<string, PoemItem> = {};
   private readonly DAILY_PADDING: number = 12;
   private readonly DAILY_RADIUS: number = 12;
   private readonly DAILY_HEADER_ICON_SIZE: number = 13;
@@ -139,10 +147,14 @@ struct Index {
     this.loadRecentTools();
     setTimeout(() => {
       this.loadDailyContent();
+      this.loadReviewItem(this.getUIContext().getHostContext() as Context);
       DailyPoemWidgetUtil.updateAllForms(this.getUIContext().getHostContext() as Context);
     }, 0);
     this.loadFavCount();
     this.loadStickinessData();
+    this.lastUnlockEventTotal = this.achievementUnlockEvent;
+    AppStorage.setOrCreate('AchievementUnseenCount',
+      StickinessUtil.loadAchievementUnseen(this.getUIContext().getHostContext() as Context));
     try {
       let info: bundleManager.BundleInfo = bundleManager.getBundleInfoForSelfSync(bundleManager.BundleFlag.GET_BUNDLE_INFO_DEFAULT);
       this.appVersionName = info.versionName;
@@ -394,6 +406,26 @@ struct Index {
     this.refreshMineAchievements();
   }
 
+  /** 成就解锁事件：一律合并为单条提示「解锁 N 枚新成就」，延迟弹避开签到/导出等成功 toast */
+  onAchievementUnlockEvent(): void {
+    let delta: number = this.achievementUnlockEvent - this.lastUnlockEventTotal;
+    this.lastUnlockEventTotal = this.achievementUnlockEvent;
+    if (delta <= 0) {
+      return;
+    }
+    this.pendingUnlockDelta += delta;
+    if (this.unlockToastTimerId === -1) {
+      this.unlockToastTimerId = setTimeout(() => {
+        let n: number = this.pendingUnlockDelta;
+        this.pendingUnlockDelta = 0;
+        this.unlockToastTimerId = -1;
+        if (n > 0) {
+          ToastUtil.show(this.getUIContext(), $r('app.string.ach_unlock_toast', n), 1800);
+        }
+      }, 1600);
+    }
+  }
+
   private refreshMineAchievements(): void {
     let ctx: Context = this.getUIContext().getHostContext() as Context;
     let achievements: AchievementItem[] = StickinessUtil.loadAchievements(ctx);
@@ -437,6 +469,7 @@ struct Index {
     if (favs.length === 0) {
       this.reviewVisible = false;
       this.reviewItem = null;
+      this.reviewPoemItem = null;
       return;
     }
     let poemFavs: FavoriteItem[] = [];
@@ -445,7 +478,23 @@ struct Index {
         poemFavs.push(favs[i]);
       }
     }
-    let pool: FavoriteItem[] = poemFavs.length > 0 ? poemFavs : favs;
+    // 1.4.4二批 P0-4：诗词收藏不足 7 条时并入「每日诗词池」（近 7 天每日一首），不再回退全量收藏混入成语/歇后语
+    let pool: FavoriteItem[] = poemFavs;
+    if (pool.length < 7) {
+      if (!this.poetryVm.isDataLoaded()) {
+        // 冷启动诗词索引未就绪：本轮不构建每日池，延迟到 loadDailyContent 后的重载补齐，避免启动期同步读多份诗人文件
+        this.reviewVisible = false;
+        this.reviewItem = null;
+        this.reviewPoemItem = null;
+        return;
+      }
+      pool = this.mergeDailyPoemPool(ctx, poemFavs);
+    } else {
+      this.dailyPoemPoolMap = {}; // 走收藏池时清空每日池映射，防同名标题误直达
+    }
+    if (pool.length === 0) {
+      pool = favs; // 每日池构建失败时维持旧回退，保证卡片可用
+    }
     let shown: ReviewShownRecord[] = StickinessUtil.loadReviewShown(ctx);
     let fresh: FavoriteItem[] = [];
     for (let i = 0; i < pool.length; i++) {
@@ -459,8 +508,53 @@ struct Index {
     let seed: number = new Date().getFullYear() * 10000 + (new Date().getMonth() + 1) * 100 + new Date().getDate();
     let idx: number = Math.floor(Math.abs(Math.sin(seed + 999) * 10000) % pool.length);
     this.reviewItem = pool[idx];
+    let poem: PoemItem | undefined = this.dailyPoemPoolMap[pool[idx].title];
+    this.reviewPoemItem = poem === undefined ? null : poem;
     this.reviewVisible = true;
     StickinessUtil.recordReviewShown(ctx, pool[idx].title);
+  }
+
+  /** 收藏诗词不足时并入近 7 天「每日一首」（与 loadDailyPoem 同算法同 seed，今日项即首页今日诗），按标题去重 */
+  private mergeDailyPoemPool(ctx: Context, poemFavs: FavoriteItem[]): FavoriteItem[] {
+    let pool: FavoriteItem[] = poemFavs.slice();
+    let map: Record<string, PoemItem> = {};
+    let poets: PoetItem[] = this.poetryVm.getFilteredPoets('全部');
+    if (poets.length === 0) {
+      return pool;
+    }
+    for (let d = 0; d < 7; d++) {
+      let date: Date = new Date();
+      date.setDate(date.getDate() - d);
+      let seed: number = date.getFullYear() * 10000 + (date.getMonth() + 1) * 100 + date.getDate();
+      let poetIdx: number = Math.floor(this.seededRandom(seed) * poets.length);
+      let poet: PoetItem = poets[poetIdx];
+      let detail: PoetDetail = this.poetryVm.loadPoetDetail(ctx, poet.n, poet.i, poet.d);
+      if (detail.poems.length === 0) {
+        continue;
+      }
+      let poemIdx: number = Math.floor(this.seededRandom(seed + 1) * detail.poems.length);
+      let poem: PoemItem = detail.poems[poemIdx];
+      let dup: boolean = false;
+      for (let j = 0; j < pool.length; j++) {
+        if (pool[j].title === poem.n) {
+          dup = true;
+          break;
+        }
+      }
+      if (dup) {
+        continue;
+      }
+      let item: FavoriteItem = new FavoriteItem();
+      item.type = 'poem';
+      item.title = poem.n;
+      item.subtitle = detail.name + ' \u00B7 ' + detail.dynasty;
+      item.data = poem.c;
+      item.timestamp = date.getTime();
+      pool.push(item);
+      map[poem.n] = poem;
+    }
+    this.dailyPoemPoolMap = map;
+    return pool;
   }
 
   private loadFavCount(): void {
@@ -1432,30 +1526,38 @@ struct Index {
           .borderRadius(14)
           .margin({ left: 16, right: 16, top: 12 })
 
-          Row() {
-            Text('\uD83C\uDFC6')
-              .fontSize(20)
-              .margin({ right: 10 })
-            Text($r('app.string.achpage_title'))
-              .fontSize(15)
-              .fontColor($r('app.color.primary_text'))
-              .layoutWeight(1)
-            Text(this.mineAchievementUnlocked.toString() + '/' + this.mineAchievementTotal.toString())
-              .fontSize(14)
-              .fontColor($r('app.color.tertiary_text'))
-              .margin({ right: 6 })
-            Text('\u203A')
-              .fontSize(18)
-              .fontColor($r('app.color.hint_text'))
+          Stack({ alignContent: Alignment.TopEnd }) {
+            Row() {
+              Text('\uD83C\uDFC6')
+                .fontSize(20)
+                .margin({ right: 10 })
+              Text($r('app.string.achpage_title'))
+                .fontSize(15)
+                .fontColor($r('app.color.primary_text'))
+                .layoutWeight(1)
+              Text(this.mineAchievementUnlocked.toString() + '/' + this.mineAchievementTotal.toString())
+                .fontSize(14)
+                .fontColor($r('app.color.tertiary_text'))
+                .margin({ right: 6 })
+              Text('\u203A')
+                .fontSize(18)
+                .fontColor($r('app.color.hint_text'))
+            }
+            .width('100%')
+            .padding({ left: 16, right: 16, top: 14, bottom: 14 })
+            .backgroundColor($r('app.color.card_background'))
+            .borderRadius(14)
+            .onClick(() => {
+              this.mineStack.pushPathByName('AchievementPage', null);
+            })
+            if (this.achievementUnseenCount > 0) {
+              Circle({ width: 9, height: 9 })
+                .fill($r('app.color.danger_red'))
+                .margin({ top: 10, right: 10 })
+            }
           }
           .width('100%')
-          .padding({ left: 16, right: 16, top: 14, bottom: 14 })
-          .backgroundColor($r('app.color.card_background'))
-          .borderRadius(14)
           .margin({ left: 16, right: 16, top: 12 })
-          .onClick(() => {
-            this.mineStack.pushPathByName('AchievementPage', null);
-          })
 
           Row() {
             Text('\uD83D\uDCBE')
@@ -1939,7 +2041,11 @@ struct Index {
     .borderRadius(12)
     .margin({ left: 16, right: 16, top: 8, bottom: 8 })
     .onClick(() => {
-      this.homeStack.pushPathByName('FavoritesPage', null);
+      if (this.reviewPoemItem) {
+        this.homeStack.pushPathByName('PoemContentPage', this.reviewPoemItem);
+      } else {
+        this.homeStack.pushPathByName('FavoritesPage', null);
+      }
     })
   }
 }

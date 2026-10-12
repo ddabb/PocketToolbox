@@ -1501,6 +1501,58 @@
       "value": "我的成就"
     },
     {
+      "name": "ach_unlock_toast",
+      "value": "解锁%1$d枚新成就"
+    },
+    {
+      "name": "history_recent_title",
+      "value": "最近制作"
+    },
+    {
+      "name": "history_entry_count",
+      "value": "最近制作（%1$d）"
+    },
+    {
+      "name": "history_btn_restore",
+      "value": "恢复"
+    },
+    {
+      "name": "history_btn_delete",
+      "value": "删除"
+    },
+    {
+      "name": "history_btn_close",
+      "value": "关闭"
+    },
+    {
+      "name": "history_empty",
+      "value": "还没有制作记录"
+    },
+    {
+      "name": "clip_hint_text",
+      "value": "检测到剪贴板文本"
+    },
+    {
+      "name": "poster_watermark_label",
+      "value": "水印"
+    },
+    {
+      "name": "poster_watermark_on",
+      "value": "开"
+    },
+    {
+      "name": "poster_watermark_off",
+      "value": "关"
+    },
+    {
+      "name": "poster_watermark_hint",
+      "value": "品牌 / 昵称"
+    },
+    {
+      "name": "poster_watermark_default",
+      "value": "@解语珠玑"
+    },
+    {
       "name": "achpage_unlocked",
       "value": "已解锁成就"
     },

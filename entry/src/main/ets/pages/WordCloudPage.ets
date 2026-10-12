@@ -15,6 +15,8 @@ import { LengthMetricsUnit } from '@kit.ArkUI';
 import { ToastUtil } from '../common/utils/ToastUtil';
 import { StrUtil } from '../common/utils/StrUtil';
 import { Context } from '@kit.AbilityKit';
+import { ThumbHistoryRecord, ThumbHistoryStore, makeHistoryId } from '../core/history/ThumbHistoryStore';
+import { ThumbHistoryCover } from '../components/ThumbHistoryCover';
 
 @Builder
 export function WordCloudPageBuilder() {
@@ -47,6 +49,8 @@ struct WordCloudContent {
   @State rawSourceText: string = '';
   @State showWordsDialog: boolean = false;
   @State showSettingsDialog: boolean = false;
+  @State showHistoryCover: boolean = false;
+  @State historyRecords: ThumbHistoryRecord[] = [];
   @State isDark: boolean = false;
   private uiContext: UIContext = this.getUIContext();
   private darkListener: mediaquery.MediaQueryListener | null = null;
@@ -80,6 +84,7 @@ struct WordCloudContent {
   private readonly COMPONENT_ID: string = 'wordcloud_canvas';
   private readonly MAX_WORDS: number = 180;
   private readonly LAYOUT_CANVAS_SIZE: number = 800;
+  private readonly HISTORY_DIR: string = 'wordcloud_history';
 
   private cfgHint(): string {
     let ctx: Context = this.getUIContext().getHostContext() as Context;
@@ -97,6 +102,8 @@ struct WordCloudContent {
     this.darkListener.on('change', (result: mediaquery.MediaQueryResult) => {
       this.isDark = result.matches;
     });
+    let context: Context = this.getUIContext().getHostContext() as Context;
+    this.historyRecords = ThumbHistoryStore.loadRecords(context, this.HISTORY_DIR);
   }
 
   aboutToDisappear(): void {
@@ -251,6 +258,21 @@ struct WordCloudContent {
             .padding({ left: 16, right: 16, top: 6 })
         }
 
+        // 最近制作入口
+        Button(this.historyRecords.length > 0
+          ? $r('app.string.history_entry_count', this.historyRecords.length)
+          : $r('app.string.history_recent_title'))
+          .fontSize(13)
+          .fontColor($r('app.color.secondary_text'))
+          .backgroundColor($r('app.color.card_background'))
+          .borderRadius(19)
+          .height(36)
+          .width('100%')
+          .margin({ left: 16, right: 16, top: 8 })
+          .onClick(() => {
+            this.showHistoryCover = true;
+          })
+
         // 底部留白避免被导航栏遮挡
         Blank()
           .height(20)
@@ -272,6 +294,29 @@ struct WordCloudContent {
       modalTransition: ModalTransition.NONE,
       onDisappear: () => {
         this.showSettingsDialog = false;
+      }
+    })
+    .bindContentCover(this.showHistoryCover, this.HistoryCoverView(), {
+      modalTransition: ModalTransition.NONE,
+      onDisappear: () => {
+        this.showHistoryCover = false;
+      }
+    })
+  }
+
+  @Builder
+  HistoryCoverView() {
+    ThumbHistoryCover({
+      records: this.historyRecords,
+      dirName: this.HISTORY_DIR,
+      onRestore: (record: ThumbHistoryRecord) => {
+        this.restoreFromHistory(record);
+      },
+      onDelete: (record: ThumbHistoryRecord) => {
+        this.deleteHistoryRecord(record);
+      },
+      onClose: () => {
+        this.showHistoryCover = false;
       }
     })
   }
@@ -970,6 +1015,7 @@ struct WordCloudContent {
 
       this.progressValue = 100;
       this.progressText = $r('app.string.wc_phase_done', placedResults.length);
+      this.saveHistoryAsync();
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[WordCloud] generate FAILED: code=' + err.code + ' msg=' + err.message);
@@ -1010,7 +1056,75 @@ struct WordCloudContent {
   }
 
   private renderExportPixelMap(): image.PixelMap {
-    let exportSize: number = this.LAYOUT_CANVAS_SIZE * 2;
+    return this.renderCloudPixelMap(this.LAYOUT_CANVAS_SIZE * 2);
+  }
+
+  /** 历史记录保存：参数 + 360px 缩略图，最新一条参数相同则跳过 */
+  private async saveHistoryAsync(): Promise<void> {
+    try {
+      if (this.placedWords.length === 0) {
+        return;
+      }
+      let context: Context = this.getUIContext().getHostContext() as Context;
+      let params: Record<string, Object> = {
+        'text': this.directWordsText.substring(0, 2000),
+        'shapeIndex': this.currentShapeIndex,
+        'paletteIndex': this.currentPaletteIndex,
+        'fontIndex': this.currentFontIndex,
+        'forceRepeat': this.forceRepeat
+      };
+      let paramsText: string = JSON.stringify(params);
+      if (ThumbHistoryStore.isSameAsLatest(context, this.HISTORY_DIR, paramsText)) {
+        return;
+      }
+      let id: string = makeHistoryId('wc');
+      let record: ThumbHistoryRecord = new ThumbHistoryRecord();
+      record.id = id;
+      record.thumbName = id + '.png';
+      record.createdAt = Date.now();
+      record.summary = this.directWordsText.replace(new RegExp('\\s+'), ' ').substring(0, 60);
+      record.paramsText = paramsText;
+      let thumbPm: image.PixelMap = this.renderCloudPixelMap(360);
+      let ok: boolean = await ThumbHistoryStore.saveRecord(context, this.HISTORY_DIR, record, thumbPm);
+      if (ok) {
+        this.historyRecords = ThumbHistoryStore.loadRecords(context, this.HISTORY_DIR);
+      }
+    } catch (e) {
+      console.error('[WordCloud] save history failed: ' + (e as Error).message);
+    }
+  }
+
+  private restoreFromHistory(record: ThumbHistoryRecord): void {
+    try {
+      let obj: Record<string, Object> = JSON.parse(record.paramsText) as Record<string, Object>;
+      let text: string = obj['text'] as string;
+      if (typeof text !== 'string' || text.length === 0) {
+        return;
+      }
+      this.directWordsText = text;
+      this.rawSourceText = '';
+      let shapeIdx: number = Number(obj['shapeIndex']);
+      let paletteIdx: number = Number(obj['paletteIndex']);
+      let fontIdx: number = Number(obj['fontIndex']);
+      this.currentShapeIndex = shapeIdx >= 0 && shapeIdx < this.shapes.length ? shapeIdx : 0;
+      this.currentPaletteIndex = paletteIdx >= 0 && paletteIdx < this.palettes.length ? paletteIdx : 0;
+      this.currentFontIndex = fontIdx >= 0 && fontIdx < this.fontNames.length ? fontIdx : 0;
+      this.forceRepeat = Boolean(obj['forceRepeat']);
+      this.showHistoryCover = false;
+      this.parseDirectWords();
+      this.generateWordCloud();
+    } catch (e) {
+      console.error('[WordCloud] restore history failed: ' + (e as Error).message);
+    }
+  }
+
+  private deleteHistoryRecord(record: ThumbHistoryRecord): void {
+    let context: Context = this.getUIContext().getHostContext() as Context;
+    ThumbHistoryStore.deleteRecord(context, this.HISTORY_DIR, record.id);
+    this.historyRecords = ThumbHistoryStore.loadRecords(context, this.HISTORY_DIR);
+  }
+
+  private renderCloudPixelMap(exportSize: number): image.PixelMap {
     let off: OffscreenCanvas = new OffscreenCanvas(exportSize, exportSize, LengthMetricsUnit.PX);
     let ctx: OffscreenCanvasRenderingContext2D = off.getContext('2d', new RenderingContextSettings(true)) as OffscreenCanvasRenderingContext2D;
     let palette: PaletteColor = this.palettes[this.currentPaletteIndex];

@@ -59,12 +59,18 @@ export class CopyPosterContent {
   body: string = '';
   sign: string = '';
   tag: string = '';
+  /** 水印开关（随历史存储，旧记录缺省 false 兼容） */
+  watermarkOn: boolean = false;
+  /** 水印文字（清空则不渲染） */
+  watermarkText: string = '';
 
   copy(): CopyPosterContent {
     let c: CopyPosterContent = new CopyPosterContent();
     c.body = this.body;
     c.sign = this.sign;
     c.tag = this.tag;
+    c.watermarkOn = this.watermarkOn;
+    c.watermarkText = this.watermarkText;
     return c;
   }
 
@@ -73,6 +79,8 @@ export class CopyPosterContent {
       'body': this.body,
       'sign': this.sign,
       'tag': this.tag,
+      'watermarkOn': this.watermarkOn,
+      'watermarkText': this.watermarkText,
     };
     return JSON.stringify(r);
   }
@@ -84,6 +92,8 @@ export class CopyPosterContent {
       c.body = String(r['body'] ?? '');
       c.sign = String(r['sign'] ?? '');
       c.tag = String(r['tag'] ?? '');
+      c.watermarkOn = r['watermarkOn'] === true;
+      c.watermarkText = String(r['watermarkText'] ?? '');
     } catch (e) {
       console.error('[CopyPoster] parse content json failed: ' + (e as Error).message);
     }

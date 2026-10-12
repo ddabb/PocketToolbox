@@ -27,6 +27,8 @@ struct AchievementContent {
     this.achievements = StickinessUtil.loadAchievements(ctx);
     this.stats = StickinessUtil.loadStats(ctx);
     this.checkInData = StickinessUtil.loadCheckIn(ctx);
+    // 1.4.4二批 P0-1：进入成就页清零新解锁未查看计数（我的页红点消除）
+    StickinessUtil.clearAchievementUnseen(ctx);
   }
 
   private getUnlockedCount(): number {

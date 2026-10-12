@@ -1501,6 +1501,58 @@
       "value": "マイ実績"
     },
     {
+      "name": "ach_unlock_toast",
+      "value": "新しい実績を%1$d件達成"
+    },
+    {
+      "name": "history_recent_title",
+      "value": "最近の作品"
+    },
+    {
+      "name": "history_entry_count",
+      "value": "最近の作品（%1$d）"
+    },
+    {
+      "name": "history_btn_restore",
+      "value": "復元"
+    },
+    {
+      "name": "history_btn_delete",
+      "value": "削除"
+    },
+    {
+      "name": "history_btn_close",
+      "value": "閉じる"
+    },
+    {
+      "name": "history_empty",
+      "value": "制作履歴はまだありません"
+    },
+    {
+      "name": "clip_hint_text",
+      "value": "クリップボードにテキストがあります"
+    },
+    {
+      "name": "poster_watermark_label",
+      "value": "ウォーターマーク"
+    },
+    {
+      "name": "poster_watermark_on",
+      "value": "オン"
+    },
+    {
+      "name": "poster_watermark_off",
+      "value": "オフ"
+    },
+    {
+      "name": "poster_watermark_hint",
+      "value": "ブランド / ニックネーム"
+    },
+    {
+      "name": "poster_watermark_default",
+      "value": "@解语珠玑"
+    },
+    {
       "name": "achpage_unlocked",
       "value": "解除済みの実績"
     },

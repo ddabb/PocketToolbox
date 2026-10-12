@@ -19,6 +19,7 @@ export class CopyPosterTemplates {
   static readonly MAX_BODY: number = 120;
   static readonly MAX_SIGN: number = 12;
   static readonly MAX_TAG: number = 10;
+  static readonly MAX_WATERMARK: number = 12;
 
   static all(): CopyPosterTemplate[] {
     let list: CopyPosterTemplate[] = [];
