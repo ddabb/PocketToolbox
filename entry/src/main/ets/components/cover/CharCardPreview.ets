@@ -1,6 +1,6 @@
 /**
  * 生字卡卡面渲染组件：设计稿 900x900（方卡）/ 900x1200（练习卡）/ 900x383（公众号首图，恒单行）等比渲染
- * 结构：拼音（可关，逐字对齐：每音节对准其上方格子，系统字体防部分设备声调字符渲染异常） + 田字格/米字格格区（1-12 字，>8 字两行）
+ * 结构：拼音（可关，逐字槽位对齐：汉字按序取音节，无音节字顶上留空白槽，槽宽恒等格边长不迁移；系统字体防部分设备声调字符渲染异常） + 田字格/米字格格区（1-12 字，>8 字两行）
  */
 import { CoverPalette } from '../../model/CoverModels';
 import { CharCardCharMode, CharCardGridType, CharCardInputMode, CharCardSize, CharCards } from '../../core/cover/CharCardTemplates';
@@ -68,11 +68,8 @@ export struct CharCardPreview {
 
   private maxCell(rowIndex: number): number {
     let cap: number = CharCards.maxCellFor(this.sizeKind);
-    if (this.sizeKind === CharCardSize.COVER && this.pinyinOn) {
-      let rows: string[] = this.pinyinRows();
-      if (rowIndex < rows.length && rows[rowIndex] !== '') {
-        cap = Math.min(cap, CharCards.MAX_CELL_COVER_PINYIN);
-      }
+    if (this.sizeKind === CharCardSize.COVER && this.hasPinyin()) {
+      cap = Math.min(cap, CharCards.MAX_CELL_COVER_PINYIN);
     }
     return cap;
   }
@@ -94,15 +91,9 @@ export struct CharCardPreview {
 
   build() {
     Column({ space: this.f(26) }) {
-      if (this.pinyinOn) {
-        ForEach(this.pinyinRows(), (py: string, ri: number) => {
-          this.GridRow(ri, py)
-        }, (py: string, ri: number) => 'py' + ri.toString() + py)
-      } else {
-        ForEach(this.rowLens(), (len: number, ri: number) => {
-          this.GridRow(ri, '')
-        }, (len: number, ri: number) => 'row' + ri.toString() + len.toString())
-      }
+      ForEach(this.rowLens(), (len: number, ri: number) => {
+        this.GridRow(ri)
+      }, (len: number, ri: number) => 'row' + ri.toString() + len.toString())
     }
     .width('100%')
     .height('100%')
@@ -110,27 +101,53 @@ export struct CharCardPreview {
     .backgroundColor(this.pal().bg)
   }
 
-  private pinyinRows(): string[] {
-    return CharCards.splitPinyinRows(this.pinyinText, this.rowLens());
+  /** 压缩音节列表（仅汉字有音节，顺序与汉字序列一一对应） */
+  private allSyllables(): string[] {
+    return this.pinyinText.trim().split(new RegExp('\\s+', 'g')).filter((s: string) => s !== '');
   }
 
-  /** 单行：拼音（可选，逐字对齐）+ 格子行 */
+  /** 是否存在可注音内容（拼音开且音节非空） */
+  private hasPinyin(): boolean {
+    return this.pinyinOn && this.allSyllables().length > 0;
+  }
+
+  /**
+   * 行内逐字拼音槽：汉字按序消费音节（不足留空），非汉字槽恒留空——
+   * 槽位与格子行几何一致（槽宽=格边长），无对应拼音的字顶上空白呈现，拼音不迁移
+   */
+  private rowPinyinSlots(rowIndex: number): string[] {
+    let syllables: string[] = this.allSyllables();
+    let chars: string[] = this.chars();
+    let lens: number[] = this.rowLens();
+    let start: number = 0;
+    for (let i = 0; i < rowIndex; i++) {
+      start += lens[i];
+    }
+    let han: RegExp = new RegExp('[\\u4e00-\\u9fff]');
+    let si: number = 0;
+    for (let i = 0; i < start && i < chars.length; i++) {
+      if (han.test(chars[i])) {
+        si++;
+      }
+    }
+    let slots: string[] = [];
+    for (let i = start; i < start + lens[rowIndex] && i < chars.length; i++) {
+      if (han.test(chars[i])) {
+        slots.push(si < syllables.length ? syllables[si] : '\u00A0');
+        si++;
+      } else {
+        slots.push('\u00A0');
+      }
+    }
+    return slots;
+  }
+
+  /** 单行：拼音（可选，逐字槽位对齐）+ 格子行 */
   @Builder
-  GridRow(rowIndex: number, pinyinRow: string) {
+  GridRow(rowIndex: number) {
     Column({ space: this.f(18) }) {
-      if (pinyinRow !== '') {
-        if (this.rowSyllables(rowIndex, pinyinRow).length > 0) {
-          this.PinyinSlots(rowIndex, this.rowSyllables(rowIndex, pinyinRow))
-        } else {
-          Text(pinyinRow)
-            .fontSize(this.f(CharCards.pinyinSize(this.cellOf(rowIndex))))
-            .minFontSize(this.f(16))
-            .maxFontSize(this.f(CharCards.pinyinSize(this.cellOf(rowIndex))))
-            .heightAdaptivePolicy(TextHeightAdaptivePolicy.MIN_FONT_SIZE_FIRST)
-            .constraintSize({ maxWidth: '100%' })
-            .fontColor(this.pal().sub)
-            .maxLines(1)
-        }
+      if (this.hasPinyin()) {
+        this.PinyinSlots(rowIndex)
       }
       Row({ space: this.f(CharCards.GAP) }) {
         ForEach(this.rowChars(rowIndex), (ch: string, ci: number) => {
@@ -142,21 +159,11 @@ export struct CharCardPreview {
     .alignItems(HorizontalAlign.Center)
   }
 
-  /** 行内音节数与字数一致时返回逐字音节，否则返回空数组（回退整行居中） */
-  private rowSyllables(rowIndex: number, pinyinRow: string): string[] {
-    let len: number = this.rowLens()[rowIndex];
-    let parts: string[] = pinyinRow.split(' ');
-    if (parts.length !== len) {
-      return [];
-    }
-    return parts;
-  }
-
-  /** 逐字拼音槽：每音节槽宽=格边长、槽距=格间距，与格子行几何一致实现一一对应 */
+  /** 逐字拼音槽：每槽宽=格边长、槽距=格间距，与格子行几何一致实现一一对应；空槽用不换行空格占位保持行高 */
   @Builder
-  PinyinSlots(rowIndex: number, syllables: string[]) {
+  PinyinSlots(rowIndex: number) {
     Row({ space: this.f(CharCards.GAP) }) {
-      ForEach(syllables, (sy: string, ci: number) => {
+      ForEach(this.rowPinyinSlots(rowIndex), (sy: string, ci: number) => {
         Text(sy)
           .width(this.f(this.cellOf(rowIndex)))
           .fontSize(this.f(CharCards.pinyinSize(this.cellOf(rowIndex))))

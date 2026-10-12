@@ -225,30 +225,6 @@ export class CharCards {
     return Math.max(30, cell * 0.28);
   }
 
-  /** 拼音按行分配：音节数与字数一致时逐行对齐，否则整串置于首行上方 */
-  static splitPinyinRows(pinyinText: string, rowLen: number[]): string[] {
-    let parts: string[] = pinyinText.trim().split(new RegExp('\\s+', 'g')).filter((s: string) => s !== '');
-    let total: number = 0;
-    for (let i = 0; i < rowLen.length; i++) {
-      total += rowLen[i];
-    }
-    if (parts.length !== total) {
-      let rows: string[] = [pinyinText.trim()];
-      for (let i = 1; i < rowLen.length; i++) {
-        rows.push('');
-      }
-      return rows;
-    }
-    let rows: string[] = [];
-    let idx: number = 0;
-    for (let i = 0; i < rowLen.length; i++) {
-      let seg: string[] = parts.slice(idx, idx + rowLen[i]);
-      rows.push(seg.join(' '));
-      idx += rowLen[i];
-    }
-    return rows;
-  }
-
   /** 配色 5 套：bg=底色 accent=格线 title=字色 sub=拼音色 */
   static palettes(): CoverPalette[] {
     return [
