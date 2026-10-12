@@ -3941,6 +3941,22 @@
       "value": "縦長 3:4"
     },
     {
+      "name": "poster_ratio_long",
+      "value": "縦長 9:16"
+    },
+    {
+      "name": "poster_pinyin_label",
+      "value": "ピンイン"
+    },
+    {
+      "name": "poster_pinyin_on",
+      "value": "オン"
+    },
+    {
+      "name": "poster_pinyin_off",
+      "value": "オフ"
+    },
+    {
       "name": "poster_slot_body",
       "value": "メインテキスト"
     },
@@ -4179,6 +4195,86 @@
     {
       "name": "poster_insp_40",
       "value": "好きという気持ちが、長い歳月を埋めてくれる。"
+    },
+    {
+      "name": "poster_insp_41",
+      "value": "春風は貴客、訪れれば一気に華やぐ。"
+    },
+    {
+      "name": "poster_insp_42",
+      "value": "雨は世界を潤し、花はもうすぐそこ。"
+    },
+    {
+      "name": "poster_insp_43",
+      "value": "春雷がひとつ鳴れば、すべてが目を覚ます。"
+    },
+    {
+      "name": "poster_insp_44",
+      "value": "昼と夜が均しく、世界はちょうど良い。"
+    },
+    {
+      "name": "poster_insp_45",
+      "value": "清明の雨が降り、思いは詩になる。"
+    },
+    {
+      "name": "poster_insp_46",
+      "value": "穀雨が野を緑にし、春は知らず深まる。"
+    },
+    {
+      "name": "poster_insp_47",
+      "value": "満ち足りないくらいが、いちばん良い。"
+    },
+    {
+      "name": "poster_insp_48",
+      "value": "忙しく種を蒔こう、すべてに実りがありますように。"
+    },
+    {
+      "name": "poster_insp_49",
+      "value": "もっとも長い昼と、それに負けない情熱を。"
+    },
+    {
+      "name": "poster_insp_50",
+      "value": "一葉が落ちて、秋が告げられる。"
+    },
+    {
+      "name": "poster_insp_51",
+      "value": "露が秋色を集め、日々は優しくなる。"
+    },
+    {
+      "name": "poster_insp_52",
+      "value": "秋分、実りの季節がやって来た。"
+    },
+    {
+      "name": "poster_insp_53",
+      "value": "寒露のころ、どうか身を暖かく。"
+    },
+    {
+      "name": "poster_insp_54",
+      "value": "霜とともに柿が赤く、万事如意でありますように。"
+    },
+    {
+      "name": "poster_insp_55",
+      "value": "冬の始まり。温もりを蓄え、炉を囲もう。"
+    },
+    {
+      "name": "poster_insp_56",
+      "value": "雪は音もなく降り、家の灯は温もりのまま。"
+    },
+    {
+      "name": "poster_insp_57",
+      "value": "大雪は豊年のみちびき、春はもう近い。"
+    },
+    {
+      "name": "poster_insp_58",
+      "value": "冬至、小さな団らんと長い夜を分かち合う。"
+    },
+    {
+      "name": "poster_insp_59",
+      "value": "もっとも寒い日を越えて、世界は日ごとに温む。"
+    },
+    {
+      "name": "poster_insp_60",
+      "value": "瑞雪が新しい年を迎え、すべてに期待を。"
     },
     {
       "name": "poster_tmpl_t5",
@@ -4451,6 +4547,78 @@
     {
       "name": "tmpl_pal_kraft_paper",
       "value": "クラフトボード"
+    },
+    {
+      "name": "poster_tmpl_t16",
+      "value": "二十四節気"
+    },
+    {
+      "name": "tmpl_pal_rice_seal",
+      "value": "米紙青黛"
+    },
+    {
+      "name": "tmpl_pal_celadon_term",
+      "value": "天青節気"
+    },
+    {
+      "name": "tmpl_pal_ink_term",
+      "value": "玄墨節気"
+    },
+    {
+      "name": "tmpl_pal_rouge_term",
+      "value": "胭脂節気"
+    },
+    {
+      "name": "tmpl_pal_xiang_paper",
+      "value": "湘色古紙"
+    },
+    {
+      "name": "poster_tmpl_t17",
+      "value": "祝日祝福"
+    },
+    {
+      "name": "tmpl_pal_midmoon_night",
+      "value": "中秋月夜"
+    },
+    {
+      "name": "tmpl_pal_spring_red",
+      "value": "春節紅金"
+    },
+    {
+      "name": "tmpl_pal_lantern_night",
+      "value": "元宵灯会"
+    },
+    {
+      "name": "tmpl_pal_duanwu_green",
+      "value": "端午艾緑"
+    },
+    {
+      "name": "tmpl_pal_qixi_purple",
+      "value": "七夕星紫"
+    },
+    {
+      "name": "poster_tmpl_t18",
+      "value": "紅包対聯"
+    },
+    {
+      "name": "tmpl_pal_true_gold",
+      "value": "正紅描金"
+    },
+    {
+      "name": "tmpl_pal_zhusha_gold",
+      "value": "朱砂流金"
+    },
+    {
+      "name": "tmpl_pal_dark_red_gold",
+      "value": "玄紅鎏金"
+    },
+    {
+      "name": "tmpl_pal_crimson_plum",
+      "value": "絳紫鎏金"
+    },
+    {
+      "name": "tmpl_pal_jade_gold",
+      "value": "翠玉点金"
     },
     {
       "name": "poster_chat_sub",

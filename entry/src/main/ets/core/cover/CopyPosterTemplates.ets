@@ -1,10 +1,13 @@
 /**
- * 文案海报模板注册表：15 个模板（T1 暖调标签卡 / T2 纯色简约 / T3 文艺手写 / T4 大字冲击 / T5 LCD 像素屏
+ * 文案海报模板注册表：18 个模板（T1 暖调标签卡 / T2 纯色简约 / T3 文艺手写 / T4 大字冲击 / T5 LCD 像素屏
  *   / T6 CRT 终端屏 / T7 霓虹灯招牌 / T8 掌机游戏机 / T9 复古车票 / T10 翻牌显示屏
- *   / T11 复古报纸 / T12 聊天气泡 / T13 黑胶唱片 / T14 电影字幕卡 / T15 公告栏启事）
- * 设计稿宽 900px；导出 1080x1080（1:1）/ 1080x1440（3:4）
+ *   / T11 复古报纸 / T12 聊天气泡 / T13 黑胶唱片 / T14 电影字幕卡 / T15 公告栏启事
+ *   / T16 二十四节气卡 / T17 节日祝福卡 / T18 红包对联风）
+ * 设计稿宽 900px；导出 1080x1080（1:1）/ 1080x1440（3:4）/ 1080x1920（9:16 长图）
+ * supportsPinyin=false 的固定构图模板（T9/T10/T13/T14/T15/T16/T18）隐藏注音开关（1.4.4 待确认 4 默认：允许隐藏）
  * 需求文档：docs/文案海报生成器需求文档.md §4；T5-T10 参照 docs/页面渲染失败问题排查.html 及 docs/文案海报候选_*.html；
- *   T11-T15 参照 docs/文案海报候选2_总览.html（复古报纸/聊天气泡/黑胶唱片/电影字幕卡/公告栏启事）
+ *   T11-T15 参照 docs/文案海报候选2_总览.html（复古报纸/聊天气泡/黑胶唱片/电影字幕卡/公告栏启事）；
+ *   T16-T18 参照 docs/文案海报候选_二十四节气卡.html / 文案海报候选_节日祝福卡.html / 文案海报候选_红包对联风.html
  */
 import { CoverPalette } from '../../model/CoverModels';
 import { CopyPosterTemplate } from '../../model/CopyPosterModels';
@@ -189,7 +192,7 @@ export class CopyPosterTemplates {
           '', '#2E3138', '#4A4E57'),
       ],
       [CoverFont.SERIF, CoverFont.FEI_BAI, CoverFont.WENKAI, CoverFont.XIAO_WEI, CoverFont.MA_SHAN],
-      { 'body': '欢迎来访公众号「随身工具宝」', 'sign': '请你喝茶呀', 'tag': '随身工具宝' }));
+      { 'body': '欢迎来访公众号「随身工具宝」', 'sign': '请你喝茶呀', 'tag': '随身工具宝' }, false));
 
     // ---------- T10 翻牌显示屏（车站翻牌板，逐字模块） ----------
     // 配色字段约定：bg=舞台底色 accent=琥珀标签/署名 title=翻牌字色 sub=暗灰 dash block=底板颜色 grid=翻牌模块底色
@@ -208,7 +211,7 @@ export class CopyPosterTemplates {
           '', '#1A2129', '#34404C'),
       ],
       [CoverFont.HANI_SANS, CoverFont.SMILEY, CoverFont.SERIF, CoverFont.ROUND, CoverFont.WENKAI],
-      { 'body': '欢迎来访公众号「随身工具宝」', 'sign': '请你喝茶呀', 'tag': '文案站' }));
+      { 'body': '欢迎来访公众号「随身工具宝」', 'sign': '请你喝茶呀', 'tag': '文案站' }, false));
 
     // ---------- T11 复古报纸（老报纸头版，参照 docs/文案海报候选_复古报纸.html） ----------
     // 配色字段约定：bg=纸色 accent=号外红章 title=标题墨 sub=次要墨 block=亮纸色 grid=分隔线色
@@ -265,7 +268,7 @@ export class CopyPosterTemplates {
           '', '#0C1F16', '#121A16'),
       ],
       [CoverFont.SERIF, CoverFont.XIAO_WEI, CoverFont.HANI_SANS, CoverFont.WENKAI, CoverFont.MA_SHAN],
-      { 'body': '欢迎来访公众号「随身工具宝」', 'sign': '请你喝茶呀', 'tag': 'POCKET LP' }));
+      { 'body': '欢迎来访公众号「随身工具宝」', 'sign': '请你喝茶呀', 'tag': 'POCKET LP' }, false));
 
     // ---------- T14 电影字幕卡（影院片头卡，参照 docs/文案海报候选_电影字幕卡.html） ----------
     // 配色字段约定：bg/bg2=夜幕渐变 accent=金线 title=字幕银 sub=次要文字 block=胶片条色 grid=片孔色
@@ -284,7 +287,7 @@ export class CopyPosterTemplates {
           '#0E1A0E', '#142014', '#030803'),
       ],
       [CoverFont.SERIF, CoverFont.HANI_SANS, CoverFont.SMILEY, CoverFont.XIAO_WEI, CoverFont.ROUND],
-      { 'body': '欢迎来访公众号「随身工具宝」', 'sign': '请你喝茶呀', 'tag': 'POCKET 电影' }));
+      { 'body': '欢迎来访公众号「随身工具宝」', 'sign': '请你喝茶呀', 'tag': 'POCKET 电影' }, false));
 
     // ---------- T15 公告栏启事（软木板图钉便签，参照 docs/文案海报候选_公告栏启事.html） ----------
     // 配色字段约定：bg=软木底色 accent=图钉/红线色 title=便签墨色 sub=次要墨色 block=便签纸色 grid=木框色
@@ -303,7 +306,64 @@ export class CopyPosterTemplates {
           '', '#EFE3C6', '#5E4426'),
       ],
       [CoverFont.MA_SHAN, CoverFont.LONG_CANG, CoverFont.WENKAI, CoverFont.FEI_BAI, CoverFont.ZHI_MANG],
-      { 'body': '欢迎来访公众号「随身工具宝」', 'sign': '请你喝茶呀', 'tag': '寻物启事' }));
+      { 'body': '欢迎来访公众号「随身工具宝」', 'sign': '请你喝茶呀', 'tag': '寻物启事' }, false));
+
+    // ---------- T16 二十四节气卡（竖排主文案 + 节气名/印章/节气歌，参照 docs/文案海报候选_二十四节气卡.html） ----------
+    // 配色字段约定：bg=纸色 accent=印章红 title=主文案墨 sub=次要文字 block=节气名色 grid=边框线色
+    list.push(CopyPosterTemplate.of('T16', $r('app.string.poster_tmpl_t16'), 'solar_term',
+      ['body', 'sign', 'tag'],
+      [
+        CoverPalette.of($r('app.string.tmpl_pal_rice_seal'), '#F3ECDA', '#B03A2E', '#2E2A22', '#8C6A3F',
+          '', '#3B4A3F', '#C9BC9C'),
+        CoverPalette.of($r('app.string.tmpl_pal_celadon_term'), '#E8EFE8', '#C0392B', '#2C3530', '#6E7F72',
+          '', '#2F6B4F', '#B8C8BA'),
+        CoverPalette.of($r('app.string.tmpl_pal_ink_term'), '#1F1E1A', '#C0392B', '#EFE6D0', '#9C8E79',
+          '', '#EFE6D0', '#4A453B'),
+        CoverPalette.of($r('app.string.tmpl_pal_rouge_term'), '#F6EBE4', '#B03A5B', '#33261F', '#A0786A',
+          '', '#8C3A4E', '#DCC2B4'),
+        CoverPalette.of($r('app.string.tmpl_pal_xiang_paper'), '#F5EBD8', '#8C6A3F', '#3A2E1A', '#A08D6A',
+          '', '#6E5230', '#D8C5A0'),
+      ],
+      [CoverFont.SERIF, CoverFont.XIAO_WEI, CoverFont.WENKAI, CoverFont.FEI_BAI, CoverFont.MA_SHAN],
+      { 'body': '春风如贵客，一到便繁华', 'sign': '随身工具宝', 'tag': '立春' }, false));
+
+    // ---------- T17 节日祝福卡（圆月星点几何 + 居中祝福，参照 docs/文案海报候选_节日祝福卡.html） ----------
+    // 配色字段约定：bg/bg2=夜空渐变 accent=月色 title=祝福文字 sub=次要文字 block=云色 grid=星点色
+    list.push(CopyPosterTemplate.of('T17', $r('app.string.poster_tmpl_t17'), 'festival_greet',
+      ['body', 'sign', 'tag'],
+      [
+        CoverPalette.of($r('app.string.tmpl_pal_midmoon_night'), '#0B1026', '#F2E2B6', '#F6EFD9', '#D2E0FA',
+          '#1B2B52', '#D2E0FA', '#F2E2B6'),
+        CoverPalette.of($r('app.string.tmpl_pal_spring_red'), '#8C0B0F', '#F4D07C', '#FCE9BF', '#F4D07C',
+          '#C0181B', '#FF9E7A', '#FCE9BF'),
+        CoverPalette.of($r('app.string.tmpl_pal_lantern_night'), '#1A0E1E', '#FCD34D', '#FBE9FF', '#D9C2E8',
+          '#2E1440', '#F0ABFC', '#FCD34D'),
+        CoverPalette.of($r('app.string.tmpl_pal_duanwu_green'), '#0E2415', '#E8B84B', '#EAF6EC', '#A8C8B0',
+          '#14361F', '#7CFF9E', '#E8B84B'),
+        CoverPalette.of($r('app.string.tmpl_pal_qixi_purple'), '#14081E', '#B388FF', '#F2E8FA', '#C9B2E8',
+          '#2A1044', '#FF9DE2', '#B388FF'),
+      ],
+      [CoverFont.WENKAI, CoverFont.XIAO_WEI, CoverFont.HANI_SANS, CoverFont.MA_SHAN, CoverFont.SERIF],
+      { 'body': '愿得年年，常见中秋月', 'sign': '随身工具宝', 'tag': '中秋' }));
+
+    // ---------- T18 红包对联风（红金竖批 + 铜钱团花，参照 docs/文案海报候选_红包对联风.html） ----------
+    // 配色字段约定：bg/bg2=正红渐变 accent=描金 title=金字 sub=浅金 block=横批底 grid=团花纹色
+    list.push(CopyPosterTemplate.of('T18', $r('app.string.poster_tmpl_t18'), 'red_couplet',
+      ['body', 'sign', 'tag'],
+      [
+        CoverPalette.of($r('app.string.tmpl_pal_true_gold'), '#A80F13', '#F4D07C', '#FCE9BF', '#F4D07C',
+          '#C0181B', '#7A0A0D', '#D9A84E'),
+        CoverPalette.of($r('app.string.tmpl_pal_zhusha_gold'), '#9C1A1E', '#F6D9A0', '#FBEBD0', '#E8C28A',
+          '#B82328', '#6E1013', '#D9A84E'),
+        CoverPalette.of($r('app.string.tmpl_pal_dark_red_gold'), '#3A0A0C', '#E8B84B', '#F2DCA8', '#C9A05E',
+          '#58090B', '#260406', '#B8863B'),
+        CoverPalette.of($r('app.string.tmpl_pal_crimson_plum'), '#4A1030', '#F0C060', '#F8E8D8', '#D9A8C0',
+          '#6E1A48', '#31081E', '#C9A05E'),
+        CoverPalette.of($r('app.string.tmpl_pal_jade_gold'), '#0B3A2E', '#F4D07C', '#EAF6EC', '#A8C8B0',
+          '#0E4A3A', '#072A20', '#D9B84E'),
+      ],
+      [CoverFont.HUANG_YOU, CoverFont.XIAO_WEI, CoverFont.FEI_BAI, CoverFont.MA_SHAN, CoverFont.HANI_SANS],
+      { 'body': '岁岁平安，万事胜意', 'sign': '随身工具宝', 'tag': '新春大吉' }, false));
 
     return list;
   }

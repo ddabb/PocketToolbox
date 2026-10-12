@@ -3941,6 +3941,22 @@
       "value": "竖图 3:4"
     },
     {
+      "name": "poster_ratio_long",
+      "value": "长图 9:16"
+    },
+    {
+      "name": "poster_pinyin_label",
+      "value": "注音"
+    },
+    {
+      "name": "poster_pinyin_on",
+      "value": "开"
+    },
+    {
+      "name": "poster_pinyin_off",
+      "value": "关"
+    },
+    {
       "name": "poster_slot_body",
       "value": "主文案"
     },
@@ -4179,6 +4195,86 @@
     {
       "name": "poster_insp_40",
       "value": "热爱可抵岁月漫长。"
+    },
+    {
+      "name": "poster_insp_41",
+      "value": "春风如贵客，一到便繁华。"
+    },
+    {
+      "name": "poster_insp_42",
+      "value": "雨水润万物，静待花开时。"
+    },
+    {
+      "name": "poster_insp_43",
+      "value": "惊蛰春雷响，万物皆苏醒。"
+    },
+    {
+      "name": "poster_insp_44",
+      "value": "春分昼夜均，人间恰好时。"
+    },
+    {
+      "name": "poster_insp_45",
+      "value": "清明时节雨，思念落成诗。"
+    },
+    {
+      "name": "poster_insp_46",
+      "value": "谷雨催新绿，春深不自知。"
+    },
+    {
+      "name": "poster_insp_47",
+      "value": "小满未全满，人生最好的状态。"
+    },
+    {
+      "name": "poster_insp_48",
+      "value": "芒种忙种，愿种下的都有收成。"
+    },
+    {
+      "name": "poster_insp_49",
+      "value": "夏至白昼长，热爱也绵长。"
+    },
+    {
+      "name": "poster_insp_50",
+      "value": "立秋新风凉，一叶知秋来。"
+    },
+    {
+      "name": "poster_insp_51",
+      "value": "白露凝秋色，岁月自温柔。"
+    },
+    {
+      "name": "poster_insp_52",
+      "value": "秋分昼夜分，丰收正当时。"
+    },
+    {
+      "name": "poster_insp_53",
+      "value": "寒露添衣时，记得照顾自己。"
+    },
+    {
+      "name": "poster_insp_54",
+      "value": "霜降柿子红，事事皆如意。"
+    },
+    {
+      "name": "poster_insp_55",
+      "value": "立冬藏温暖，围炉话家常。"
+    },
+    {
+      "name": "poster_insp_56",
+      "value": "小雪落无声，人间烟火暖。"
+    },
+    {
+      "name": "poster_insp_57",
+      "value": "大雪兆丰年，静候春消息。"
+    },
+    {
+      "name": "poster_insp_58",
+      "value": "冬至大如年，人间小团圆。"
+    },
+    {
+      "name": "poster_insp_59",
+      "value": "大寒到顶点，日后天渐暖。"
+    },
+    {
+      "name": "poster_insp_60",
+      "value": "瑞雪迎新岁，万事皆可期。"
     },
     {
       "name": "poster_tmpl_t5",
@@ -4451,6 +4547,78 @@
     {
       "name": "tmpl_pal_kraft_paper",
       "value": "牛皮纸板"
+    },
+    {
+      "name": "poster_tmpl_t16",
+      "value": "二十四节气"
+    },
+    {
+      "name": "tmpl_pal_rice_seal",
+      "value": "米纸青黛"
+    },
+    {
+      "name": "tmpl_pal_celadon_term",
+      "value": "天青节气"
+    },
+    {
+      "name": "tmpl_pal_ink_term",
+      "value": "玄墨节气"
+    },
+    {
+      "name": "tmpl_pal_rouge_term",
+      "value": "胭脂节气"
+    },
+    {
+      "name": "tmpl_pal_xiang_paper",
+      "value": "缃色古纸"
+    },
+    {
+      "name": "poster_tmpl_t17",
+      "value": "节日祝福"
+    },
+    {
+      "name": "tmpl_pal_midmoon_night",
+      "value": "中秋月夜"
+    },
+    {
+      "name": "tmpl_pal_spring_red",
+      "value": "春节红金"
+    },
+    {
+      "name": "tmpl_pal_lantern_night",
+      "value": "元宵灯会"
+    },
+    {
+      "name": "tmpl_pal_duanwu_green",
+      "value": "端午艾绿"
+    },
+    {
+      "name": "tmpl_pal_qixi_purple",
+      "value": "七夕星紫"
+    },
+    {
+      "name": "poster_tmpl_t18",
+      "value": "红包对联"
+    },
+    {
+      "name": "tmpl_pal_true_gold",
+      "value": "正红描金"
+    },
+    {
+      "name": "tmpl_pal_zhusha_gold",
+      "value": "朱砂流金"
+    },
+    {
+      "name": "tmpl_pal_dark_red_gold",
+      "value": "玄红鎏金"
+    },
+    {
+      "name": "tmpl_pal_crimson_plum",
+      "value": "绛紫鎏金"
+    },
+    {
+      "name": "tmpl_pal_jade_gold",
+      "value": "翠玉点金"
     },
     {
       "name": "poster_chat_sub",

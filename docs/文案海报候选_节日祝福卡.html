@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>节日祝福卡 · 文案海报候选（T17 方向 B）</title>
+<!-- 槽位映射：tag=节日名（顶部胶囊） / body=祝福主文案（居中） / sign=署名（底部）；配色字段：bg=夜空渐变 accent=月色 title=祝福文字 sub=次要文字 block=云色 grid=星点色 -->
+<!-- 风格：节日符号几何化（圆月/云带/远山/星点，纯 CSS 几何）+ 祝福文案；默认中秋配色，迁移后配春节/元宵等配色组 -->
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #06080F;
+    overflow: hidden;
+    font-family: "Songti SC", "SimSun", "宋体", serif;
+  }
+
+  .stage {
+    width: 560px;
+    height: 560px;
+    margin: 10px auto;
+    position: relative;
+    background: linear-gradient(180deg, #0B1026 0%, #101A3A 52%, #1B2B52 100%);
+    overflow: hidden;
+  }
+
+  /* 星点 */
+  .star {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.85);
+  }
+  .s1 { left: 64px; top: 78px; }
+  .s2 { left: 128px; top: 44px; opacity: 0.6; }
+  .s3 { left: 218px; top: 96px; opacity: 0.8; }
+  .s4 { left: 322px; top: 56px; opacity: 0.5; }
+  .s5 { left: 430px; top: 84px; opacity: 0.9; }
+  .s6 { left: 496px; top: 140px; opacity: 0.55; }
+  .s7 { left: 84px; top: 180px; opacity: 0.4; }
+  .s8 { left: 470px; top: 232px; opacity: 0.65; }
+
+  /* 圆月（几何化：双环 + 光晕） */
+  .moon-halo {
+    position: absolute;
+    left: 50%;
+    top: 108px;
+    width: 320px;
+    height: 320px;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(244, 230, 193, 0.22) 0%, rgba(244, 230, 193, 0.05) 52%, transparent 72%);
+  }
+  .moon {
+    position: absolute;
+    left: 50%;
+    top: 148px;
+    width: 150px;
+    height: 150px;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(circle at 42% 38%, #FBF3DC 0%, #F2E2B6 62%, #E3CD96 100%);
+    box-shadow: 0 0 44px rgba(244, 230, 193, 0.45);
+  }
+  .moon-ring {
+    position: absolute;
+    left: 50%;
+    top: 138px;
+    width: 170px;
+    height: 170px;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    border: 1px solid rgba(244, 230, 193, 0.35);
+  }
+
+  /* 几何云带（圆角长条错落） */
+  .cloud {
+    position: absolute;
+    height: 22px;
+    border-radius: 11px;
+    background: rgba(210, 224, 250, 0.14);
+  }
+  .cl1 { left: 76px; top: 236px; width: 148px; }
+  .cl2 { left: 120px; top: 262px; width: 90px; background: rgba(210, 224, 250, 0.10); }
+  .cl3 { right: 72px; top: 208px; width: 124px; background: rgba(210, 224, 250, 0.10); }
+  .cl4 { right: 116px; top: 234px; width: 72px; background: rgba(210, 224, 250, 0.08); }
+
+  /* 远山（渐变三角） */
+  .hill1 {
+    position: absolute;
+    left: -30px;
+    bottom: 74px;
+    width: 300px;
+    height: 110px;
+    background: linear-gradient(180deg, #22335E 0%, #16234A 100%);
+    clip-path: polygon(0 100%, 22% 34%, 46% 78%, 68% 8%, 100% 100%);
+    opacity: 0.85;
+  }
+  .hill2 {
+    position: absolute;
+    right: -40px;
+    bottom: 74px;
+    width: 330px;
+    height: 96px;
+    background: linear-gradient(180deg, #1B2A52 0%, #131F42 100%);
+    clip-path: polygon(0 100%, 26% 52%, 52% 86%, 76% 22%, 100% 100%);
+    opacity: 0.9;
+  }
+
+  /* 顶部节日名胶囊 */
+  .tag {
+    position: absolute;
+    left: 50%;
+    top: 52px;
+    transform: translateX(-50%);
+    font-size: 17px;
+    letter-spacing: 10px;
+    text-indent: 10px;
+    color: #F2E2B6;
+    padding: 7px 26px;
+    border: 1px solid rgba(244, 230, 193, 0.4);
+    border-radius: 999px;
+    background: rgba(244, 230, 193, 0.07);
+  }
+
+  /* 祝福主文案 */
+  .body {
+    position: absolute;
+    left: 60px;
+    right: 60px;
+    top: 322px;
+    text-align: center;
+    font-size: 34px;
+    letter-spacing: 6px;
+    line-height: 1.55;
+    color: #F6EFD9;
+    text-shadow: 0 3px 22px rgba(0, 0, 0, 0.55);
+  }
+
+  /* 固定装饰脚注 */
+  .motto {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 452px;
+    text-align: center;
+    font-size: 12px;
+    letter-spacing: 7px;
+    text-indent: 7px;
+    color: rgba(210, 224, 250, 0.6);
+  }
+
+  /* 署名 */
+  .sign {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 44px;
+    text-align: center;
+    font-size: 13px;
+    letter-spacing: 4px;
+    color: rgba(244, 230, 193, 0.72);
+  }
+  .sign::before, .sign::after {
+    content: "—";
+    margin: 0 10px;
+    color: rgba(244, 230, 193, 0.4);
+  }
+
+  .vignette {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 55%, rgba(3, 5, 12, 0.5) 100%);
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="star s1"></div><div class="star s2"></div><div class="star s3"></div><div class="star s4"></div>
+  <div class="star s5"></div><div class="star s6"></div><div class="star s7"></div><div class="star s8"></div>
+  <div class="moon-halo"></div>
+  <div class="moon"></div>
+  <div class="moon-ring"></div>
+  <div class="cloud cl1"></div><div class="cloud cl2"></div><div class="cloud cl3"></div><div class="cloud cl4"></div>
+  <div class="hill1"></div>
+  <div class="hill2"></div>
+  <div class="tag">中 秋</div>
+  <div class="body">愿得年年，常见中秋月</div>
+  <div class="motto">HAPPY FESTIVAL · POCKET GREETING</div>
+  <div class="sign">随身工具宝</div>
+  <div class="vignette"></div>
+</div>
+
+</body>
+</html>

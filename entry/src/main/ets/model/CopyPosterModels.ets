@@ -11,30 +11,46 @@ export class CopyPosterSlot {
   static readonly TAG: string = 'tag';
 }
 
-/** 导出比例：1:1（1080x1080）/ 3:4（1080x1440） */
+/** 导出比例：1:1（1080x1080）/ 3:4（1080x1440）/ 9:16 长图（1080x1920） */
 export class CopyPosterRatio {
   static readonly SQUARE: string = 'square';
   static readonly PORTRAIT: string = 'portrait';
+  static readonly LONG: string = 'long';
 
   static label(kind: string): ResourceStr {
     if (kind === CopyPosterRatio.PORTRAIT) {
       return $r('app.string.poster_ratio_portrait');
     }
+    if (kind === CopyPosterRatio.LONG) {
+      return $r('app.string.poster_ratio_long');
+    }
     return $r('app.string.poster_ratio_square');
   }
 
   static all(): string[] {
-    return [CopyPosterRatio.SQUARE, CopyPosterRatio.PORTRAIT];
+    return [CopyPosterRatio.SQUARE, CopyPosterRatio.PORTRAIT, CopyPosterRatio.LONG];
   }
 
-  /** 设计稿高度（宽恒 900）：1:1 -> 900，3:4 -> 1200 */
+  /** 设计稿高度（宽恒 900）：1:1 -> 900，3:4 -> 1200，9:16 -> 1600 */
   static designHeight(kind: string): number {
-    return kind === CopyPosterRatio.PORTRAIT ? 1200 : 900;
+    if (kind === CopyPosterRatio.PORTRAIT) {
+      return 1200;
+    }
+    if (kind === CopyPosterRatio.LONG) {
+      return 1600;
+    }
+    return 900;
   }
 
-  /** 导出像素高度（宽恒 1080）：1:1 -> 1080，3:4 -> 1440 */
+  /** 导出像素高度（宽恒 1080）：1:1 -> 1080，3:4 -> 1440，9:16 -> 1920 */
   static exportHeight(kind: string): number {
-    return kind === CopyPosterRatio.PORTRAIT ? 1440 : 1080;
+    if (kind === CopyPosterRatio.PORTRAIT) {
+      return 1440;
+    }
+    if (kind === CopyPosterRatio.LONG) {
+      return 1920;
+    }
+    return 1080;
   }
 }
 
@@ -84,9 +100,11 @@ export class CopyPosterTemplate {
   palettes: CoverPalette[] = [];
   fonts: string[] = [];
   defaults: Record<string, string> = {};
+  /** 是否支持主文案拼音注音（固定构图模板传 false 隐藏注音开关） */
+  supportsPinyin: boolean = true;
 
   static of(id: string, name: ResourceStr, layout: string, slots: string[], palettes: CoverPalette[],
-    fonts: string[], defaults: Record<string, string>): CopyPosterTemplate {
+    fonts: string[], defaults: Record<string, string>, supportsPinyin: boolean = true): CopyPosterTemplate {
     let t: CopyPosterTemplate = new CopyPosterTemplate();
     t.id = id;
     t.name = name;
@@ -95,6 +113,7 @@ export class CopyPosterTemplate {
     t.palettes = palettes;
     t.fonts = fonts;
     t.defaults = defaults;
+    t.supportsPinyin = supportsPinyin;
     return t;
   }
 }

@@ -7,6 +7,17 @@ import { PoetryViewModel } from '../../viewmodel/PoetryViewModel';
 import { IdiomViewModel } from '../../viewmodel/IdiomViewModel';
 import { XiehouyuViewModel } from '../../viewmodel/XiehouyuViewModel';
 
+/** 注音排版单元：text=汉字单字或非汉字连续段，py=拼音（非汉字为空） */
+export class HanziUnit {
+  text: string = '';
+  py: string = '';
+
+  constructor(text: string, py: string) {
+    this.text = text;
+    this.py = py;
+  }
+}
+
 export class CoverContentUtil {
   private static usedPoem: Set<string> = new Set<string>();
   private static usedIdiom: Set<string> = new Set<string>();
@@ -41,6 +52,46 @@ export class CoverContentUtil {
   /** 拼音串按空白拆分为音节数组 */
   static syllables(pinyinText: string): string[] {
     return pinyinText.trim().split(new RegExp('\\s+', 'g')).filter((s: string) => s !== '');
+  }
+
+  /**
+   * 主文案注音单元拆分：汉字逐字成单元（带拼音，首音），连续非汉字（拉丁/数字/emoji 等）合并为整段单元不注音，
+   * 全角标点跟随前一个汉字单元防标点悬行（与 bafcf69 生字卡「仅汉字注音」行为一致）
+   */
+  static hanziUnits(text: string): HanziUnit[] {
+    let units: HanziUnit[] = [];
+    if (text.trim() === '') {
+      return units;
+    }
+    let syllables: string[] = CoverContentUtil.syllables(CoverContentUtil.autoPinyin(text));
+    let chars: string[] = Array.from(text);
+    let han: RegExp = new RegExp('[\\u4e00-\\u9fff]');
+    let punct: RegExp = new RegExp('[，。、！？；：…—·「」『』（）《》〈〉【】]');
+    let si: number = 0;
+    let run: string = '';
+    for (let i = 0; i < chars.length; i++) {
+      let ch: string = chars[i];
+      if (han.test(ch)) {
+        if (run !== '') {
+          units.push(new HanziUnit(run, ''));
+          run = '';
+        }
+        let py: string = '';
+        if (si < syllables.length) {
+          py = syllables[si];
+          si++;
+        }
+        units.push(new HanziUnit(ch, py));
+      } else if (punct.test(ch) && run === '' && units.length > 0 && units[units.length - 1].py !== '') {
+        units[units.length - 1].text += ch;
+      } else {
+        run += ch;
+      }
+    }
+    if (run !== '') {
+      units.push(new HanziUnit(run, ''));
+    }
+    return units;
   }
 
   /** 替换第 index 个音节（音节内不允许空白），越界或空值返回原串 */

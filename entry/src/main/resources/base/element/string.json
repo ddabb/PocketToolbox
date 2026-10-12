@@ -3941,6 +3941,22 @@
       "value": "Portrait 3:4"
     },
     {
+      "name": "poster_ratio_long",
+      "value": "Long 9:16"
+    },
+    {
+      "name": "poster_pinyin_label",
+      "value": "Pinyin"
+    },
+    {
+      "name": "poster_pinyin_on",
+      "value": "On"
+    },
+    {
+      "name": "poster_pinyin_off",
+      "value": "Off"
+    },
+    {
       "name": "poster_slot_body",
       "value": "Main text"
     },
@@ -4179,6 +4195,86 @@
     {
       "name": "poster_insp_40",
       "value": "Love what you do, and the long years will feel short."
+    },
+    {
+      "name": "poster_insp_41",
+      "value": "The spring breeze arrives like an honored guest, and everything blooms."
+    },
+    {
+      "name": "poster_insp_42",
+      "value": "Rain waters the world; the flowers are on their way."
+    },
+    {
+      "name": "poster_insp_43",
+      "value": "A clap of spring thunder, and everything wakes."
+    },
+    {
+      "name": "poster_insp_44",
+      "value": "Day and night in balance — the world feels just right."
+    },
+    {
+      "name": "poster_insp_45",
+      "value": "Qingming rain falls, and longing becomes a poem."
+    },
+    {
+      "name": "poster_insp_46",
+      "value": "Grain Rain greens the fields; spring deepens unnoticed."
+    },
+    {
+      "name": "poster_insp_47",
+      "value": "Almost full is the best state of life."
+    },
+    {
+      "name": "poster_insp_48",
+      "value": "Sow busily now — may everything you plant come home."
+    },
+    {
+      "name": "poster_insp_49",
+      "value": "The longest day of light, and a passion to match."
+    },
+    {
+      "name": "poster_insp_50",
+      "value": "One leaf falls, and autumn is announced."
+    },
+    {
+      "name": "poster_insp_51",
+      "value": "Dew gathers the colors of autumn; the days turn gentle."
+    },
+    {
+      "name": "poster_insp_52",
+      "value": "The autumn divide — harvest is here."
+    },
+    {
+      "name": "poster_insp_53",
+      "value": "As Cold Dew arrives, remember to keep yourself warm."
+    },
+    {
+      "name": "poster_insp_54",
+      "value": "Persimmons redden with the frost — may all go as you wish."
+    },
+    {
+      "name": "poster_insp_55",
+      "value": "Winter begins: bank the warmth, gather round the fire."
+    },
+    {
+      "name": "poster_insp_56",
+      "value": "Snow falls without a sound; the lights of home stay warm."
+    },
+    {
+      "name": "poster_insp_57",
+      "value": "Deep snow foretells a harvest; spring is on its way."
+    },
+    {
+      "name": "poster_insp_58",
+      "value": "The winter solstice — a small reunion, a long night shared."
+    },
+    {
+      "name": "poster_insp_59",
+      "value": "Past the coldest day, the world warms day by day."
+    },
+    {
+      "name": "poster_insp_60",
+      "value": "Snow greets the new year — anything is possible."
     },
     {
       "name": "poster_tmpl_t5",
@@ -4451,6 +4547,78 @@
     {
       "name": "tmpl_pal_kraft_paper",
       "value": "Kraft Paper"
+    },
+    {
+      "name": "poster_tmpl_t16",
+      "value": "Solar Terms"
+    },
+    {
+      "name": "tmpl_pal_rice_seal",
+      "value": "Rice & Seal"
+    },
+    {
+      "name": "tmpl_pal_celadon_term",
+      "value": "Celadon Term"
+    },
+    {
+      "name": "tmpl_pal_ink_term",
+      "value": "Ink Term"
+    },
+    {
+      "name": "tmpl_pal_rouge_term",
+      "value": "Rouge Term"
+    },
+    {
+      "name": "tmpl_pal_xiang_paper",
+      "value": "Amber Paper"
+    },
+    {
+      "name": "poster_tmpl_t17",
+      "value": "Festival Wishes"
+    },
+    {
+      "name": "tmpl_pal_midmoon_night",
+      "value": "Mid-Autumn Night"
+    },
+    {
+      "name": "tmpl_pal_spring_red",
+      "value": "Spring Red-Gold"
+    },
+    {
+      "name": "tmpl_pal_lantern_night",
+      "value": "Lantern Night"
+    },
+    {
+      "name": "tmpl_pal_duanwu_green",
+      "value": "Dragon Boat Green"
+    },
+    {
+      "name": "tmpl_pal_qixi_purple",
+      "value": "Qixi Starlight"
+    },
+    {
+      "name": "poster_tmpl_t18",
+      "value": "Red Couplet"
+    },
+    {
+      "name": "tmpl_pal_true_gold",
+      "value": "Red & Gold"
+    },
+    {
+      "name": "tmpl_pal_zhusha_gold",
+      "value": "Cinnabar Gold"
+    },
+    {
+      "name": "tmpl_pal_dark_red_gold",
+      "value": "Dark Red Gold"
+    },
+    {
+      "name": "tmpl_pal_crimson_plum",
+      "value": "Crimson Gold"
+    },
+    {
+      "name": "tmpl_pal_jade_gold",
+      "value": "Jade & Gold"
     },
     {
       "name": "poster_chat_sub",

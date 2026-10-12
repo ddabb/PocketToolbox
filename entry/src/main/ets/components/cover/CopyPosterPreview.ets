@@ -1,10 +1,17 @@
 /**
- * 文案海报预览渲染组件：设计稿 900 宽（1:1 -> 900 高 / 3:4 -> 1200 高），15 种布局
+ * 文案海报预览渲染组件：设计稿 900 宽（1:1 -> 900 高 / 3:4 -> 1200 高 / 9:16 -> 1600 高），18 种布局
  * 尺寸换算：f(px) = previewWidth * px / 900；主文案按长度分档自动缩字号（emoji 走系统字体兜底）
+ * 注音开关（pinyinOn）：逐字拼音列（汉字单字带拼音、非汉字整段不注），字号按预算公式收缩防溢出
  */
 import { CopyPosterContent, CopyPosterRatio, CopyPosterTemplate } from '../../model/CopyPosterModels';
 import { CoverPalette } from '../../model/CoverModels';
 import { CopyPosterTemplates } from '../../core/cover/CopyPosterTemplates';
+import { CoverContentUtil, HanziUnit } from '../../core/cover/CoverContentUtil';
+
+/** 拼音字号 / 主文案字号比（拼音走系统字体兜底，1.4.1 声调字符教训） */
+const PY_RATIO: number = 0.3;
+/** 注音开启时主文案字号收缩系数：拼音行高≈1.17×拼音字号(0.3×字号)，预算取 1.3 系数 -> 1/(1+0.3×1.3)≈0.72 */
+const PY_SHRINK: number = 0.72;
 
 @Component
 export struct CopyPosterPreview {
@@ -16,6 +23,8 @@ export struct CopyPosterPreview {
   @Prop previewWidth: number;
   /** 屏幕密度（vp->px），T5 的 3D 透视按 px 计 */
   @Prop density: number;
+  /** 主文案拼音注音开关（固定构图模板不生效） */
+  @Prop pinyinOn: boolean = false;
 
   /** 设计稿 px -> vp */
   private f(px: number): number {
@@ -47,34 +56,32 @@ export struct CopyPosterPreview {
     return this.content.body.replace(new RegExp('\\s', 'g'), '').length;
   }
 
-  /** 主文案字号：常规模板按长度 5 档缩放；大字模板 3 档 + 超 16 字降级常规 */
+  /** 主文案字号：常规模板按长度 5 档缩放；大字模板 3 档 + 超 16 字降级常规；注音开启时按预算公式收缩 */
   private bodyFont(basePx: number, big: boolean): number {
     let n: number = this.bodyLen();
+    let s: number;
     if (big) {
       if (n <= 4) {
-        return this.f(150);
+        s = this.f(150);
+      } else if (n <= 8) {
+        s = this.f(112);
+      } else if (n <= 16) {
+        s = this.f(80);
+      } else {
+        s = this.f(52);
       }
-      if (n <= 8) {
-        return this.f(112);
-      }
-      if (n <= 16) {
-        return this.f(80);
-      }
-      return this.f(52);
+    } else if (n <= 8) {
+      s = this.f(basePx);
+    } else if (n <= 16) {
+      s = this.f(basePx * 0.8);
+    } else if (n <= 32) {
+      s = this.f(basePx * 0.62);
+    } else if (n <= 60) {
+      s = this.f(basePx * 0.48);
+    } else {
+      s = this.f(basePx * 0.38);
     }
-    if (n <= 8) {
-      return this.f(basePx);
-    }
-    if (n <= 16) {
-      return this.f(basePx * 0.8);
-    }
-    if (n <= 32) {
-      return this.f(basePx * 0.62);
-    }
-    if (n <= 60) {
-      return this.f(basePx * 0.48);
-    }
-    return this.f(basePx * 0.38);
+    return this.pyEnabled() ? s * PY_SHRINK : s;
   }
 
   /** 主文案行数上限：竖图更宽容 */
@@ -82,7 +89,58 @@ export struct CopyPosterPreview {
     if (big && this.bodyLen() <= 16) {
       return 4;
     }
-    return this.ratioKind === CopyPosterRatio.PORTRAIT ? 12 : 8;
+    return this.ratioKind === CopyPosterRatio.SQUARE ? 8 : 12;
+  }
+
+  /** 注音是否生效：开关开 + 模板支持 + 主文案非空 */
+  private pyEnabled(): boolean {
+    return this.pinyinOn && this.template.supportsPinyin && this.content.body.trim() !== '';
+  }
+
+  /** 注音模式字/拼音阴影：neon=霓虹三层 / soft=荧光单层 / none=无（透明零半径兜底保持数组非空） */
+  private pyShadow(glow: string): ShadowOptions[] {
+    if (glow === 'neon') {
+      return [
+        { radius: this.f(4), color: '#FFFFFFFF', offsetX: 0, offsetY: 0 },
+        { radius: this.f(10), color: this.hexA(this.pal().accent, '#E6'), offsetX: 0, offsetY: 0 },
+        { radius: this.f(26), color: this.hexA(this.pal().accent, '#8C'), offsetX: 0, offsetY: 0 },
+      ];
+    }
+    if (glow === 'soft') {
+      return [{ radius: this.f(3), color: this.hexA(this.pal().accent, '#B3'), offsetX: 0, offsetY: 0 }];
+    }
+    return [{ radius: 0, color: '#00000000', offsetX: 0, offsetY: 0 }];
+  }
+
+  /**
+   * 主文案注音排版：汉字逐字单元（拼音在字上方对齐），非汉字整段合并不注音；
+   * 自动按实际宽度换行，拼音行高预算 1.3 系数；maxWidthVp 为换行宽度上限（'100%' 或具体值）
+   */
+  @Builder
+  PinyinBody(sizeVp: number, color: ResourceColor, pyColor: ResourceColor, center: boolean,
+    bold: boolean, glow: string, maxWidthVp: Length) {
+    Flex({ wrap: FlexWrap.Wrap, justifyContent: center ? FlexAlign.Center : FlexAlign.Start }) {
+      ForEach(CoverContentUtil.hanziUnits(this.content.body), (u: HanziUnit, i: number) => {
+        Column() {
+          Text(u.py === '' ? ' ' : u.py)
+            .fontSize(sizeVp * PY_RATIO)
+            .lineHeight(sizeVp * PY_RATIO * 1.3)
+            .fontColor(pyColor)
+            .maxLines(1)
+          Text(u.text)
+            .fontSize(sizeVp)
+            .lineHeight(sizeVp * 1.4)
+            .fontColor(color)
+            .fontFamily(this.font())
+            .fontWeight(bold ? FontWeight.Bold : FontWeight.Normal)
+            .maxLines(1)
+            .textShadow(this.pyShadow(glow))
+        }
+        .constraintSize({ minWidth: u.text.length === 1 ? sizeVp : 0 })
+        .alignItems(HorizontalAlign.Center)
+      }, (u: HanziUnit, i: number) => i.toString() + '-' + u.text + '-' + u.py)
+    }
+    .constraintSize({ maxWidth: maxWidthVp })
   }
 
   build() {
@@ -116,6 +174,12 @@ export struct CopyPosterPreview {
         this.CinemaCard()
       } else if (this.template.layout === 'cork_notice') {
         this.CorkNotice()
+      } else if (this.template.layout === 'solar_term') {
+        this.SolarTerm()
+      } else if (this.template.layout === 'festival_greet') {
+        this.FestivalGreet()
+      } else if (this.template.layout === 'red_couplet') {
+        this.RedCouplet()
       } else {
         this.BigImpact()
       }
@@ -153,7 +217,7 @@ export struct CopyPosterPreview {
     }
   }
 
-  /** 主文案块：空文案显示占位提示；超长自动缩字号 + 省略兜底 */
+  /** 主文案块：空文案显示占位提示；注音开启逐字注音；超长自动缩字号 + 省略兜底 */
   @Builder
   BodyBlock(basePx: number, bold: boolean, big: boolean) {
     if (this.content.body.trim() === '') {
@@ -162,6 +226,8 @@ export struct CopyPosterPreview {
         .fontColor(this.pal().sub)
         .fontFamily(this.font())
         .textAlign(TextAlign.Center)
+    } else if (this.pyEnabled()) {
+      this.PinyinBody(this.bodyFont(basePx, big), this.pal().title, this.pal().sub, true, bold, 'none', '100%')
     } else {
       Text(this.content.body)
         .fontSize(this.bodyFont(basePx, big))
@@ -428,6 +494,8 @@ export struct CopyPosterPreview {
           .fontFamily(this.font())
           .width('100%')
           .textAlign(TextAlign.Start)
+      } else if (this.pyEnabled()) {
+        this.PinyinBody(this.bodyFont(43, false), this.pal().title, this.pal().title, false, false, 'none', '100%')
       } else {
         Text(this.content.body)
           .fontSize(this.bodyFont(43, false))
@@ -563,6 +631,8 @@ export struct CopyPosterPreview {
                 .fontFamily(this.font())
                 .width('100%')
                 .textAlign(TextAlign.Start)
+            } else if (this.pyEnabled()) {
+              this.PinyinBody(this.bodyFont(50, false), this.pal().title, this.pal().sub, false, false, 'soft', '100%')
             } else {
               Text(this.content.body)
                 .fontSize(this.bodyFont(50, false))
@@ -678,7 +748,7 @@ export struct CopyPosterPreview {
   // ---------- T7 霓虹灯招牌（夜墙灯管） ----------
 
   private neonSignH(): number {
-    return this.f(this.ratioKind === CopyPosterRatio.PORTRAIT ? 620 : 470);
+    return this.f(this.ratioKind === CopyPosterRatio.SQUARE ? 470 : 620);
   }
 
   @Builder
@@ -715,6 +785,8 @@ export struct CopyPosterPreview {
               .fontColor(this.pal().sub)
               .fontFamily(this.font())
               .textAlign(TextAlign.Center)
+          } else if (this.pyEnabled()) {
+            this.PinyinBody(this.bodyFont(96, false), this.pal().title, this.pal().sub, true, true, 'neon', '100%')
           } else {
             Text(this.content.body)
               .fontSize(this.bodyFont(96, false))
@@ -830,6 +902,8 @@ export struct CopyPosterPreview {
                     .fontFamily(this.font())
                     .width('100%')
                     .textAlign(TextAlign.Start)
+                } else if (this.pyEnabled()) {
+                  this.PinyinBody(this.bodyFont(38, false), this.pal().title, this.pal().accent, false, false, 'none', '100%')
                 } else {
                   Text(this.content.body)
                     .fontSize(this.bodyFont(38, false))
@@ -983,7 +1057,7 @@ export struct CopyPosterPreview {
   // ---------- T9 复古车票（票纸 + 撕票线 + 邮戳） ----------
 
   private ticketH(): number {
-    return this.f(this.ratioKind === CopyPosterRatio.PORTRAIT ? 560 : 440);
+    return this.f(this.ratioKind === CopyPosterRatio.SQUARE ? 440 : 560);
   }
 
   private pad3(n: number): string {
@@ -1546,6 +1620,16 @@ export struct CopyPosterPreview {
               .borderRadius({ topLeft: this.f(7), topRight: this.f(19), bottomLeft: this.f(19), bottomRight: this.f(19) })
               .constraintSize({ maxWidth: this.previewWidth * 0.64 })
               .shadow({ radius: this.f(8), color: '#12000000', offsetY: this.f(3) })
+          } else if (this.pyEnabled()) {
+            Column() {
+              this.PinyinBody(this.f(25) * PY_SHRINK, this.pal().title, this.pal().sub, false, false, 'none',
+                this.previewWidth * 0.64 - this.f(44))
+            }
+            .padding({ left: this.f(22), right: this.f(22), top: this.f(18), bottom: this.f(18) })
+            .backgroundColor(this.pal().block)
+            .borderRadius({ topLeft: this.f(7), topRight: this.f(19), bottomLeft: this.f(19), bottomRight: this.f(19) })
+            .constraintSize({ maxWidth: this.previewWidth * 0.64 })
+            .shadow({ radius: this.f(8), color: '#12000000', offsetY: this.f(3) })
           } else {
             Text(this.content.body)
               .fontSize(this.f(25))
@@ -2120,6 +2204,610 @@ export struct CopyPosterPreview {
           center: ['50%', '50%'],
           radius: '95%',
           colors: [['#00000000', 0.55], [this.hexA('#000000', '38'), 1]],
+        })
+        .hitTestBehavior(HitTestMode.None)
+    }
+    .width('100%')
+    .height('100%')
+  }
+
+  // ---------- T16 二十四节气卡（竖排主文案 + 节气名/印章/节气歌，参照 docs/文案海报候选_二十四节气卡.html） ----------
+
+  /** 竖排字符序列：去空白逐字拆分 */
+  private vertChars(text: string): string[] {
+    return Array.from(text.replace(new RegExp('\\s', 'g'), ''));
+  }
+
+  /** 竖排列切分（自右向左读）：perCol 字/列、maxCols 列封顶，超限末列末字换 '…'；返回自左向右渲染顺序（首列在最右） */
+  private vertColsRtl(text: string, perCol: number, maxCols: number): string[][] {
+    let chars: string[] = this.vertChars(text);
+    let per: number = Math.max(1, perCol);
+    let cols: string[][] = [];
+    if (chars.length === 0) {
+      return cols;
+    }
+    let total: number = per * Math.max(1, maxCols);
+    if (chars.length > total) {
+      chars = chars.slice(0, total);
+      chars[chars.length - 1] = '…';
+    }
+    let natural: string[][] = [];
+    for (let i = 0; i < chars.length; i += per) {
+      natural.push(chars.slice(i, i + per));
+    }
+    for (let i = natural.length - 1; i >= 0; i--) {
+      cols.push(natural[i]);
+    }
+    return cols;
+  }
+
+  /** T16 节气名（tag）字数 */
+  private termCharCount(): number {
+    return this.vertChars(this.content.tag).length;
+  }
+
+  /** T16 节气名字号分档：≤2 字 74 / ≤4 字 52 / 其余 38（设计 px） */
+  private vertTermSize(): number {
+    let n: number = this.termCharCount();
+    if (n <= 2) {
+      return this.f(74);
+    }
+    if (n <= 4) {
+      return this.f(52);
+    }
+    return this.f(38);
+  }
+
+  /** T16 竖排主文案字号分档（设计 px） */
+  private solarBodyPx(): number {
+    let n: number = this.vertChars(this.content.body).length;
+    if (n <= 20) {
+      return 48;
+    }
+    if (n <= 45) {
+      return 38;
+    }
+    return 30;
+  }
+
+  /** T16 每列字数：可用高度 / 行高 */
+  private solarPerCol(): number {
+    let lh: number = this.f(this.solarBodyPx() * 1.3);
+    let avail: number = this.h() - this.fy(122) - this.f(209);
+    return Math.max(1, Math.floor(avail / lh));
+  }
+
+  /** T16 列数上限：可用宽度 / 列距（字号 × 1.63） */
+  private solarMaxCols(): number {
+    let pitch: number = this.f(this.solarBodyPx() * 1.63);
+    let avail: number = this.previewWidth - this.f(270) - this.f(167);
+    return Math.max(1, Math.floor(avail / pitch));
+  }
+
+  @Builder
+  SolarTerm() {
+    Stack() {
+      Column()
+        .width('100%')
+        .height('100%')
+        .radialGradient({
+          center: ['30%', '18%'],
+          radius: '80%',
+          colors: [[this.hexA('#FFFFFF', '12'), 0], ['#00FFFFFF', 1]],
+        })
+        .hitTestBehavior(HitTestMode.None)
+
+      Column()
+        .width(this.previewWidth - this.f(29) * 2)
+        .height(this.h() - this.f(29) * 2)
+        .border({ width: this.f(1.6), color: this.hexA(this.pal().grid, '80') })
+        .position({ x: this.f(29), y: this.f(29) })
+      Column()
+        .width(this.previewWidth - this.f(40) * 2)
+        .height(this.h() - this.f(40) * 2)
+        .border({ width: this.f(3.2), color: this.pal().sub })
+        .position({ x: this.f(40), y: this.f(40) })
+
+      Row().width(this.f(14)).height(this.f(14)).backgroundColor(this.pal().sub).rotate({ angle: 45 })
+        .position({ x: this.f(64), y: this.fy(64) })
+      Row().width(this.f(14)).height(this.f(14)).backgroundColor(this.pal().sub).rotate({ angle: 45 })
+        .position({ x: this.previewWidth - this.f(64) - this.f(14), y: this.fy(64) })
+      Row().width(this.f(14)).height(this.f(14)).backgroundColor(this.pal().sub).rotate({ angle: 45 })
+        .position({ x: this.f(64), y: this.h() - this.fy(64) - this.f(14) })
+      Row().width(this.f(14)).height(this.f(14)).backgroundColor(this.pal().sub).rotate({ angle: 45 })
+        .position({ x: this.previewWidth - this.f(64) - this.f(14), y: this.h() - this.fy(64) - this.f(14) })
+
+      Column({ space: this.f(29) }) {
+        if (this.termCharCount() > 0) {
+          Text(this.vertChars(this.content.tag).join('\n'))
+            .fontSize(this.vertTermSize())
+            .lineHeight(this.vertTermSize() * 1.3)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(this.pal().block)
+            .fontFamily(this.font())
+            .textAlign(TextAlign.Center)
+        }
+        if (this.termCharCount() > 0 && this.termCharCount() <= 4) {
+          Text('S\nO\nL\nA\nR\n \nT\nE\nR\nM')
+            .fontSize(this.f(18))
+            .lineHeight(this.f(24))
+            .letterSpacing(this.f(3))
+            .fontColor(this.pal().sub)
+            .textAlign(TextAlign.Center)
+        }
+        Column() {
+          Text('节\n气')
+            .fontSize(this.f(20))
+            .lineHeight(this.f(24))
+            .fontWeight(FontWeight.Bold)
+            .fontColor('#F6EFDE')
+            .textAlign(TextAlign.Center)
+        }
+        .width(this.f(64))
+        .height(this.f(64))
+        .backgroundColor(this.pal().accent)
+        .borderRadius(this.f(6.4))
+        .justifyContent(FlexAlign.Center)
+        .alignItems(HorizontalAlign.Center)
+        .shadow({ radius: this.f(10), color: this.hexA(this.pal().accent, '59'), offsetY: this.f(3) })
+      }
+      .alignItems(HorizontalAlign.Center)
+      .position({ x: this.f(119), y: this.fy(148) })
+
+      Column()
+        .width(this.f(1.6))
+        .height(this.h() - this.fy(135) - this.f(135))
+        .linearGradient({
+          angle: 180,
+          colors: [[this.hexA(this.pal().grid, '00'), 0], [this.pal().grid, 0.18],
+            [this.pal().grid, 0.82], [this.hexA(this.pal().grid, '00'), 1]],
+        })
+        .position({ x: this.f(270), y: this.fy(135) })
+
+      Column() {
+        if (this.content.body.trim() === '') {
+          Text($r('app.string.poster_empty_hint'))
+            .fontSize(this.f(28))
+            .fontColor(this.pal().sub)
+            .fontFamily(this.font())
+            .width('100%')
+            .textAlign(TextAlign.Center)
+        } else {
+          Row({ space: this.f(this.solarBodyPx() * 0.63) }) {
+            ForEach(this.vertColsRtl(this.content.body, this.solarPerCol(), this.solarMaxCols()),
+              (col: string[], i: number) => {
+                Text(col.join('\n'))
+                  .fontSize(this.f(this.solarBodyPx()))
+                  .lineHeight(this.f(this.solarBodyPx() * 1.3))
+                  .fontColor(this.pal().title)
+                  .fontFamily(this.font())
+                  .textAlign(TextAlign.Center)
+              }, (col: string[], i: number) =>
+              i.toString() + '-' + col.length.toString() + '-' + (col.length > 0 ? col[0] : ''))
+          }
+          .alignItems(VerticalAlign.Top)
+        }
+      }
+      .width(this.previewWidth - this.f(270) - this.f(167))
+      .height(this.h() - this.fy(122) - this.f(209))
+      .alignItems(HorizontalAlign.End)
+      .position({ x: this.f(270), y: this.fy(122) })
+
+      if (this.content.sign.trim() !== '') {
+        Column() {
+          Text(this.vertChars(this.content.sign).join('\n'))
+            .fontSize(this.f(21))
+            .lineHeight(this.f(27))
+            .fontColor(this.pal().sub)
+            .fontFamily(this.font())
+            .textAlign(TextAlign.Center)
+        }
+        .width('100%')
+        .height('100%')
+        .justifyContent(FlexAlign.End)
+        .alignItems(HorizontalAlign.End)
+        .padding({ right: this.f(122), bottom: this.f(125) })
+      }
+
+      Row({ space: this.f(19) }) {
+        Row().width(this.f(54)).height(this.f(1.6)).backgroundColor(this.pal().grid)
+        Text('春雨惊春清谷天 · 夏满芒夏暑相连')
+          .fontSize(this.f(18))
+          .letterSpacing(this.f(6))
+          .fontColor(this.pal().sub)
+          .fontFamily(this.font())
+        Row().width(this.f(54)).height(this.f(1.6)).backgroundColor(this.pal().grid)
+      }
+      .alignItems(VerticalAlign.Center)
+      .justifyContent(FlexAlign.Center)
+      .width('100%')
+      .position({ x: 0, y: this.h() - this.f(102) })
+
+      Column()
+        .width('100%')
+        .height('100%')
+        .radialGradient({
+          center: ['50%', '50%'],
+          radius: '95%',
+          colors: [['#00000000', 0.62], [this.hexA('#3E301A', '29'), 1]],
+        })
+        .hitTestBehavior(HitTestMode.None)
+    }
+    .width('100%')
+    .height('100%')
+  }
+
+  // ---------- T17 节日祝福卡（圆月星点几何 + 居中祝福，参照 docs/文案海报候选_节日祝福卡.html） ----------
+
+  @Builder
+  FestStar(dx: number, dy: number, opacity: number) {
+    Circle({ width: this.f(5), height: this.f(5) })
+      .fill(this.pal().grid)
+      .opacity(opacity)
+      .position({ x: this.f(dx), y: this.fy(dy) })
+  }
+
+  /** 远山剪影 Path 命令（commands 单位为 px，取 vp × density） */
+  private hillPath(w: number, h: number, x1: number, y1: number, x2: number, y2: number,
+    x3: number, y3: number): string {
+    return 'M0 ' + h + ' L' + (w * x1) + ' ' + (h * y1) + ' L' + (w * x2) + ' ' + (h * y2) +
+      ' L' + (w * x3) + ' ' + (h * y3) + ' L' + w + ' ' + h + ' Z';
+  }
+
+  @Builder
+  FestivalGreet() {
+    Stack() {
+      this.FestStar(103, 125, 0.85)
+      this.FestStar(206, 71, 0.6)
+      this.FestStar(350, 154, 0.8)
+      this.FestStar(517, 90, 0.5)
+      this.FestStar(691, 135, 0.9)
+      this.FestStar(798, 225, 0.55)
+      this.FestStar(135, 289, 0.4)
+      this.FestStar(755, 373, 0.65)
+
+      Column()
+        .width(this.f(512))
+        .height(this.f(512))
+        .borderRadius(this.f(256))
+        .radialGradient({
+          center: ['50%', '50%'],
+          radius: '70%',
+          colors: [[this.hexA(this.pal().accent, '38'), 0], [this.hexA(this.pal().accent, '0D'), 0.62],
+            [this.hexA(this.pal().accent, '00'), 1]],
+        })
+        .position({ x: this.previewWidth / 2 - this.f(256), y: this.fy(173) })
+
+      Column()
+        .width(this.f(240))
+        .height(this.f(240))
+        .borderRadius(this.f(120))
+        .radialGradient({
+          center: ['42%', '38%'],
+          radius: '75%',
+          colors: [[this.hexA('#FFFFFF', 'B3'), 0], [this.pal().accent, 0.6], [this.hexA('#000000', '2E'), 1]],
+        })
+        .shadow({ radius: this.f(70), color: this.hexA(this.pal().accent, '73') })
+        .position({ x: this.previewWidth / 2 - this.f(120), y: this.fy(237) })
+
+      Column()
+        .width(this.f(272))
+        .height(this.f(272))
+        .borderRadius(this.f(136))
+        .border({ width: this.f(1.6), color: this.hexA(this.pal().accent, '59') })
+        .position({ x: this.previewWidth / 2 - this.f(136), y: this.fy(221) })
+
+      Row().width(this.f(238)).height(this.f(35)).borderRadius(this.f(18))
+        .backgroundColor(this.hexA(this.pal().block, '24'))
+        .position({ x: this.f(122), y: this.fy(379) })
+      Row().width(this.f(145)).height(this.f(35)).borderRadius(this.f(18))
+        .backgroundColor(this.hexA(this.pal().block, '1A'))
+        .position({ x: this.f(193), y: this.fy(421) })
+      Row().width(this.f(199)).height(this.f(35)).borderRadius(this.f(18))
+        .backgroundColor(this.hexA(this.pal().block, '1A'))
+        .position({ x: this.previewWidth - this.f(315), y: this.fy(334) })
+      Row().width(this.f(116)).height(this.f(35)).borderRadius(this.f(18))
+        .backgroundColor(this.hexA(this.pal().block, '14'))
+        .position({ x: this.previewWidth - this.f(302), y: this.fy(376) })
+
+      Path()
+        .width(this.f(482))
+        .height(this.f(177))
+        .commands(this.hillPath(this.f(482) * this.density, this.f(177) * this.density,
+          0.22, 0.34, 0.46, 0.78, 0.68, 0.08))
+        .fill(this.hexA('#05070D', '99'))
+        .position({ x: -this.f(48), y: this.h() - this.f(119) - this.f(177) })
+      Path()
+        .width(this.f(530))
+        .height(this.f(154))
+        .commands(this.hillPath(this.f(530) * this.density, this.f(154) * this.density,
+          0.26, 0.52, 0.52, 0.86, 0.76, 0.22))
+        .fill(this.hexA('#05070D', 'CC'))
+        .position({ x: this.previewWidth - this.f(466), y: this.h() - this.f(119) - this.f(154) })
+
+      if (this.content.tag.trim() !== '') {
+        Column() {
+          Text(this.content.tag)
+            .fontSize(this.f(27))
+            .fontColor(this.pal().accent)
+            .fontFamily(this.font())
+            .letterSpacing(this.f(16))
+            .maxLines(1)
+            .padding({ left: this.f(42) + this.f(16), right: this.f(42), top: this.f(11), bottom: this.f(11) })
+            .border({ width: this.f(1.6), color: this.hexA(this.pal().accent, '66') })
+            .backgroundColor(this.hexA(this.pal().accent, '12'))
+            .borderRadius(this.f(999))
+        }
+        .width('100%')
+        .alignItems(HorizontalAlign.Center)
+        .position({ x: 0, y: this.fy(84) })
+      }
+
+      Column() {
+        if (this.content.body.trim() === '') {
+          Text($r('app.string.poster_empty_hint'))
+            .fontSize(this.f(28))
+            .fontColor(this.pal().sub)
+            .fontFamily(this.font())
+            .textAlign(TextAlign.Center)
+        } else if (this.pyEnabled()) {
+          Column() {
+            this.PinyinBody(this.bodyFont(54, false), this.pal().title, this.pal().sub, true, false, 'none', '100%')
+          }
+          .width('100%')
+          .alignItems(HorizontalAlign.Center)
+        } else {
+          Text(this.content.body)
+            .fontSize(this.bodyFont(54, false))
+            .lineHeight(this.bodyFont(54, false) * 1.55)
+            .fontColor(this.pal().title)
+            .fontFamily(this.font())
+            .letterSpacing(this.f(10))
+            .maxLines(5)
+            .textAlign(TextAlign.Center)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
+            .shadow({ radius: this.f(35), color: '#8C000000', offsetY: this.f(5) })
+        }
+      }
+      .width('100%')
+      .height(this.fy(726) - this.fy(518))
+      .justifyContent(FlexAlign.Center)
+      .padding({ left: this.f(96), right: this.f(96) })
+      .position({ x: 0, y: this.fy(518) })
+
+      Text('HAPPY FESTIVAL · POCKET GREETING')
+        .fontSize(this.f(19))
+        .letterSpacing(this.f(11))
+        .fontColor(this.hexA(this.pal().sub, '99'))
+        .width('100%')
+        .textAlign(TextAlign.Center)
+        .position({ x: 0, y: this.fy(726) })
+
+      if (this.content.sign.trim() !== '') {
+        Text('— ' + this.content.sign + ' —')
+          .fontSize(this.f(21))
+          .letterSpacing(this.f(6))
+          .fontColor(this.hexA(this.pal().accent, 'B8'))
+          .fontFamily(this.font())
+          .width('100%')
+          .textAlign(TextAlign.Center)
+          .position({ x: 0, y: this.h() - this.f(96) })
+      }
+
+      Column()
+        .width('100%')
+        .height('100%')
+        .radialGradient({
+          center: ['50%', '50%'],
+          radius: '95%',
+          colors: [['#00000000', 0.55], [this.hexA('#03050C', '80'), 1]],
+        })
+        .hitTestBehavior(HitTestMode.None)
+    }
+    .width('100%')
+    .height('100%')
+  }
+
+  // ---------- T18 红包对联风（红金竖批 + 铜钱团花，参照 docs/文案海报候选_红包对联风.html） ----------
+
+  /** T18 竖批主文案字号分档（设计 px） */
+  private coupletBodyPx(): number {
+    let n: number = this.vertChars(this.content.body).length;
+    if (n <= 12) {
+      return 70;
+    }
+    if (n <= 24) {
+      return 56;
+    }
+    return 44;
+  }
+
+  /** T18 每列字数 */
+  private coupletPerCol(): number {
+    let lh: number = this.f(this.coupletBodyPx() * 1.36);
+    let avail: number = this.h() - this.fy(238) - this.fy(174);
+    return Math.max(1, Math.floor(avail / lh));
+  }
+
+  /** T18 列数上限 */
+  private coupletMaxCols(): number {
+    let pitch: number = this.f(this.coupletBodyPx() * 1.9);
+    let avail: number = this.previewWidth - this.f(212) * 2;
+    return Math.max(1, Math.floor(avail / pitch));
+  }
+
+  @Builder
+  CoupletCoin(xVp: number, yVp: number) {
+    Stack({ alignContent: Alignment.Center }) {
+      Circle({ width: this.f(74), height: this.f(74) })
+        .fill('#00000000')
+        .stroke(this.hexA(this.pal().accent, '29'))
+        .strokeWidth(this.f(3.2))
+      Circle({ width: this.f(38), height: this.f(38) })
+        .fill('#00000000')
+        .stroke(this.hexA(this.pal().accent, '29'))
+        .strokeWidth(this.f(3.2))
+      Row()
+        .width(this.f(38))
+        .height(this.f(38))
+        .border({ width: this.f(3.2), color: this.hexA(this.pal().accent, '1A') })
+        .borderRadius(this.f(6.4))
+    }
+    .width(this.f(74))
+    .height(this.f(74))
+    .position({ x: xVp, y: yVp })
+  }
+
+  @Builder
+  CoupletCorner(xVp: number, yVp: number, align: Alignment) {
+    Stack({ alignContent: align }) {
+      Row().width(this.f(54)).height(this.f(4.8)).backgroundColor(this.pal().accent)
+      Row().width(this.f(4.8)).height(this.f(54)).backgroundColor(this.pal().accent)
+    }
+    .width(this.f(54))
+    .height(this.f(54))
+    .position({ x: xVp, y: yVp })
+  }
+
+  @Builder
+  RedCouplet() {
+    Stack() {
+      this.CoupletCoin(this.f(42), this.fy(154))
+      this.CoupletCoin(this.f(42), this.fy(305))
+      this.CoupletCoin(this.f(42), this.fy(456))
+      this.CoupletCoin(this.previewWidth - this.f(42) - this.f(74), this.fy(154))
+      this.CoupletCoin(this.previewWidth - this.f(42) - this.f(74), this.fy(305))
+
+      Column()
+        .width(this.previewWidth - this.f(32) * 2)
+        .height(this.h() - this.f(32) * 2)
+        .border({ width: this.f(3.2), color: this.hexA(this.pal().accent, 'D9') })
+        .position({ x: this.f(32), y: this.f(32) })
+      Column()
+        .width(this.previewWidth - this.f(43) * 2)
+        .height(this.h() - this.f(43) * 2)
+        .border({ width: this.f(1.6), color: this.hexA(this.pal().accent, '73') })
+        .position({ x: this.f(43), y: this.f(43) })
+
+      this.CoupletCorner(this.f(55), this.fy(55), Alignment.TopStart)
+      this.CoupletCorner(this.previewWidth - this.f(55) - this.f(54), this.fy(55), Alignment.TopEnd)
+      this.CoupletCorner(this.f(55), this.h() - this.fy(55) - this.f(54), Alignment.BottomStart)
+      this.CoupletCorner(this.previewWidth - this.f(55) - this.f(54), this.h() - this.fy(55) - this.f(54),
+        Alignment.BottomEnd)
+
+      if (this.content.tag.trim() !== '') {
+        Column() {
+          Text(this.content.tag)
+            .fontSize(this.f(38))
+            .fontWeight(FontWeight.Bold)
+            .fontColor(this.pal().title)
+            .fontFamily(this.font())
+            .letterSpacing(this.f(19))
+            .maxLines(1)
+            .padding({ left: this.f(48) + this.f(19), right: this.f(48), top: this.f(14), bottom: this.f(14) })
+            .backgroundColor(this.pal().block)
+            .border({ width: this.f(2.4), color: this.pal().accent })
+            .shadow({ radius: this.f(26), color: '#59000000', offsetY: this.f(6) })
+        }
+        .width('100%')
+        .alignItems(HorizontalAlign.Center)
+        .position({ x: 0, y: this.fy(87) })
+      }
+
+      Column()
+        .width(this.f(2.4))
+        .height(this.h() - this.fy(225) - this.fy(161))
+        .linearGradient({
+          angle: 180,
+          colors: [[this.hexA(this.pal().accent, '00'), 0], [this.hexA(this.pal().accent, 'BF'), 0.14],
+            [this.hexA(this.pal().accent, 'BF'), 0.86], [this.hexA(this.pal().accent, '00'), 1]],
+        })
+        .position({ x: this.f(212), y: this.fy(225) })
+      Column()
+        .width(this.f(2.4))
+        .height(this.h() - this.fy(225) - this.fy(161))
+        .linearGradient({
+          angle: 180,
+          colors: [[this.hexA(this.pal().accent, '00'), 0], [this.hexA(this.pal().accent, 'BF'), 0.14],
+            [this.hexA(this.pal().accent, 'BF'), 0.86], [this.hexA(this.pal().accent, '00'), 1]],
+        })
+        .position({ x: this.previewWidth - this.f(212) - this.f(2.4), y: this.fy(225) })
+
+      Circle({ width: this.f(16), height: this.f(16) }).fill(this.pal().accent)
+        .shadow({ radius: this.f(8), color: '#66000000', offsetY: this.f(2) })
+        .position({ x: this.f(212) + this.f(1.2) - this.f(8), y: this.fy(225) - this.f(19) })
+      Circle({ width: this.f(16), height: this.f(16) }).fill(this.pal().accent)
+        .shadow({ radius: this.f(8), color: '#66000000', offsetY: this.f(2) })
+        .position({ x: this.previewWidth - this.f(212) - this.f(1.2) - this.f(8), y: this.fy(225) - this.f(19) })
+      Circle({ width: this.f(16), height: this.f(16) }).fill(this.pal().accent)
+        .shadow({ radius: this.f(8), color: '#66000000', offsetY: this.f(2) })
+        .position({ x: this.f(212) + this.f(1.2) - this.f(8), y: this.h() - this.fy(161) + this.f(3) })
+      Circle({ width: this.f(16), height: this.f(16) }).fill(this.pal().accent)
+        .shadow({ radius: this.f(8), color: '#66000000', offsetY: this.f(2) })
+        .position({ x: this.previewWidth - this.f(212) - this.f(1.2) - this.f(8), y: this.h() - this.fy(161) + this.f(3) })
+
+      Column() {
+        if (this.content.body.trim() === '') {
+          Text($r('app.string.poster_empty_hint'))
+            .fontSize(this.f(30))
+            .fontColor(this.hexA(this.pal().title, 'CC'))
+            .fontFamily(this.font())
+            .width('100%')
+            .textAlign(TextAlign.Center)
+        } else {
+          Row({ space: this.f(this.coupletBodyPx() * 0.9) }) {
+            ForEach(this.vertColsRtl(this.content.body, this.coupletPerCol(), this.coupletMaxCols()),
+              (col: string[], i: number) => {
+                Text(col.join('\n'))
+                  .fontSize(this.f(this.coupletBodyPx()))
+                  .lineHeight(this.f(this.coupletBodyPx() * 1.36))
+                  .fontWeight(FontWeight.Bold)
+                  .fontColor(this.pal().title)
+                  .fontFamily(this.font())
+                  .textAlign(TextAlign.Center)
+                  .shadow({ radius: this.f(16), color: '#66000000', offsetY: this.f(3) })
+              }, (col: string[], i: number) =>
+              i.toString() + '-' + col.length.toString() + '-' + (col.length > 0 ? col[0] : ''))
+          }
+          .alignItems(VerticalAlign.Top)
+        }
+      }
+      .width(this.previewWidth - this.f(212) * 2)
+      .height(this.h() - this.fy(238) - this.fy(174))
+      .alignItems(HorizontalAlign.Center)
+      .position({ x: this.f(212), y: this.fy(238) })
+
+      if (this.content.sign.trim() !== '') {
+        Column() {
+          Text(this.vertChars(this.content.sign).join('\n'))
+            .fontSize(this.f(22))
+            .lineHeight(this.f(29))
+            .fontColor(this.hexA(this.pal().title, 'D9'))
+            .fontFamily(this.font())
+            .textAlign(TextAlign.Center)
+        }
+        .width('100%')
+        .height('100%')
+        .justifyContent(FlexAlign.End)
+        .alignItems(HorizontalAlign.End)
+        .padding({ right: this.f(100), bottom: this.f(148) })
+      }
+
+      Text('HAPPY NEW YEAR · POCKET BLESSING')
+        .fontSize(this.f(19))
+        .letterSpacing(this.f(10))
+        .fontColor(this.hexA(this.pal().sub, '99'))
+        .width('100%')
+        .textAlign(TextAlign.Center)
+        .position({ x: 0, y: this.h() - this.f(93) })
+
+      Column()
+        .width('100%')
+        .height('100%')
+        .radialGradient({
+          center: ['50%', '50%'],
+          radius: '95%',
+          colors: [['#00000000', 0.58], [this.hexA('#3C0204', '6B'), 1]],
         })
         .hitTestBehavior(HitTestMode.None)
     }

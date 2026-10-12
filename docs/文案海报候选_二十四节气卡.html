@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>二十四节气卡 · 文案海报候选（T16 方向 A）</title>
+<!-- 槽位映射：tag=节气名（左竖排大字） / body=主文案（右竖排） / sign=署名（左下小字）；配色字段：bg=纸色 accent=印章红 title=主文案墨 sub=次要文字 block=节气名色 grid=边框线色 -->
+<!-- 风格：竖排主文案 + 物候/节气歌小字 + 古典配色；迁移时物候脚注（节气歌）为固定装饰文案 -->
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #2B2620;
+    overflow: hidden;
+    font-family: "Songti SC", "SimSun", "宋体", serif;
+  }
+
+  .stage {
+    width: 560px;
+    height: 560px;
+    margin: 10px auto;
+    position: relative;
+    background:
+      radial-gradient(ellipse at 30% 18%, #FAF5E9 0%, #F3ECDA 55%, #EAE1C8 100%);
+    overflow: hidden;
+  }
+
+  /* 纸纹颗粒 */
+  .grain {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(140, 106, 63, 0.05) 1px, transparent 1px);
+    background-size: 7px 7px;
+  }
+
+  /* 双线边框 */
+  .frame {
+    position: absolute;
+    inset: 18px;
+    border: 1px solid #C9BC9C;
+  }
+  .frame2 {
+    position: absolute;
+    inset: 25px;
+    border: 2px solid #8C6A3F;
+  }
+
+  /* 四角饰钉 */
+  .corner {
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    background: #8C6A3F;
+    transform: rotate(45deg);
+  }
+  .c1 { left: 40px; top: 40px; }
+  .c2 { right: 40px; top: 40px; }
+  .c3 { left: 40px; bottom: 40px; }
+  .c4 { right: 40px; bottom: 40px; }
+
+  /* 左列：节气名竖排 + 印章 */
+  .term-col {
+    position: absolute;
+    left: 74px;
+    top: 92px;
+    bottom: 92px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+  }
+  .term {
+    writing-mode: vertical-rl;
+    font-size: 46px;
+    font-weight: bold;
+    letter-spacing: 14px;
+    color: #3B4A3F;
+  }
+  .term-sub {
+    writing-mode: vertical-rl;
+    font-size: 11px;
+    letter-spacing: 6px;
+    color: #8C6A3F;
+    font-family: Arial, "Songti SC", serif;
+  }
+  .seal {
+    width: 40px;
+    height: 40px;
+    background: #B03A2E;
+    border-radius: 4px;
+    color: #F6EFDE;
+    font-size: 13px;
+    line-height: 1.1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    writing-mode: vertical-rl;
+    letter-spacing: 2px;
+    box-shadow: 0 2px 6px rgba(176, 58, 46, 0.35);
+  }
+
+  /* 中缝分隔 */
+  .spine {
+    position: absolute;
+    left: 168px;
+    top: 84px;
+    bottom: 84px;
+    width: 1px;
+    background: linear-gradient(180deg, transparent, #C9BC9C 18%, #C9BC9C 82%, transparent);
+  }
+
+  /* 右侧：主文案竖排（可多列） */
+  .body-col {
+    position: absolute;
+    top: 76px;
+    right: 76px;
+    bottom: 130px;
+    writing-mode: vertical-rl;
+    font-size: 30px;
+    line-height: 1.9;
+    letter-spacing: 8px;
+    color: #2E2A22;
+    max-height: 354px;
+  }
+
+  /* 物候脚注（固定装饰：节气歌） */
+  .phenology {
+    position: absolute;
+    left: 74px;
+    right: 74px;
+    bottom: 52px;
+    text-align: center;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: #8C6A3F;
+  }
+  .phenology::before,
+  .phenology::after {
+    content: "";
+    display: inline-block;
+    width: 34px;
+    height: 1px;
+    background: #C9BC9C;
+    vertical-align: middle;
+    margin: 0 12px;
+  }
+
+  /* 署名 */
+  .sign {
+    position: absolute;
+    right: 76px;
+    bottom: 78px;
+    writing-mode: vertical-rl;
+    font-size: 13px;
+    letter-spacing: 4px;
+    color: #77664A;
+  }
+
+  .vignette {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 62%, rgba(62, 48, 26, 0.16) 100%);
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="grain"></div>
+  <div class="frame"></div>
+  <div class="frame2"></div>
+  <div class="corner c1"></div>
+  <div class="corner c2"></div>
+  <div class="corner c3"></div>
+  <div class="corner c4"></div>
+  <div class="term-col">
+    <div class="term">立春</div>
+    <div class="term-sub">BEGINNING OF SPRING</div>
+    <div class="seal">节气</div>
+  </div>
+  <div class="spine"></div>
+  <div class="body-col">春风如贵客，一到便繁华</div>
+  <div class="sign">—— 随身工具宝</div>
+  <div class="phenology">春雨惊春清谷天 · 夏满芒夏暑相连</div>
+  <div class="vignette"></div>
+</div>
+
+</body>
+</html>

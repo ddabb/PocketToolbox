@@ -1,6 +1,6 @@
 /**
- * 文案海报页面：预览 + 比例(1:1/3:4) + 模板选择(T1-T4) + 文字/样式编辑 + 换一句灵感 + 导出 + 历史
- * 需求文档：docs/文案海报生成器需求文档.md
+ * 文案海报页面：预览 + 比例(1:1/3:4/9:16长图) + 模板选择(T1-T15) + 文字/样式编辑(含注音开关) + 换一句灵感 + 导出 + 历史
+ * 需求文档：docs/文案海报生成器需求文档.md；1.4.4 计划：docs/1.4.4开发计划.md
  */
 import { display } from '@kit.ArkUI';
 import { image } from '@kit.ImageKit';
@@ -24,7 +24,7 @@ import { StrUtil } from '../common/utils/StrUtil';
 import { savePixelMapToAlbum, shareImageViaPanel } from '../common/utils/ShareImageUtil';
 
 const PREVIEW_ID: string = 'copyposter_preview';
-const INSPIRATION_COUNT: number = 40;
+const INSPIRATION_COUNT: number = 60;
 
 @Builder
 export function CopyPosterPageBuilder() {
@@ -43,11 +43,11 @@ struct CopyPosterEditor {
   @State content: CopyPosterContent = new CopyPosterContent();
   @State paletteIndex: number = 0;
   @State fontIndex: number = 0;
+  @State pinyinOn: boolean = false;
   @State editorTab: number = 0;
   @State exporting: boolean = false;
   @State historyRecords: CoverHistoryRecord[] = [];
   previewVp: number = 300;
-  snapshotScale: number = 1;
   /** 屏幕密度（vp->px），透传给预览组件做 3D 透视 */
   densityPx: number = 3;
   /** 「换一句」已推荐文案（会话内去重） */
@@ -55,6 +55,7 @@ struct CopyPosterEditor {
   private ratioOptions: ChipOption[] = [
     ChipOption.of(CopyPosterRatio.SQUARE, CopyPosterRatio.label(CopyPosterRatio.SQUARE)),
     ChipOption.of(CopyPosterRatio.PORTRAIT, CopyPosterRatio.label(CopyPosterRatio.PORTRAIT)),
+    ChipOption.of(CopyPosterRatio.LONG, CopyPosterRatio.label(CopyPosterRatio.LONG)),
   ];
 
   aboutToAppear(): void {
@@ -64,12 +65,10 @@ struct CopyPosterEditor {
       let density: number = d.densityPixels;
       let availVp: number = d.width / density - 32;
       this.previewVp = Math.min(900 / density, availVp);
-      this.snapshotScale = CopyPosterTemplates.EXPORT_W / (this.previewVp * density);
       this.densityPx = density;
     } catch (e) {
       console.error('[CopyPoster] getDefaultDisplaySync failed: ' + (e as Error).message);
       this.previewVp = 360;
-      this.snapshotScale = 3;
     }
     this.selectTemplate(CopyPosterTemplates.getById('T1'));
     this.historyRecords = CoverHistoryStore.loadRecords(this.context(), CoverHistoryStore.DIR_POSTER);
@@ -83,6 +82,16 @@ struct CopyPosterEditor {
 
   private context(): common.UIAbilityContext {
     return this.getUIContext().getHostContext() as common.UIAbilityContext;
+  }
+
+  /** 预览渲染宽度：方图/竖图占满可用宽；9:16 长图同高变窄（宽 = 预览高 × 9/16，高与 3:4 持平） */
+  private previewW(): number {
+    return this.ratioKind === CopyPosterRatio.LONG ? this.previewVp * 0.75 : this.previewVp;
+  }
+
+  /** 组件快照缩放：保证导出宽恒 1080 像素精确（长图预览变窄后缩放同步增大） */
+  private snapshotScaleFor(): number {
+    return CopyPosterTemplates.EXPORT_W / (this.previewW() * this.densityPx);
   }
 
   /** 切换模板：保留已输入内容，仅补空槽默认值 */
@@ -180,6 +189,7 @@ struct CopyPosterEditor {
     if (parts.length > 1) {
       this.ratioKind = parts[1];
     }
+    this.pinyinOn = parts.length > 2 && parts[2] === 'py' && t.supportsPinyin;
     this.paletteIndex = r.paletteIndex;
     this.fontIndex = r.fontIndex;
     this.content = CopyPosterContent.fromJson(r.textsJson);
@@ -208,7 +218,7 @@ struct CopyPosterEditor {
       let uiCtx: UIContext = this.getUIContext();
       let snapshot = uiCtx.getComponentSnapshot();
       let pixelMap: image.PixelMap =
-        await snapshot.get(PREVIEW_ID, { scale: this.snapshotScale, waitUntilRenderFinished: true });
+        await snapshot.get(PREVIEW_ID, { scale: this.snapshotScaleFor(), waitUntilRenderFinished: true });
       let packer: image.ImagePacker = image.createImagePacker();
       let context: common.UIAbilityContext = this.context();
       let fileName: string = 'poster_' + Date.now() + '.png';
@@ -227,7 +237,8 @@ struct CopyPosterEditor {
       let record: CoverHistoryRecord = CoverHistoryRecord.of(
         Date.now().toString(36) + Math.floor(Math.random() * 1000).toString(),
         CoverHistoryStore.makeFileName(),
-        this.currentTemplateId + '|' + this.ratioKind,
+        this.currentTemplateId + '|' + this.ratioKind +
+          (this.pinyinOn && this.currentTemplate().supportsPinyin ? '|py' : ''),
         this.paletteIndex, this.fontIndex, this.content.toJson(), Date.now());
       if (CoverHistoryStore.saveRecord(context, filePath, record, CoverHistoryStore.DIR_POSTER)) {
         this.historyRecords = CoverHistoryStore.loadRecords(context, CoverHistoryStore.DIR_POSTER);
@@ -311,12 +322,13 @@ struct CopyPosterEditor {
             paletteIndex: this.paletteIndex,
             fontIndex: this.fontIndex,
             ratioKind: this.ratioKind,
-            previewWidth: this.previewVp,
+            previewWidth: this.previewW(),
             density: this.densityPx,
+            pinyinOn: this.pinyinOn,
           })
         }
-        .width(this.previewVp)
-        .height(this.previewVp * CopyPosterRatio.designHeight(this.ratioKind) / 900)
+        .width(this.previewW())
+        .height(this.previewW() * CopyPosterRatio.designHeight(this.ratioKind) / 900)
         .clip(true)
         .id(PREVIEW_ID)
       }
@@ -534,6 +546,25 @@ struct CopyPosterEditor {
       }
       .width('100%')
       .alignItems(HorizontalAlign.Start)
+
+      if (this.currentTemplate().supportsPinyin) {
+        Column({ space: 10 }) {
+          Text($r('app.string.poster_pinyin_label'))
+            .fontSize(12)
+            .fontColor(this.labelColor())
+          Text(this.pinyinOn ? $r('app.string.poster_pinyin_on') : $r('app.string.poster_pinyin_off'))
+            .fontSize(13)
+            .padding({ left: 14, right: 14, top: 7, bottom: 7 })
+            .backgroundColor(this.pinyinOn ? $r('app.color.brand_blue') : this.chipBg())
+            .fontColor(this.pinyinOn ? $r('app.color.on_accent_text') : this.chipText())
+            .borderRadius(14)
+            .onClick(() => {
+              this.pinyinOn = !this.pinyinOn;
+            })
+        }
+        .width('100%')
+        .alignItems(HorizontalAlign.Start)
+      }
     }
     .width('100%')
     .padding({ top: 12 })
