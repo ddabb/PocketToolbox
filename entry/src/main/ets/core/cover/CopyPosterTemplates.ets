@@ -1,13 +1,15 @@
 /**
- * 文案海报模板注册表：18 个模板（T1 暖调标签卡 / T2 纯色简约 / T3 文艺手写 / T4 大字冲击 / T5 LCD 像素屏
+ * 文案海报模板注册表：21 个模板（T1 暖调标签卡 / T2 纯色简约 / T3 文艺手写 / T4 大字冲击 / T5 LCD 像素屏
  *   / T6 CRT 终端屏 / T7 霓虹灯招牌 / T8 掌机游戏机 / T9 复古车票 / T10 翻牌显示屏
  *   / T11 复古报纸 / T12 聊天气泡 / T13 黑胶唱片 / T14 电影字幕卡 / T15 公告栏启事
- *   / T16 二十四节气卡 / T17 节日祝福卡 / T18 红包对联风）
+ *   / T16 二十四节气卡 / T17 节日祝福卡 / T18 红包对联风
+ *   / T19 撕纸拼贴 / T20 竖排标点 / T21 层叠色块，均为大字金句类）
  * 设计稿宽 900px；导出 1080x1080（1:1）/ 1080x1440（3:4）/ 1080x1920（9:16 长图）
  * supportsPinyin=false 的固定构图模板（T9/T10/T13/T14/T15/T16/T18）隐藏注音开关（1.4.4 待确认 4 默认：允许隐藏）
  * 需求文档：docs/文案海报生成器需求文档.md §4；T5-T10 参照 docs/页面渲染失败问题排查.html 及 docs/文案海报候选_*.html；
  *   T11-T15 参照 docs/文案海报候选2_总览.html（复古报纸/聊天气泡/黑胶唱片/电影字幕卡/公告栏启事）；
  *   T16-T18 参照 docs/文案海报候选_二十四节气卡.html / 文案海报候选_节日祝福卡.html / 文案海报候选_红包对联风.html
+ * 分类导航见 model/CopyPosterModels.ets 的 CopyPosterCategories（1.4.5 优化新增）
  */
 import { CoverPalette } from '../../model/CoverModels';
 import { CopyPosterTemplate } from '../../model/CopyPosterModels';
@@ -365,6 +367,63 @@ export class CopyPosterTemplates {
       ],
       [CoverFont.HUANG_YOU, CoverFont.XIAO_WEI, CoverFont.FEI_BAI, CoverFont.MA_SHAN, CoverFont.HANI_SANS],
       { 'body': '岁岁平安，万事胜意', 'sign': '随身工具宝', 'tag': '新春大吉' }, false));
+
+    // ---------- T19 撕纸拼贴（大字金句 · 手撕纸 + 胶带） ----------
+    // 配色字段约定：bg=桌面底色 accent=强调/胶带 title=纸面墨色 sub=次要墨色 block=纸面块色 grid=胶带色
+    list.push(CopyPosterTemplate.of('T19', $r('app.string.poster_tmpl_t19'), 'torn_paper',
+      ['body', 'sign', 'tag'],
+      [
+        CoverPalette.of($r('app.string.tmpl_pal_kraft_desk'), '#8C7A63', '#D8231A', '#2B241C', '#6E5F4E',
+          '', '#F4EFE3', '#D9C9A8'),
+        CoverPalette.of($r('app.string.tmpl_pal_slate_blue'), '#4A5568', '#E8B84B', '#F7F5EF', '#8A94A6',
+          '', '#FFFFFF', '#B8C2D0'),
+        CoverPalette.of($r('app.string.tmpl_pal_moss_green'), '#4F5D45', '#E86A33', '#F5F3E8', '#79856F',
+          '', '#FDFBF2', '#C3CDB4'),
+        CoverPalette.of($r('app.string.tmpl_pal_plum_dark'), '#3A2C3F', '#F2A2C0', '#F6EFF4', '#8E7A94',
+          '', '#FFFBFE', '#BFA3C8'),
+        CoverPalette.of($r('app.string.tmpl_pal_charcoal'), '#2E2E30', '#5AC8E8', '#F2F4F5', '#8A8E93',
+          '', '#FFFFFF', '#9AA0A6'),
+      ],
+      [CoverFont.HUANG_YOU, CoverFont.WENKAI, CoverFont.XIAO_WEI, CoverFont.SERIF, CoverFont.MA_SHAN],
+      { 'body': '慢慢来，比较快', 'sign': '—— 木舟', 'tag': 'DAILY' }));
+
+    // ---------- T20 竖排标点（大字金句 · 日式竖排 + 右侧竖线） ----------
+    // 配色字段约定：bg=纸色 accent=竖线/强调色 title=正文墨色 sub=标签色 block=留白块 grid=辅助线色
+    list.push(CopyPosterTemplate.of('T20', $r('app.string.poster_tmpl_t20'), 'vertical_quote',
+      ['body', 'sign', 'tag'],
+      [
+        CoverPalette.of($r('app.string.tmpl_pal_washi'), '#F5F1E6', '#B03A2E', '#26221C', '#8A7E6C',
+          '', '#FBF8F0', '#C9BCA4'),
+        CoverPalette.of($r('app.string.tmpl_pal_indigo_washi'), '#EAEDF2', '#2E4A7D', '#1A1E28', '#6E7686',
+          '', '#FFFFFF', '#C2C9D6'),
+        CoverPalette.of($r('app.string.tmpl_pal_ink_washi'), '#1E1E20', '#D94F3D', '#F0EEE8', '#9A968E',
+          '', '#2A2A2C', '#4A4A4E'),
+        CoverPalette.of($r('app.string.tmpl_pal_moss_washi'), '#EDF0E8', '#4A6B4F', '#20281F', '#77836F',
+          '', '#FAFBF6', '#BCC7B4'),
+        CoverPalette.of($r('app.string.tmpl_pal_blush_washi'), '#FBF0F2', '#C0446A', '#2E2026', '#A08890',
+          '', '#FFFFFF', '#E8C6CE'),
+      ],
+      [CoverFont.XIAO_WEI, CoverFont.WENKAI, CoverFont.SERIF, CoverFont.FEI_BAI, CoverFont.MA_SHAN],
+      { 'body': '所爱隔山海，山海皆可平', 'sign': '在路上', 'tag': 'QUOTE' }));
+
+    // ---------- T21 层叠色块（大字金句 · 三色错位叠压） ----------
+    // 配色字段约定：bg=底色 accent=前景色块 title=纸面墨色 sub=标签/署名色 block=后景色块 grid=分隔色
+    list.push(CopyPosterTemplate.of('T21', $r('app.string.poster_tmpl_t21'), 'color_blocks',
+      ['body', 'sign', 'tag'],
+      [
+        CoverPalette.of($r('app.string.tmpl_pal_cobalt_stack'), '#F2F4F8', '#2E5FD6', '#1A2233', '#6B7688',
+          '', '#FFD84D', '#2E5FD6'),
+        CoverPalette.of($r('app.string.tmpl_pal_sunset_stack'), '#FFF4EC', '#F2622E', '#2B1D14', '#8A7264',
+          '', '#2E6B5E', '#F2622E'),
+        CoverPalette.of($r('app.string.tmpl_pal_lilac_stack'), '#F4F1FA', '#7C4DD6', '#231A33', '#7A6E94',
+          '', '#F0B429', '#7C4DD6'),
+        CoverPalette.of($r('app.string.tmpl_pal_mint_stack'), '#EEF7F1', '#12A06A', '#132A1E', '#6C8478',
+          '', '#F25F5C', '#12A06A'),
+        CoverPalette.of($r('app.string.tmpl_pal_sand_stack'), '#F6F1E4', '#C98A2E', '#2E2618', '#8C7C5E',
+          '', '#2F5FA8', '#C98A2E'),
+      ],
+      [CoverFont.HUANG_YOU, CoverFont.KUAI_LE, CoverFont.SMILEY, CoverFont.ROUND, CoverFont.HANI_SANS],
+      { 'body': '把日子过成诗', 'sign': '随身工具宝', 'tag': 'LIFE' }));
 
     return list;
   }

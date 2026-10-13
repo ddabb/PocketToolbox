@@ -101,6 +101,104 @@ export class CopyPosterContent {
   }
 }
 
+/**
+ * 模板分类（1.4.5 文案海报优化 · 分类导航）
+ *
+ * 背景：缩略图 96vp、间距 10vp，手机屏宽约 360-400vp，一屏只能显示 3-4 个；
+ * 18 个模板需要横滑 5 次才到末尾，且滑过后用户已记不清前面有什么。
+ * 改为「顶部分类 chips + 下方只显示该类模板」。
+ *
+ * 分类依据「视觉风格」而非「题材」——用户选模板时先想的是要什么调性，
+ * 而不是内容属于节日还是日常。
+ */
+export class CopyPosterCategory {
+  /** 分类 id，写入 preferences 用于记忆上次选择 */
+  id: string = '';
+  /** 分类显示名（ResourceStr，跟随三语） */
+  name: ResourceStr = '';
+  /** 该分类下的模板 id */
+  templateIds: string[] = [];
+
+  static of(id: string, name: ResourceStr, templateIds: string[]): CopyPosterCategory {
+    let c: CopyPosterCategory = new CopyPosterCategory();
+    c.id = id;
+    c.name = name;
+    c.templateIds = templateIds;
+    return c;
+  }
+}
+
+export class CopyPosterCategories {
+  static readonly SIMPLE: string = 'simple';
+  static readonly BOLD: string = 'bold';
+  static readonly TECH: string = 'tech';
+  static readonly LIFE: string = 'life';
+  static readonly FESTIVAL: string = 'festival';
+
+  /**
+   * 分类定义。T7 霓虹灯归入 tech（与 LCD/CRT/掌机同为发光设备风格）；
+   * 若后续要把霓虹单列一个「赛博」类，只需在此加一项并把 T7 移过去，页面代码零改动。
+   */
+  static all(): CopyPosterCategory[] {
+    return [
+      // 简约清新：低饱和、纸感、留白多
+      CopyPosterCategory.of(CopyPosterCategories.SIMPLE, $r('app.string.poster_cat_simple'),
+        ['T1', 'T2', 'T3']),
+      // 大字金句：冲击力强，主文案占比高
+      CopyPosterCategory.of(CopyPosterCategories.BOLD, $r('app.string.poster_cat_bold'),
+        ['T4', 'T19', 'T20', 'T21']),
+      // 科技复古：发光设备与旧时代质感
+      CopyPosterCategory.of(CopyPosterCategories.TECH, $r('app.string.poster_cat_tech'),
+        ['T5', 'T6', 'T7', 'T8', 'T10', 'T13']),
+      // 生活质感：印刷品、日用品、影视感
+      CopyPosterCategory.of(CopyPosterCategories.LIFE, $r('app.string.poster_cat_life'),
+        ['T9', 'T11', 'T12', 'T14', 'T15']),
+      // 节日节气：时令限定
+      CopyPosterCategory.of(CopyPosterCategories.FESTIVAL, $r('app.string.poster_cat_festival'),
+        ['T16', 'T17', 'T18']),
+    ];
+  }
+
+  static getById(id: string): CopyPosterCategory {
+    let list: CopyPosterCategory[] = CopyPosterCategories.all();
+    for (let i = 0; i < list.length; i++) {
+      if (list[i].id === id) {
+        return list[i];
+      }
+    }
+    return list[0];
+  }
+
+  /**
+   * 取某分类下的模板对象列表（保持传入注册表中的顺序）。
+   * 注册表由调用方传入（core/cover/CopyPosterTemplates.all()），
+   * 避免 model 层反向依赖 core 注册表造成循环导入。
+   */
+  static templatesOf(cat: CopyPosterCategory, registry: CopyPosterTemplate[]): CopyPosterTemplate[] {
+    let out: CopyPosterTemplate[] = [];
+    for (let i = 0; i < cat.templateIds.length; i++) {
+      for (let j = 0; j < registry.length; j++) {
+        if (registry[j].id === cat.templateIds[i]) {
+          out.push(registry[j]);
+          break;
+        }
+      }
+    }
+    return out;
+  }
+
+  /** 模板 id 所属分类；未登记的模板归入 simple（兜底，避免模板不可达） */
+  static categoryOfTemplate(templateId: string): string {
+    let list: CopyPosterCategory[] = CopyPosterCategories.all();
+    for (let i = 0; i < list.length; i++) {
+      if (list[i].templateIds.indexOf(templateId) >= 0) {
+        return list[i].id;
+      }
+    }
+    return CopyPosterCategories.SIMPLE;
+  }
+}
+
 /** 模板定义 */
 export class CopyPosterTemplate {
   id: string = '';

@@ -1,6 +1,7 @@
 /**
- * 文案海报页面：预览 + 比例(1:1/3:4/9:16长图) + 模板选择(T1-T15) + 文字/样式编辑(含注音开关) + 换一句灵感 + 导出 + 历史
+ * 文案海报页面：预览 + 比例(1:1/3:4/9:16长图) + 模板分类选择(T1-T21) + 文字/样式编辑(含注音开关) + 换一句灵感 + 导出 + 历史
  * 需求文档：docs/文案海报生成器需求文档.md；1.4.4 计划：docs/1.4.4开发计划.md
+ * 分类导航与模板优化：docs/文案海报优化计划.md（1.4.5）
  */
 import { display } from '@kit.ArkUI';
 import { image } from '@kit.ImageKit';
@@ -8,7 +9,14 @@ import { fileIo as fs } from '@kit.CoreFileKit';
 import { common } from '@kit.AbilityKit';
 import { BusinessError } from '@kit.BasicServicesKit';
 import { CoverHistoryRecord } from '../model/CoverModels';
-import { CopyPosterContent, CopyPosterRatio, CopyPosterSlot, CopyPosterTemplate } from '../model/CopyPosterModels';
+import {
+  CopyPosterCategories,
+  CopyPosterCategory,
+  CopyPosterContent,
+  CopyPosterRatio,
+  CopyPosterSlot,
+  CopyPosterTemplate
+} from '../model/CopyPosterModels';
 import { CopyPosterTemplates } from '../core/cover/CopyPosterTemplates';
 import { CoverFont } from '../core/cover/CoverTemplates';
 import { CoverContentUtil } from '../core/cover/CoverContentUtil';
@@ -23,6 +31,7 @@ import { ToastUtil } from '../common/utils/ToastUtil';
 import { StrUtil } from '../common/utils/StrUtil';
 import { savePixelMapToAlbum, shareImageViaPanel } from '../common/utils/ShareImageUtil';
 import { ClipboardFillUtil } from '../common/utils/ClipboardFillUtil';
+import { CopyPosterCategoryUtil } from '../common/utils/CopyPosterCategoryUtil';
 import { ClipboardHintBar } from '../components/ClipboardHintBar';
 
 const PREVIEW_ID: string = 'copyposter_preview';
@@ -50,6 +59,8 @@ struct CopyPosterEditor {
   @State exporting: boolean = false;
   @State historyRecords: CoverHistoryRecord[] = [];
   @State showClipHint: boolean = false;
+  /** 当前选中的模板分类 id（1.4.5 分类导航） */
+  @State categoryId: string = CopyPosterCategories.SIMPLE;
   previewVp: number = 300;
   /** 屏幕密度（vp->px），透传给预览组件做 3D 透视 */
   densityPx: number = 3;
@@ -60,6 +71,8 @@ struct CopyPosterEditor {
     ChipOption.of(CopyPosterRatio.PORTRAIT, CopyPosterRatio.label(CopyPosterRatio.PORTRAIT)),
     ChipOption.of(CopyPosterRatio.LONG, CopyPosterRatio.label(CopyPosterRatio.LONG)),
   ];
+  /** 分类 chips 选项（每项带该分类模板数，便于用户预判） */
+  private categoryOptions: ChipOption[] = [];
 
   aboutToAppear(): void {
     FontUtil.registerAll(this.getUIContext());
@@ -73,9 +86,56 @@ struct CopyPosterEditor {
       console.error('[CopyPoster] getDefaultDisplaySync failed: ' + (e as Error).message);
       this.previewVp = 360;
     }
+    this.buildCategoryOptions();
+    // 恢复上次选择的分类；无记录则用第一类。
+    // 若当前模板不属于该分类，把分类对齐到模板所属分类，避免「模板不在当前列表」的空档
+    let lastCat: string = CopyPosterCategoryUtil.loadLastCategory(this.context());
+    this.categoryId = lastCat !== '' ? lastCat : CopyPosterCategories.SIMPLE;
     this.selectTemplate(CopyPosterTemplates.getById('T1'));
+    if (CopyPosterCategories.categoryOfTemplate(this.currentTemplateId) !== this.categoryId) {
+      this.categoryId = CopyPosterCategories.categoryOfTemplate(this.currentTemplateId);
+    }
     this.historyRecords = CoverHistoryStore.loadRecords(this.context(), CoverHistoryStore.DIR_POSTER);
     this.showClipHint = ClipboardFillUtil.hasClipboardText();
+  }
+
+  /** 构建分类 chips：名称 + 该分类模板数（three 语） */
+  private buildCategoryOptions(): void {
+    let cats: CopyPosterCategory[] = CopyPosterCategories.all();
+    let opts: ChipOption[] = [];
+    for (let i = 0; i < cats.length; i++) {
+      let count: number = CopyPosterCategories.templatesOf(cats[i], CopyPosterTemplates.all()).length;
+      let label: string = StrUtil.text(this.context(), cats[i].name) + ' ' + count.toString();
+      opts.push(ChipOption.of(cats[i].id, label));
+    }
+    this.categoryOptions = opts;
+  }
+
+  /** 切换分类：若当前模板不在该分类下，自动选中该分类第一个模板 */
+  private onCategoryChange(catId: string): void {
+    this.categoryId = catId;
+    CopyPosterCategoryUtil.saveLastCategory(this.context(), catId);
+    let cat: CopyPosterCategory = CopyPosterCategories.getById(catId);
+    let list: CopyPosterTemplate[] = CopyPosterCategories.templatesOf(cat, CopyPosterTemplates.all());
+    if (list.length === 0) {
+      return;
+    }
+    let inThis: boolean = false;
+    for (let i = 0; i < list.length; i++) {
+      if (list[i].id === this.currentTemplateId) {
+        inThis = true;
+        break;
+      }
+    }
+    if (!inThis) {
+      this.selectTemplate(list[0]);
+    }
+  }
+
+  /** 当前分类下的模板列表 */
+  private currentCategoryTemplates(): CopyPosterTemplate[] {
+    return CopyPosterCategories.templatesOf(CopyPosterCategories.getById(this.categoryId),
+      CopyPosterTemplates.all());
   }
 
   /** 剪贴板填入主文案：按上限截断后走既有 onSlotChange 管道，本会话不再提示 */
@@ -396,51 +456,107 @@ struct CopyPosterEditor {
     })
   }
 
-  /** 模板横滑条：缩略图用当前用户内容实时渲染（提升模板切换转化） */
+  /**
+   * 单个模板缩略图（横滑条与网格共用）
+   * 缩略图用当前用户内容实时渲染，提升模板切换转化。
+   */
+  @Builder
+  TemplateThumb(t: CopyPosterTemplate) {
+    Column({ space: 5 }) {
+      Column() {
+        CopyPosterPreview({
+          template: t,
+          content: this.content,
+          paletteIndex: this.currentTemplateId === t.id ? this.paletteIndex : 0,
+          fontIndex: this.currentTemplateId === t.id ? this.fontIndex : 0,
+          ratioKind: CopyPosterRatio.SQUARE,
+          previewWidth: 96,
+          density: this.densityPx,
+          showWatermark: false,
+          isThumb: true,
+        })
+      }
+      .width(96)
+      .height(96)
+      .clip(true)
+      .borderRadius(8)
+      .border({
+        width: this.currentTemplateId === t.id ? 2 : 1,
+        color: this.currentTemplateId === t.id ? $r('app.color.brand_blue') : this.lineColor(),
+      })
+      .onClick(() => {
+        this.selectTemplate(t);
+      })
+
+      Text(StrUtil.text(this.context(), t.name))
+        .fontSize(10)
+        .fontColor(this.currentTemplateId === t.id ? $r('app.color.brand_blue') : this.labelColor())
+        .maxLines(1)
+    }
+    .alignItems(HorizontalAlign.Center)
+  }
+
+  /**
+   * 模板区：顶部分类 chips + 下方模板列表。
+   * 1.4.5 分类导航：原来 18 个模板平铺，一屏仅 3-4 个需横滑 5 次；
+   * 分类后每类 3-6 个，仍超一屏时横滑；不多于一屏时改网格铺满，避免「3 个模板还要横滑」。
+   */
   @Builder
   TemplateScroller() {
-    List({ space: 10 }) {
-      ForEach(CopyPosterTemplates.all(), (t: CopyPosterTemplate) => {
-        ListItem() {
-          Column({ space: 5 }) {
-            Column() {
-              CopyPosterPreview({
-                template: t,
-                content: this.content,
-                paletteIndex: this.currentTemplateId === t.id ? this.paletteIndex : 0,
-                fontIndex: this.currentTemplateId === t.id ? this.fontIndex : 0,
-                ratioKind: CopyPosterRatio.SQUARE,
-                previewWidth: 96,
-                density: this.densityPx,
-                showWatermark: false,
-              })
-            }
-            .width(96)
-            .height(96)
-            .clip(true)
-            .borderRadius(8)
-            .border({
-              width: this.currentTemplateId === t.id ? 2 : 1,
-              color: this.currentTemplateId === t.id ? $r('app.color.brand_blue') : this.lineColor(),
-            })
-            .onClick(() => {
-              this.selectTemplate(t);
-            })
-
-            Text(StrUtil.text(this.context(), t.name))
-              .fontSize(10)
-              .fontColor(this.currentTemplateId === t.id ? $r('app.color.brand_blue') : this.labelColor())
-              .maxLines(1)
-          }
-          .alignItems(HorizontalAlign.Center)
+    Column({ space: 8 }) {
+      // 1.4.5 真机走查修复：分类 chips 共 5 类总宽超出屏宽，ChipRow 根为不可滚动的 Row，
+      // 第 5 类「节日节气」被屏幕右缘裁掉、T16-T18 无法选择。
+      // 包一层横向 Scroll（同 CoverMakerPage.SeriesChips 模式）即可滚动可达。
+      Scroll() {
+        Column() {
+          ChipRow({
+            label: '',
+            labelColor: this.labelColor(),
+            options: this.categoryOptions,
+            selected: this.categoryId,
+            accent: $r('app.color.brand_blue'),
+            chipBg: this.chipBg(),
+            chipText: this.chipText(),
+            onSelect: (value: string) => {
+              this.onCategoryChange(value);
+            },
+          })
         }
-      }, (t: CopyPosterTemplate) => t.id)
+        .padding({ right: 12 })
+      }
+      .scrollable(ScrollDirection.Horizontal)
+      .scrollBar(BarState.Off)
+      .width('100%')
+
+      if (this.currentCategoryTemplates().length <= 4) {
+        // 该类模板不多于一屏：每行 4 个网格铺满，省掉横滑动作
+        // 用 Row 均分而非 Flex+LengthMetrics：工程内未使用过 LengthMetrics，避免 API 可用性风险
+        Column({ space: 10 }) {
+          Row({ space: 10 }) {
+            ForEach(this.currentCategoryTemplates(), (t: CopyPosterTemplate) => {
+              this.TemplateThumb(t)
+            }, (t: CopyPosterTemplate) => t.id)
+          }
+          .width('100%')
+          .justifyContent(FlexAlign.SpaceBetween)
+        }
+        .width('100%')
+      } else {
+        List({ space: 10 }) {
+          ForEach(this.currentCategoryTemplates(), (t: CopyPosterTemplate) => {
+            ListItem() {
+              this.TemplateThumb(t)
+            }
+          }, (t: CopyPosterTemplate) => t.id)
+        }
+        .listDirection(Axis.Horizontal)
+        .scrollBar(BarState.Off)
+        .width('100%')
+        .height(126)
+        .edgeEffect(EdgeEffect.Spring)
+      }
     }
-    .listDirection(Axis.Horizontal)
-    .scrollBar(BarState.Off)
     .width('100%')
-    .height(126)
-    .edgeEffect(EdgeEffect.Spring)
   }
 
   @Builder

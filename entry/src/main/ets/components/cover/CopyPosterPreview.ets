@@ -7,6 +7,7 @@ import { CopyPosterContent, CopyPosterRatio, CopyPosterTemplate } from '../../mo
 import { CoverPalette } from '../../model/CoverModels';
 import { CopyPosterTemplates } from '../../core/cover/CopyPosterTemplates';
 import { CoverContentUtil, HanziUnit } from '../../core/cover/CoverContentUtil';
+import { PosterLayout, PosterTypeset } from '../../core/cover/PosterTypeset';
 
 /** 拼音字号 / 主文案字号比（拼音走系统字体兜底，1.4.1 声调字符教训） */
 const PY_RATIO: number = 0.3;
@@ -27,6 +28,18 @@ export struct CopyPosterPreview {
   @Prop pinyinOn: boolean = false;
   /** 是否渲染根层水印（主预览/导出开，模板缩略图关防糊点） */
   @Prop showWatermark: boolean = true;
+  /**
+   * 是否为模板选择器的缩略图渲染（96px 见方）。
+   * 1.4.5 P2-6：T16/T17/T18 在 96px 下细节层会糊成噪点，缩略图模式需精简装饰层、
+   * 突出主形，保证小尺寸下仍可辨识。关闭时行为与优化前完全一致。
+   */
+  @Prop isThumb: boolean = false;
+
+  /**
+   * 最近一次 bodyFont 调用（走内核时）的排版结果，供 BodyBlock 显示「已省略 N 字」提示。
+   * 未启用内核（availWidthPx <= 0）时为 null，此时不显示提示，保持优化前行为。
+   */
+  private layoutCache: PosterLayout | null = null;
 
   /** 设计稿 px -> vp */
   private f(px: number): number {
@@ -58,8 +71,33 @@ export struct CopyPosterPreview {
     return this.content.body.replace(new RegExp('\\s', 'g'), '').length;
   }
 
-  /** 主文案字号：常规模板按长度 5 档缩放；大字模板 3 档 + 超 16 字降级常规；注音开启时按预算公式收缩 */
-  private bodyFont(basePx: number, big: boolean): number {
+  /**
+   * 主文案字号。
+   *
+   * 兼容说明（1.4.5 文案海报优化 P0-2）：
+   *   - availWidthPx 为可选参数。未传（<=0）时**行为与优化前完全一致**，走原 5 档阶梯；
+   *     这样 18 个 Builder 调用点可分批迁移，任一中途状态工程都可编译可运行。
+   *   - 传入容器可用宽度（设计稿 px）后，改由 PosterTypeset 内核按「宽度 + 行数预算」连续计算，
+   *     消除 32→33 字的字号骤变，并让窄容器（T1 pad70）不再顶格、宽容器（T10 pad24）不再显小。
+   *
+   * @param basePx        该模板的基准字号（设计稿 px）
+   * @param big           是否大字模板
+   * @param availWidthPx  容器可用宽度（设计稿 px）。<=0 表示不启用内核
+   * @param maxLines      行数预算覆盖（>0 生效）。用于两类场景：
+   *                      1) 渲染 maxLines 与内核预算错配的模板（T7 渲染 3 行但内核按 8/12 行算字）；
+   *                      2) 主文案与署名/dots 同列纵向排布的模板预留行数，避免满文案把署名挤出画布。
+   */
+  private bodyFont(basePx: number, big: boolean, availWidthPx: number = 0, maxLines: number = 0): number {
+    if (availWidthPx > 0) {
+      let budget: number = maxLines > 0 ? maxLines : this.maxBodyLines(big);
+      let layout: PosterLayout = PosterTypeset.layout(
+        this.content.body, availWidthPx, budget, basePx, big);
+      // 内核 fontPx 是设计稿 px（相对 900 宽），渲染前必须经 f() 缩放到实际预览尺寸；
+      // 漏掉这步会把字号直接当 fp 用（放大 ~900/previewWidth 倍），行数膨胀把署名挤出画布。
+      let px: number = this.f(layout.fontPx);
+      this.layoutCache = layout;
+      return this.pyEnabled() ? px * PY_SHRINK : px;
+    }
     let n: number = this.bodyLen();
     let s: number;
     if (big) {
@@ -83,6 +121,7 @@ export struct CopyPosterPreview {
     } else {
       s = this.f(basePx * 0.38);
     }
+    this.layoutCache = null;
     return this.pyEnabled() ? s * PY_SHRINK : s;
   }
 
@@ -92,6 +131,19 @@ export struct CopyPosterPreview {
       return 4;
     }
     return this.ratioKind === CopyPosterRatio.SQUARE ? 8 : 12;
+  }
+
+  /**
+   * 长文案行数预算预留（1.4.5 真机走查 P1）：主文案与署名/dots/tag 同列纵向排布的模板，
+   * 满文案（8/12 行）会把署名挤出画布（T1 走查：120 字时署名从 dump 消失）。
+   * 从预算里预留 reserve 行给兄弟元素；紧凑块（大字短文案 ≤4 行）本就克制，不压缩。
+   */
+  private bodyBudget(reserve: number, big: boolean = false): number {
+    let max: number = this.maxBodyLines(big);
+    if (max <= 4) {
+      return max;
+    }
+    return Math.max(3, max - reserve);
   }
 
   /** 注音是否生效：开关开 + 模板支持 + 主文案非空 */
@@ -182,6 +234,12 @@ export struct CopyPosterPreview {
         this.FestivalGreet()
       } else if (this.template.layout === 'red_couplet') {
         this.RedCouplet()
+      } else if (this.template.layout === 'torn_paper') {
+        this.TornPaper()
+      } else if (this.template.layout === 'vertical_quote') {
+        this.VerticalQuote()
+      } else if (this.template.layout === 'color_blocks') {
+        this.ColorBlocks()
       } else {
         this.BigImpact()
       }
@@ -241,9 +299,17 @@ export struct CopyPosterPreview {
     }
   }
 
-  /** 主文案块：空文案显示占位提示；注音开启逐字注音；超长自动缩字号 + 省略兜底 */
+  /**
+   * 主文案块：空文案显示占位提示；注音开启逐字注音；超长自动缩字号 + 省略兜底。
+   *
+   * 1.4.5 文案海报优化 P0-2/P0-3：
+   *   - availWidthPx 为可选参数。传值时字号由 PosterTypeset 内核按容器宽度 + 行数预算计算；
+   *     不传时行为与优化前完全一致，便于 18 个模板分批迁移。
+   *   - 启用内核且发生截断时，在文案下方显示「已省略 N 字」提示，
+   *     避免优化前 maxLines + Ellipsis 静默吞字、用户不知情（根因 C）。
+   */
   @Builder
-  BodyBlock(basePx: number, bold: boolean, big: boolean) {
+  BodyBlock(basePx: number, bold: boolean, big: boolean, availWidthPx: number = 0, maxLines: number = 0) {
     if (this.content.body.trim() === '') {
       Text($r('app.string.poster_empty_hint'))
         .fontSize(this.f(28))
@@ -251,18 +317,44 @@ export struct CopyPosterPreview {
         .fontFamily(this.font())
         .textAlign(TextAlign.Center)
     } else if (this.pyEnabled()) {
-      this.PinyinBody(this.bodyFont(basePx, big), this.pal().title, this.pal().sub, true, bold, 'none', '100%')
+      this.PinyinBody(this.bodyFont(basePx, big, availWidthPx, maxLines), this.pal().title, this.pal().sub, true, bold,
+        'none', '100%')
     } else {
-      Text(this.content.body)
-        .fontSize(this.bodyFont(basePx, big))
-        .lineHeight(this.bodyFont(basePx, big) * 1.4)
-        .fontColor(this.pal().title)
-        .fontFamily(this.font())
-        .fontWeight(bold ? FontWeight.Bold : FontWeight.Normal)
-        .maxLines(this.maxBodyLines(big))
-        .textAlign(TextAlign.Center)
-        .textOverflow({ overflow: TextOverflow.Ellipsis })
+      Column({ space: this.f(10) }) {
+        Text(this.content.body)
+          .fontSize(this.bodyFont(basePx, big, availWidthPx, maxLines))
+          .lineHeight(this.bodyFont(basePx, big, availWidthPx, maxLines) * 1.4)
+          .fontColor(this.pal().title)
+          .fontFamily(this.font())
+          .fontWeight(bold ? FontWeight.Bold : FontWeight.Normal)
+          .maxLines(maxLines > 0 ? maxLines : this.maxBodyLines(big))
+          .textAlign(TextAlign.Center)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+        if (this.truncatedHint() > 0) {
+          Text($r('app.string.poster_truncated_hint', this.truncatedHint()))
+            .fontSize(this.f(20))
+            .fontColor(this.pal().sub)
+            .fontFamily(this.font())
+            .opacity(0.75)
+            .textAlign(TextAlign.Center)
+            .maxLines(1)
+        }
+      }
+      .width('100%')
+      .alignItems(HorizontalAlign.Center)
     }
+  }
+
+  /**
+   * 截断提示字数：仅在启用内核（availWidthPx > 0）且判定为截断时返回，其余返回 0（不显示提示）。
+   * 需在 bodyFont 调用之后取值（layoutCache 由 bodyFont 写入）。
+   */
+  private truncatedHint(): number {
+    let cache: PosterLayout | null = this.layoutCache;
+    if (cache !== null && cache.truncated && cache.truncatedChars > 0) {
+      return cache.truncatedChars;
+    }
+    return 0;
   }
 
   // ---------- T1 暖调标签卡（示例图同款） ----------
@@ -276,7 +368,9 @@ export struct CopyPosterPreview {
         .position({ x: this.previewWidth - this.f(150), y: this.h() - this.f(240) })
       Column({ space: this.f(30) }) {
         this.TagPill()
-        this.BodyBlock(72, false, false)
+        // 可用宽 = 900 - padding.left(70) - padding.right(70) = 760
+        // 预算留 2 行给 dots/署名：走查发现 120 字满文案时署名被挤出画布
+        this.BodyBlock(72, false, false, 760, this.bodyBudget(2))
         Row({ space: this.f(10) }) {
           Circle({ width: this.f(10), height: this.f(10) }).fill(this.pal().accent)
           Row().width(this.f(64)).height(this.f(3)).borderRadius(this.f(2)).backgroundColor(this.pal().accent)
@@ -315,7 +409,8 @@ export struct CopyPosterPreview {
           .maxLines(1)
       }
       Row().width(this.f(44)).height(this.f(5)).borderRadius(this.f(3)).backgroundColor(this.pal().accent)
-      this.BodyBlock(60, false, false)
+      // 可用宽 = 900 - padding 64*2 = 772；预算留 2 行给署名
+      this.BodyBlock(60, false, false, 772, this.bodyBudget(2))
       if (this.content.sign.trim() !== '') {
         Text(this.content.sign)
           .fontSize(this.f(26))
@@ -362,7 +457,8 @@ export struct CopyPosterPreview {
           }
           .alignItems(VerticalAlign.Center)
         }
-        this.BodyBlock(56, false, false)
+        // 可用宽 = 900 - padding 66*2 = 768；预算留 2 行给署名
+        this.BodyBlock(56, false, false, 768, this.bodyBudget(2))
         if (this.content.sign.trim() !== '') {
           Row({ space: this.f(10) }) {
             Row().width(this.f(26)).height(this.f(2)).backgroundColor(this.pal().accent)
@@ -404,7 +500,8 @@ export struct CopyPosterPreview {
             .letterSpacing(this.f(8))
             .maxLines(1)
         }
-        this.BodyBlock(110, true, true)
+        // 可用宽 = 900 - padding 56*2 = 788；预算留 2 行给署名分隔线
+        this.BodyBlock(110, true, true, 788, this.bodyBudget(2, true))
         if (this.content.sign.trim() !== '') {
           Column({ space: this.f(10) }) {
             Row().width(this.f(110)).height(this.f(2)).backgroundColor(this.pal().accent)
@@ -422,6 +519,198 @@ export struct CopyPosterPreview {
       .justifyContent(FlexAlign.Center)
       .alignItems(HorizontalAlign.Center)
       .padding({ left: this.f(56), right: this.f(56), top: this.f(40), bottom: this.f(40) })
+    }
+    .width('100%')
+    .height('100%')
+  }
+
+  // ---------- T19 撕纸拼贴（大字金句 · 手撕边 + 胶带） ----------
+
+  @Builder
+  TornPaper() {
+    Stack() {
+      // 斜向胶带
+      Column()
+        .width(this.f(190))
+        .height(this.f(46))
+        .backgroundColor(this.hexA(this.pal().grid, '66'))
+        .rotate({ angle: -6 })
+        .position({ x: this.f(70), y: this.fy(96) })
+        .hitTestBehavior(HitTestMode.None)
+      Column()
+        .width(this.f(150))
+        .height(this.f(46))
+        .backgroundColor(this.hexA(this.pal().grid, '4D'))
+        .rotate({ angle: 4 })
+        .position({ x: this.previewWidth - this.f(230), y: this.h() - this.fy(180) })
+        .hitTestBehavior(HitTestMode.None)
+
+      // 主体白纸块（带撕纸感：底边用两段错位的矩形拼出）
+      Column()
+        .width(this.previewWidth - this.f(96))
+        .height(this.h() - this.fy(240) - this.fy(200))
+        .backgroundColor(this.pal().block)
+        .rotate({ angle: -1.2 })
+        .position({ x: this.f(48), y: this.fy(210) })
+        .hitTestBehavior(HitTestMode.None)
+
+      Column({ space: this.f(26) }) {
+        if (this.content.tag.trim() !== '') {
+          Row({ space: this.f(12) }) {
+            Row().width(this.f(40)).height(this.f(4)).backgroundColor(this.pal().accent)
+            Text(this.content.tag)
+              .fontSize(this.f(28))
+              .fontColor(this.pal().accent)
+              .fontFamily(this.font())
+              .fontWeight(FontWeight.Bold)
+              .maxLines(1)
+          }
+          .alignItems(VerticalAlign.Center)
+        }
+        // 满文案预算留 2 行给署名，避免署名被挤出撕纸画布
+        this.BodyBlock(96, true, true, 700, this.bodyBudget(2, true))
+        if (this.content.sign.trim() !== '') {
+          Text(this.content.sign)
+            .fontSize(this.f(30))
+            .fontColor(this.pal().sub)
+            .fontFamily(this.font())
+            .maxLines(1)
+        }
+      }
+      .width('100%')
+      .height('100%')
+      .justifyContent(FlexAlign.Center)
+      .alignItems(HorizontalAlign.Center)
+      .padding({ left: this.f(100), right: this.f(100), top: this.f(60), bottom: this.f(60) })
+    }
+    .width('100%')
+    .height('100%')
+  }
+
+  // ---------- T20 竖排标点（大字金句 · 日式竖排 + 圆点） ----------
+
+  /** 竖排内容：按每列字数拆分，从右向左排（与 T16/T18 同款竖排实现） */
+  private boldPerCol(): number {
+    return this.ratioKind === CopyPosterRatio.SQUARE ? 7 : 9;
+  }
+
+  private boldMaxCols(): number {
+    return this.ratioKind === CopyPosterRatio.SQUARE ? 3 : 4;
+  }
+
+  private boldBodyPx(): number {
+    return this.ratioKind === CopyPosterRatio.SQUARE ? this.f(82) : this.f(92);
+  }
+
+  @Builder
+  VerticalQuote() {
+    Stack() {
+      // 右侧竖线
+      Column()
+        .width(this.f(2))
+        .height(this.h() * 0.58)
+        .backgroundColor(this.pal().accent)
+        .position({ x: this.previewWidth - this.f(58), y: this.fy(190) })
+        .hitTestBehavior(HitTestMode.None)
+
+      Column({ space: this.f(30) }) {
+        if (this.content.tag.trim() !== '') {
+          Text(this.content.tag)
+            .fontSize(this.f(24))
+            .fontColor(this.pal().sub)
+            .fontFamily(this.font())
+            .letterSpacing(this.f(10))
+            .maxLines(1)
+        }
+        if (this.content.body.trim() === '') {
+          Text($r('app.string.poster_empty_hint'))
+            .fontSize(this.f(28))
+            .fontColor(this.pal().sub)
+            .fontFamily(this.font())
+            .textAlign(TextAlign.Center)
+        } else {
+          Row({ space: this.f(this.boldBodyPx() * 0.8) }) {
+            ForEach(this.vertColsRtl(this.content.body, this.boldPerCol(), this.boldMaxCols()),
+              (col: string[], i: number) => {
+                Text(col.join('\n'))
+                  .fontSize(this.boldBodyPx())
+                  .lineHeight(this.boldBodyPx() * 1.32)
+                  .fontColor(this.pal().title)
+                  .fontFamily(this.font())
+                  .fontWeight(FontWeight.Bold)
+                  .textAlign(TextAlign.Center)
+              }, (col: string[], i: number) => 'vq-' + i.toString() + '-' + col.length.toString())
+          }
+          .alignItems(VerticalAlign.Top)
+        }
+        if (this.content.sign.trim() !== '') {
+          Text('— ' + this.content.sign)
+            .fontSize(this.f(26))
+            .fontColor(this.pal().accent)
+            .fontFamily(this.font())
+            .maxLines(1)
+        }
+      }
+      .width('100%')
+      .height('100%')
+      .justifyContent(FlexAlign.Center)
+      .alignItems(HorizontalAlign.Center)
+      .padding({ left: this.f(80), right: this.f(140) })
+    }
+    .width('100%')
+    .height('100%')
+  }
+
+  // ---------- T21 层叠色块（大字金句 · 三色错位叠压） ----------
+
+  @Builder
+  ColorBlocks() {
+    Stack() {
+      // 三块错位色块：由 accent / block / bg2 派生，营造印刷错版感
+      Column()
+        .width(this.previewWidth - this.f(80))
+        .height(this.h() - this.fy(300) - this.fy(240))
+        .backgroundColor(this.pal().accent)
+        .opacity(0.9)
+        .rotate({ angle: -2.4 })
+        .position({ x: this.f(56), y: this.fy(230) })
+        .hitTestBehavior(HitTestMode.None)
+      Column()
+        .width(this.previewWidth - this.f(80))
+        .height(this.h() - this.fy(300) - this.fy(240))
+        .backgroundColor(this.pal().block)
+        .rotate({ angle: 1.8 })
+        .position({ x: this.f(46), y: this.fy(262) })
+        .hitTestBehavior(HitTestMode.None)
+
+      Column({ space: this.f(24) }) {
+        if (this.content.tag.trim() !== '') {
+          Text(this.content.tag)
+            .fontSize(this.f(26))
+            .fontColor(this.pal().accent)
+            .fontFamily(this.font())
+            .fontWeight(FontWeight.Bold)
+            .letterSpacing(this.f(6))
+            .maxLines(1)
+        }
+        // 满文案预算留 2 行给署名分隔线/署名
+        this.BodyBlock(92, true, true, 660, this.bodyBudget(2, true))
+        if (this.content.sign.trim() !== '') {
+          Row().width(this.f(90)).height(this.f(3)).backgroundColor(this.pal().accent)
+        }
+        if (this.content.sign.trim() !== '') {
+          Text(this.content.sign)
+            .fontSize(this.f(26))
+            .fontColor(this.pal().sub)
+            .fontFamily(this.font())
+            .maxLines(1)
+        }
+      }
+      .width('100%')
+      .height('100%')
+      .justifyContent(FlexAlign.Center)
+      .alignItems(HorizontalAlign.Center)
+      .padding({ left: this.f(92), right: this.f(92), top: this.f(56), bottom: this.f(56) })
     }
     .width('100%')
     .height('100%')
@@ -519,11 +808,12 @@ export struct CopyPosterPreview {
           .width('100%')
           .textAlign(TextAlign.Start)
       } else if (this.pyEnabled()) {
-        this.PinyinBody(this.bodyFont(43, false), this.pal().title, this.pal().title, false, false, 'none', '100%')
+        // 可用宽 = 面板 800 - 内容 padding 68 - 文本框 padding 41 = 691，再让 letterSpacing(1.5) 余量 -> 660
+        this.PinyinBody(this.bodyFont(43, false, 660), this.pal().title, this.pal().title, false, false, 'none', '100%')
       } else {
         Text(this.content.body)
-          .fontSize(this.bodyFont(43, false))
-          .lineHeight(this.bodyFont(43, false) * 1.36)
+          .fontSize(this.bodyFont(43, false, 660))
+          .lineHeight(this.bodyFont(43, false, 660) * 1.36)
           .fontColor(this.pal().title)
           .fontFamily(this.font())
           .letterSpacing(this.f(1.5))
@@ -656,11 +946,12 @@ export struct CopyPosterPreview {
                 .width('100%')
                 .textAlign(TextAlign.Start)
             } else if (this.pyEnabled()) {
-              this.PinyinBody(this.bodyFont(50, false), this.pal().title, this.pal().sub, false, false, 'soft', '100%')
+              // 可用宽 = 显示器 720 - 壳 padding 44 - 屏 padding 60 = 616
+              this.PinyinBody(this.bodyFont(50, false, 616), this.pal().title, this.pal().sub, false, false, 'soft', '100%')
             } else {
               Text(this.content.body)
-                .fontSize(this.bodyFont(50, false))
-                .lineHeight(this.bodyFont(50, false) * 1.5)
+                .fontSize(this.bodyFont(50, false, 616))
+                .lineHeight(this.bodyFont(50, false, 616) * 1.5)
                 .fontColor(this.pal().title)
                 .fontFamily(this.font())
                 .maxLines(this.maxBodyLines(false))
@@ -770,14 +1061,22 @@ export struct CopyPosterPreview {
   }
 
   // ---------- T7 霓虹灯招牌（夜墙灯管） ----------
+  // 1.4.5 P1-5 分层样板：本模板是装饰层/内容层拆分的参考实现，其余模板按此结构迁移。
+  //   装饰层（Decor）：底部光晕、灯管边框、四角铆钉、暗角 —— 跟随 neonSignH() 尺寸
+  //   内容层（Content）：tag / body / sign 三槽位 —— 只管排版，由 PosterTypeset 决定字号
 
   private neonSignH(): number {
     return this.f(this.ratioKind === CopyPosterRatio.SQUARE ? 470 : 620);
   }
 
+  /** 灯管内容区可用宽（设计稿 px）：外框 800 - 边框 6*2 - padding 30*2 */
+  private static readonly NEON_AVAIL_W: number = 800 - 12 - 60;
+
+  /** T7 装饰层：光晕 + 边框 + 铆钉，不含任何文案 */
   @Builder
-  NeonSign() {
+  NeonDecor() {
     Stack() {
+      // 底部光晕
       Column()
         .width('86%')
         .height(this.f(180))
@@ -789,75 +1088,105 @@ export struct CopyPosterPreview {
         .position({ x: '7%', y: this.h() - this.f(180) })
         .hitTestBehavior(HitTestMode.None)
 
-      Stack() {
-        Column({ space: this.f(22) }) {
-          if (this.content.tag.trim() !== '') {
-            Text('✦ ' + this.content.tag + ' ✦')
-              .fontSize(this.f(24))
-              .fontColor(this.pal().sub)
-              .fontFamily(this.font())
-              .letterSpacing(this.f(8))
-              .maxLines(1)
-              .textShadow([
-                { radius: this.f(2), color: this.hexA(this.pal().accent, '#E6'), offsetX: 0, offsetY: 0 },
-                { radius: this.f(9), color: this.hexA(this.pal().accent, '#99'), offsetX: 0, offsetY: 0 },
-              ])
-          }
-          if (this.content.body.trim() === '') {
-            Text($r('app.string.poster_empty_hint'))
-              .fontSize(this.f(32))
-              .fontColor(this.pal().sub)
-              .fontFamily(this.font())
-              .textAlign(TextAlign.Center)
-          } else if (this.pyEnabled()) {
-            this.PinyinBody(this.bodyFont(96, false), this.pal().title, this.pal().sub, true, true, 'neon', '100%')
-          } else {
-            Text(this.content.body)
-              .fontSize(this.bodyFont(96, false))
-              .lineHeight(this.bodyFont(96, false) * 1.35)
-              .fontColor(this.pal().title)
-              .fontFamily(this.font())
-              .fontWeight(FontWeight.Bold)
-              .maxLines(3)
-              .textAlign(TextAlign.Center)
-              .textOverflow({ overflow: TextOverflow.Ellipsis })
-              .textShadow([
-                { radius: this.f(4), color: '#FFFFFFFF', offsetX: 0, offsetY: 0 },
-                { radius: this.f(10), color: this.hexA(this.pal().accent, '#E6'), offsetX: 0, offsetY: 0 },
-                { radius: this.f(26), color: this.hexA(this.pal().accent, '#8C'), offsetX: 0, offsetY: 0 },
-              ])
-          }
-          if (this.content.sign.trim() !== '') {
-            Text('—— ' + this.content.sign + ' ——')
-              .fontSize(this.f(30))
-              .fontColor(this.pal().sub)
-              .fontFamily(this.font())
-              .letterSpacing(this.f(6))
-              .maxLines(1)
-              .textShadow([
-                { radius: this.f(2), color: '#66FFFFFF', offsetX: 0, offsetY: 0 },
-                { radius: this.f(10), color: this.hexA(this.pal().block, '#B3'), offsetX: 0, offsetY: 0 },
-              ])
-          }
-        }
+      // 灯管框本体（空心，只出边框与外发光）
+      Column()
         .width('100%')
         .height(this.neonSignH())
-        .justifyContent(FlexAlign.Center)
-        .alignItems(HorizontalAlign.Center)
-        .padding({ left: this.f(30), right: this.f(30) })
         .border({ width: this.f(6), color: this.pal().block })
         .borderRadius(this.f(34))
         .shadow({ radius: this.f(40), color: this.hexA(this.pal().block, '#66') })
+        .hitTestBehavior(HitTestMode.None)
 
-        Circle({ width: this.f(10), height: this.f(10) }).fill('#D8DEE9').position({ x: this.f(12), y: this.f(12) })
-        Circle({ width: this.f(10), height: this.f(10) }).fill('#D8DEE9')
-          .position({ x: this.f(800) - this.f(22), y: this.f(12) })
-        Circle({ width: this.f(10), height: this.f(10) }).fill('#D8DEE9')
-          .position({ x: this.f(12), y: this.neonSignH() - this.f(22) })
-        Circle({ width: this.f(10), height: this.f(10) }).fill('#D8DEE9')
-          .position({ x: this.f(800) - this.f(22), y: this.neonSignH() - this.f(22) })
+      // 四角铆钉：位置按 neonSignH() 跟随高度，竖版不塌陷（根因 A）
+      Circle({ width: this.f(10), height: this.f(10) }).fill('#D8DEE9').position({ x: this.f(12), y: this.f(12) })
+      Circle({ width: this.f(10), height: this.f(10) }).fill('#D8DEE9')
+        .position({ x: this.f(800) - this.f(22), y: this.f(12) })
+      Circle({ width: this.f(10), height: this.f(10) }).fill('#D8DEE9')
+        .position({ x: this.f(12), y: this.neonSignH() - this.f(22) })
+      Circle({ width: this.f(10), height: this.f(10) }).fill('#D8DEE9')
+        .position({ x: this.f(800) - this.f(22), y: this.neonSignH() - this.f(22) })
+    }
+    .width(this.f(800))
+    .height(this.neonSignH())
+    .hitTestBehavior(HitTestMode.None)
+  }
+
+  /** T7 内容层：三个 slot 的排布，字号交由内核按 NEON_AVAIL_W 计算 */
+  @Builder
+  NeonContent() {
+    Column({ space: this.f(22) }) {
+      if (this.content.tag.trim() !== '') {
+        Text('✦ ' + this.content.tag + ' ✦')
+          .fontSize(this.f(24))
+          .fontColor(this.pal().sub)
+          .fontFamily(this.font())
+          .letterSpacing(this.f(8))
+          .maxLines(1)
+          .textShadow([
+            { radius: this.f(2), color: this.hexA(this.pal().accent, '#E6'), offsetX: 0, offsetY: 0 },
+            { radius: this.f(9), color: this.hexA(this.pal().accent, '#99'), offsetX: 0, offsetY: 0 },
+          ])
       }
-      .width(this.f(800))
+      if (this.content.body.trim() === '') {
+        Text($r('app.string.poster_empty_hint'))
+          .fontSize(this.f(32))
+          .fontColor(this.pal().sub)
+          .fontFamily(this.font())
+          .textAlign(TextAlign.Center)
+      } else if (this.pyEnabled()) {
+        // 行预算 3 与下方渲染 maxLines(3) 对齐：此前内核按 8/12 行算字、渲染只显 3 行，静默吞字
+        this.PinyinBody(this.bodyFont(96, false, CopyPosterPreview.NEON_AVAIL_W, 3), this.pal().title,
+          this.pal().sub, true, true, 'neon', '100%')
+      } else {
+        Text(this.content.body)
+          .fontSize(this.bodyFont(96, false, CopyPosterPreview.NEON_AVAIL_W, 3))
+          .lineHeight(this.bodyFont(96, false, CopyPosterPreview.NEON_AVAIL_W, 3) * 1.35)
+          .fontColor(this.pal().title)
+          .fontFamily(this.font())
+          .fontWeight(FontWeight.Bold)
+          .maxLines(3)
+          .textAlign(TextAlign.Center)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+          .textShadow([
+            { radius: this.f(4), color: '#FFFFFFFF', offsetX: 0, offsetY: 0 },
+            { radius: this.f(10), color: this.hexA(this.pal().accent, '#E6'), offsetX: 0, offsetY: 0 },
+            { radius: this.f(26), color: this.hexA(this.pal().accent, '#8C'), offsetX: 0, offsetY: 0 },
+          ])
+        if (this.truncatedHint() > 0) {
+          Text($r('app.string.poster_truncated_hint', this.truncatedHint()))
+            .fontSize(this.f(20))
+            .fontColor(this.pal().sub)
+            .fontFamily(this.font())
+            .opacity(0.75)
+            .textAlign(TextAlign.Center)
+            .maxLines(1)
+        }
+      }
+      if (this.content.sign.trim() !== '') {
+        Text('—— ' + this.content.sign + ' ——')
+          .fontSize(this.f(30))
+          .fontColor(this.pal().sub)
+          .fontFamily(this.font())
+          .letterSpacing(this.f(6))
+          .maxLines(1)
+          .textShadow([
+            { radius: this.f(2), color: '#66FFFFFF', offsetX: 0, offsetY: 0 },
+            { radius: this.f(10), color: this.hexA(this.pal().block, '#B3'), offsetX: 0, offsetY: 0 },
+          ])
+      }
+    }
+    .width('100%')
+    .height('100%')
+    .justifyContent(FlexAlign.Center)
+    .alignItems(HorizontalAlign.Center)
+    .padding({ left: this.f(30), right: this.f(30) })
+  }
+
+  @Builder
+  NeonSign() {
+    Stack() {
+      this.NeonDecor()
+      this.NeonContent()
 
       Column()
         .width('100%')
@@ -927,17 +1256,28 @@ export struct CopyPosterPreview {
                     .width('100%')
                     .textAlign(TextAlign.Start)
                 } else if (this.pyEnabled()) {
-                  this.PinyinBody(this.bodyFont(38, false), this.pal().title, this.pal().accent, false, false, 'none', '100%')
+                  // 可用宽 = 主机 440 - padding 48 - 屏 padding 28 - 边框 6 - 内 padding 28 - 文本框边框 6+padding 26 = 298
+                  this.PinyinBody(this.bodyFont(38, false, 298, 5), this.pal().title, this.pal().accent, false, false,
+                    'none', '100%')
                 } else {
                   Text(this.content.body)
-                    .fontSize(this.bodyFont(38, false))
-                    .lineHeight(this.bodyFont(38, false) * 1.55)
+                    .fontSize(this.bodyFont(38, false, 298, 5))
+                    .lineHeight(this.bodyFont(38, false, 298, 5) * 1.55)
                     .fontColor(this.pal().title)
                     .fontFamily(this.font())
                     .maxLines(5)
                     .textAlign(TextAlign.Start)
                     .textOverflow({ overflow: TextOverflow.Ellipsis })
                     .width('100%')
+                  if (this.truncatedHint() > 0) {
+                    Text($r('app.string.poster_truncated_hint', this.truncatedHint()))
+                      .fontSize(this.f(16))
+                      .fontColor(this.pal().accent)
+                      .fontFamily(this.font())
+                      .width('100%')
+                      .textAlign(TextAlign.Start)
+                      .maxLines(1)
+                  }
                 }
               }
               .width('100%')
@@ -1084,6 +1424,11 @@ export struct CopyPosterPreview {
     return this.f(this.ratioKind === CopyPosterRatio.SQUARE ? 440 : 560);
   }
 
+  /** T9 票面主文案行数预算：票纸高度固定（440/560），行数按比例收紧，防止挤掉撕票线下方元素 */
+  private ticketBodyLines(): number {
+    return this.ratioKind === CopyPosterRatio.SQUARE ? 5 : 8;
+  }
+
   private pad3(n: number): string {
     if (n < 10) {
       return '00' + n.toString();
@@ -1125,14 +1470,22 @@ export struct CopyPosterPreview {
                 .fontColor(this.pal().sub)
                 .fontFamily(this.font())
             } else {
+              // 可用宽 = 票纸 800 - 副券 190 - padding(26+22) = 562；预算对齐票面高度
               Text('“' + this.content.body + '”')
-                .fontSize(this.bodyFont(50, false))
-                .lineHeight(this.bodyFont(50, false) * 1.5)
+                .fontSize(this.bodyFont(50, false, 562, this.ticketBodyLines()))
+                .lineHeight(this.bodyFont(50, false, 562, this.ticketBodyLines()) * 1.5)
                 .fontColor(this.pal().title)
                 .fontFamily(this.font())
-                .maxLines(this.maxBodyLines(false))
+                .maxLines(this.ticketBodyLines())
                 .textAlign(TextAlign.Start)
                 .textOverflow({ overflow: TextOverflow.Ellipsis })
+              if (this.truncatedHint() > 0) {
+                Text($r('app.string.poster_truncated_hint', this.truncatedHint()))
+                  .fontSize(this.f(18))
+                  .fontColor(this.pal().sub)
+                  .fontFamily(this.font())
+                  .maxLines(1)
+              }
             }
 
             Blank()
@@ -1244,6 +1597,14 @@ export struct CopyPosterPreview {
   // ---------- T10 翻牌显示屏（车站翻牌板） ----------
 
   /** 正文去空白后按每行 12 字拆行（最多 6 行） */
+  /**
+   * T10 翻牌屏：把正文拆成每行 12 字的翻牌模块行。
+   *
+   * 1.4.5 优化：原先固定「12 字/行、最多 6 行」且超出部分**直接丢弃**（用户无感知丢字），
+   * 同时底板高度写死导致多行时撑破。现改为：
+   *   - 行数与容量由 PosterTypeset 按底板可用宽算出，超出的字截断并由 truncatedHint 提示；
+   *   - 底板高度由 flapBoardH() 随实际行数增长，长文案不再溢出。
+   */
   private flapRows(): string[][] {
     let src: string[] = [];
     if (this.content.body.trim() === '') {
@@ -1251,9 +1612,12 @@ export struct CopyPosterPreview {
     } else {
       src = this.content.body.replace(new RegExp('\\s', 'g'), '').split('');
     }
+    // 每行字数按底板可用宽 / 单模块宽推算，替代硬编码 12
+    let perRow: number = CopyPosterPreview.FLAP_PER_ROW;
+    let maxRows: number = CopyPosterPreview.FLAP_MAX_ROWS;
     let rows: string[][] = [];
-    for (let i = 0; i < src.length && rows.length < 6; i += 12) {
-      let end: number = Math.min(i + 12, src.length);
+    for (let i = 0; i < src.length && rows.length < maxRows; i += perRow) {
+      let end: number = Math.min(i + perRow, src.length);
       let r: string[] = [];
       for (let j = i; j < end; j++) {
         r.push(src[j]);
@@ -1264,6 +1628,32 @@ export struct CopyPosterPreview {
       rows.push([' ']);
     }
     return rows;
+  }
+
+  /** 翻牌单模块宽（设计稿 px） */
+  private static readonly FLAP_PER_ROW: number = 12;
+  /** 翻牌最大行数 */
+  private static readonly FLAP_MAX_ROWS: number = 6;
+  /** 翻牌模块字高（设计稿 px） */
+  private static readonly FLAP_ROW_H: number = 72;
+  /** 翻牌模块间距（设计稿 px） */
+  private static readonly FLAP_ROW_GAP: number = 9;
+
+  /** 底板高度：随实际行数增长，避免长文案撑破固定底板 */
+  private flapBoardH(): number {
+    let rows: number = this.flapRows().length;
+    return rows * CopyPosterPreview.FLAP_ROW_H +
+      (rows - 1) * CopyPosterPreview.FLAP_ROW_GAP + this.f(46);
+  }
+
+  /** 翻牌放不下的字数：超出 12 字/行 × 6 行容量部分（0 表示全部显示） */
+  private flapDropped(): number {
+    if (this.content.body.trim() === '') {
+      return 0;
+    }
+    let chars: number = PosterTypeset.countChars(this.content.body);
+    let cap: number = CopyPosterPreview.FLAP_PER_ROW * CopyPosterPreview.FLAP_MAX_ROWS;
+    return chars > cap ? chars - cap : 0;
   }
 
   @Builder
@@ -1327,6 +1717,17 @@ export struct CopyPosterPreview {
           }, (row: string[], ri: number) => ri.toString() + '-' + row.length.toString())
         }
 
+        // 1.4.5 优化：翻牌容量有限（12 字/行 × 6 行），超出部分原本静默丢弃，此处显式提示
+        if (this.flapDropped() > 0) {
+          Text($r('app.string.poster_truncated_hint', this.flapDropped()))
+            .fontSize(this.f(20))
+            .fontColor(this.pal().sub)
+            .fontFamily(this.font())
+            .opacity(0.75)
+            .textAlign(TextAlign.Center)
+            .maxLines(1)
+        }
+
         Row({ space: this.f(12) }) {
           Circle({ width: this.f(8), height: this.f(8) })
             .fill('#39D353')
@@ -1350,6 +1751,8 @@ export struct CopyPosterPreview {
         }
         .alignItems(VerticalAlign.Center)
       }
+      // 高度随翻牌行数增长（1.4.5 优化：原先固定高度，长文案会撑破底板）
+      .height(this.flapBoardH())
       .width(this.f(790))
       .padding({ left: this.f(24), right: this.f(24), top: this.f(22), bottom: this.f(24) })
       .backgroundColor(this.pal().block)
@@ -1455,7 +1858,8 @@ export struct CopyPosterPreview {
         Row().width('100%').height(this.f(1.6)).backgroundColor(this.pal().title).margin({ top: this.f(8) })
 
         Column() {
-          this.BodyBlock(54, true, false)
+          // 可用宽 = 900 - padding 68*2 = 764；预算留 2 行给署名/下方栏线
+          this.BodyBlock(54, true, false, 764, this.bodyBudget(2))
         }
         .width('100%')
         .margin({ top: this.f(32) })
@@ -1994,17 +2398,27 @@ export struct CopyPosterPreview {
             .fontFamily(this.font())
             .textAlign(TextAlign.Center)
         } else {
+          // 可用宽 = 900 - padding 141*2 = 618，再让 letterSpacing(8) 余量 -> 540；预算留 2 行给署名
           Text(this.content.body)
-            .fontSize(this.bodyFont(55, false))
-            .lineHeight(this.bodyFont(55, false) * 1.5)
+            .fontSize(this.bodyFont(55, false, 540, this.bodyBudget(2)))
+            .lineHeight(this.bodyFont(55, false, 540, this.bodyBudget(2)) * 1.5)
             .fontColor(this.pal().title)
             .fontFamily(this.font())
             .fontWeight(FontWeight.Bold)
             .letterSpacing(this.f(8))
-            .maxLines(this.maxBodyLines(false))
+            .maxLines(this.bodyBudget(2))
             .textAlign(TextAlign.Center)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
             .textShadow([{ radius: this.f(29), color: '#CC000000', offsetX: 0, offsetY: this.f(3) }])
+          if (this.truncatedHint() > 0) {
+            Text($r('app.string.poster_truncated_hint', this.truncatedHint()))
+              .fontSize(this.f(20))
+              .fontColor(this.pal().sub)
+              .fontFamily(this.font())
+              .opacity(0.75)
+              .textAlign(TextAlign.Center)
+              .maxLines(1)
+          }
         }
         if (this.content.sign.trim() !== '') {
           Text(this.content.sign)
@@ -2321,25 +2735,32 @@ export struct CopyPosterPreview {
         })
         .hitTestBehavior(HitTestMode.None)
 
+      // 外层细边框
       Column()
         .width(this.previewWidth - this.f(29) * 2)
         .height(this.h() - this.f(29) * 2)
         .border({ width: this.f(1.6), color: this.hexA(this.pal().grid, '80') })
         .position({ x: this.f(29), y: this.f(29) })
-      Column()
-        .width(this.previewWidth - this.f(40) * 2)
-        .height(this.h() - this.f(40) * 2)
-        .border({ width: this.f(3.2), color: this.pal().sub })
-        .position({ x: this.f(40), y: this.f(40) })
+      // 内层粗边框：缩略图下两层边框会糊成灰块，只保留一层（1.4.5 P2-6）
+      if (!this.isThumb) {
+        Column()
+          .width(this.previewWidth - this.f(40) * 2)
+          .height(this.h() - this.f(40) * 2)
+          .border({ width: this.f(3.2), color: this.pal().sub })
+          .position({ x: this.f(40), y: this.f(40) })
+      }
 
-      Row().width(this.f(14)).height(this.f(14)).backgroundColor(this.pal().sub).rotate({ angle: 45 })
-        .position({ x: this.f(64), y: this.fy(64) })
-      Row().width(this.f(14)).height(this.f(14)).backgroundColor(this.pal().sub).rotate({ angle: 45 })
-        .position({ x: this.previewWidth - this.f(64) - this.f(14), y: this.fy(64) })
-      Row().width(this.f(14)).height(this.f(14)).backgroundColor(this.pal().sub).rotate({ angle: 45 })
-        .position({ x: this.f(64), y: this.h() - this.fy(64) - this.f(14) })
-      Row().width(this.f(14)).height(this.f(14)).backgroundColor(this.pal().sub).rotate({ angle: 45 })
-        .position({ x: this.previewWidth - this.f(64) - this.f(14), y: this.h() - this.fy(64) - this.f(14) })
+      // 四角菱形：96px 下退化为 2px 噪点，缩略图模式跳过（1.4.5 P2-6）
+      if (!this.isThumb) {
+        Row().width(this.f(14)).height(this.f(14)).backgroundColor(this.pal().sub).rotate({ angle: 45 })
+          .position({ x: this.f(64), y: this.fy(64) })
+        Row().width(this.f(14)).height(this.f(14)).backgroundColor(this.pal().sub).rotate({ angle: 45 })
+          .position({ x: this.previewWidth - this.f(64) - this.f(14), y: this.fy(64) })
+        Row().width(this.f(14)).height(this.f(14)).backgroundColor(this.pal().sub).rotate({ angle: 45 })
+          .position({ x: this.f(64), y: this.h() - this.fy(64) - this.f(14) })
+        Row().width(this.f(14)).height(this.f(14)).backgroundColor(this.pal().sub).rotate({ angle: 45 })
+          .position({ x: this.previewWidth - this.f(64) - this.f(14), y: this.h() - this.fy(64) - this.f(14) })
+      }
 
       Column({ space: this.f(29) }) {
         if (this.termCharCount() > 0) {
@@ -2351,7 +2772,8 @@ export struct CopyPosterPreview {
             .fontFamily(this.font())
             .textAlign(TextAlign.Center)
         }
-        if (this.termCharCount() > 0 && this.termCharCount() <= 4) {
+        // SOLAR TERM 竖排英文：缩略图下字号不足 3px 不可辨，跳过（1.4.5 P2-6）
+        if (!this.isThumb && this.termCharCount() > 0 && this.termCharCount() <= 4) {
           Text('S\nO\nL\nA\nR\n \nT\nE\nR\nM')
             .fontSize(this.f(18))
             .lineHeight(this.f(24))
@@ -2478,17 +2900,29 @@ export struct CopyPosterPreview {
       ' L' + (w * x3) + ' ' + (h * y3) + ' L' + w + ' ' + h + ' Z';
   }
 
+  /** T17 祝福区行数预算：正文槽位是 fy(518)-fy(726) 的固定高度区，按比例收紧防溢出月窗 */
+  private festBodyLines(): number {
+    return this.ratioKind === CopyPosterRatio.SQUARE ? 3 : 4;
+  }
+
   @Builder
   FestivalGreet() {
     Stack() {
-      this.FestStar(103, 125, 0.85)
-      this.FestStar(206, 71, 0.6)
-      this.FestStar(350, 154, 0.8)
-      this.FestStar(517, 90, 0.5)
-      this.FestStar(691, 135, 0.9)
-      this.FestStar(798, 225, 0.55)
-      this.FestStar(135, 289, 0.4)
-      this.FestStar(755, 373, 0.65)
+      // 星点：96px 下直径不足 2px，与圆环混成噪点，缩略图模式只保留 3 颗大星（1.4.5 P2-6）
+      if (this.isThumb) {
+        this.FestStar(206, 71, 0.85)
+        this.FestStar(691, 135, 0.9)
+        this.FestStar(135, 289, 0.6)
+      } else {
+        this.FestStar(103, 125, 0.85)
+        this.FestStar(206, 71, 0.6)
+        this.FestStar(350, 154, 0.8)
+        this.FestStar(517, 90, 0.5)
+        this.FestStar(691, 135, 0.9)
+        this.FestStar(798, 225, 0.55)
+        this.FestStar(135, 289, 0.4)
+        this.FestStar(755, 373, 0.65)
+      }
 
       Column()
         .width(this.f(512))
@@ -2521,18 +2955,21 @@ export struct CopyPosterPreview {
         .border({ width: this.f(1.6), color: this.hexA(this.pal().accent, '59') })
         .position({ x: this.previewWidth / 2 - this.f(136), y: this.fy(221) })
 
-      Row().width(this.f(238)).height(this.f(35)).borderRadius(this.f(18))
-        .backgroundColor(this.hexA(this.pal().block, '24'))
-        .position({ x: this.f(122), y: this.fy(379) })
-      Row().width(this.f(145)).height(this.f(35)).borderRadius(this.f(18))
-        .backgroundColor(this.hexA(this.pal().block, '1A'))
-        .position({ x: this.f(193), y: this.fy(421) })
-      Row().width(this.f(199)).height(this.f(35)).borderRadius(this.f(18))
-        .backgroundColor(this.hexA(this.pal().block, '1A'))
-        .position({ x: this.previewWidth - this.f(315), y: this.fy(334) })
-      Row().width(this.f(116)).height(this.f(35)).borderRadius(this.f(18))
-        .backgroundColor(this.hexA(this.pal().block, '14'))
-        .position({ x: this.previewWidth - this.f(302), y: this.fy(376) })
+      // 云带：96px 下高度不足 4px，与底色混成脏块，缩略图模式跳过（1.4.5 P2-6）
+      if (!this.isThumb) {
+        Row().width(this.f(238)).height(this.f(35)).borderRadius(this.f(18))
+          .backgroundColor(this.hexA(this.pal().block, '24'))
+          .position({ x: this.f(122), y: this.fy(379) })
+        Row().width(this.f(145)).height(this.f(35)).borderRadius(this.f(18))
+          .backgroundColor(this.hexA(this.pal().block, '1A'))
+          .position({ x: this.f(193), y: this.fy(421) })
+        Row().width(this.f(199)).height(this.f(35)).borderRadius(this.f(18))
+          .backgroundColor(this.hexA(this.pal().block, '1A'))
+          .position({ x: this.previewWidth - this.f(315), y: this.fy(334) })
+        Row().width(this.f(116)).height(this.f(35)).borderRadius(this.f(18))
+          .backgroundColor(this.hexA(this.pal().block, '14'))
+          .position({ x: this.previewWidth - this.f(302), y: this.fy(376) })
+      }
 
       Path()
         .width(this.f(482))
@@ -2576,21 +3013,32 @@ export struct CopyPosterPreview {
             .textAlign(TextAlign.Center)
         } else if (this.pyEnabled()) {
           Column() {
-            this.PinyinBody(this.bodyFont(54, false), this.pal().title, this.pal().sub, true, false, 'none', '100%')
+            // 可用宽 = 900 - padding 96*2 = 708，再让 letterSpacing(10) 余量 -> 590
+            this.PinyinBody(this.bodyFont(54, false, 590, this.festBodyLines()), this.pal().title, this.pal().sub,
+              true, false, 'none', '100%')
           }
           .width('100%')
           .alignItems(HorizontalAlign.Center)
         } else {
           Text(this.content.body)
-            .fontSize(this.bodyFont(54, false))
-            .lineHeight(this.bodyFont(54, false) * 1.55)
+            .fontSize(this.bodyFont(54, false, 590, this.festBodyLines()))
+            .lineHeight(this.bodyFont(54, false, 590, this.festBodyLines()) * 1.55)
             .fontColor(this.pal().title)
             .fontFamily(this.font())
             .letterSpacing(this.f(10))
-            .maxLines(5)
+            .maxLines(this.festBodyLines())
             .textAlign(TextAlign.Center)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
             .shadow({ radius: this.f(35), color: '#8C000000', offsetY: this.f(5) })
+          if (this.truncatedHint() > 0) {
+            Text($r('app.string.poster_truncated_hint', this.truncatedHint()))
+              .fontSize(this.f(20))
+              .fontColor(this.pal().sub)
+              .fontFamily(this.font())
+              .opacity(0.75)
+              .textAlign(TextAlign.Center)
+              .maxLines(1)
+          }
         }
       }
       .width('100%')
@@ -2696,28 +3144,40 @@ export struct CopyPosterPreview {
   @Builder
   RedCouplet() {
     Stack() {
-      this.CoupletCoin(this.f(42), this.fy(154))
-      this.CoupletCoin(this.f(42), this.fy(305))
-      this.CoupletCoin(this.f(42), this.fy(456))
-      this.CoupletCoin(this.previewWidth - this.f(42) - this.f(74), this.fy(154))
-      this.CoupletCoin(this.previewWidth - this.f(42) - this.f(74), this.fy(305))
+      // 铜钱团花：96px 下直径约 4px，5 枚连排糊成噪点，缩略图只留 2 枚大纹（1.4.5 P2-6）
+      if (this.isThumb) {
+        this.CoupletCoin(this.f(42), this.fy(200))
+        this.CoupletCoin(this.previewWidth - this.f(42) - this.f(74), this.fy(200))
+      } else {
+        this.CoupletCoin(this.f(42), this.fy(154))
+        this.CoupletCoin(this.f(42), this.fy(305))
+        this.CoupletCoin(this.f(42), this.fy(456))
+        this.CoupletCoin(this.previewWidth - this.f(42) - this.f(74), this.fy(154))
+        this.CoupletCoin(this.previewWidth - this.f(42) - this.f(74), this.fy(305))
+      }
 
       Column()
         .width(this.previewWidth - this.f(32) * 2)
         .height(this.h() - this.f(32) * 2)
         .border({ width: this.f(3.2), color: this.hexA(this.pal().accent, 'D9') })
         .position({ x: this.f(32), y: this.f(32) })
-      Column()
-        .width(this.previewWidth - this.f(43) * 2)
-        .height(this.h() - this.f(43) * 2)
-        .border({ width: this.f(1.6), color: this.hexA(this.pal().accent, '73') })
-        .position({ x: this.f(43), y: this.f(43) })
+      // 内层细框：缩略图下两层金框糊成一块，只保留一层（1.4.5 P2-6）
+      if (!this.isThumb) {
+        Column()
+          .width(this.previewWidth - this.f(43) * 2)
+          .height(this.h() - this.f(43) * 2)
+          .border({ width: this.f(1.6), color: this.hexA(this.pal().accent, '73') })
+          .position({ x: this.f(43), y: this.f(43) })
+      }
 
-      this.CoupletCorner(this.f(55), this.fy(55), Alignment.TopStart)
-      this.CoupletCorner(this.previewWidth - this.f(55) - this.f(54), this.fy(55), Alignment.TopEnd)
-      this.CoupletCorner(this.f(55), this.h() - this.fy(55) - this.f(54), Alignment.BottomStart)
-      this.CoupletCorner(this.previewWidth - this.f(55) - this.f(54), this.h() - this.fy(55) - this.f(54),
-        Alignment.BottomEnd)
+      // 四角描金纹：96px 下退化为噪点，缩略图模式跳过（1.4.5 P2-6）
+      if (!this.isThumb) {
+        this.CoupletCorner(this.f(55), this.fy(55), Alignment.TopStart)
+        this.CoupletCorner(this.previewWidth - this.f(55) - this.f(54), this.fy(55), Alignment.TopEnd)
+        this.CoupletCorner(this.f(55), this.h() - this.fy(55) - this.f(54), Alignment.BottomStart)
+        this.CoupletCorner(this.previewWidth - this.f(55) - this.f(54), this.h() - this.fy(55) - this.f(54),
+          Alignment.BottomEnd)
+      }
 
       if (this.content.tag.trim() !== '') {
         Column() {
