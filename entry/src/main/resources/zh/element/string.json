@@ -545,6 +545,346 @@
       "value": "拍照识别，DLX算法秒解"
     },
     {
+      "name": "tool_pdf_title",
+      "value": "PDF 工具"
+    },
+    {
+      "name": "tool_pdf_sub",
+      "value": "图片合成 PDF，PDF 拆分导图"
+    },
+    {
+      "name": "pdf_tool_title",
+      "value": "PDF 工具"
+    },
+    {
+      "name": "pdf_tab_compose",
+      "value": "合成"
+    },
+    {
+      "name": "pdf_tab_split",
+      "value": "拆分"
+    },
+    {
+      "name": "pdf_compose_pick",
+      "value": "选择图片"
+    },
+    {
+      "name": "pdf_compose_add",
+      "value": "添加"
+    },
+    {
+      "name": "pdf_compose_count",
+      "value": "已选 %d 张"
+    },
+    {
+      "name": "pdf_compose_empty",
+      "value": "还没有图片，最多可选 20 张"
+    },
+    {
+      "name": "pdf_compose_swap_hint",
+      "value": "点击两张缩略图可交换顺序"
+    },
+    {
+      "name": "pdf_compose_max",
+      "value": "最多选择 20 张图片"
+    },
+    {
+      "name": "pdf_compose_mode",
+      "value": "页面尺寸"
+    },
+    {
+      "name": "pdf_compose_fit",
+      "value": "适应图片"
+    },
+    {
+      "name": "pdf_compose_a4",
+      "value": "A4 白底"
+    },
+    {
+      "name": "pdf_compose_margin",
+      "value": "页边距"
+    },
+    {
+      "name": "pdf_margin_none",
+      "value": "无"
+    },
+    {
+      "name": "pdf_margin_narrow",
+      "value": "窄"
+    },
+    {
+      "name": "pdf_margin_normal",
+      "value": "常规"
+    },
+    {
+      "name": "pdf_compose_orient",
+      "value": "方向"
+    },
+    {
+      "name": "pdf_orient_auto",
+      "value": "自动"
+    },
+    {
+      "name": "pdf_orient_portrait",
+      "value": "纵向"
+    },
+    {
+      "name": "pdf_compose_name",
+      "value": "文件名"
+    },
+    {
+      "name": "pdf_compose_name_hint",
+      "value": "输入 PDF 文件名"
+    },
+    {
+      "name": "pdf_compose_generate",
+      "value": "生成 PDF"
+    },
+    {
+      "name": "pdf_compose_generating",
+      "value": "正在生成..."
+    },
+    {
+      "name": "pdf_compose_done",
+      "value": "已生成 %d 页，大小 %s"
+    },
+    {
+      "name": "pdf_compose_fail",
+      "value": "生成失败"
+    },
+    {
+      "name": "pdf_pick_image_fail",
+      "value": "选择图片失败"
+    },
+    {
+      "name": "pdf_save",
+      "value": "保存 PDF"
+    },
+    {
+      "name": "pdf_saved",
+      "value": "已保存"
+    },
+    {
+      "name": "pdf_save_cancel",
+      "value": "已取消保存"
+    },
+    {
+      "name": "pdf_share",
+      "value": "分享"
+    },
+    {
+      "name": "pdf_share_fail",
+      "value": "分享失败"
+    },
+    {
+      "name": "pdf_split_pick",
+      "value": "选择 PDF"
+    },
+    {
+      "name": "pdf_split_empty",
+      "value": "尚未选择 PDF"
+    },
+    {
+      "name": "pdf_split_pick_fail",
+      "value": "选择 PDF 失败"
+    },
+    {
+      "name": "pdf_split_parsing",
+      "value": "正在读取 %d/%d 页"
+    },
+    {
+      "name": "pdf_split_need_pwd",
+      "value": "该 PDF 已加密，请输入密码后打开"
+    },
+    {
+      "name": "pdf_split_pwd_hint",
+      "value": "PDF 密码"
+    },
+    {
+      "name": "pdf_split_parse",
+      "value": "打开"
+    },
+    {
+      "name": "pdf_split_retry",
+      "value": "重试"
+    },
+    {
+      "name": "pdf_split_pages",
+      "value": "共 %d 页"
+    },
+    {
+      "name": "pdf_split_select_all",
+      "value": "全选"
+    },
+    {
+      "name": "pdf_split_deselect_all",
+      "value": "清空"
+    },
+    {
+      "name": "pdf_split_page_no",
+      "value": "第 %d 页"
+    },
+    {
+      "name": "pdf_split_format",
+      "value": "导出格式"
+    },
+    {
+      "name": "pdf_format_jpeg",
+      "value": "JPEG"
+    },
+    {
+      "name": "pdf_format_png",
+      "value": "PNG"
+    },
+    {
+      "name": "pdf_split_quality",
+      "value": "JPEG 质量 %d"
+    },
+    {
+      "name": "pdf_split_export",
+      "value": "导出（%d）"
+    },
+    {
+      "name": "pdf_split_exporting",
+      "value": "正在导出 %d/%d"
+    },
+    {
+      "name": "pdf_split_export_done",
+      "value": "已导出 %d 张图片到相册"
+    },
+    {
+      "name": "pdf_split_export_fail",
+      "value": "导出失败"
+    },
+    {
+      "name": "pdf_split_no_select",
+      "value": "请至少选择一页"
+    },
+    {
+      "name": "pdf_split_max",
+      "value": "页数较多，读取可能需要一些时间"
+    },
+    {
+      "name": "pdf_save_album_fail",
+      "value": "保存到相册失败"
+    },
+    {
+      "name": "pdf_parse_pwd_err",
+      "value": "密码错误，请重新输入"
+    },
+    {
+      "name": "pdf_parse_file_err",
+      "value": "无法读取文件，可能已损坏或被移动"
+    },
+    {
+      "name": "pdf_parse_format_err",
+      "value": "不是有效的 PDF 文件"
+    },
+    {
+      "name": "pdf_parse_zero_err",
+      "value": "该 PDF 没有页面"
+    },
+    {
+      "name": "pdf_parse_other_err",
+      "value": "无法打开该 PDF（错误 %s）"
+    },
+    {
+      "name": "poster_truncated_hint",
+      "value": "已省略 %d 字"
+    },
+        {
+      "name": "poster_cat_simple",
+      "value": "简约清新"
+    },
+        {
+      "name": "poster_cat_bold",
+      "value": "大字金句"
+    },
+        {
+      "name": "poster_cat_tech",
+      "value": "科技复古"
+    },
+        {
+      "name": "poster_cat_life",
+      "value": "生活质感"
+    },
+        {
+      "name": "poster_cat_festival",
+      "value": "节日节气"
+    },
+        {
+      "name": "poster_tmpl_t19",
+      "value": "撕纸拼贴"
+    },
+        {
+      "name": "poster_tmpl_t20",
+      "value": "竖排标点"
+    },
+        {
+      "name": "poster_tmpl_t21",
+      "value": "层叠色块"
+    },
+        {
+      "name": "tmpl_pal_kraft_desk",
+      "value": "牛皮桌面"
+    },
+        {
+      "name": "tmpl_pal_slate_blue",
+      "value": "石板蓝"
+    },
+        {
+      "name": "tmpl_pal_moss_green",
+      "value": "苔藓绿"
+    },
+        {
+      "name": "tmpl_pal_plum_dark",
+      "value": "暗夜梅"
+    },
+        {
+      "name": "tmpl_pal_charcoal",
+      "value": "炭黑"
+    },
+        {
+      "name": "tmpl_pal_washi",
+      "value": "和纸米"
+    },
+        {
+      "name": "tmpl_pal_indigo_washi",
+      "value": "靛青和纸"
+    },
+        {
+      "name": "tmpl_pal_ink_washi",
+      "value": "墨黑和纸"
+    },
+        {
+      "name": "tmpl_pal_moss_washi",
+      "value": "苔色和纸"
+    },
+        {
+      "name": "tmpl_pal_blush_washi",
+      "value": "胭脂和纸"
+    },
+        {
+      "name": "tmpl_pal_cobalt_stack",
+      "value": "钴蓝叠色"
+    },
+        {
+      "name": "tmpl_pal_sunset_stack",
+      "value": "落日叠色"
+    },
+        {
+      "name": "tmpl_pal_lilac_stack",
+      "value": "丁香叠色"
+    },
+        {
+      "name": "tmpl_pal_mint_stack",
+      "value": "薄荷叠色"
+    },
+        {
+      "name": "tmpl_pal_sand_stack",
+      "value": "砂金叠色"
+    },
+    {
       "name": "wc_shape_circle",
       "value": "圆形"
     },
@@ -2895,10 +3235,6 @@
     {
       "name": "tmpl_pal_ink_blue",
       "value": "墨蓝"
-    },
-    {
-      "name": "tmpl_pal_charcoal",
-      "value": "炭黑"
     },
     {
       "name": "tmpl_pal_deep_purple",

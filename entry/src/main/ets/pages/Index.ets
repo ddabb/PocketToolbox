@@ -27,6 +27,7 @@ import { DataBackupPageBuilder } from './DataBackupPage';
 import { DictationPageBuilder } from './DictationPage';
 import { MistakeBookPageBuilder } from './MistakeBookPage';
 import { ReviewPageBuilder } from './ReviewPage';
+import { PdfToolPageBuilder } from './PdfToolPage';
 import { registerUnifiedTemplateSets } from '../core/template/UnifiedTemplateSets';
 import { PoetryViewModel } from '../viewmodel/PoetryViewModel';
 import { IdiomViewModel } from '../viewmodel/IdiomViewModel';
@@ -213,7 +214,8 @@ struct Index {
       new ToolItem('char_card', $r('app.string.tool_charcard_title'), $r('app.string.tool_charcard_sub'), 'creative_charcard', '#D8231A', 'CharCardPage'),
       new ToolItem('copy_poster', $r('app.string.tool_poster_title'), $r('app.string.tool_poster_sub'), 'creative_poster', '#F59E0B', 'CopyPosterPage'),
       new ToolItem('gif_maker', $r('app.string.tool_gif_title'), $r('app.string.tool_gif_sub'), 'creative_gif', '#ec4899', 'GifMakerPage'),
-      new ToolItem('sudoku_solver', $r('app.string.tool_sudoku_title'), $r('app.string.tool_sudoku_sub'), 'creative_sudoku', '#6366f1', 'SudokuSolverPage')
+      new ToolItem('sudoku_solver', $r('app.string.tool_sudoku_title'), $r('app.string.tool_sudoku_sub'), 'creative_sudoku', '#6366f1', 'SudokuSolverPage'),
+      new ToolItem('pdf_tool', $r('app.string.tool_pdf_title'), $r('app.string.tool_pdf_sub'), 'creative_pdf_tool', '#dc2626', 'PdfToolPage')
     ];
 
     let all: ToolItem[] = [];
@@ -732,6 +734,8 @@ struct Index {
       MistakeBookPageBuilder()
     } else if (name === 'ReviewPage') {
       ReviewPageBuilder()
+    } else if (name === 'PdfToolPage') {
+      PdfToolPageBuilder()
     }
   }
 

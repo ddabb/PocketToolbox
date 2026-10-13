@@ -545,6 +545,346 @@
       "value": "Snap a photo, solved in seconds"
     },
     {
+      "name": "tool_pdf_title",
+      "value": "PDF Tools"
+    },
+    {
+      "name": "tool_pdf_sub",
+      "value": "Images to PDF, PDF to images"
+    },
+    {
+      "name": "pdf_tool_title",
+      "value": "PDF Tools"
+    },
+    {
+      "name": "pdf_tab_compose",
+      "value": "Merge"
+    },
+    {
+      "name": "pdf_tab_split",
+      "value": "Split"
+    },
+    {
+      "name": "pdf_compose_pick",
+      "value": "Pick Images"
+    },
+    {
+      "name": "pdf_compose_add",
+      "value": "Add"
+    },
+    {
+      "name": "pdf_compose_count",
+      "value": "%d image(s) selected"
+    },
+    {
+      "name": "pdf_compose_empty",
+      "value": "No images yet, pick up to 20 to start"
+    },
+    {
+      "name": "pdf_compose_swap_hint",
+      "value": "Tap two thumbnails to swap their order"
+    },
+    {
+      "name": "pdf_compose_max",
+      "value": "Up to 20 images"
+    },
+    {
+      "name": "pdf_compose_mode",
+      "value": "Page Size"
+    },
+    {
+      "name": "pdf_compose_fit",
+      "value": "Fit Image"
+    },
+    {
+      "name": "pdf_compose_a4",
+      "value": "A4 White"
+    },
+    {
+      "name": "pdf_compose_margin",
+      "value": "Margin"
+    },
+    {
+      "name": "pdf_margin_none",
+      "value": "None"
+    },
+    {
+      "name": "pdf_margin_narrow",
+      "value": "Narrow"
+    },
+    {
+      "name": "pdf_margin_normal",
+      "value": "Normal"
+    },
+    {
+      "name": "pdf_compose_orient",
+      "value": "Orientation"
+    },
+    {
+      "name": "pdf_orient_auto",
+      "value": "Auto"
+    },
+    {
+      "name": "pdf_orient_portrait",
+      "value": "Portrait"
+    },
+    {
+      "name": "pdf_compose_name",
+      "value": "File Name"
+    },
+    {
+      "name": "pdf_compose_name_hint",
+      "value": "Enter PDF file name"
+    },
+    {
+      "name": "pdf_compose_generate",
+      "value": "Generate PDF"
+    },
+    {
+      "name": "pdf_compose_generating",
+      "value": "Generating..."
+    },
+    {
+      "name": "pdf_compose_done",
+      "value": "%d page(s) generated, %s"
+    },
+    {
+      "name": "pdf_compose_fail",
+      "value": "Failed to generate PDF"
+    },
+    {
+      "name": "pdf_pick_image_fail",
+      "value": "Failed to pick images"
+    },
+    {
+      "name": "pdf_save",
+      "value": "Save PDF"
+    },
+    {
+      "name": "pdf_saved",
+      "value": "Saved"
+    },
+    {
+      "name": "pdf_save_cancel",
+      "value": "Save canceled"
+    },
+    {
+      "name": "pdf_share",
+      "value": "Share"
+    },
+    {
+      "name": "pdf_share_fail",
+      "value": "Share failed"
+    },
+    {
+      "name": "pdf_split_pick",
+      "value": "Pick PDF"
+    },
+    {
+      "name": "pdf_split_empty",
+      "value": "No PDF selected"
+    },
+    {
+      "name": "pdf_split_pick_fail",
+      "value": "Failed to pick PDF"
+    },
+    {
+      "name": "pdf_split_parsing",
+      "value": "Loading pages %d/%d"
+    },
+    {
+      "name": "pdf_split_need_pwd",
+      "value": "This PDF is password protected, enter the password to continue"
+    },
+    {
+      "name": "pdf_split_pwd_hint",
+      "value": "PDF password"
+    },
+    {
+      "name": "pdf_split_parse",
+      "value": "Open"
+    },
+    {
+      "name": "pdf_split_retry",
+      "value": "Retry"
+    },
+    {
+      "name": "pdf_split_pages",
+      "value": "%d page(s) in total"
+    },
+    {
+      "name": "pdf_split_select_all",
+      "value": "All"
+    },
+    {
+      "name": "pdf_split_deselect_all",
+      "value": "None"
+    },
+    {
+      "name": "pdf_split_page_no",
+      "value": "Page %d"
+    },
+    {
+      "name": "pdf_split_format",
+      "value": "Export Format"
+    },
+    {
+      "name": "pdf_format_jpeg",
+      "value": "JPEG"
+    },
+    {
+      "name": "pdf_format_png",
+      "value": "PNG"
+    },
+    {
+      "name": "pdf_split_quality",
+      "value": "JPEG Quality %d"
+    },
+    {
+      "name": "pdf_split_export",
+      "value": "Export (%d)"
+    },
+    {
+      "name": "pdf_split_exporting",
+      "value": "Exporting %d/%d"
+    },
+    {
+      "name": "pdf_split_export_done",
+      "value": "Exported %d image(s) to gallery"
+    },
+    {
+      "name": "pdf_split_export_fail",
+      "value": "Export failed"
+    },
+    {
+      "name": "pdf_split_no_select",
+      "value": "Select at least one page"
+    },
+    {
+      "name": "pdf_split_max",
+      "value": "Large PDF detected, loading may take a while"
+    },
+    {
+      "name": "pdf_save_album_fail",
+      "value": "Failed to save to gallery"
+    },
+    {
+      "name": "pdf_parse_pwd_err",
+      "value": "Wrong password, please try again"
+    },
+    {
+      "name": "pdf_parse_file_err",
+      "value": "Cannot read this file, it may be damaged or moved"
+    },
+    {
+      "name": "pdf_parse_format_err",
+      "value": "Not a valid PDF file"
+    },
+    {
+      "name": "pdf_parse_zero_err",
+      "value": "This PDF has no pages"
+    },
+    {
+      "name": "pdf_parse_other_err",
+      "value": "Cannot open this PDF (error %s)"
+    },
+    {
+      "name": "poster_truncated_hint",
+      "value": "%d more characters omitted"
+    },
+        {
+      "name": "poster_cat_simple",
+      "value": "Clean & Minimal"
+    },
+        {
+      "name": "poster_cat_bold",
+      "value": "Bold Quote"
+    },
+        {
+      "name": "poster_cat_tech",
+      "value": "Retro Tech"
+    },
+        {
+      "name": "poster_cat_life",
+      "value": "Everyday Texture"
+    },
+        {
+      "name": "poster_cat_festival",
+      "value": "Festivals & Terms"
+    },
+        {
+      "name": "poster_tmpl_t19",
+      "value": "Torn Paper Collage"
+    },
+        {
+      "name": "poster_tmpl_t20",
+      "value": "Vertical Quote"
+    },
+        {
+      "name": "poster_tmpl_t21",
+      "value": "Color Blocks"
+    },
+        {
+      "name": "tmpl_pal_kraft_desk",
+      "value": "Kraft Desk"
+    },
+        {
+      "name": "tmpl_pal_slate_blue",
+      "value": "Slate Blue"
+    },
+        {
+      "name": "tmpl_pal_moss_green",
+      "value": "Moss Green"
+    },
+        {
+      "name": "tmpl_pal_plum_dark",
+      "value": "Dark Plum"
+    },
+        {
+      "name": "tmpl_pal_charcoal",
+      "value": "Charcoal"
+    },
+        {
+      "name": "tmpl_pal_washi",
+      "value": "Washi Cream"
+    },
+        {
+      "name": "tmpl_pal_indigo_washi",
+      "value": "Indigo Washi"
+    },
+        {
+      "name": "tmpl_pal_ink_washi",
+      "value": "Ink Washi"
+    },
+        {
+      "name": "tmpl_pal_moss_washi",
+      "value": "Moss Washi"
+    },
+        {
+      "name": "tmpl_pal_blush_washi",
+      "value": "Blush Washi"
+    },
+        {
+      "name": "tmpl_pal_cobalt_stack",
+      "value": "Cobalt Stack"
+    },
+        {
+      "name": "tmpl_pal_sunset_stack",
+      "value": "Sunset Stack"
+    },
+        {
+      "name": "tmpl_pal_lilac_stack",
+      "value": "Lilac Stack"
+    },
+        {
+      "name": "tmpl_pal_mint_stack",
+      "value": "Mint Stack"
+    },
+        {
+      "name": "tmpl_pal_sand_stack",
+      "value": "Sand Stack"
+    },
+    {
       "name": "wc_shape_circle",
       "value": "Circle"
     },
@@ -2895,10 +3235,6 @@
     {
       "name": "tmpl_pal_ink_blue",
       "value": "Ink blue"
-    },
-    {
-      "name": "tmpl_pal_charcoal",
-      "value": "Charcoal"
     },
     {
       "name": "tmpl_pal_deep_purple",

@@ -545,6 +545,346 @@
       "value": "カメラで読み取り、DLXアルゴリズムで瞬時に解答"
     },
     {
+      "name": "tool_pdf_title",
+      "value": "PDFツール"
+    },
+    {
+      "name": "tool_pdf_sub",
+      "value": "画像をPDFに、PDFを画像に"
+    },
+    {
+      "name": "pdf_tool_title",
+      "value": "PDFツール"
+    },
+    {
+      "name": "pdf_tab_compose",
+      "value": "合成"
+    },
+    {
+      "name": "pdf_tab_split",
+      "value": "分割"
+    },
+    {
+      "name": "pdf_compose_pick",
+      "value": "画像を選択"
+    },
+    {
+      "name": "pdf_compose_add",
+      "value": "追加"
+    },
+    {
+      "name": "pdf_compose_count",
+      "value": "%d 枚を選択済み"
+    },
+    {
+      "name": "pdf_compose_empty",
+      "value": "画像がありません。最大20枚まで選択できます"
+    },
+    {
+      "name": "pdf_compose_swap_hint",
+      "value": "サムネイルを2枚タップすると順序を入れ替えられます"
+    },
+    {
+      "name": "pdf_compose_max",
+      "value": "最大20枚まで選択できます"
+    },
+    {
+      "name": "pdf_compose_mode",
+      "value": "ページサイズ"
+    },
+    {
+      "name": "pdf_compose_fit",
+      "value": "画像に合わせる"
+    },
+    {
+      "name": "pdf_compose_a4",
+      "value": "A4白背景"
+    },
+    {
+      "name": "pdf_compose_margin",
+      "value": "余白"
+    },
+    {
+      "name": "pdf_margin_none",
+      "value": "なし"
+    },
+    {
+      "name": "pdf_margin_narrow",
+      "value": "狭い"
+    },
+    {
+      "name": "pdf_margin_normal",
+      "value": "標準"
+    },
+    {
+      "name": "pdf_compose_orient",
+      "value": "向き"
+    },
+    {
+      "name": "pdf_orient_auto",
+      "value": "自動"
+    },
+    {
+      "name": "pdf_orient_portrait",
+      "value": "縦"
+    },
+    {
+      "name": "pdf_compose_name",
+      "value": "ファイル名"
+    },
+    {
+      "name": "pdf_compose_name_hint",
+      "value": "PDFファイル名を入力"
+    },
+    {
+      "name": "pdf_compose_generate",
+      "value": "PDFを作成"
+    },
+    {
+      "name": "pdf_compose_generating",
+      "value": "作成中..."
+    },
+    {
+      "name": "pdf_compose_done",
+      "value": "%d ページを作成、%s"
+    },
+    {
+      "name": "pdf_compose_fail",
+      "value": "作成に失敗しました"
+    },
+    {
+      "name": "pdf_pick_image_fail",
+      "value": "画像の選択に失敗しました"
+    },
+    {
+      "name": "pdf_save",
+      "value": "PDFを保存"
+    },
+    {
+      "name": "pdf_saved",
+      "value": "保存しました"
+    },
+    {
+      "name": "pdf_save_cancel",
+      "value": "保存をキャンセルしました"
+    },
+    {
+      "name": "pdf_share",
+      "value": "共有"
+    },
+    {
+      "name": "pdf_share_fail",
+      "value": "共有に失敗しました"
+    },
+    {
+      "name": "pdf_split_pick",
+      "value": "PDFを選択"
+    },
+    {
+      "name": "pdf_split_empty",
+      "value": "PDFが選択されていません"
+    },
+    {
+      "name": "pdf_split_pick_fail",
+      "value": "PDFの選択に失敗しました"
+    },
+    {
+      "name": "pdf_split_parsing",
+      "value": "ページ読み込み中 %d/%d"
+    },
+    {
+      "name": "pdf_split_need_pwd",
+      "value": "このPDFは暗号化されています。パスワードを入力してください"
+    },
+    {
+      "name": "pdf_split_pwd_hint",
+      "value": "PDFのパスワード"
+    },
+    {
+      "name": "pdf_split_parse",
+      "value": "開く"
+    },
+    {
+      "name": "pdf_split_retry",
+      "value": "再試行"
+    },
+    {
+      "name": "pdf_split_pages",
+      "value": "全%dページ"
+    },
+    {
+      "name": "pdf_split_select_all",
+      "value": "すべて"
+    },
+    {
+      "name": "pdf_split_deselect_all",
+      "value": "選択解除"
+    },
+    {
+      "name": "pdf_split_page_no",
+      "value": "%d ページ"
+    },
+    {
+      "name": "pdf_split_format",
+      "value": "書き出し形式"
+    },
+    {
+      "name": "pdf_format_jpeg",
+      "value": "JPEG"
+    },
+    {
+      "name": "pdf_format_png",
+      "value": "PNG"
+    },
+    {
+      "name": "pdf_split_quality",
+      "value": "JPEG品質 %d"
+    },
+    {
+      "name": "pdf_split_export",
+      "value": "書き出し（%d）"
+    },
+    {
+      "name": "pdf_split_exporting",
+      "value": "書き出し中 %d/%d"
+    },
+    {
+      "name": "pdf_split_export_done",
+      "value": "%d 枚の画像をアルバムに書き出しました"
+    },
+    {
+      "name": "pdf_split_export_fail",
+      "value": "書き出しに失敗しました"
+    },
+    {
+      "name": "pdf_split_no_select",
+      "value": "ページを1つ以上選択してください"
+    },
+    {
+      "name": "pdf_split_max",
+      "value": "ページ数が多いため読み込みに時間がかかる場合があります"
+    },
+    {
+      "name": "pdf_save_album_fail",
+      "value": "アルバムへの保存に失敗しました"
+    },
+    {
+      "name": "pdf_parse_pwd_err",
+      "value": "パスワードが正しくありません。もう一度お試しください"
+    },
+    {
+      "name": "pdf_parse_file_err",
+      "value": "ファイルを読み込めません。破損または移動された可能性があります"
+    },
+    {
+      "name": "pdf_parse_format_err",
+      "value": "有効なPDFファイルではありません"
+    },
+    {
+      "name": "pdf_parse_zero_err",
+      "value": "このPDFにはページがありません"
+    },
+    {
+      "name": "pdf_parse_other_err",
+      "value": "このPDFを開けません（エラー %s）"
+    },
+    {
+      "name": "poster_truncated_hint",
+      "value": "%d文字を省略しました"
+    },
+        {
+      "name": "poster_cat_simple",
+      "value": "シンプル"
+    },
+        {
+      "name": "poster_cat_bold",
+      "value": "ビッグキャッチー"
+    },
+        {
+      "name": "poster_cat_tech",
+      "value": "レトロテック"
+    },
+        {
+      "name": "poster_cat_life",
+      "value": "日常の質感"
+    },
+        {
+      "name": "poster_cat_festival",
+      "value": "祝祭・年中行事"
+    },
+        {
+      "name": "poster_tmpl_t19",
+      "value": "引き裂き和紙"
+    },
+        {
+      "name": "poster_tmpl_t20",
+      "value": "縦書き引用"
+    },
+        {
+      "name": "poster_tmpl_t21",
+      "value": "カラーブロック"
+    },
+        {
+      "name": "tmpl_pal_kraft_desk",
+      "value": "クラフト机"
+    },
+        {
+      "name": "tmpl_pal_slate_blue",
+      "value": "スレートブルー"
+    },
+        {
+      "name": "tmpl_pal_moss_green",
+      "value": "モスグリーン"
+    },
+        {
+      "name": "tmpl_pal_plum_dark",
+      "value": "ダークプラム"
+    },
+        {
+      "name": "tmpl_pal_charcoal",
+      "value": "チャコール"
+    },
+        {
+      "name": "tmpl_pal_washi",
+      "value": "和紙のクリーム"
+    },
+        {
+      "name": "tmpl_pal_indigo_washi",
+      "value": "インディゴ和紙"
+    },
+        {
+      "name": "tmpl_pal_ink_washi",
+      "value": "インク和紙"
+    },
+        {
+      "name": "tmpl_pal_moss_washi",
+      "value": "モス和紙"
+    },
+        {
+      "name": "tmpl_pal_blush_washi",
+      "value": "ブラッシュ和紙"
+    },
+        {
+      "name": "tmpl_pal_cobalt_stack",
+      "value": "コバルト重ね"
+    },
+        {
+      "name": "tmpl_pal_sunset_stack",
+      "value": "サンセット重ね"
+    },
+        {
+      "name": "tmpl_pal_lilac_stack",
+      "value": "ライラック重ね"
+    },
+        {
+      "name": "tmpl_pal_mint_stack",
+      "value": "ミント重ね"
+    },
+        {
+      "name": "tmpl_pal_sand_stack",
+      "value": "サンド重ね"
+    },
+    {
       "name": "wc_shape_circle",
       "value": "円形"
     },
@@ -2895,10 +3235,6 @@
     {
       "name": "tmpl_pal_ink_blue",
       "value": "インクブルー"
-    },
-    {
-      "name": "tmpl_pal_charcoal",
-      "value": "チャコール"
     },
     {
       "name": "tmpl_pal_deep_purple",
