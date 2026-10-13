@@ -5,6 +5,7 @@ import { DictationUtil, DictationSentence, DictationChar } from '../common/utils
 import { StickinessUtil } from '../common/utils/StickinessUtil';
 import { ReviewReminderUtil } from '../common/utils/ReviewReminderUtil';
 import { StrUtil } from '../common/utils/StrUtil';
+import { ToastUtil } from '../common/utils/ToastUtil';
 
 @Builder
 export function ReviewPageBuilder() {
@@ -40,6 +41,9 @@ struct ReviewContent {
     if (on) {
       ReviewReminderUtil.enable(ctx).then((ok: boolean) => {
         this.reminderOn = ok;
+        if (!ok) {
+          ToastUtil.show(this.uiContext, $r('app.string.reminder_enable_fail'), 2500);
+        }
       });
     } else {
       ReviewReminderUtil.disable(ctx).then(() => {

@@ -1,3 +1,13 @@
+/**
+ * 每日签到提醒（20:00 代理提醒）。
+ *
+ * 2026-10-13 修复（真机 Mate 60 Pro 实证 publishReminder 报 1700002 配额超限）：
+ * 1. 旧版仅保存单个 reminderId，取消失败/数据残留时会累积重复提醒直至配额满（单应用上限 30）；
+ * 2. 现所有签到提醒携带固定 groupId（同组提醒会被系统一起取消），取消保存的 id 即整组清理；
+ * 3. 发布仍报 1700002 时兜底：cancelAllReminders 清空本应用全部提醒后重试一次（自愈旧版无
+ *    groupId 的残留；副作用是同应用的其他代理提醒会被一并清掉，其开关状态由下次开关周期重新同步）；
+ * 4. enable 失败时页面层 toast 提示（reminder_enable_fail），不再静默弹回。
+ */
 import { reminderAgentManager } from '@kit.BackgroundTasksKit';
 import { notificationManager } from '@kit.NotificationKit';
 import { preferences } from '@kit.ArkData';
@@ -12,6 +22,8 @@ export class CheckInReminderUtil {
   private static readonly ABILITY_NAME: string = 'EntryAbility';
   private static readonly REMIND_HOUR: number = 20;
   private static readonly REMIND_MINUTE: number = 0;
+  private static readonly GROUP_ID: string = 'grp_daily_checkin';
+  private static readonly ERR_QUOTA: number = 1700002;
 
   static isOn(context: Context): boolean {
     try {
@@ -42,21 +54,29 @@ export class CheckInReminderUtil {
         return false;
       }
     }
+    let wantAgentInfo: reminderAgentManager.WantAgent = {
+      pkgName: CheckInReminderUtil.BUNDLE_NAME,
+      abilityName: CheckInReminderUtil.ABILITY_NAME
+    };
+    let alarm: reminderAgentManager.ReminderRequestAlarm = {
+      reminderType: reminderAgentManager.ReminderType.REMINDER_TYPE_ALARM,
+      hour: CheckInReminderUtil.REMIND_HOUR,
+      minute: CheckInReminderUtil.REMIND_MINUTE,
+      daysOfWeek: [1, 2, 3, 4, 5, 6, 7],
+      title: context.resourceManager.getStringByNameSync('EntryAbility_label'),
+      content: context.resourceManager.getStringByNameSync('reminder_checkin_content'),
+      groupId: CheckInReminderUtil.GROUP_ID,
+      wantAgent: wantAgentInfo
+    };
     try {
+      let before: number = -1;
+      try {
+        before = (await reminderAgentManager.getValidReminders()).length;
+      } catch (e) {
+        // 诊断信息，获取失败不影响主流程
+      }
       await CheckInReminderUtil.cancelPublished(context);
-      let wantAgentInfo: reminderAgentManager.WantAgent = {
-        pkgName: CheckInReminderUtil.BUNDLE_NAME,
-        abilityName: CheckInReminderUtil.ABILITY_NAME
-      };
-      let alarm: reminderAgentManager.ReminderRequestAlarm = {
-        reminderType: reminderAgentManager.ReminderType.REMINDER_TYPE_ALARM,
-        hour: CheckInReminderUtil.REMIND_HOUR,
-        minute: CheckInReminderUtil.REMIND_MINUTE,
-        daysOfWeek: [1, 2, 3, 4, 5, 6, 7],
-        title: context.resourceManager.getStringByNameSync('EntryAbility_label'),
-        content: context.resourceManager.getStringByNameSync('reminder_checkin_content'),
-        wantAgent: wantAgentInfo
-      };
+      console.info('[CheckInReminder] valid reminders before publish: ' + before.toString());
       let reminderId: number = await reminderAgentManager.publishReminder(alarm);
       CheckInReminderUtil.saveState(context, true, reminderId);
       console.info('[CheckInReminder] published reminder id=' + reminderId.toString());
@@ -64,6 +84,18 @@ export class CheckInReminderUtil {
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[CheckInReminder] publishReminder failed: ' + err.code.toString() + ' ' + err.message);
+      if (err.code === CheckInReminderUtil.ERR_QUOTA) {
+        try {
+          await reminderAgentManager.cancelAllReminders();
+          let reminderId: number = await reminderAgentManager.publishReminder(alarm);
+          CheckInReminderUtil.saveState(context, true, reminderId);
+          console.warn('[CheckInReminder] quota full, wiped all reminders and republished id=' + reminderId.toString());
+          return true;
+        } catch (e2) {
+          console.error('[CheckInReminder] republish after wipe failed: ' + (e2 as BusinessError).message);
+          return false;
+        }
+      }
       return false;
     }
   }
@@ -83,8 +115,7 @@ export class CheckInReminderUtil {
       try {
         await reminderAgentManager.cancelReminder(reminderId);
       } catch (e) {
-        console.error('[CheckInReminder] cancelReminder failed: ' + (e as Error).message);
-        throw new Error((e as Error).message);
+        console.warn('[CheckInReminder] cancelReminder failed: ' + (e as Error).message);
       }
     }
   }

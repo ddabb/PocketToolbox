@@ -2,13 +2,16 @@
  * PDF 合成核心（1.4.5 P0-1：图片合成 PDF）
  *
  * 链路已在 Phase 0 真机验证（docs/1.4.5开发计划_PDF工具.md §9）：
- *   new PdfDocument() → createDocument(w,h) → insertBlankPage(i,w,h)
- *   → addImageObject(uri,x,y,w,h) → deletePage(inserted,1) → saveDocument → releaseDocument
+ *   new PdfDocument() → createDocument(w,h) → insertBlankPage(inserted,w,h)
+ *   → addImageObject(sandboxPath,x,y,w,h) → deletePage(inserted,1) → saveDocument → releaseDocument
  *
  * 关键实证（2026-10-13 Mate 60 Pro）：
  *   1. createDocument(w,h) 会自带一张初始空页；
  *   2. insertBlankPage 是「在 index 处插入」，初始页被顶到页序末尾（index=inserted），
- *      deletePage(0,1) 会误删第一张图片页——必须 deletePage(inserted, 1)。
+ *      deletePage(0,1) 会误删第一张图片页——必须 deletePage(inserted, 1)；
+ *   3. addImageObject 直传相册媒体 URI（file://media/...）会静默不绘制，页面全空白
+ *      （1.4.5 首轮真机验证发现：PDF 可生成但内容为空白页）——必须先 fs.openSync(uri)
+ *      拷贝到应用沙箱，再传沙箱路径（官方 PhotoViewPicker + PDFKit 案例流程）。
  */
 import { pdfService } from '@kit.PDFKit';
 import { image } from '@kit.ImageKit';
@@ -105,9 +108,36 @@ export class PdfComposer {
     }
   }
 
+  /** 取 uri 后缀（含点）；无有效后缀返回 .img */
+  private static extOf(uri: string): string {
+    let dot: number = uri.lastIndexOf('.');
+    if (dot < 0 || dot < uri.lastIndexOf('/')) {
+      return '.img';
+    }
+    return uri.substring(dot);
+  }
+
+  /** 删除沙箱临时目录（目录内平铺文件 + 目录本身），不存在则忽略 */
+  private static removeTree(dir: string): void {
+    try {
+      if (!fs.accessSync(dir)) {
+        return;
+      }
+      let names: string[] = fs.listFileSync(dir);
+      for (let i = 0; i < names.length; i++) {
+        fs.unlinkSync(dir + '/' + names[i]);
+      }
+      fs.rmdirSync(dir);
+    } catch (e) {
+      console.warn('[PdfComposer] removeTree failed: ' + (e as BusinessError).message);
+    }
+  }
+
   /**
    * 合成主流程。images 顺序即页序；outPath 为沙箱输出路径（.pdf 结尾）。
    * FIT 模式 margin/orientation 不生效；A4 模式 AUTO 方向按首图横竖判定。
+   * 相册 URI 图片先拷贝到 outPath 同级 pdftool_tmp 目录再喂给 addImageObject，
+   * 合成结束（含失败路径）自动清理。
    */
   static async compose(images: ComposeImage[], pageMode: PdfPageMode, margin: PdfMarginMode,
     orientation: PdfOrientation, outPath: string): Promise<ComposeResult> {
@@ -116,10 +146,29 @@ export class PdfComposer {
       result.errMsg = 'empty';
       return result;
     }
+    let slash: number = outPath.lastIndexOf('/');
+    if (slash < 0) {
+      result.errMsg = 'path';
+      return result;
+    }
     let doc: pdfService.PdfDocument = new pdfService.PdfDocument();
     let created: boolean = doc.createDocument(A4_SHORT_PT, A4_LONG_PT);
     if (!created) {
       result.errMsg = 'create';
+      return result;
+    }
+    let tmpDir: string = outPath.substring(0, slash) + '/pdftool_tmp';
+    PdfComposer.removeTree(tmpDir);
+    let tmpReady: boolean = true;
+    try {
+      fs.mkdirSync(tmpDir, true);
+    } catch (e) {
+      console.error('[PdfComposer] mkdir tmp failed: ' + (e as BusinessError).message);
+      tmpReady = false;
+    }
+    if (!tmpReady) {
+      result.errMsg = 'tmp';
+      doc.releaseDocument();
       return result;
     }
     try {
@@ -138,7 +187,21 @@ export class PdfComposer {
         if (pageW <= 0 || pageH <= 0) {
           continue;
         }
-        let page: pdfService.PdfPage = doc.insertBlankPage(i, pageW, pageH);
+        // 相册 URI 直传 addImageObject 会静默不绘制（空白页），必须先拷贝到沙箱
+        let tmpPath: string = tmpDir + '/img_' + i + PdfComposer.extOf(img.uri);
+        try {
+          let srcFile: fs.File = fs.openSync(img.uri, fs.OpenMode.READ_ONLY);
+          try {
+            fs.copyFileSync(srcFile.fd, tmpPath);
+          } finally {
+            fs.closeSync(srcFile);
+          }
+        } catch (e) {
+          console.error('[PdfComposer] copy image failed: ' + (e as BusinessError).message);
+          result.errMsg = 'copy';
+          return result;
+        }
+        let page: pdfService.PdfPage = doc.insertBlankPage(inserted, pageW, pageH);
         if (page === null) {
           continue;
         }
@@ -156,7 +219,7 @@ export class PdfComposer {
           x = (pageW - drawW) / 2;
           y = (pageH - drawH) / 2;
         }
-        page.addImageObject(img.uri, x, y, drawW, drawH);
+        page.addImageObject(tmpPath, x, y, drawW, drawH);
       }
       if (inserted === 0) {
         result.errMsg = 'nopage';
@@ -180,6 +243,7 @@ export class PdfComposer {
       result.bytes = fs.statSync(outPath).size;
     } finally {
       doc.releaseDocument();
+      PdfComposer.removeTree(tmpDir);
     }
     return result;
   }

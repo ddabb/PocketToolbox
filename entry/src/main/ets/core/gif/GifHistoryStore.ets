@@ -169,6 +169,13 @@ export class GifHistoryStore {
     GifHistoryStore.writeRecords(context, []);
   }
 
+  /** 全量替换历史索引（备份导入用）：清空本地记录与文件后写入备份的索引；文件本体由调用方落盘 */
+  static replaceAll(context: Context, records: GifHistoryRecord[]): void {
+    GifHistoryStore.clearAll(context);
+    GifHistoryStore.ensureDir(context);
+    GifHistoryStore.writeRecords(context, records);
+  }
+
   static totalBytes(context: Context): number {
     let records: GifHistoryRecord[] = GifHistoryStore.loadRecords(context);
     let total: number = 0;

@@ -1,6 +1,7 @@
 import { bundleManager, common } from '@kit.AbilityKit';
 import { GifHistoryStore, formatGifBytes } from '../core/gif/GifHistoryStore';
 import { CheckInReminderUtil } from '../common/utils/CheckInReminderUtil';
+import { ToastUtil } from '../common/utils/ToastUtil';
 
 @Builder
 export function AboutPageBuilder() {
@@ -39,6 +40,7 @@ struct AboutContent {
           this.reminderOn = true;
         } else {
           this.reminderOn = false;
+          ToastUtil.show(this.uiContext, $r('app.string.reminder_enable_fail'), 2500);
         }
       });
     } else {

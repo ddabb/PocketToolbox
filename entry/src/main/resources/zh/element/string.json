@@ -1921,6 +1921,10 @@
       "value": "开启后每天 20:00 系统提醒签到与每日挑战"
     },
     {
+      "name": "reminder_enable_fail",
+      "value": "提醒开启失败，请检查通知设置后重试"
+    },
+    {
       "name": "about_gif_history",
       "value": "GIF 制作历史"
     },

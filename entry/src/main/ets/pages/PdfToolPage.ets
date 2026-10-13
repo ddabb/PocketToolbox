@@ -25,7 +25,7 @@ import { PdfSplitter, PdfThumb, SplitFormat } from '../core/pdf/PdfSplitter';
 
 const TAG: string = '[PdfTool]';
 /** 单次合成最多图片数 */
-const MAX_IMAGES: number = 20;
+const MAX_IMAGES: number = 100;
 /** 建议分批导出的页数阈值（内存保护） */
 const MAX_PAGES_HINT: number = 50;
 

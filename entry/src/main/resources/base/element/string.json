@@ -1921,6 +1921,10 @@
       "value": "When on, you'll be reminded daily at 20:00 to check in and take the challenge"
     },
     {
+      "name": "reminder_enable_fail",
+      "value": "Failed to enable the reminder. Please check notification settings and try again"
+    },
+    {
       "name": "about_gif_history",
       "value": "GIF History"
     },
