@@ -8,6 +8,7 @@ import gifCodecTest from './GifCodec.test';
 import pdfUtilTest from './PdfUtil.test';
 import backupUtilTest from './BackupUtil.test';
 import sudokuPixelTest from './SudokuPixel.test';
+import sudokuGridFixTest from './SudokuGridFix.test';
 
 export default function testsuite() {
   abilityTest();
@@ -20,4 +21,5 @@ export default function testsuite() {
   pdfUtilTest();
   backupUtilTest();
   sudokuPixelTest();
+  sudokuGridFixTest();
 }
