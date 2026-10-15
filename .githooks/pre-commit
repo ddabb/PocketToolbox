@@ -10,3 +10,13 @@ if [ $? -ne 0 ]; then
   echo "  - 白名单文件不得超过登记上限（scripts/size_whitelist.json，只减不增）。"
   exit 1
 fi
+
+# 1.4.7 P3-3 三语资源护栏（2026-10-15 交付）：键集合/占位符一致性校验。
+py -3 scripts/check_strings.py --check
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "[pre-commit] 字符串资源校验未通过，提交被拒绝。"
+  echo "  - base/zh/ja 三语 string.json 键集合必须一致；"
+  echo "  - 同键占位符（%s/%d/%N$s/%N$d）三语必须一致。"
+  exit 1
+fi
