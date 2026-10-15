@@ -43,6 +43,7 @@ import { ReadingListStore, ReadingList } from '../model/ReadingListModels';
 import { bundleManager, common, Want } from '@kit.AbilityKit';
 import { ConverterCategory, UnitConverterData } from '../model/UnitModels';
 import { ToastUtil } from '../common/utils/ToastUtil';
+import { CommentUtil } from '../common/utils/CommentUtil';
 import { ClipboardUtil } from '../common/utils/ClipboardUtil';
 import { VibrateUtil } from '../common/utils/VibrateUtil';
 import { BreakpointObserver, ScreenBreakpoint } from '../common/utils/BreakpointUtil';
@@ -284,6 +285,11 @@ struct Index {
       ClipboardUtil.copy(FEEDBACK_EMAIL);
       ToastUtil.show(this.getUIContext(), $r('app.string.feedback_no_mail_app'), 1500);
     });
+  }
+
+  // 去评论：应用内评论弹窗优先，Deep Linking 跳应用市场写评论页兜底，toast 最终兜底
+  private onCommentTap(): void {
+    CommentUtil.requestComment(this.getUIContext());
   }
 
   private getUnitSubtitle(cat: ConverterCategory): ResourceStr {
@@ -1379,6 +1385,28 @@ struct Index {
             .padding({ left: 16, right: 16, top: 14, bottom: 14 })
             .onClick(() => {
               this.onFeedbackTap();
+            })
+
+            Divider()
+              .color($r('app.color.border_color'))
+              .margin({ left: 46 })
+
+            Row() {
+              Text('\u2B50')
+                .fontSize(20)
+                .margin({ right: 10 })
+              Text($r('app.string.mine_comment'))
+                .fontSize(15)
+                .fontColor($r('app.color.primary_text'))
+                .layoutWeight(1)
+              Text('\u203A')
+                .fontSize(18)
+                .fontColor($r('app.color.hint_text'))
+            }
+            .width('100%')
+            .padding({ left: 16, right: 16, top: 14, bottom: 14 })
+            .onClick(() => {
+              this.onCommentTap();
             })
 
             Divider()

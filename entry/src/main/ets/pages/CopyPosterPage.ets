@@ -66,6 +66,11 @@ struct CopyPosterEditor {
   densityPx: number = 3;
   /** 「换一句」已推荐文案（会话内去重） */
   private usedInspiration: Set<string> = new Set<string>();
+  /**
+   * 已编辑槽位（会话内追踪，不落盘，1.4.6 切换跟随）：
+   * 切模板时未编辑（或已清空）的槽位跟随新模板默认值，已编辑且非空的槽位保留用户内容。
+   */
+  private editedSlots: Set<string> = new Set<string>();
   private ratioOptions: ChipOption[] = [
     ChipOption.of(CopyPosterRatio.SQUARE, CopyPosterRatio.label(CopyPosterRatio.SQUARE)),
     ChipOption.of(CopyPosterRatio.PORTRAIT, CopyPosterRatio.label(CopyPosterRatio.PORTRAIT)),
@@ -164,20 +169,20 @@ struct CopyPosterEditor {
     return CopyPosterTemplates.EXPORT_W / (this.previewW() * this.densityPx);
   }
 
-  /** 切换模板：保留已输入内容，仅补空槽默认值 */
+  /** 切换模板（1.4.6 切换跟随）：已编辑且非空的槽位保留用户内容，其余跟随新模板默认值 */
   private selectTemplate(t: CopyPosterTemplate): void {
     this.currentTemplateId = t.id;
     this.paletteIndex = 0;
     this.fontIndex = 0;
     let c: CopyPosterContent = this.content.copy();
     let d: Record<string, string> = t.defaults;
-    if (c.body.trim() === '') {
+    if (!this.editedSlots.has(CopyPosterSlot.BODY) || c.body.trim() === '') {
       c.body = d['body'] ?? '';
     }
-    if (c.sign.trim() === '') {
+    if (!this.editedSlots.has(CopyPosterSlot.SIGN) || c.sign.trim() === '') {
       c.sign = d['sign'] ?? '';
     }
-    if (c.tag.trim() === '') {
+    if (!this.editedSlots.has(CopyPosterSlot.TAG) || c.tag.trim() === '') {
       c.tag = d['tag'] ?? '';
     }
     this.content = c;
@@ -194,6 +199,7 @@ struct CopyPosterEditor {
     } else {
       return;
     }
+    this.editedSlots.add(slot);
     this.content = c;
   }
 
@@ -225,6 +231,8 @@ struct CopyPosterEditor {
         c.body = pick.quote;
         c.sign = pick.source.length > CopyPosterTemplates.MAX_SIGN ?
           pick.source.substring(0, CopyPosterTemplates.MAX_SIGN) : pick.source;
+        this.editedSlots.add(CopyPosterSlot.BODY);
+        this.editedSlots.add(CopyPosterSlot.SIGN);
         this.content = c;
         return;
       }
@@ -233,6 +241,7 @@ struct CopyPosterEditor {
     if (text !== '') {
       let c: CopyPosterContent = this.content.copy();
       c.body = text;
+      this.editedSlots.add(CopyPosterSlot.BODY);
       this.content = c;
       return;
     }
@@ -279,6 +288,10 @@ struct CopyPosterEditor {
     this.paletteIndex = r.paletteIndex;
     this.fontIndex = r.fontIndex;
     this.content = CopyPosterContent.fromJson(r.textsJson);
+    // 历史恢复即用户内容：三槽全部标记已编辑，后续切模板不再覆盖
+    this.editedSlots.add(CopyPosterSlot.BODY);
+    this.editedSlots.add(CopyPosterSlot.SIGN);
+    this.editedSlots.add(CopyPosterSlot.TAG);
     this.editorTab = 0;
     ToastUtil.show(this.getUIContext(), $r('app.string.cover_restored', StrUtil.text(this.context(), t.name)), 1200);
   }

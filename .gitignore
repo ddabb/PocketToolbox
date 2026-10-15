@@ -16,3 +16,5 @@
 .workbuddy/
 .codegenie/
 .verify_tmp/
+.ui_shots/
+__pycache__/

@@ -329,6 +329,14 @@
       "value": "意见反馈"
     },
     {
+      "name": "mine_comment",
+      "value": "去评论"
+    },
+    {
+      "name": "comment_open_market_failed",
+      "value": "未能打开应用市场，请前往应用市场评论"
+    },
+    {
       "name": "mine_about",
       "value": "关于"
     },

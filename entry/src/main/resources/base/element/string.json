@@ -329,6 +329,14 @@
       "value": "Feedback"
     },
     {
+      "name": "mine_comment",
+      "value": "Rate & Review"
+    },
+    {
+      "name": "comment_open_market_failed",
+      "value": "Couldn't open AppGallery. Please leave a review in AppGallery."
+    },
+    {
       "name": "mine_about",
       "value": "About"
     },

@@ -329,6 +329,14 @@
       "value": "フィードバック"
     },
     {
+      "name": "mine_comment",
+      "value": "レビューを書く"
+    },
+    {
+      "name": "comment_open_market_failed",
+      "value": "アプリマーケットを開けませんでした。アプリマーケットでレビューをお願いします"
+    },
+    {
       "name": "mine_about",
       "value": "アプリについて"
     },

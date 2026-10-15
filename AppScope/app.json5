@@ -2,9 +2,9 @@
   "app": {
     "bundleName": "com.ddabb.toolbox",
     "vendor": "lgayy",
-    "versionCode": 1000025,
-    "versionName": "1.4.5",
-    "buildVersion": "14",
+    "versionCode": 1000026,
+    "versionName": "1.4.6",
+    "buildVersion": "15",
     "icon": "$media:layered_image",
     "label": "$string:app_name"
   }

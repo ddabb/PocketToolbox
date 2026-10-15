@@ -116,9 +116,11 @@ export class CopyPosterTemplates {
       ],
       [CoverFont.SERIF, CoverFont.HANI_SANS, CoverFont.WENKAI, CoverFont.XIAO_WEI, CoverFont.ROUND],
       {
-        'body': '欢迎来访公众号「随身工具宝」，木木请你喝茶呀。今天测试六十字内容，看屏幕会不会自动撑高，功能机像素屏效果仍然保持，斜着拍的感觉也要在。一二三四五六七八九十。',
-        'sign': '',
-        'tag': 'pinyin'
+        // 1.4.6 按模板适配：tag=顶部信号旁「5G」、sign=底栏运营商位「菜单」（用户指定），
+        // body 弃用开发期 60 字测试长文，改用功能机气质短句
+        'body': '信号满格，心情也满格',
+        'sign': '菜单',
+        'tag': '5G'
       }));
 
     // ---------- T6 CRT 终端屏（米色复古显示器 + 荧光屏） ----------
@@ -138,7 +140,7 @@ export class CopyPosterTemplates {
           '', '#3A3D42', '#131313'),
       ],
       [CoverFont.SERIF, CoverFont.HANI_SANS, CoverFont.SMILEY, CoverFont.WENKAI, CoverFont.ROUND],
-      { 'body': '欢迎来访公众号「随身工具宝」', 'sign': '请你喝茶呀', 'tag': 'quote' }));
+      { 'body': '心情系统已启动，今日运行正常', 'sign': '随身工具宝', 'tag': 'readme' }));
 
     // ---------- T7 霓虹灯招牌（夜墙灯管） ----------
     // 配色字段约定：bg/bg2=夜空渐变 accent=主灯管色 title=灯管亮芯 sub=标签灯管色 block=边框灯管色
@@ -157,7 +159,7 @@ export class CopyPosterTemplates {
           '#040710', '#FF9DE2', ''),
       ],
       [CoverFont.HANI_SANS, CoverFont.HUANG_YOU, CoverFont.ROUND, CoverFont.XIAO_WEI, CoverFont.KUAI_LE],
-      { 'body': '欢迎来访公众号「随身工具宝」', 'sign': '请你喝茶呀', 'tag': 'hi 朋友' }));
+      { 'body': '夜色温柔，晚风正好', 'sign': '', 'tag': 'OPEN' }));
 
     // ---------- T8 掌机游戏机（橄榄绿点阵屏 + 像素对话框） ----------
     // 配色字段约定：bg=舞台底色 accent/title=点阵屏墨色 sub=屏上暗墨 block=机身壳色 grid=LCD 底色
@@ -176,7 +178,7 @@ export class CopyPosterTemplates {
           '', '#C9A23F', '#9BB069'),
       ],
       [CoverFont.HANI_SANS, CoverFont.SMILEY, CoverFont.WENKAI, CoverFont.KUAI_LE, CoverFont.ROUND],
-      { 'body': '欢迎来访公众号「随身工具宝」', 'sign': '请你喝茶呀', 'tag': 'POCKET-8' }));
+      { 'body': '欢迎来到口袋世界，冒险现在开始！', 'sign': '开始', 'tag': 'POCKET-8' }));
 
     // ---------- T9 复古车票（票纸 + 撕票线 + 邮戳） ----------
     // 配色字段约定：bg=舞台底色 accent=印章红 title=票面墨色 sub=票面浅墨 block=票纸颜色 grid=分隔线色
@@ -195,7 +197,7 @@ export class CopyPosterTemplates {
           '', '#2E3138', '#4A4E57'),
       ],
       [CoverFont.SERIF, CoverFont.FEI_BAI, CoverFont.WENKAI, CoverFont.XIAO_WEI, CoverFont.MA_SHAN],
-      { 'body': '欢迎来访公众号「随身工具宝」', 'sign': '请你喝茶呀', 'tag': '随身工具宝' }, false));
+      { 'body': '下一站，是想见你的人', 'sign': '随身工具宝', 'tag': '单程票' }, false));
 
     // ---------- T10 翻牌显示屏（车站翻牌板，逐字模块） ----------
     // 配色字段约定：bg=舞台底色 accent=琥珀标签/署名 title=翻牌字色 sub=暗灰 dash block=底板颜色 grid=翻牌模块底色
@@ -214,7 +216,7 @@ export class CopyPosterTemplates {
           '', '#1A2129', '#34404C'),
       ],
       [CoverFont.HANI_SANS, CoverFont.SMILEY, CoverFont.SERIF, CoverFont.ROUND, CoverFont.WENKAI],
-      { 'body': '欢迎来访公众号「随身工具宝」', 'sign': '请你喝茶呀', 'tag': '文案站' }, false));
+      { 'body': '开往春天的列车，即将出发', 'sign': '随身工具宝', 'tag': '文案站' }, false));
 
     // ---------- T11 复古报纸（老报纸头版，参照 docs/文案海报候选_复古报纸.html） ----------
     // 配色字段约定：bg=纸色 accent=号外红章 title=标题墨 sub=次要墨 block=亮纸色 grid=分隔线色
@@ -233,7 +235,7 @@ export class CopyPosterTemplates {
           '', '#F9ECE9', '#CFA3AC'),
       ],
       [CoverFont.SERIF, CoverFont.FEI_BAI, CoverFont.MA_SHAN, CoverFont.WENKAI, CoverFont.XIAO_WEI],
-      { 'body': '欢迎来访公众号「随身工具宝」', 'sign': '请你喝茶呀', 'tag': '随身日报' }));
+      { 'body': '世界很大，去过才有发言权', 'sign': '记者 木木', 'tag': '随身日报' }));
 
     // ---------- T12 聊天气泡（微信式对话，参照 docs/文案海报候选_聊天气泡.html） ----------
     // 配色字段约定：bg=聊天区底色 accent=我方气泡色 title=正文墨色 sub=次要文字 block=对方气泡色 grid=顶栏底色
@@ -252,7 +254,7 @@ export class CopyPosterTemplates {
           '', '#FFF8EC', '#EADFC8'),
       ],
       [CoverFont.HANI_SANS, CoverFont.SMILEY, CoverFont.KUAI_LE, CoverFont.ROUND, CoverFont.WENKAI],
-      { 'body': '欢迎来访公众号「随身工具宝」', 'sign': '请你喝茶呀', 'tag': '随身工具宝' }));
+      { 'body': '周末有空吗？想和你去晒太阳', 'sign': '好呀好呀', 'tag': '随身工具宝' }));
 
     // ---------- T13 黑胶唱片（聚光灯唱片 + 曲目单，参照 docs/文案海报候选_黑胶唱片.html） ----------
     // 配色字段约定：bg=舞台底色 accent=中心标签色 title=曲目文字 sub=次要文字 block=标签文字色 grid=唱片纹色
@@ -271,7 +273,7 @@ export class CopyPosterTemplates {
           '', '#0C1F16', '#121A16'),
       ],
       [CoverFont.SERIF, CoverFont.XIAO_WEI, CoverFont.HANI_SANS, CoverFont.WENKAI, CoverFont.MA_SHAN],
-      { 'body': '欢迎来访公众号「随身工具宝」', 'sign': '请你喝茶呀', 'tag': 'POCKET LP' }, false));
+      { 'body': '慢慢走，欣赏路边的风景', 'sign': '随身工具宝', 'tag': 'POCKET LP' }, false));
 
     // ---------- T14 电影字幕卡（影院片头卡，参照 docs/文案海报候选_电影字幕卡.html） ----------
     // 配色字段约定：bg/bg2=夜幕渐变 accent=金线 title=字幕银 sub=次要文字 block=胶片条色 grid=片孔色
@@ -290,7 +292,7 @@ export class CopyPosterTemplates {
           '#0E1A0E', '#142014', '#030803'),
       ],
       [CoverFont.SERIF, CoverFont.HANI_SANS, CoverFont.SMILEY, CoverFont.XIAO_WEI, CoverFont.ROUND],
-      { 'body': '欢迎来访公众号「随身工具宝」', 'sign': '请你喝茶呀', 'tag': 'POCKET 电影' }, false));
+      { 'body': '愿所有相遇，都恰逢其时', 'sign': '随身工具宝', 'tag': 'POCKET 电影' }, false));
 
     // ---------- T15 公告栏启事（软木板图钉便签，参照 docs/文案海报候选_公告栏启事.html） ----------
     // 配色字段约定：bg=软木底色 accent=图钉/红线色 title=便签墨色 sub=次要墨色 block=便签纸色 grid=木框色
@@ -309,7 +311,7 @@ export class CopyPosterTemplates {
           '', '#EFE3C6', '#5E4426'),
       ],
       [CoverFont.MA_SHAN, CoverFont.LONG_CANG, CoverFont.WENKAI, CoverFont.FEI_BAI, CoverFont.ZHI_MANG],
-      { 'body': '欢迎来访公众号「随身工具宝」', 'sign': '请你喝茶呀', 'tag': '寻物启事' }, false));
+      { 'body': '走丢的好心情一枚，捡到请归还', 'sign': '失主很着急', 'tag': '失物招领' }, false));
 
     // ---------- T16 二十四节气卡（竖排主文案 + 节气名/印章/节气歌，参照 docs/文案海报候选_二十四节气卡.html） ----------
     // 配色字段约定：bg=纸色 accent=印章红 title=主文案墨 sub=次要文字 block=节气名色 grid=边框线色

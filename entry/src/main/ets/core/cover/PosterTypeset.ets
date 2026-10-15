@@ -24,6 +24,24 @@ export class PosterLayout {
   capacity: number = 0;
 }
 
+/** 竖排排版结果（layoutVertical 专用） */
+export class PosterVerticalLayout {
+  /** 实际字号（设计稿 px） */
+  fontPx: number = 0;
+  /** 各列字符（阅读序：首列在前；渲染时自右向左） */
+  columns: string[][] = [];
+  /** 每列字数 */
+  perCol: number = 0;
+  /** 实际列数 */
+  cols: number = 0;
+  /** 是否发生截断（仅发生在 MIN_FONT_PX） */
+  truncated: boolean = false;
+  /** 被截断掉的字数（未截断时为 0） */
+  truncatedChars: number = 0;
+  /** 当前字号下列数上限下能容纳的总字数 */
+  capacity: number = 0;
+}
+
 /** 字宽估算系数（相对字号 em） */
 const HANZI_EM: number = 1.0;
 /** 拉丁字母/数字按 0.55em 估（等宽近似，保守偏大以避免溢出） */
@@ -41,6 +59,11 @@ const NO_LINE_START: string = '，。、！？；：…—·）】》」』〉%,
 const RE_HANZI: RegExp = new RegExp('[\\u4e00-\\u9fff]');
 /** 全角标点判定 */
 const RE_PUNCT: RegExp = new RegExp('[，。、！？；：…—·「」『』（）《》〈〉【】]');
+
+/** 竖排列首避让：闭合标点不作为一列的开头（同横排 NO_LINE_START） */
+const NO_COL_START: string = '，。、！？；：…—·）】》」』〉%,.!?;:)]}';
+/** 竖排列尾避让：开放标点不作为一列的收尾（「」不断词验收项） */
+const NO_COL_END: string = '「『（【《〈([';
 
 export class PosterTypeset {
   /**
@@ -244,5 +267,126 @@ export class PosterTypeset {
    */
   static blockHeight(fontPx: number, lines: number): number {
     return PosterTypeset.lineHeight(fontPx) * Math.max(1, lines);
+  }
+
+  /**
+   * 竖排内核（设计稿 px）：字号自 basePx 连续 -1px 收缩至文本恰入 ≤maxCols 列；
+   * 最小字号仍放不下则截断并报 truncatedChars。
+   *
+   * 1.4.6 P0-1 A 类（T16/T18/T20）专用，Phase 0 Python spike 锁定方案
+   * （scripts/spike_layout_vertical.py + spike_layout_vertical_geo.py 全绿）：
+   *   - 竖排列数即预算，容量驱动连续收缩，不套用横排 startFont 曲线；
+   *   - 列首避让 NO_COL_START + 列尾避让 NO_COL_END（「」不断词）；
+   *   - 截断仅发生在 MIN_FONT_PX，提示复用 poster_truncated_hint（替代旧 '…' 截断）；
+   *   - 相邻字数最大跌落 12px（T20 1:1 19 字处），旧分档悬崖 21%-26% 已消除。
+   *
+   * @param text           主文案
+   * @param availHeightPx  每列可用高度（设计稿 px，横排基准 f()：perCol = availHeightPx / (font×lhRatio)）
+   * @param maxCols        列数硬上限（与 availWidthPx/pitchRatio 取小）
+   * @param basePx         基准字号（设计稿 px）
+   * @param big            大字模式（字号整体 ×1.15）
+   * @param lhRatio        行高比（T16 1.30 / T18 1.36 / T20 1.32）
+   * @param availWidthPx   可用宽度（设计稿 px；<=0 表示不感知宽度，仅用硬上限）
+   * @param pitchRatio     列距比 = 列宽 + 列间距 / 字号（T16 1.63 / T18 1.90 / T20 1.80）
+   */
+  static layoutVertical(text: string, availHeightPx: number, maxCols: number, basePx: number,
+    big: boolean, lhRatio: number, availWidthPx: number, pitchRatio: number): PosterVerticalLayout {
+    let result: PosterVerticalLayout = new PosterVerticalLayout();
+    let chars: string[] = PosterTypeset.vertChars(text);
+    let n: number = chars.length;
+    if (n === 0) {
+      result.fontPx = basePx;
+      return result;
+    }
+    let font: number = Math.floor(basePx * (big ? 1.15 : 1.0));
+    while (font >= MIN_FONT_PX) {
+      let perCol: number = Math.max(1, Math.floor(availHeightPx / (font * lhRatio)));
+      let cap: number = PosterTypeset.colsWidthCap(font, availWidthPx, pitchRatio, maxCols);
+      let cols: string[][] | null = PosterTypeset.simulateColumns(chars, perCol, cap);
+      if (cols !== null) {
+        result.fontPx = font;
+        result.columns = cols;
+        result.perCol = perCol;
+        result.cols = cols.length;
+        result.capacity = perCol * cap;
+        return result;
+      }
+      font--;
+    }
+    // 最小字号仍放不下：按容量截断，报 truncatedChars
+    font = MIN_FONT_PX;
+    let perCol: number = Math.max(1, Math.floor(availHeightPx / (font * lhRatio)));
+    let cap: number = PosterTypeset.colsWidthCap(font, availWidthPx, pitchRatio, maxCols);
+    let total: number = perCol * cap;
+    while (total > 0) {
+      let kept: string[] = chars.slice(0, total);
+      let cols: string[][] | null = PosterTypeset.simulateColumns(kept, perCol, cap);
+      if (cols !== null) {
+        result.fontPx = font;
+        result.columns = cols;
+        result.perCol = perCol;
+        result.cols = cols.length;
+        result.truncated = true;
+        result.truncatedChars = n - total;
+        result.capacity = total;
+        return result;
+      }
+      total--;
+    }
+    result.fontPx = font;
+    result.truncated = true;
+    result.truncatedChars = n;
+    return result;
+  }
+
+  /** 竖排字符序列：去空白逐字拆分（与 CopyPosterPreview.vertChars 同口径） */
+  private static vertChars(text: string): string[] {
+    return Array.from(text.replace(new RegExp('\\s', 'g'), ''));
+  }
+
+  /**
+   * 列数上限 = min(硬上限, 可用宽/列距)；availWidthPx<=0 时只用硬上限。
+   */
+  private static colsWidthCap(font: number, availWidthPx: number, pitchRatio: number, hardCap: number): number {
+    let cap: number = hardCap;
+    if (availWidthPx > 0) {
+      cap = Math.min(cap, Math.max(1, Math.floor(availWidthPx / (font * pitchRatio))));
+    }
+    return Math.max(1, cap);
+  }
+
+  /**
+   * 按阅读序切列（首列在前，渲染时自右向左）；超列预算返回 null。
+   * 列首避让：下一字符是闭合标点时不让它开新列（当前列提前 1 字收列）；
+   * 列尾避让：当前列末字是开放标点时把它带到下一列（「」不断词）。
+   */
+  private static simulateColumns(chars: string[], perCol: number, maxCols: number): string[][] | null {
+    let per: number = perCol < 1 ? 1 : perCol;
+    let cols: string[][] = [];
+    let cur: string[] = [];
+    let i: number = 0;
+    let n: number = chars.length;
+    while (i < n) {
+      cur.push(chars[i]);
+      i++;
+      if (cur.length >= per || i >= n) {
+        let pulled: boolean = false;
+        if (per >= 2 && i < n && cur.length >= per && NO_COL_START.indexOf(chars[i]) >= 0) {
+          cur.pop();
+          i--;
+          pulled = true;
+        }
+        if (!pulled && per >= 2 && i < n && cur.length > 0 && NO_COL_END.indexOf(cur[cur.length - 1]) >= 0) {
+          cur.pop();
+          i--;
+        }
+        cols.push(cur);
+        cur = [];
+        if (cols.length > maxCols) {
+          return null;
+        }
+      }
+    }
+    return cols;
   }
 }

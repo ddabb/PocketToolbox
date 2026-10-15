@@ -7,7 +7,7 @@ import { CopyPosterContent, CopyPosterRatio, CopyPosterTemplate } from '../../mo
 import { CoverPalette } from '../../model/CoverModels';
 import { CopyPosterTemplates } from '../../core/cover/CopyPosterTemplates';
 import { CoverContentUtil, HanziUnit } from '../../core/cover/CoverContentUtil';
-import { PosterLayout, PosterTypeset } from '../../core/cover/PosterTypeset';
+import { PosterLayout, PosterTypeset, PosterVerticalLayout } from '../../core/cover/PosterTypeset';
 
 /** 拼音字号 / 主文案字号比（拼音走系统字体兜底，1.4.1 声调字符教训） */
 const PY_RATIO: number = 0.3;
@@ -48,6 +48,16 @@ export struct CopyPosterPreview {
 
   private h(): number {
     return this.previewWidth * CopyPosterRatio.designHeight(this.ratioKind) / 900;
+  }
+
+  /** 定位专用：设计稿 x（宽 900 基准）→ vp，仅作 .position 的 x 实参 */
+  private posX(px: number): number {
+    return this.previewWidth * px / 900;
+  }
+
+  /** 定位专用：设计稿 y（高 900 基准）→ vp，仅作 .position 的 y 实参 */
+  private posY(py: number): number {
+    return this.h() * py / 900;
   }
 
   private pal(): CoverPalette {
@@ -330,7 +340,7 @@ export struct CopyPosterPreview {
           .maxLines(maxLines > 0 ? maxLines : this.maxBodyLines(big))
           .textAlign(TextAlign.Center)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
-        if (this.truncatedHint() > 0) {
+        if (this.truncatedHint() > 0 && !this.isThumb) {
           Text($r('app.string.poster_truncated_hint', this.truncatedHint()))
             .fontSize(this.f(20))
             .fontColor(this.pal().sub)
@@ -365,7 +375,7 @@ export struct CopyPosterPreview {
       Circle({ width: this.f(320), height: this.f(320) })
         .fill(this.pal().block)
         .opacity(0.5)
-        .position({ x: this.previewWidth - this.f(150), y: this.h() - this.f(240) })
+        .position({ x: this.previewWidth - this.posX(150), y: this.h() - this.posY(240) })
       Column({ space: this.f(30) }) {
         this.TagPill()
         // 可用宽 = 900 - padding.left(70) - padding.right(70) = 760
@@ -437,14 +447,14 @@ export struct CopyPosterPreview {
         .backgroundColor(this.pal().accent)
         .opacity(0.7)
         .rotate({ angle: 45 })
-        .position({ x: this.f(40), y: this.f(40) })
+        .position({ x: this.posX(40), y: this.posY(40) })
       Row()
         .width(this.f(14))
         .height(this.f(14))
         .backgroundColor(this.pal().accent)
         .opacity(0.7)
         .rotate({ angle: 45 })
-        .position({ x: this.previewWidth - this.f(54), y: this.h() - this.f(54) })
+        .position({ x: this.previewWidth - this.posX(54), y: this.h() - this.posY(54) })
       Column({ space: this.f(28) }) {
         if (this.content.tag.trim() !== '') {
           Row({ space: this.f(8) }) {
@@ -489,7 +499,7 @@ export struct CopyPosterPreview {
       Circle({ width: this.f(420), height: this.f(420) })
         .fill(this.pal().block)
         .opacity(0.35)
-        .position({ x: this.previewWidth - this.f(260), y: this.h() - this.f(300) })
+        .position({ x: this.previewWidth - this.posX(260), y: this.h() - this.posY(300) })
       Column({ space: this.f(24) }) {
         if (this.content.tag.trim() !== '') {
           Text(this.content.tag)
@@ -535,14 +545,14 @@ export struct CopyPosterPreview {
         .height(this.f(46))
         .backgroundColor(this.hexA(this.pal().grid, '66'))
         .rotate({ angle: -6 })
-        .position({ x: this.f(70), y: this.fy(96) })
+        .position({ x: this.posX(70), y: this.posY(96) })
         .hitTestBehavior(HitTestMode.None)
       Column()
         .width(this.f(150))
         .height(this.f(46))
         .backgroundColor(this.hexA(this.pal().grid, '4D'))
         .rotate({ angle: 4 })
-        .position({ x: this.previewWidth - this.f(230), y: this.h() - this.fy(180) })
+        .position({ x: this.previewWidth - this.posX(230), y: this.h() - this.posY(180) })
         .hitTestBehavior(HitTestMode.None)
 
       // 主体白纸块（带撕纸感：底边用两段错位的矩形拼出）
@@ -551,7 +561,7 @@ export struct CopyPosterPreview {
         .height(this.h() - this.fy(240) - this.fy(200))
         .backgroundColor(this.pal().block)
         .rotate({ angle: -1.2 })
-        .position({ x: this.f(48), y: this.fy(210) })
+        .position({ x: this.posX(48), y: this.posY(210) })
         .hitTestBehavior(HitTestMode.None)
 
       Column({ space: this.f(26) }) {
@@ -589,17 +599,27 @@ export struct CopyPosterPreview {
 
   // ---------- T20 竖排标点（大字金句 · 日式竖排 + 圆点） ----------
 
-  /** 竖排内容：按每列字数拆分，从右向左排（与 T16/T18 同款竖排实现） */
-  private boldPerCol(): number {
-    return this.ratioKind === CopyPosterRatio.SQUARE ? 7 : 9;
+  /**
+   * T20 竖排内核（1.4.6 P0-1 A 类）：软预算 availH = 画布高 - 250（tag/署名/圆点让位，
+   * Phase 0 spike 锁定）；硬上限 1:1 3 列 / 竖版 4 列；lh 1.32 / pitch 1.80。
+   * 替代旧 boldPerCol/boldMaxCols/boldBodyPx 私有分档。
+   */
+  private quoteLayout(): PosterVerticalLayout {
+    let dh: number = CopyPosterRatio.designHeight(this.ratioKind);
+    let square: boolean = this.ratioKind === CopyPosterRatio.SQUARE;
+    return PosterTypeset.layoutVertical(this.content.body, dh - 250, square ? 3 : 4,
+      square ? 82 : 92, false, 1.32, 0, 1.80);
   }
 
-  private boldMaxCols(): number {
-    return this.ratioKind === CopyPosterRatio.SQUARE ? 3 : 4;
-  }
-
-  private boldBodyPx(): number {
-    return this.ratioKind === CopyPosterRatio.SQUARE ? this.f(82) : this.f(92);
+  /** 竖排列渲染序：内核返回阅读序（首列在前），渲染需首列在最右，反转并滤空列 */
+  private vertRenderCols(cols: string[][]): string[][] {
+    let out: string[][] = [];
+    for (let i = cols.length - 1; i >= 0; i--) {
+      if (cols[i].length > 0) {
+        out.push(cols[i]);
+      }
+    }
+    return out;
   }
 
   @Builder
@@ -610,7 +630,7 @@ export struct CopyPosterPreview {
         .width(this.f(2))
         .height(this.h() * 0.58)
         .backgroundColor(this.pal().accent)
-        .position({ x: this.previewWidth - this.f(58), y: this.fy(190) })
+        .position({ x: this.previewWidth - this.posX(58), y: this.posY(190) })
         .hitTestBehavior(HitTestMode.None)
 
       Column({ space: this.f(30) }) {
@@ -629,12 +649,12 @@ export struct CopyPosterPreview {
             .fontFamily(this.font())
             .textAlign(TextAlign.Center)
         } else {
-          Row({ space: this.f(this.boldBodyPx() * 0.8) }) {
-            ForEach(this.vertColsRtl(this.content.body, this.boldPerCol(), this.boldMaxCols()),
+          Row({ space: this.f(this.quoteLayout().fontPx * 0.8) }) {
+            ForEach(this.vertRenderCols(this.quoteLayout().columns),
               (col: string[], i: number) => {
                 Text(col.join('\n'))
-                  .fontSize(this.boldBodyPx())
-                  .lineHeight(this.boldBodyPx() * 1.32)
+                  .fontSize(this.f(this.quoteLayout().fontPx))
+                  .lineHeight(this.f(this.quoteLayout().fontPx * 1.32))
                   .fontColor(this.pal().title)
                   .fontFamily(this.font())
                   .fontWeight(FontWeight.Bold)
@@ -642,6 +662,14 @@ export struct CopyPosterPreview {
               }, (col: string[], i: number) => 'vq-' + i.toString() + '-' + col.length.toString())
           }
           .alignItems(VerticalAlign.Top)
+          if (this.quoteLayout().truncated && !this.isThumb) {
+            Text($r('app.string.poster_truncated_hint', this.quoteLayout().truncatedChars))
+              .fontSize(this.f(18))
+              .fontColor(this.pal().sub)
+              .fontFamily(this.font())
+              .opacity(0.75)
+              .maxLines(1)
+          }
         }
         if (this.content.sign.trim() !== '') {
           Text('— ' + this.content.sign)
@@ -673,14 +701,14 @@ export struct CopyPosterPreview {
         .backgroundColor(this.pal().accent)
         .opacity(0.9)
         .rotate({ angle: -2.4 })
-        .position({ x: this.f(56), y: this.fy(230) })
+        .position({ x: this.posX(56), y: this.posY(230) })
         .hitTestBehavior(HitTestMode.None)
       Column()
         .width(this.previewWidth - this.f(80))
         .height(this.h() - this.fy(300) - this.fy(240))
         .backgroundColor(this.pal().block)
         .rotate({ angle: 1.8 })
-        .position({ x: this.f(46), y: this.fy(262) })
+        .position({ x: this.posX(46), y: this.posY(262) })
         .hitTestBehavior(HitTestMode.None)
 
       Column({ space: this.f(24) }) {
@@ -821,6 +849,18 @@ export struct CopyPosterPreview {
           .textAlign(TextAlign.Start)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
           .width('100%')
+        // 1.4.6 根因 C 补缺：T5 此前 maxLines 静默吞字无提示
+        if (this.truncatedHint() > 0 && !this.isThumb) {
+          Text($r('app.string.poster_truncated_hint', this.truncatedHint()))
+            .fontSize(this.f(16))
+            .fontColor('#8A8A8A')
+            .fontFamily(this.font())
+            .letterSpacing(this.f(1.5))
+            .opacity(0.75)
+            .width('100%')
+            .textAlign(TextAlign.Start)
+            .maxLines(1)
+        }
       }
     }
     .width('100%')
@@ -864,6 +904,27 @@ export struct CopyPosterPreview {
     .padding({ left: this.f(6), right: this.f(6) })
   }
 
+  /** T5 面板最小高：1:1 内容自适应（返回 0 视觉不变）；3:4/9:16 按 h() 放大填满画布，消除上下留白（2026-10-14 裁定） */
+  private lcdPanelMinH(): number {
+    if (this.ratioKind === CopyPosterRatio.SQUARE) {
+      return 0;
+    }
+    return this.h() * 0.68;
+  }
+
+  /**
+   * T5 斜拍角：1:1 保持 -12°；画布越高角度越小（3:4 → -5°，9:16 → -3°）。
+   * 面板 800 宽 × 高 H 旋转 θ 后包围盒宽 800·cosθ + H·sinθ 须 ≤ 画布 900：
+   * 面板按 h() 放大后仍用 -12° 会横向溢出画布（3:4 H=816 时包围盒 952>900），
+   * 动态收缩角度后面板既填满画布又不出框。
+   */
+  private lcdAngle(): number {
+    if (this.ratioKind === CopyPosterRatio.SQUARE) {
+      return -12;
+    }
+    return this.ratioKind === CopyPosterRatio.PORTRAIT ? -5 : -3;
+  }
+
   /** LCD 面板整体：状态栏 + 文本框 + 软键 + 暗角，3D 斜拍透视（斜着拍的感觉也要在） */
   @Builder
   LcdPixel() {
@@ -876,6 +937,8 @@ export struct CopyPosterPreview {
             this.LcdSoftBar()
           }
           .width('100%')
+          .constraintSize({ minHeight: this.lcdPanelMinH() })
+          .justifyContent(FlexAlign.SpaceBetween)
           .padding({ left: this.f(34), right: this.f(34), top: this.f(28), bottom: this.f(26) })
 
           Column()
@@ -899,7 +962,7 @@ export struct CopyPosterPreview {
         x: 0.45,
         y: -0.28,
         z: 1,
-        angle: -12,
+        angle: this.lcdAngle(),
         centerX: '50%',
         centerY: '50%',
         perspective: this.f(1000) * this.density,
@@ -959,6 +1022,17 @@ export struct CopyPosterPreview {
                 .textOverflow({ overflow: TextOverflow.Ellipsis })
                 .textShadow([{ radius: this.f(3), color: this.hexA(this.pal().accent, '#B3'), offsetX: 0, offsetY: 0 }])
                 .width('100%')
+              // 1.4.6 根因 C 补缺：T6 此前 maxLines 静默吞字无提示
+              if (this.truncatedHint() > 0 && !this.isThumb) {
+                Text($r('app.string.poster_truncated_hint', this.truncatedHint()))
+                  .fontSize(this.f(18))
+                  .fontColor(this.pal().sub)
+                  .fontFamily(this.font())
+                  .opacity(0.75)
+                  .width('100%')
+                  .textAlign(TextAlign.Start)
+                  .maxLines(1)
+              }
             }
             Text('> -- ' + (this.content.sign.trim() !== '' ? this.content.sign : '_') + ' ▌')
               .fontSize(this.f(32))
@@ -1085,7 +1159,7 @@ export struct CopyPosterPreview {
           radius: '75%',
           colors: [[this.hexA(this.pal().accent, '#2E'), 0], ['#00000000', 0.72]],
         })
-        .position({ x: '7%', y: this.h() - this.f(180) })
+        .position({ x: '7%', y: this.h() - this.posY(180) })
         .hitTestBehavior(HitTestMode.None)
 
       // 灯管框本体（空心，只出边框与外发光）
@@ -1098,13 +1172,13 @@ export struct CopyPosterPreview {
         .hitTestBehavior(HitTestMode.None)
 
       // 四角铆钉：位置按 neonSignH() 跟随高度，竖版不塌陷（根因 A）
-      Circle({ width: this.f(10), height: this.f(10) }).fill('#D8DEE9').position({ x: this.f(12), y: this.f(12) })
+      Circle({ width: this.f(10), height: this.f(10) }).fill('#D8DEE9').position({ x: this.posX(12), y: this.f(12) })
       Circle({ width: this.f(10), height: this.f(10) }).fill('#D8DEE9')
-        .position({ x: this.f(800) - this.f(22), y: this.f(12) })
+        .position({ x: this.posX(800) - this.posX(22), y: this.f(12) })
       Circle({ width: this.f(10), height: this.f(10) }).fill('#D8DEE9')
-        .position({ x: this.f(12), y: this.neonSignH() - this.f(22) })
+        .position({ x: this.posX(12), y: this.neonSignH() - this.f(22) })
       Circle({ width: this.f(10), height: this.f(10) }).fill('#D8DEE9')
-        .position({ x: this.f(800) - this.f(22), y: this.neonSignH() - this.f(22) })
+        .position({ x: this.posX(800) - this.posX(22), y: this.neonSignH() - this.f(22) })
     }
     .width(this.f(800))
     .height(this.neonSignH())
@@ -1152,7 +1226,7 @@ export struct CopyPosterPreview {
             { radius: this.f(10), color: this.hexA(this.pal().accent, '#E6'), offsetX: 0, offsetY: 0 },
             { radius: this.f(26), color: this.hexA(this.pal().accent, '#8C'), offsetX: 0, offsetY: 0 },
           ])
-        if (this.truncatedHint() > 0) {
+        if (this.truncatedHint() > 0 && !this.isThumb) {
           Text($r('app.string.poster_truncated_hint', this.truncatedHint()))
             .fontSize(this.f(20))
             .fontColor(this.pal().sub)
@@ -1269,7 +1343,7 @@ export struct CopyPosterPreview {
                     .textAlign(TextAlign.Start)
                     .textOverflow({ overflow: TextOverflow.Ellipsis })
                     .width('100%')
-                  if (this.truncatedHint() > 0) {
+                  if (this.truncatedHint() > 0 && !this.isThumb) {
                     Text($r('app.string.poster_truncated_hint', this.truncatedHint()))
                       .fontSize(this.f(16))
                       .fontColor(this.pal().accent)
@@ -1421,7 +1495,7 @@ export struct CopyPosterPreview {
   // ---------- T9 复古车票（票纸 + 撕票线 + 邮戳） ----------
 
   private ticketH(): number {
-    return this.f(this.ratioKind === CopyPosterRatio.SQUARE ? 440 : 560);
+    return this.h() * (this.ratioKind === CopyPosterRatio.SQUARE ? 440 : 560) / 900;
   }
 
   /** T9 票面主文案行数预算：票纸高度固定（440/560），行数按比例收紧，防止挤掉撕票线下方元素 */
@@ -1479,7 +1553,7 @@ export struct CopyPosterPreview {
                 .maxLines(this.ticketBodyLines())
                 .textAlign(TextAlign.Start)
                 .textOverflow({ overflow: TextOverflow.Ellipsis })
-              if (this.truncatedHint() > 0) {
+              if (this.truncatedHint() > 0 && !this.isThumb) {
                 Text($r('app.string.poster_truncated_hint', this.truncatedHint()))
                   .fontSize(this.f(18))
                   .fontColor(this.pal().sub)
@@ -1569,14 +1643,14 @@ export struct CopyPosterPreview {
         .border({ width: this.f(5), color: this.hexA(this.pal().accent, '#D0') })
         .rotate({ angle: -14 })
         .opacity(0.92)
-        .position({ x: this.f(520), y: -this.f(24) })
+        .position({ x: this.posX(520), y: -this.f(24) })
 
         Circle({ width: this.f(22), height: this.f(22) }).fill(this.pal().bg)
-          .position({ x: this.f(599), y: -this.f(11) })
+          .position({ x: this.posX(599), y: -this.f(11) })
         Circle({ width: this.f(22), height: this.f(22) }).fill(this.pal().bg)
-          .position({ x: this.f(599), y: this.ticketH() - this.f(11) })
+          .position({ x: this.posX(599), y: this.ticketH() - this.f(11) })
         Circle({ width: this.f(16), height: this.f(16) }).fill(this.pal().bg)
-          .position({ x: this.f(22), y: this.ticketH() - this.f(38) })
+          .position({ x: this.posX(22), y: this.ticketH() - this.f(38) })
       }
 
       Column()
@@ -1614,7 +1688,7 @@ export struct CopyPosterPreview {
     }
     // 每行字数按底板可用宽 / 单模块宽推算，替代硬编码 12
     let perRow: number = CopyPosterPreview.FLAP_PER_ROW;
-    let maxRows: number = CopyPosterPreview.FLAP_MAX_ROWS;
+    let maxRows: number = this.flapMaxRows();
     let rows: string[][] = [];
     for (let i = 0; i < src.length && rows.length < maxRows; i += perRow) {
       let end: number = Math.min(i + perRow, src.length);
@@ -1632,8 +1706,13 @@ export struct CopyPosterPreview {
 
   /** 翻牌单模块宽（设计稿 px） */
   private static readonly FLAP_PER_ROW: number = 12;
-  /** 翻牌最大行数 */
-  private static readonly FLAP_MAX_ROWS: number = 6;
+  /** 翻牌最大行数：1:1 保持 6；3:4/9:16 画布越高预算越多，底板随行数增长填满画布 */
+  private flapMaxRows(): number {
+    if (this.ratioKind === CopyPosterRatio.SQUARE) {
+      return 6;
+    }
+    return this.ratioKind === CopyPosterRatio.PORTRAIT ? 8 : 10;
+  }
   /** 翻牌模块字高（设计稿 px） */
   private static readonly FLAP_ROW_H: number = 72;
   /** 翻牌模块间距（设计稿 px） */
@@ -1652,7 +1731,7 @@ export struct CopyPosterPreview {
       return 0;
     }
     let chars: number = PosterTypeset.countChars(this.content.body);
-    let cap: number = CopyPosterPreview.FLAP_PER_ROW * CopyPosterPreview.FLAP_MAX_ROWS;
+    let cap: number = CopyPosterPreview.FLAP_PER_ROW * this.flapMaxRows();
     return chars > cap ? chars - cap : 0;
   }
 
@@ -1718,7 +1797,8 @@ export struct CopyPosterPreview {
         }
 
         // 1.4.5 优化：翻牌容量有限（12 字/行 × 6 行），超出部分原本静默丢弃，此处显式提示
-        if (this.flapDropped() > 0) {
+        // 1.4.6 根因 C：缩略图（96px）不显示提示，避免挤爆布局
+        if (this.flapDropped() > 0 && !this.isThumb) {
           Text($r('app.string.poster_truncated_hint', this.flapDropped()))
             .fontSize(this.f(20))
             .fontColor(this.pal().sub)
@@ -1930,7 +2010,7 @@ export struct CopyPosterPreview {
         .borderRadius(this.f(6))
         .rotate({ angle: 8 })
         .opacity(0.85)
-        .position({ x: this.previewWidth - this.f(242), y: this.f(148) })
+        .position({ x: this.previewWidth - this.posX(242), y: this.posY(148) })
 
       Column()
         .width(this.f(241))
@@ -1941,7 +2021,7 @@ export struct CopyPosterPreview {
           radius: '50%',
           colors: [[this.hexA(this.pal().sub, '29'), 0], ['#00000000', 0.7]],
         })
-        .position({ x: -this.f(72), y: this.h() - this.f(185) })
+        .position({ x: -this.posX(72), y: this.h() - this.posY(185) })
         .hitTestBehavior(HitTestMode.None)
 
       Column()
@@ -2049,9 +2129,10 @@ export struct CopyPosterPreview {
               .constraintSize({ maxWidth: this.previewWidth * 0.64 })
               .shadow({ radius: this.f(8), color: '#12000000', offsetY: this.f(3) })
           } else if (this.pyEnabled()) {
+            // 1.4.6 P0-1 B 类：气泡接内核，可用宽 = 0.64×900 - 左右 padding 44 = 532
             Column() {
-              this.PinyinBody(this.f(25) * PY_SHRINK, this.pal().title, this.pal().sub, false, false, 'none',
-                this.previewWidth * 0.64 - this.f(44))
+              this.PinyinBody(this.bodyFont(25, false, 532, this.maxBodyLines(false)), this.pal().title,
+                this.pal().sub, false, false, 'none', this.previewWidth * 0.64 - this.f(44))
             }
             .padding({ left: this.f(22), right: this.f(22), top: this.f(18), bottom: this.f(18) })
             .backgroundColor(this.pal().block)
@@ -2059,18 +2140,31 @@ export struct CopyPosterPreview {
             .constraintSize({ maxWidth: this.previewWidth * 0.64 })
             .shadow({ radius: this.f(8), color: '#12000000', offsetY: this.f(3) })
           } else {
-            Text(this.content.body)
-              .fontSize(this.f(25))
-              .lineHeight(this.f(25) * 1.55)
-              .fontColor(this.pal().title)
-              .fontFamily(this.font())
-              .maxLines(this.maxBodyLines(false))
-              .textOverflow({ overflow: TextOverflow.Ellipsis })
-              .padding({ left: this.f(22), right: this.f(22), top: this.f(18), bottom: this.f(18) })
-              .backgroundColor(this.pal().block)
-              .borderRadius({ topLeft: this.f(7), topRight: this.f(19), bottomLeft: this.f(19), bottomRight: this.f(19) })
-              .constraintSize({ maxWidth: this.previewWidth * 0.64 })
-              .shadow({ radius: this.f(8), color: '#12000000', offsetY: this.f(3) })
+            // 1.4.6 P0-1 B 类 + 根因 C：字号走内核（消阶梯骤变），截断提示共享气泡样式
+            Column() {
+              Text(this.content.body)
+                .fontSize(this.bodyFont(25, false, 532, this.maxBodyLines(false)))
+                .lineHeight(this.bodyFont(25, false, 532, this.maxBodyLines(false)) * 1.55)
+                .fontColor(this.pal().title)
+                .fontFamily(this.font())
+                .maxLines(this.maxBodyLines(false))
+                .textOverflow({ overflow: TextOverflow.Ellipsis })
+              if (this.truncatedHint() > 0 && !this.isThumb) {
+                Text($r('app.string.poster_truncated_hint', this.truncatedHint()))
+                  .fontSize(this.f(16))
+                  .fontColor(this.pal().sub)
+                  .fontFamily(this.font())
+                  .opacity(0.75)
+                  .maxLines(1)
+                  .margin({ top: this.f(4) })
+              }
+            }
+            .alignItems(HorizontalAlign.Start)
+            .padding({ left: this.f(22), right: this.f(22), top: this.f(18), bottom: this.f(18) })
+            .backgroundColor(this.pal().block)
+            .borderRadius({ topLeft: this.f(7), topRight: this.f(19), bottomLeft: this.f(19), bottomRight: this.f(19) })
+            .constraintSize({ maxWidth: this.previewWidth * 0.64 })
+            .shadow({ radius: this.f(8), color: '#12000000', offsetY: this.f(3) })
           }
           Row().layoutWeight(1)
         }
@@ -2168,7 +2262,7 @@ export struct CopyPosterPreview {
           radius: '50%',
           colors: [[this.hexA(this.pal().accent, '21'), 0], ['#00000000', 0.62], ['#00000000', 1]],
         })
-        .position({ x: this.previewWidth / 2 - this.f(370), y: this.fy(208) })
+        .position({ x: this.previewWidth / 2 - this.posX(370), y: this.posY(208) })
         .hitTestBehavior(HitTestMode.None)
 
       Stack() {
@@ -2244,7 +2338,7 @@ export struct CopyPosterPreview {
       .width(this.f(534))
       .height(this.f(534))
       .rotate({ angle: 14 })
-      .position({ x: this.previewWidth / 2 - this.f(267), y: this.fy(106) })
+      .position({ x: this.previewWidth / 2 - this.posX(267), y: this.posY(106) })
 
       Column() {
         Text('SIDE A')
@@ -2268,8 +2362,9 @@ export struct CopyPosterPreview {
               .fontFamily(this.font())
               .maxLines(1)
           } else {
+            // 1.4.6 P0-1 B 类：曲目行接内核，可用宽 = 行宽 780 - A1/时长/字距让位 = 620，行数预算 2
             Text(this.content.body)
-              .fontSize(this.f(31))
+              .fontSize(this.bodyFont(31, false, 620, 2))
               .fontColor(this.pal().title)
               .fontFamily(this.font())
               .letterSpacing(this.f(3))
@@ -2277,12 +2372,19 @@ export struct CopyPosterPreview {
               .textOverflow({ overflow: TextOverflow.Ellipsis })
               .constraintSize({ maxWidth: this.previewWidth - this.f(120) })
           }
-          Text('4:26')
-            .fontSize(this.f(16))
-            .fontColor(this.pal().sub)
         }
         .alignItems(VerticalAlign.Bottom)
         .margin({ bottom: this.f(16) })
+
+        // 1.4.6 根因 C：曲目行截断提示（body 非空才判 layoutCache，防空文案读到上一帧缓存）
+        if (this.content.body.trim() !== '' && this.truncatedHint() > 0 && !this.isThumb) {
+          Text($r('app.string.poster_truncated_hint', this.truncatedHint()))
+            .fontSize(this.f(16))
+            .fontColor(this.pal().sub)
+            .fontFamily(this.font())
+            .opacity(0.75)
+            .maxLines(1)
+        }
 
         Row({ space: this.f(19) }) {
           Text('B1')
@@ -2305,7 +2407,7 @@ export struct CopyPosterPreview {
       }
       .width('100%')
       .alignItems(HorizontalAlign.Center)
-      .position({ x: 0, y: this.fy(688) })
+      .position({ x: 0, y: this.posY(688) })
 
       Text('POCKET RECORDS · 2026')
         .fontSize(this.f(14))
@@ -2313,7 +2415,7 @@ export struct CopyPosterPreview {
         .fontColor(this.hexA(this.pal().sub, '8C'))
         .width('100%')
         .textAlign(TextAlign.Center)
-        .position({ x: 0, y: this.h() - this.f(26) })
+        .position({ x: 0, y: this.h() - this.posY(26) })
 
       Column()
         .width('100%')
@@ -2373,7 +2475,7 @@ export struct CopyPosterPreview {
           radius: '50%',
           colors: [[this.hexA(this.pal().accent, '1A'), 0], ['#00000000', 0.62], ['#00000000', 1]],
         })
-        .position({ x: this.previewWidth / 2 - this.f(337), y: this.fy(378) - this.f(337) })
+        .position({ x: this.previewWidth / 2 - this.posX(337), y: this.posY(378) - this.f(337) })
         .hitTestBehavior(HitTestMode.None)
 
       this.FilmStrip(0)
@@ -2410,7 +2512,7 @@ export struct CopyPosterPreview {
             .textAlign(TextAlign.Center)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
             .textShadow([{ radius: this.f(29), color: '#CC000000', offsetX: 0, offsetY: this.f(3) }])
-          if (this.truncatedHint() > 0) {
+          if (this.truncatedHint() > 0 && !this.isThumb) {
             Text($r('app.string.poster_truncated_hint', this.truncatedHint()))
               .fontSize(this.f(20))
               .fontColor(this.pal().sub)
@@ -2490,7 +2592,7 @@ export struct CopyPosterPreview {
     .width(this.f(27))
     .height(this.f(27))
     .shadow({ radius: this.f(8), color: '#8C000000', offsetY: this.f(5) })
-    .position({ x: this.f(px) - this.f(13.5), y: this.fy(py) - this.f(13.5) })
+    .position({ x: this.posX(px) - this.posX(13.5), y: this.posY(py) - this.f(13.5) })
   }
 
   @Builder
@@ -2502,7 +2604,18 @@ export struct CopyPosterPreview {
       .backgroundColor(this.pal().accent)
       .opacity(0.85)
       .rotate({ angle: angle, centerX: '0%', centerY: '50%' })
-      .position({ x: this.f(px), y: this.fy(py) - this.f(2) })
+      .position({ x: this.posX(px), y: this.posY(py) - this.f(2) })
+  }
+
+  /**
+   * T15 正文行数预算（1.4.6 P0-1 B 类）：便签卡顶 posY(376) 随画布高放大（376/900 比例），
+   * 卡固定开销 ~108（上下 padding 71 + 日期行 37），行高 = 40×1.65 = 66，底部留白 40。
+   * 1:1 → 5 行 / 3:4 → 8 行 / 9:16 → 11 行，修复现网 8 行长文案卡片溢出画布底部的缺陷。
+   */
+  private corkBodyLines(): number {
+    let dh: number = CopyPosterRatio.designHeight(this.ratioKind);
+    let avail: number = dh - dh * 376 / 900 - 40 - 108;
+    return Math.max(3, Math.floor(avail / 66));
   }
 
   @Builder
@@ -2550,7 +2663,7 @@ export struct CopyPosterPreview {
         .borderRadius(this.f(2))
         .shadow({ radius: this.f(42), color: '#6B28180A', offsetY: this.f(19) })
         .rotate({ angle: 2.5 })
-        .position({ x: this.f(511), y: this.fy(129) })
+        .position({ x: this.posX(511), y: this.posY(129) })
       }
 
       Column() {
@@ -2561,15 +2674,26 @@ export struct CopyPosterPreview {
             .fontFamily(this.font())
             .textAlign(TextAlign.Center)
         } else {
+          // 1.4.6 P0-1 B 类：正文接内核，可用宽 = 卡宽 485 - padding 70 - 字距余量 15 = 400，行数预算 corkBodyLines()
           Text(this.content.body)
-            .fontSize(this.f(40))
-            .lineHeight(this.f(40) * 1.65)
+            .fontSize(this.bodyFont(40, false, 400, this.corkBodyLines()))
+            .lineHeight(this.bodyFont(40, false, 400, this.corkBodyLines()) * 1.65)
             .fontColor(this.pal().title)
             .fontFamily(this.font())
             .letterSpacing(this.f(1.6))
-            .maxLines(this.maxBodyLines(false))
+            .maxLines(this.corkBodyLines())
             .textAlign(TextAlign.Center)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
+          // 1.4.6 根因 C：截断提示（原 maxLines 静默吞字）
+          if (this.truncatedHint() > 0 && !this.isThumb) {
+            Text($r('app.string.poster_truncated_hint', this.truncatedHint()))
+              .fontSize(this.f(16))
+              .fontColor(this.pal().sub)
+              .fontFamily(this.font())
+              .opacity(0.75)
+              .textAlign(TextAlign.Center)
+              .maxLines(1)
+          }
         }
         Text('2026.10.11')
           .fontSize(this.f(18))
@@ -2585,7 +2709,7 @@ export struct CopyPosterPreview {
       .borderRadius(this.f(2))
       .shadow({ radius: this.f(42), color: '#6B28180A', offsetY: this.f(19) })
       .rotate({ angle: -1.5 })
-      .position({ x: this.f(235), y: this.fy(376) })
+      .position({ x: this.posX(235), y: this.posY(376) })
 
       if (this.content.sign.trim() !== '') {
         Column() {
@@ -2611,7 +2735,7 @@ export struct CopyPosterPreview {
         .borderRadius(this.f(2))
         .shadow({ radius: this.f(42), color: '#6B28180A', offsetY: this.f(19) })
         .rotate({ angle: 3 })
-        .position({ x: this.f(556), y: this.fy(669) })
+        .position({ x: this.posX(556), y: this.posY(669) })
       }
 
       if (this.content.tag.trim() !== '') {
@@ -2633,7 +2757,7 @@ export struct CopyPosterPreview {
         .letterSpacing(this.f(5))
         .fontColor(this.hexA(this.pal().title, 'A6'))
         .rotate({ angle: -1 })
-        .position({ x: this.f(84), y: this.h() - this.f(52) })
+        .position({ x: this.posX(84), y: this.h() - this.posY(52) })
 
       Column()
         .width('100%')
@@ -2656,29 +2780,6 @@ export struct CopyPosterPreview {
     return Array.from(text.replace(new RegExp('\\s', 'g'), ''));
   }
 
-  /** 竖排列切分（自右向左读）：perCol 字/列、maxCols 列封顶，超限末列末字换 '…'；返回自左向右渲染顺序（首列在最右） */
-  private vertColsRtl(text: string, perCol: number, maxCols: number): string[][] {
-    let chars: string[] = this.vertChars(text);
-    let per: number = Math.max(1, perCol);
-    let cols: string[][] = [];
-    if (chars.length === 0) {
-      return cols;
-    }
-    let total: number = per * Math.max(1, maxCols);
-    if (chars.length > total) {
-      chars = chars.slice(0, total);
-      chars[chars.length - 1] = '…';
-    }
-    let natural: string[][] = [];
-    for (let i = 0; i < chars.length; i += per) {
-      natural.push(chars.slice(i, i + per));
-    }
-    for (let i = natural.length - 1; i >= 0; i--) {
-      cols.push(natural[i]);
-    }
-    return cols;
-  }
-
   /** T16 节气名（tag）字数 */
   private termCharCount(): number {
     return this.vertChars(this.content.tag).length;
@@ -2696,30 +2797,15 @@ export struct CopyPosterPreview {
     return this.f(38);
   }
 
-  /** T16 竖排主文案字号分档（设计 px） */
-  private solarBodyPx(): number {
-    let n: number = this.vertChars(this.content.body).length;
-    if (n <= 20) {
-      return 48;
-    }
-    if (n <= 45) {
-      return 38;
-    }
-    return 30;
-  }
-
-  /** T16 每列字数：可用高度 / 行高 */
-  private solarPerCol(): number {
-    let lh: number = this.f(this.solarBodyPx() * 1.3);
-    let avail: number = this.h() - this.fy(122) - this.f(209);
-    return Math.max(1, Math.floor(avail / lh));
-  }
-
-  /** T16 列数上限：可用宽度 / 列距（字号 × 1.63） */
-  private solarMaxCols(): number {
-    let pitch: number = this.f(this.solarBodyPx() * 1.63);
-    let avail: number = this.previewWidth - this.f(270) - this.f(167);
-    return Math.max(1, Math.floor(avail / pitch));
+  /**
+   * T16 竖排内核（1.4.6 P0-1 A 类）：盒几何与渲染盒恒等——
+   * 盒高 = h() - fy(122) - f(209) → availH = 画布高×778/900 - 209；盒宽 900-270-167 = 463；
+   * lh 1.30 / pitch 1.63（列间距 = 字号×0.63）。替代旧 solarBodyPx 3 档私有分档。
+   */
+  private solarLayout(): PosterVerticalLayout {
+    let dh: number = CopyPosterRatio.designHeight(this.ratioKind);
+    return PosterTypeset.layoutVertical(this.content.body, dh * 778 / 900 - 209, 99, 48, false,
+      1.30, 463, 1.63);
   }
 
   @Builder
@@ -2740,26 +2826,26 @@ export struct CopyPosterPreview {
         .width(this.previewWidth - this.f(29) * 2)
         .height(this.h() - this.f(29) * 2)
         .border({ width: this.f(1.6), color: this.hexA(this.pal().grid, '80') })
-        .position({ x: this.f(29), y: this.f(29) })
+        .position({ x: this.posX(29), y: this.posY(29) })
       // 内层粗边框：缩略图下两层边框会糊成灰块，只保留一层（1.4.5 P2-6）
       if (!this.isThumb) {
         Column()
           .width(this.previewWidth - this.f(40) * 2)
           .height(this.h() - this.f(40) * 2)
           .border({ width: this.f(3.2), color: this.pal().sub })
-          .position({ x: this.f(40), y: this.f(40) })
+          .position({ x: this.posX(40), y: this.posY(40) })
       }
 
       // 四角菱形：96px 下退化为 2px 噪点，缩略图模式跳过（1.4.5 P2-6）
       if (!this.isThumb) {
         Row().width(this.f(14)).height(this.f(14)).backgroundColor(this.pal().sub).rotate({ angle: 45 })
-          .position({ x: this.f(64), y: this.fy(64) })
+          .position({ x: this.posX(64), y: this.posY(64) })
         Row().width(this.f(14)).height(this.f(14)).backgroundColor(this.pal().sub).rotate({ angle: 45 })
-          .position({ x: this.previewWidth - this.f(64) - this.f(14), y: this.fy(64) })
+          .position({ x: this.previewWidth - this.posX(64) - this.posX(14), y: this.posY(64) })
         Row().width(this.f(14)).height(this.f(14)).backgroundColor(this.pal().sub).rotate({ angle: 45 })
-          .position({ x: this.f(64), y: this.h() - this.fy(64) - this.f(14) })
+          .position({ x: this.posX(64), y: this.h() - this.posY(64) - this.f(14) })
         Row().width(this.f(14)).height(this.f(14)).backgroundColor(this.pal().sub).rotate({ angle: 45 })
-          .position({ x: this.previewWidth - this.f(64) - this.f(14), y: this.h() - this.fy(64) - this.f(14) })
+          .position({ x: this.previewWidth - this.posX(64) - this.posX(14), y: this.h() - this.posY(64) - this.f(14) })
       }
 
       Column({ space: this.f(29) }) {
@@ -2798,7 +2884,7 @@ export struct CopyPosterPreview {
         .shadow({ radius: this.f(10), color: this.hexA(this.pal().accent, '59'), offsetY: this.f(3) })
       }
       .alignItems(HorizontalAlign.Center)
-      .position({ x: this.f(119), y: this.fy(148) })
+      .position({ x: this.posX(119), y: this.posY(148) })
 
       Column()
         .width(this.f(1.6))
@@ -2808,7 +2894,7 @@ export struct CopyPosterPreview {
           colors: [[this.hexA(this.pal().grid, '00'), 0], [this.pal().grid, 0.18],
             [this.pal().grid, 0.82], [this.hexA(this.pal().grid, '00'), 1]],
         })
-        .position({ x: this.f(270), y: this.fy(135) })
+        .position({ x: this.posX(270), y: this.posY(135) })
 
       Column() {
         if (this.content.body.trim() === '') {
@@ -2819,12 +2905,12 @@ export struct CopyPosterPreview {
             .width('100%')
             .textAlign(TextAlign.Center)
         } else {
-          Row({ space: this.f(this.solarBodyPx() * 0.63) }) {
-            ForEach(this.vertColsRtl(this.content.body, this.solarPerCol(), this.solarMaxCols()),
+          Row({ space: this.f(this.solarLayout().fontPx * 0.63) }) {
+            ForEach(this.vertRenderCols(this.solarLayout().columns),
               (col: string[], i: number) => {
                 Text(col.join('\n'))
-                  .fontSize(this.f(this.solarBodyPx()))
-                  .lineHeight(this.f(this.solarBodyPx() * 1.3))
+                  .fontSize(this.f(this.solarLayout().fontPx))
+                  .lineHeight(this.f(this.solarLayout().fontPx * 1.3))
                   .fontColor(this.pal().title)
                   .fontFamily(this.font())
                   .textAlign(TextAlign.Center)
@@ -2832,12 +2918,21 @@ export struct CopyPosterPreview {
               i.toString() + '-' + col.length.toString() + '-' + (col.length > 0 ? col[0] : ''))
           }
           .alignItems(VerticalAlign.Top)
+          // 1.4.6 根因 C：竖排截断改内核 truncatedChars 口径，替代旧 vertColsRtl 的 '…' 静默截断
+          if (this.solarLayout().truncated && !this.isThumb) {
+            Text($r('app.string.poster_truncated_hint', this.solarLayout().truncatedChars))
+              .fontSize(this.f(18))
+              .fontColor(this.pal().sub)
+              .fontFamily(this.font())
+              .opacity(0.75)
+              .maxLines(1)
+          }
         }
       }
       .width(this.previewWidth - this.f(270) - this.f(167))
       .height(this.h() - this.fy(122) - this.f(209))
       .alignItems(HorizontalAlign.End)
-      .position({ x: this.f(270), y: this.fy(122) })
+      .position({ x: this.posX(270), y: this.posY(122) })
 
       if (this.content.sign.trim() !== '') {
         Column() {
@@ -2890,7 +2985,7 @@ export struct CopyPosterPreview {
     Circle({ width: this.f(5), height: this.f(5) })
       .fill(this.pal().grid)
       .opacity(opacity)
-      .position({ x: this.f(dx), y: this.fy(dy) })
+      .position({ x: this.posX(dx), y: this.posY(dy) })
   }
 
   /** 远山剪影 Path 命令（commands 单位为 px，取 vp × density） */
@@ -2934,7 +3029,7 @@ export struct CopyPosterPreview {
           colors: [[this.hexA(this.pal().accent, '38'), 0], [this.hexA(this.pal().accent, '0D'), 0.62],
             [this.hexA(this.pal().accent, '00'), 1]],
         })
-        .position({ x: this.previewWidth / 2 - this.f(256), y: this.fy(173) })
+        .position({ x: this.previewWidth / 2 - this.posX(256), y: this.posY(173) })
 
       Column()
         .width(this.f(240))
@@ -2946,29 +3041,29 @@ export struct CopyPosterPreview {
           colors: [[this.hexA('#FFFFFF', 'B3'), 0], [this.pal().accent, 0.6], [this.hexA('#000000', '2E'), 1]],
         })
         .shadow({ radius: this.f(70), color: this.hexA(this.pal().accent, '73') })
-        .position({ x: this.previewWidth / 2 - this.f(120), y: this.fy(237) })
+        .position({ x: this.previewWidth / 2 - this.posX(120), y: this.posY(237) })
 
       Column()
         .width(this.f(272))
         .height(this.f(272))
         .borderRadius(this.f(136))
         .border({ width: this.f(1.6), color: this.hexA(this.pal().accent, '59') })
-        .position({ x: this.previewWidth / 2 - this.f(136), y: this.fy(221) })
+        .position({ x: this.previewWidth / 2 - this.posX(136), y: this.posY(221) })
 
       // 云带：96px 下高度不足 4px，与底色混成脏块，缩略图模式跳过（1.4.5 P2-6）
       if (!this.isThumb) {
         Row().width(this.f(238)).height(this.f(35)).borderRadius(this.f(18))
           .backgroundColor(this.hexA(this.pal().block, '24'))
-          .position({ x: this.f(122), y: this.fy(379) })
+          .position({ x: this.posX(122), y: this.posY(379) })
         Row().width(this.f(145)).height(this.f(35)).borderRadius(this.f(18))
           .backgroundColor(this.hexA(this.pal().block, '1A'))
-          .position({ x: this.f(193), y: this.fy(421) })
+          .position({ x: this.posX(193), y: this.posY(421) })
         Row().width(this.f(199)).height(this.f(35)).borderRadius(this.f(18))
           .backgroundColor(this.hexA(this.pal().block, '1A'))
-          .position({ x: this.previewWidth - this.f(315), y: this.fy(334) })
+          .position({ x: this.previewWidth - this.posX(315), y: this.posY(334) })
         Row().width(this.f(116)).height(this.f(35)).borderRadius(this.f(18))
           .backgroundColor(this.hexA(this.pal().block, '14'))
-          .position({ x: this.previewWidth - this.f(302), y: this.fy(376) })
+          .position({ x: this.previewWidth - this.posX(302), y: this.posY(376) })
       }
 
       Path()
@@ -2977,14 +3072,14 @@ export struct CopyPosterPreview {
         .commands(this.hillPath(this.f(482) * this.density, this.f(177) * this.density,
           0.22, 0.34, 0.46, 0.78, 0.68, 0.08))
         .fill(this.hexA('#05070D', '99'))
-        .position({ x: -this.f(48), y: this.h() - this.f(119) - this.f(177) })
+        .position({ x: -this.posX(48), y: this.h() - this.posY(119) - this.f(177) })
       Path()
         .width(this.f(530))
         .height(this.f(154))
         .commands(this.hillPath(this.f(530) * this.density, this.f(154) * this.density,
           0.26, 0.52, 0.52, 0.86, 0.76, 0.22))
         .fill(this.hexA('#05070D', 'CC'))
-        .position({ x: this.previewWidth - this.f(466), y: this.h() - this.f(119) - this.f(154) })
+        .position({ x: this.previewWidth - this.posX(466), y: this.h() - this.posY(119) - this.f(154) })
 
       if (this.content.tag.trim() !== '') {
         Column() {
@@ -3001,7 +3096,7 @@ export struct CopyPosterPreview {
         }
         .width('100%')
         .alignItems(HorizontalAlign.Center)
-        .position({ x: 0, y: this.fy(84) })
+        .position({ x: 0, y: this.posY(84) })
       }
 
       Column() {
@@ -3030,7 +3125,7 @@ export struct CopyPosterPreview {
             .textAlign(TextAlign.Center)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
             .shadow({ radius: this.f(35), color: '#8C000000', offsetY: this.f(5) })
-          if (this.truncatedHint() > 0) {
+          if (this.truncatedHint() > 0 && !this.isThumb) {
             Text($r('app.string.poster_truncated_hint', this.truncatedHint()))
               .fontSize(this.f(20))
               .fontColor(this.pal().sub)
@@ -3045,7 +3140,7 @@ export struct CopyPosterPreview {
       .height(this.fy(726) - this.fy(518))
       .justifyContent(FlexAlign.Center)
       .padding({ left: this.f(96), right: this.f(96) })
-      .position({ x: 0, y: this.fy(518) })
+      .position({ x: 0, y: this.posY(518) })
 
       Text('HAPPY FESTIVAL · POCKET GREETING')
         .fontSize(this.f(19))
@@ -3053,7 +3148,7 @@ export struct CopyPosterPreview {
         .fontColor(this.hexA(this.pal().sub, '99'))
         .width('100%')
         .textAlign(TextAlign.Center)
-        .position({ x: 0, y: this.fy(726) })
+        .position({ x: 0, y: this.posY(726) })
 
       if (this.content.sign.trim() !== '') {
         Text('— ' + this.content.sign + ' —')
@@ -3063,7 +3158,7 @@ export struct CopyPosterPreview {
           .fontFamily(this.font())
           .width('100%')
           .textAlign(TextAlign.Center)
-          .position({ x: 0, y: this.h() - this.f(96) })
+          .position({ x: 0, y: this.h() - this.posY(96) })
       }
 
       Column()
@@ -3082,30 +3177,15 @@ export struct CopyPosterPreview {
 
   // ---------- T18 红包对联风（红金竖批 + 铜钱团花，参照 docs/文案海报候选_红包对联风.html） ----------
 
-  /** T18 竖批主文案字号分档（设计 px） */
-  private coupletBodyPx(): number {
-    let n: number = this.vertChars(this.content.body).length;
-    if (n <= 12) {
-      return 70;
-    }
-    if (n <= 24) {
-      return 56;
-    }
-    return 44;
-  }
-
-  /** T18 每列字数 */
-  private coupletPerCol(): number {
-    let lh: number = this.f(this.coupletBodyPx() * 1.36);
-    let avail: number = this.h() - this.fy(238) - this.fy(174);
-    return Math.max(1, Math.floor(avail / lh));
-  }
-
-  /** T18 列数上限 */
-  private coupletMaxCols(): number {
-    let pitch: number = this.f(this.coupletBodyPx() * 1.9);
-    let avail: number = this.previewWidth - this.f(212) * 2;
-    return Math.max(1, Math.floor(avail / pitch));
+  /**
+   * T18 竖排内核（1.4.6 P0-1 A 类）：盒高 = h() - fy(238) - fy(174) → availH = 画布高×488/900；
+   * 盒宽 900-212×2 = 476；lh 1.36 / pitch 1.90（列间距 = 字号×0.9）。
+   * 替代旧 coupletBodyPx 3 档私有分档。
+   */
+  private coupletLayout(): PosterVerticalLayout {
+    let dh: number = CopyPosterRatio.designHeight(this.ratioKind);
+    return PosterTypeset.layoutVertical(this.content.body, dh * 488 / 900, 99, 70, false,
+      1.36, 476, 1.90);
   }
 
   @Builder
@@ -3146,36 +3226,36 @@ export struct CopyPosterPreview {
     Stack() {
       // 铜钱团花：96px 下直径约 4px，5 枚连排糊成噪点，缩略图只留 2 枚大纹（1.4.5 P2-6）
       if (this.isThumb) {
-        this.CoupletCoin(this.f(42), this.fy(200))
-        this.CoupletCoin(this.previewWidth - this.f(42) - this.f(74), this.fy(200))
+        this.CoupletCoin(this.posX(42), this.posY(200))
+        this.CoupletCoin(this.previewWidth - this.posX(42) - this.posX(74), this.posY(200))
       } else {
-        this.CoupletCoin(this.f(42), this.fy(154))
-        this.CoupletCoin(this.f(42), this.fy(305))
-        this.CoupletCoin(this.f(42), this.fy(456))
-        this.CoupletCoin(this.previewWidth - this.f(42) - this.f(74), this.fy(154))
-        this.CoupletCoin(this.previewWidth - this.f(42) - this.f(74), this.fy(305))
+        this.CoupletCoin(this.posX(42), this.posY(154))
+        this.CoupletCoin(this.posX(42), this.posY(305))
+        this.CoupletCoin(this.posX(42), this.posY(456))
+        this.CoupletCoin(this.previewWidth - this.posX(42) - this.posX(74), this.posY(154))
+        this.CoupletCoin(this.previewWidth - this.posX(42) - this.posX(74), this.posY(305))
       }
 
       Column()
         .width(this.previewWidth - this.f(32) * 2)
-        .height(this.h() - this.f(32) * 2)
+        .height(this.h() - this.posY(32) * 2)
         .border({ width: this.f(3.2), color: this.hexA(this.pal().accent, 'D9') })
-        .position({ x: this.f(32), y: this.f(32) })
+        .position({ x: this.posX(32), y: this.posY(32) })
       // 内层细框：缩略图下两层金框糊成一块，只保留一层（1.4.5 P2-6）
       if (!this.isThumb) {
         Column()
           .width(this.previewWidth - this.f(43) * 2)
-          .height(this.h() - this.f(43) * 2)
+          .height(this.h() - this.posY(43) * 2)
           .border({ width: this.f(1.6), color: this.hexA(this.pal().accent, '73') })
-          .position({ x: this.f(43), y: this.f(43) })
+          .position({ x: this.posX(43), y: this.posY(43) })
       }
 
       // 四角描金纹：96px 下退化为噪点，缩略图模式跳过（1.4.5 P2-6）
       if (!this.isThumb) {
-        this.CoupletCorner(this.f(55), this.fy(55), Alignment.TopStart)
-        this.CoupletCorner(this.previewWidth - this.f(55) - this.f(54), this.fy(55), Alignment.TopEnd)
-        this.CoupletCorner(this.f(55), this.h() - this.fy(55) - this.f(54), Alignment.BottomStart)
-        this.CoupletCorner(this.previewWidth - this.f(55) - this.f(54), this.h() - this.fy(55) - this.f(54),
+        this.CoupletCorner(this.posX(55), this.posY(55), Alignment.TopStart)
+        this.CoupletCorner(this.previewWidth - this.posX(55) - this.posX(54), this.posY(55), Alignment.TopEnd)
+        this.CoupletCorner(this.posX(55), this.h() - this.posY(55) - this.f(54), Alignment.BottomStart)
+        this.CoupletCorner(this.previewWidth - this.posX(55) - this.posX(54), this.h() - this.posY(55) - this.f(54),
           Alignment.BottomEnd)
       }
 
@@ -3195,7 +3275,7 @@ export struct CopyPosterPreview {
         }
         .width('100%')
         .alignItems(HorizontalAlign.Center)
-        .position({ x: 0, y: this.fy(87) })
+        .position({ x: 0, y: this.posY(87) })
       }
 
       Column()
@@ -3206,7 +3286,7 @@ export struct CopyPosterPreview {
           colors: [[this.hexA(this.pal().accent, '00'), 0], [this.hexA(this.pal().accent, 'BF'), 0.14],
             [this.hexA(this.pal().accent, 'BF'), 0.86], [this.hexA(this.pal().accent, '00'), 1]],
         })
-        .position({ x: this.f(212), y: this.fy(225) })
+        .position({ x: this.posX(212), y: this.posY(225) })
       Column()
         .width(this.f(2.4))
         .height(this.h() - this.fy(225) - this.fy(161))
@@ -3215,20 +3295,20 @@ export struct CopyPosterPreview {
           colors: [[this.hexA(this.pal().accent, '00'), 0], [this.hexA(this.pal().accent, 'BF'), 0.14],
             [this.hexA(this.pal().accent, 'BF'), 0.86], [this.hexA(this.pal().accent, '00'), 1]],
         })
-        .position({ x: this.previewWidth - this.f(212) - this.f(2.4), y: this.fy(225) })
+        .position({ x: this.previewWidth - this.posX(212) - this.posX(2.4), y: this.posY(225) })
 
       Circle({ width: this.f(16), height: this.f(16) }).fill(this.pal().accent)
         .shadow({ radius: this.f(8), color: '#66000000', offsetY: this.f(2) })
-        .position({ x: this.f(212) + this.f(1.2) - this.f(8), y: this.fy(225) - this.f(19) })
+        .position({ x: this.posX(212) + this.posX(1.2) - this.posX(8), y: this.posY(225) - this.f(19) })
       Circle({ width: this.f(16), height: this.f(16) }).fill(this.pal().accent)
         .shadow({ radius: this.f(8), color: '#66000000', offsetY: this.f(2) })
-        .position({ x: this.previewWidth - this.f(212) - this.f(1.2) - this.f(8), y: this.fy(225) - this.f(19) })
+        .position({ x: this.previewWidth - this.posX(212) - this.posX(1.2) - this.posX(8), y: this.posY(225) - this.f(19) })
       Circle({ width: this.f(16), height: this.f(16) }).fill(this.pal().accent)
         .shadow({ radius: this.f(8), color: '#66000000', offsetY: this.f(2) })
-        .position({ x: this.f(212) + this.f(1.2) - this.f(8), y: this.h() - this.fy(161) + this.f(3) })
+        .position({ x: this.posX(212) + this.posX(1.2) - this.posX(8), y: this.h() - this.posY(161) + this.f(3) })
       Circle({ width: this.f(16), height: this.f(16) }).fill(this.pal().accent)
         .shadow({ radius: this.f(8), color: '#66000000', offsetY: this.f(2) })
-        .position({ x: this.previewWidth - this.f(212) - this.f(1.2) - this.f(8), y: this.h() - this.fy(161) + this.f(3) })
+        .position({ x: this.previewWidth - this.posX(212) - this.posX(1.2) - this.posX(8), y: this.h() - this.posY(161) + this.f(3) })
 
       Column() {
         if (this.content.body.trim() === '') {
@@ -3239,12 +3319,12 @@ export struct CopyPosterPreview {
             .width('100%')
             .textAlign(TextAlign.Center)
         } else {
-          Row({ space: this.f(this.coupletBodyPx() * 0.9) }) {
-            ForEach(this.vertColsRtl(this.content.body, this.coupletPerCol(), this.coupletMaxCols()),
+          Row({ space: this.f(this.coupletLayout().fontPx * 0.9) }) {
+            ForEach(this.vertRenderCols(this.coupletLayout().columns),
               (col: string[], i: number) => {
                 Text(col.join('\n'))
-                  .fontSize(this.f(this.coupletBodyPx()))
-                  .lineHeight(this.f(this.coupletBodyPx() * 1.36))
+                  .fontSize(this.f(this.coupletLayout().fontPx))
+                  .lineHeight(this.f(this.coupletLayout().fontPx * 1.36))
                   .fontWeight(FontWeight.Bold)
                   .fontColor(this.pal().title)
                   .fontFamily(this.font())
@@ -3254,12 +3334,21 @@ export struct CopyPosterPreview {
               i.toString() + '-' + col.length.toString() + '-' + (col.length > 0 ? col[0] : ''))
           }
           .alignItems(VerticalAlign.Top)
+          // 1.4.6 根因 C：竖排截断改内核 truncatedChars 口径，替代旧 vertColsRtl 的 '…' 静默截断
+          if (this.coupletLayout().truncated && !this.isThumb) {
+            Text($r('app.string.poster_truncated_hint', this.coupletLayout().truncatedChars))
+              .fontSize(this.f(18))
+              .fontColor(this.hexA(this.pal().title, 'B3'))
+              .fontFamily(this.font())
+              .opacity(0.75)
+              .maxLines(1)
+          }
         }
       }
       .width(this.previewWidth - this.f(212) * 2)
       .height(this.h() - this.fy(238) - this.fy(174))
       .alignItems(HorizontalAlign.Center)
-      .position({ x: this.f(212), y: this.fy(238) })
+      .position({ x: this.posX(212), y: this.posY(238) })
 
       if (this.content.sign.trim() !== '') {
         Column() {
@@ -3283,7 +3372,7 @@ export struct CopyPosterPreview {
         .fontColor(this.hexA(this.pal().sub, '99'))
         .width('100%')
         .textAlign(TextAlign.Center)
-        .position({ x: 0, y: this.h() - this.f(93) })
+        .position({ x: 0, y: this.h() - this.posY(93) })
 
       Column()
         .width('100%')
