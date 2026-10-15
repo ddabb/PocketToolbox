@@ -3,7 +3,6 @@
   "threshold": 800,
   "entries": {
     "entry/src/main/ets/common/utils/DecorPatternUtil.ets": 976,
-    "entry/src/main/ets/components/cover/CopyPosterPreview.ets": 3390,
     "entry/src/main/ets/core/sudoku/SudokuPixel.ets": 1682,
     "entry/src/main/ets/core/sudoku/SudokuPixelOCR.ets": 989,
     "entry/src/main/ets/core/sudoku/SudokuVKOCR.ets": 838,
