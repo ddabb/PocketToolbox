@@ -1,6 +1,6 @@
 /**
  * 生字卡 - 单元测试
- * 覆盖：配色/尺寸常量、格数自适应公式、行拆分、拼音行分配、清洗截断、
+ * 覆盖：配色/尺寸常量、格数自适应公式、行拆分、句子模式词装箱、清洗截断、
  * 逐字注音（批量导出拼音正确性）、历史目录隔离（card_history vs cover_history）
  */
 import { describe, it, expect, beforeAll } from '@ohos/hypium';
@@ -65,17 +65,19 @@ export default function charCardTest() {
       expect(r12[1]).assertEqual(6);
     });
 
-    /** tc4: 格边自适应 —— 上限 320，行宽不超内容区 740 */
+    /** tc4: 格边自适应 —— min(maxCell, (CONTENT_W-(rowLen-1)*GAP)/rowLen)，行宽不超内容区 740 */
     it('tc4_cellSize', 0, () => {
-      expect(CharCards.cellSize(1)).assertEqual(320);
-      expect(CharCards.cellSize(4)).assertEqual(170);
-      expect(CharCards.cellSize(8)).assertEqual(75);
+      expect(CharCards.cellSize(1, CharCards.MAX_CELL)).assertEqual(320);
+      expect(CharCards.cellSize(4, CharCards.MAX_CELL)).assertEqual(170);
+      expect(CharCards.cellSize(8, CharCards.MAX_CELL)).assertEqual(75);
+      expect(CharCards.cellSize(0, CharCards.MAX_CELL)).assertEqual(0);
+      expect(CharCards.cellSize(1, CharCards.MAX_CELL_COVER)).assertEqual(280);
       for (let n = 1; n <= 12; n++) {
         let rows: number[] = CharCards.splitRows(n);
         for (let i = 0; i < rows.length; i++) {
-          let s: number = CharCards.cellSize(rows[i]);
+          let s: number = CharCards.cellSize(rows[i], CharCards.MAX_CELL);
           let total: number = rows[i] * s + (rows[i] - 1) * CharCards.GAP;
-          expect(total <= CharCards.CONTENT_W).assertTrue();
+          expect(total <= CharCards.CONTENT_W + 1e-6).assertTrue();
           expect(s > 0).assertTrue();
         }
       }
@@ -90,17 +92,32 @@ export default function charCardTest() {
       expect(CharCards.cleanChars(long)).assertEqual('一二三四五六七八九十甲乙');
     });
 
-    /** tc6: 拼音行分配 —— 音节数匹配时逐行对齐，不匹配时整串置首行 */
-    it('tc6_splitPinyinRows', 0, () => {
-      let ok: string[] = CharCards.splitPinyinRows('chūn xià qiū dōng', [2, 2]);
-      expect(ok.length).assertEqual(2);
-      expect(ok[0]).assertEqual('chūn xià');
-      expect(ok[1]).assertEqual('qiū dōng');
-      let one: string[] = CharCards.splitPinyinRows('xué', [1]);
-      expect(one[0]).assertEqual('xué');
-      let bad: string[] = CharCards.splitPinyinRows('shēng zì kǎ', [2, 2]);
-      expect(bad[0]).assertEqual('shēng zì kǎ');
-      expect(bad[1]).assertEqual('');
+    /** tc6: 句子模式 —— 词截断 capWords（整词溢出即丢弃）与按词行拆分 splitRowsByWords（词不跨行）
+     *  注：旧版 splitPinyinRows 已随拼音槽位逻辑移入 CharCardPreview 删除，此处改测现行 API */
+    it('tc6_sentenceRows', 0, () => {
+      let kept: string[] = CharCards.capWords(['春天', '夏天'], 12);
+      expect(kept.length).assertEqual(2);
+      let drop: string[] = CharCards.capWords(['一二三四五六七八', '九'], 8);
+      expect(drop.length).assertEqual(1);
+      expect(drop[0]).assertEqual('一二三四五六七八');
+      let head: string[] = CharCards.capWords(['一二三四五六七八九十'], 5);
+      expect(head.length).assertEqual(1);
+      expect(head[0]).assertEqual('一二三四五');
+
+      let one: number[] = CharCards.splitRowsByWords(CharCardSize.SQUARE, ['春天', '夏天', '秋天', '冬天']);
+      expect(one.length).assertEqual(1);
+      expect(one[0]).assertEqual(8);
+      let two: number[] = CharCards.splitRowsByWords(CharCardSize.SQUARE, ['春天', '夏天', '秋天', '冬雪啊']);
+      expect(two.length).assertEqual(2);
+      expect(two[0]).assertEqual(6);
+      expect(two[1]).assertEqual(3);
+      let chunk: number[] = CharCards.splitRowsByWords(CharCardSize.SQUARE, ['一二三四五六七八九']);
+      expect(chunk.length).assertEqual(2);
+      expect(chunk[0]).assertEqual(8);
+      expect(chunk[1]).assertEqual(1);
+      let cover: number[] = CharCards.splitRowsByWords(CharCardSize.COVER, ['春天', '夏天', '秋天', '冬天']);
+      expect(cover.length).assertEqual(1);
+      expect(cover[0]).assertEqual(8);
     });
 
     /** tc7: 逐字注音（批量导出每卡拼音独立正确）—— PRD 验收 3 */

@@ -1,0 +1,24 @@
+{
+  "_comment": "1.4.7 行数护栏白名单：只减不增。条目值 = 允许的最大行数；文件拆到 <=800 行后请移除条目；重新生成：py -3 scripts/code_stats.py --init-whitelist",
+  "threshold": 800,
+  "entries": {
+    "entry/src/main/ets/common/utils/DecorPatternUtil.ets": 976,
+    "entry/src/main/ets/components/cover/CopyPosterPreview.ets": 3390,
+    "entry/src/main/ets/core/sudoku/SudokuGridFix.ets": 1442,
+    "entry/src/main/ets/core/sudoku/SudokuPixel.ets": 5657,
+    "entry/src/main/ets/core/sudoku/SudokuPixelOCR.ets": 989,
+    "entry/src/main/ets/core/sudoku/SudokuVKOCR.ets": 838,
+    "entry/src/main/ets/pages/CharCardPage.ets": 993,
+    "entry/src/main/ets/pages/CopyPosterPage.ets": 854,
+    "entry/src/main/ets/pages/CoverMakerPage.ets": 831,
+    "entry/src/main/ets/pages/GifMakerPage.ets": 2821,
+    "entry/src/main/ets/pages/IdiomQueryPage.ets": 858,
+    "entry/src/main/ets/pages/Index.ets": 2083,
+    "entry/src/main/ets/pages/Md2PngPage.ets": 1625,
+    "entry/src/main/ets/pages/PdfToolPage.ets": 1156,
+    "entry/src/main/ets/pages/SudokuSolverPage.ets": 1272,
+    "entry/src/main/ets/pages/TimezoneConverterPage.ets": 991,
+    "entry/src/main/ets/pages/WordCloudPage.ets": 1159,
+    "entry/src/main/ets/pages/XiehouyuQueryPage.ets": 1183
+  }
+}

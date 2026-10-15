@@ -150,6 +150,15 @@ export class BackupUtil {
     } finally {
       fileIo.closeSync(file);
     }
+    return BackupUtil.applyBackupText(context, text);
+  }
+
+  /**
+   * 解析并应用备份文本（format 1 / 2 兼容矩阵：1=仅偏好；2=偏好+gifHistory 段）。
+   * 1.4.7 Phase 1 从 importBackup 原样抽出（行为零变化），供 ohosTest 直测格式兼容。
+   * 校验失败抛 Error（调用方负责提示，不崩溃）。
+   */
+  static applyBackupText(context: Context, text: string): boolean {
     let obj: Record<string, Object> = JSON.parse(text) as Record<string, Object>;
     let fmt: number = obj['format'] as number;
     if ((obj['app'] as string) !== BackupUtil.APP_ID || (fmt !== 1 && fmt !== BackupUtil.FORMAT)) {

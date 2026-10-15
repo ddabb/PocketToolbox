@@ -1,0 +1,12 @@
+#!/bin/sh
+# 1.4.7 行数护栏（docs/1.4.7开发计划_代码质量优化.md §4.1，2026-10-15 用户裁定上线）：
+# 白名单只减不增，新增/修改文件 <=800 行。查榜/重置白名单：
+#   py -3 scripts/code_stats.py --top 20 / --init-whitelist
+py -3 scripts/code_stats.py --check
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "[pre-commit] 行数护栏未通过，提交被拒绝。"
+  echo "  - 超标新文件请拆分（目标 <=800 行）；"
+  echo "  - 白名单文件不得超过登记上限（scripts/size_whitelist.json，只减不增）。"
+  exit 1
+fi
