@@ -7,6 +7,7 @@ import sudokuEngineTest from './SudokuEngine.test';
 import gifCodecTest from './GifCodec.test';
 import pdfUtilTest from './PdfUtil.test';
 import backupUtilTest from './BackupUtil.test';
+import sudokuPixelTest from './SudokuPixel.test';
 
 export default function testsuite() {
   abilityTest();
@@ -18,4 +19,5 @@ export default function testsuite() {
   gifCodecTest();
   pdfUtilTest();
   backupUtilTest();
+  sudokuPixelTest();
 }
