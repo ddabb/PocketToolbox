@@ -1,0 +1,5028 @@
+﻿{
+  "string": [
+    {
+      "name": "EntryFormAbility_label",
+      "value": "每日一詩卡片"
+    },
+    {
+      "name": "EntryFormAbility_desc",
+      "value": "解語珠璣每日一詩桌面卡片"
+    },
+    {
+      "name": "daily_poem_widget_name",
+      "value": "每日一詩"
+    },
+    {
+      "name": "daily_poem_widget_desc",
+      "value": "每天一首詩，點擊卡片進入解語珠璣"
+    },
+    {
+      "name": "checkin_widget_name",
+      "value": "每日簽到"
+    },
+    {
+      "name": "checkin_widget_desc",
+      "value": "查看連續簽到，一鍵打卡"
+    },
+    {
+      "name": "module_desc",
+      "value": "解語珠璣主模塊"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "解語珠璣應用入口"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "解語珠璣"
+    },
+    {
+      "name": "page_poetry_query",
+      "value": "詩詞查詢"
+    },
+    {
+      "name": "page_poetry_detail",
+      "value": "詩人詳情"
+    },
+    {
+      "name": "page_poem_content",
+      "value": "詩詞詳情"
+    },
+    {
+      "name": "page_idiom_query",
+      "value": "成語查詢"
+    },
+    {
+      "name": "page_xiehouyu_query",
+      "value": "歇後語查詢"
+    },
+    {
+      "name": "page_favorites",
+      "value": "我的收藏"
+    },
+    {
+      "name": "permission_internet_reason",
+      "value": "用於獲取詩詞、成語等數據內容"
+    },
+    {
+      "name": "permission_vibrate_reason",
+      "value": "用於簽到、挑戰完成等關鍵操作的振動反饋"
+    },
+    {
+      "name": "permission_reminder_reason",
+      "value": "用於每日簽到提醒的通知推送"
+    },
+    {
+      "name": "permission_keep_background_reason",
+      "value": "用於朗讀內容的後台連續播放"
+    },
+    {
+      "name": "daily_poem_title",
+      "value": "每日一詩"
+    },
+    {
+      "name": "daily_poem_loading",
+      "value": "今日詩句加載中…"
+    },
+    {
+      "name": "widget_date_format",
+      "value": "%1$s月%2$s日"
+    },
+    {
+      "name": "reminder_checkin_content",
+      "value": "今天還沒簽到打卡，每日挑戰等你來戰！"
+    },
+    {
+      "name": "reading_session_artist",
+      "value": "解語珠璣 · 朗讀清單"
+    },
+    {
+      "name": "added_to_list",
+      "value": "已加入「%1$s」"
+    },
+    {
+      "name": "already_in_list",
+      "value": "已在「%1$s」中"
+    },
+    {
+      "name": "ach_fav_10_title",
+      "value": "收藏新手"
+    },
+    {
+      "name": "ach_fav_10_desc",
+      "value": "累計收藏10項"
+    },
+    {
+      "name": "ach_fav_50_title",
+      "value": "收藏達人"
+    },
+    {
+      "name": "ach_fav_50_desc",
+      "value": "累計收藏50項"
+    },
+    {
+      "name": "ach_fav_100_title",
+      "value": "收藏大師"
+    },
+    {
+      "name": "ach_fav_100_desc",
+      "value": "累計收藏100項"
+    },
+    {
+      "name": "ach_poem_fav_20_title",
+      "value": "詩詞愛好者"
+    },
+    {
+      "name": "ach_poem_fav_20_desc",
+      "value": "收藏詩詞20首"
+    },
+    {
+      "name": "ach_poem_fav_50_title",
+      "value": "詩詞鑑賞家"
+    },
+    {
+      "name": "ach_poem_fav_50_desc",
+      "value": "收藏詩詞50首"
+    },
+    {
+      "name": "ach_idiom_fav_20_title",
+      "value": "成語收藏家"
+    },
+    {
+      "name": "ach_idiom_fav_20_desc",
+      "value": "收藏成語20個"
+    },
+    {
+      "name": "ach_checkin_7_title",
+      "value": "堅持一週"
+    },
+    {
+      "name": "ach_checkin_7_desc",
+      "value": "連續簽到7天"
+    },
+    {
+      "name": "ach_checkin_30_title",
+      "value": "月度學霸"
+    },
+    {
+      "name": "ach_checkin_30_desc",
+      "value": "連續簽到30天"
+    },
+    {
+      "name": "ach_checkin_total_30_title",
+      "value": "學習習慣"
+    },
+    {
+      "name": "ach_checkin_total_30_desc",
+      "value": "累計簽到30天"
+    },
+    {
+      "name": "ach_challenge_10_title",
+      "value": "挑戰新秀"
+    },
+    {
+      "name": "ach_challenge_10_desc",
+      "value": "完成10次每日挑戰"
+    },
+    {
+      "name": "ach_challenge_50_title",
+      "value": "挑戰達人"
+    },
+    {
+      "name": "ach_challenge_50_desc",
+      "value": "完成50次每日挑戰"
+    },
+    {
+      "name": "ach_browse_100_title",
+      "value": "勤奮讀者"
+    },
+    {
+      "name": "ach_browse_100_desc",
+      "value": "累計瀏覽100次"
+    },
+    {
+      "name": "ach_browse_500_title",
+      "value": "博覽羣書"
+    },
+    {
+      "name": "ach_browse_500_desc",
+      "value": "累計瀏覽500次"
+    },
+    {
+      "name": "ach_reading_10_title",
+      "value": "朗讀者"
+    },
+    {
+      "name": "ach_reading_10_desc",
+      "value": "朗讀10篇內容"
+    },
+    {
+      "name": "ach_tool_5_title",
+      "value": "工具探索者"
+    },
+    {
+      "name": "ach_tool_5_desc",
+      "value": "使用5種不同工具"
+    },
+    {
+      "name": "challenge_poem_prompt",
+      "value": "請填出空缺的字：\n%1$s\n——%2$s《%3$s》"
+    },
+    {
+      "name": "challenge_idiom_prompt",
+      "value": "請填出成語中空缺的字：\n%1$s"
+    },
+    {
+      "name": "challenge_xiehouyu_prompt",
+      "value": "猜猜歇後語的下半句：\n%1$s——？"
+    },
+    {
+      "name": "widget_footer",
+      "value": "解語珠璣 · 每日一詩"
+    },
+    {
+      "name": "tab_home",
+      "value": "首頁"
+    },
+    {
+      "name": "tab_tools",
+      "value": "工具"
+    },
+    {
+      "name": "tab_mine",
+      "value": "我的"
+    },
+    {
+      "name": "home_slogan",
+      "value": "品讀經典，感悟文字之美"
+    },
+    {
+      "name": "home_poetry_sub",
+      "value": "唐詩宋詞，按朝代瀏覽"
+    },
+    {
+      "name": "home_idiom_sub",
+      "value": "成語接龍，順查逆查"
+    },
+    {
+      "name": "xiehouyu_short",
+      "value": "歇後語"
+    },
+    {
+      "name": "home_xiehouyu_sub",
+      "value": "趣味歇後語，猜謎玩法"
+    },
+    {
+      "name": "recent_tools",
+      "value": "最近使用"
+    },
+    {
+      "name": "a11y_recent_used",
+      "value": "最近使用：%1$s"
+    },
+    {
+      "name": "tools_title",
+      "value": "工具箱"
+    },
+    {
+      "name": "tools_slogan",
+      "value": "實用計算與換算工具集"
+    },
+    {
+      "name": "search_tools_hint",
+      "value": "搜尋工具"
+    },
+    {
+      "name": "search_results",
+      "value": "搜尋結果"
+    },
+    {
+      "name": "no_tools_found",
+      "value": "沒有找到相關工具"
+    },
+    {
+      "name": "section_creative",
+      "value": "創意工具"
+    },
+    {
+      "name": "section_math",
+      "value": "數學計算"
+    },
+    {
+      "name": "section_unit",
+      "value": "單位換算"
+    },
+    {
+      "name": "stat_total_checkin",
+      "value": "累計簽到"
+    },
+    {
+      "name": "stat_streak",
+      "value": "連續簽到"
+    },
+    {
+      "name": "stat_reading_list",
+      "value": "朗讀清單"
+    },
+    {
+      "name": "mine_feedback",
+      "value": "意見反饋"
+    },
+    {
+      "name": "mine_comment",
+      "value": "去評論"
+    },
+    {
+      "name": "comment_open_market_failed",
+      "value": "未能打開應用市場，請前往應用市場評論"
+    },
+    {
+      "name": "mine_about",
+      "value": "關於"
+    },
+    {
+      "name": "mine_today_checkin",
+      "value": "今日簽到"
+    },
+    {
+      "name": "checked_in",
+      "value": "✓ 已簽到"
+    },
+    {
+      "name": "not_checked_in",
+      "value": "未簽到"
+    },
+    {
+      "name": "days_unit",
+      "value": "%1$d天"
+    },
+    {
+      "name": "mine_today_challenge",
+      "value": "今日挑戰"
+    },
+    {
+      "name": "challenge_done",
+      "value": "已完成"
+    },
+    {
+      "name": "challenge_not_done",
+      "value": "未完成"
+    },
+    {
+      "name": "stat_browse",
+      "value": "累計瀏覽"
+    },
+    {
+      "name": "times_unit",
+      "value": "%1$d次"
+    },
+    {
+      "name": "stat_challenges",
+      "value": "累計挑戰"
+    },
+    {
+      "name": "stat_reading_items",
+      "value": "朗讀內容"
+    },
+    {
+      "name": "items_unit",
+      "value": "%1$d篇"
+    },
+    {
+      "name": "daily_idiom_title",
+      "value": "每日成語"
+    },
+    {
+      "name": "daily_xiehouyu_title",
+      "value": "每日歇後語"
+    },
+    {
+      "name": "today_badge",
+      "value": "今日"
+    },
+    {
+      "name": "a11y_back_to_today",
+      "value": "回到今日推薦"
+    },
+    {
+      "name": "a11y_shuffle_poem",
+      "value": "換一首"
+    },
+    {
+      "name": "a11y_shuffle_idiom",
+      "value": "換一個成語"
+    },
+    {
+      "name": "a11y_shuffle_xiehouyu",
+      "value": "換一條歇後語"
+    },
+    {
+      "name": "xiehouyu_answer_prefix",
+      "value": "—— %1$s"
+    },
+    {
+      "name": "daily_checkin",
+      "value": "每日簽到"
+    },
+    {
+      "name": "streak_days",
+      "value": "連續%1$d天"
+    },
+    {
+      "name": "checkin_success_toast",
+      "value": "簽到成功！連續%1$d天"
+    },
+    {
+      "name": "tap_to_checkin",
+      "value": "點擊簽到"
+    },
+    {
+      "name": "streak_so_far",
+      "value": "已連續%1$d天"
+    },
+    {
+      "name": "start_streak",
+      "value": "開始你的連續簽到"
+    },
+    {
+      "name": "daily_challenge",
+      "value": "每日挑戰"
+    },
+    {
+      "name": "score_label",
+      "value": "得分 %1$d"
+    },
+    {
+      "name": "go_challenge",
+      "value": "去挑戰"
+    },
+    {
+      "name": "quiz_for_points",
+      "value": "答題贏積分"
+    },
+    {
+      "name": "review_card_title",
+      "value": "温故知新"
+    },
+    {
+      "name": "feedback_subject",
+      "value": "解語珠璣意見反饋"
+    },
+    {
+      "name": "feedback_no_mail_app",
+      "value": "未找到郵件應用，反饋郵箱已複製"
+    },
+    {
+      "name": "unit_temp_subtitle",
+      "value": "攝氏度、華氏度、開爾文等"
+    },
+    {
+      "name": "a11y_tool_item",
+      "value": "%1$s，%2$s"
+    },
+    {
+      "name": "tool_gcd_lcm_title",
+      "value": "公約/倍數"
+    },
+    {
+      "name": "tool_gcd_lcm_sub",
+      "value": "最大公約數、最小公倍數"
+    },
+    {
+      "name": "tool_prime_title",
+      "value": "質因數分解"
+    },
+    {
+      "name": "tool_prime_sub",
+      "value": "分解合數為質數乘積"
+    },
+    {
+      "name": "tool_base_sub",
+      "value": "二進制/八進制/十六進制/Base64"
+    },
+    {
+      "name": "tool_timezone_sub",
+      "value": "全球城市時區對照與會議協調"
+    },
+    {
+      "name": "tool_wordcloud_title",
+      "value": "詞雲生成"
+    },
+    {
+      "name": "tool_wordcloud_sub",
+      "value": "貼上文本，30秒出圖"
+    },
+    {
+      "name": "tool_md2png_title",
+      "value": "文字轉圖片"
+    },
+    {
+      "name": "tool_md2png_sub",
+      "value": "Markdown文本生成圖片"
+    },
+    {
+      "name": "tool_cover_title",
+      "value": "首圖製作"
+    },
+    {
+      "name": "tool_cover_sub",
+      "value": "公眾號封面 30 秒出圖"
+    },
+    {
+      "name": "tool_charcard_title",
+      "value": "生字卡"
+    },
+    {
+      "name": "tool_charcard_sub",
+      "value": "田字格生字卡，一鍵注音"
+    },
+    {
+      "name": "tool_gif_title",
+      "value": "GIF 製作"
+    },
+    {
+      "name": "tool_gif_sub",
+      "value": "圖片/影片合成、編輯動圖"
+    },
+    {
+      "name": "tool_sudoku_title",
+      "value": "數獨求解"
+    },
+    {
+      "name": "tool_sudoku_sub",
+      "value": "拍照識別，DLX算法秒解"
+    },
+    {
+      "name": "tool_pdf_title",
+      "value": "PDF 工具"
+    },
+    {
+      "name": "tool_pdf_sub",
+      "value": "圖片合成 PDF，PDF 拆分導圖"
+    },
+    {
+      "name": "pdf_tool_title",
+      "value": "PDF 工具"
+    },
+    {
+      "name": "pdf_tab_compose",
+      "value": "合成"
+    },
+    {
+      "name": "pdf_tab_split",
+      "value": "拆分"
+    },
+    {
+      "name": "pdf_compose_pick",
+      "value": "選擇圖片"
+    },
+    {
+      "name": "pdf_compose_add",
+      "value": "添加"
+    },
+    {
+      "name": "pdf_compose_count",
+      "value": "已選 %d 張"
+    },
+    {
+      "name": "pdf_compose_empty",
+      "value": "還沒有圖片，最多可選 20 張"
+    },
+    {
+      "name": "pdf_compose_swap_hint",
+      "value": "點擊兩張縮略圖可交換順序"
+    },
+    {
+      "name": "pdf_compose_max",
+      "value": "最多選擇 20 張圖片"
+    },
+    {
+      "name": "pdf_compose_mode",
+      "value": "頁面尺寸"
+    },
+    {
+      "name": "pdf_compose_fit",
+      "value": "適應圖片"
+    },
+    {
+      "name": "pdf_compose_a4",
+      "value": "A4 白底"
+    },
+    {
+      "name": "pdf_compose_margin",
+      "value": "頁邊距"
+    },
+    {
+      "name": "pdf_margin_none",
+      "value": "無"
+    },
+    {
+      "name": "pdf_margin_narrow",
+      "value": "窄"
+    },
+    {
+      "name": "pdf_margin_normal",
+      "value": "常規"
+    },
+    {
+      "name": "pdf_compose_orient",
+      "value": "方向"
+    },
+    {
+      "name": "pdf_orient_auto",
+      "value": "自動"
+    },
+    {
+      "name": "pdf_orient_portrait",
+      "value": "縱向"
+    },
+    {
+      "name": "pdf_compose_name",
+      "value": "檔案名"
+    },
+    {
+      "name": "pdf_compose_name_hint",
+      "value": "輸入 PDF 檔案名"
+    },
+    {
+      "name": "pdf_compose_generate",
+      "value": "生成 PDF"
+    },
+    {
+      "name": "pdf_compose_generating",
+      "value": "正在生成..."
+    },
+    {
+      "name": "pdf_compose_done",
+      "value": "已生成 %d 頁，大小 %s"
+    },
+    {
+      "name": "pdf_compose_fail",
+      "value": "生成失敗"
+    },
+    {
+      "name": "pdf_pick_image_fail",
+      "value": "選擇圖片失敗"
+    },
+    {
+      "name": "pdf_save",
+      "value": "儲存 PDF"
+    },
+    {
+      "name": "pdf_saved",
+      "value": "已儲存"
+    },
+    {
+      "name": "pdf_save_cancel",
+      "value": "已取消儲存"
+    },
+    {
+      "name": "pdf_share",
+      "value": "分享"
+    },
+    {
+      "name": "pdf_share_fail",
+      "value": "分享失敗"
+    },
+    {
+      "name": "pdf_split_pick",
+      "value": "選擇 PDF"
+    },
+    {
+      "name": "pdf_split_empty",
+      "value": "尚未選擇 PDF"
+    },
+    {
+      "name": "pdf_split_pick_fail",
+      "value": "選擇 PDF 失敗"
+    },
+    {
+      "name": "pdf_split_parsing",
+      "value": "正在讀取 %d/%d 頁"
+    },
+    {
+      "name": "pdf_split_need_pwd",
+      "value": "該 PDF 已加密，請輸入密碼後打開"
+    },
+    {
+      "name": "pdf_split_pwd_hint",
+      "value": "PDF 密碼"
+    },
+    {
+      "name": "pdf_split_parse",
+      "value": "打開"
+    },
+    {
+      "name": "pdf_split_retry",
+      "value": "重試"
+    },
+    {
+      "name": "pdf_split_pages",
+      "value": "共 %d 頁"
+    },
+    {
+      "name": "pdf_split_select_all",
+      "value": "全選"
+    },
+    {
+      "name": "pdf_split_deselect_all",
+      "value": "清空"
+    },
+    {
+      "name": "pdf_split_page_no",
+      "value": "第 %d 頁"
+    },
+    {
+      "name": "pdf_split_format",
+      "value": "匯出格式"
+    },
+    {
+      "name": "pdf_format_jpeg",
+      "value": "JPEG"
+    },
+    {
+      "name": "pdf_format_png",
+      "value": "PNG"
+    },
+    {
+      "name": "pdf_split_quality",
+      "value": "JPEG 品質 %d"
+    },
+    {
+      "name": "pdf_split_export",
+      "value": "匯出（%d）"
+    },
+    {
+      "name": "pdf_split_exporting",
+      "value": "正在匯出 %d/%d"
+    },
+    {
+      "name": "pdf_split_export_done",
+      "value": "已匯出 %d 張圖片到相簿"
+    },
+    {
+      "name": "pdf_split_export_fail",
+      "value": "匯出失敗"
+    },
+    {
+      "name": "pdf_split_no_select",
+      "value": "請至少選擇一頁"
+    },
+    {
+      "name": "pdf_split_max",
+      "value": "頁數較多，讀取可能需要一些時間"
+    },
+    {
+      "name": "pdf_save_album_fail",
+      "value": "儲存到相簿失敗"
+    },
+    {
+      "name": "pdf_parse_pwd_err",
+      "value": "密碼錯誤，請重新輸入"
+    },
+    {
+      "name": "pdf_parse_file_err",
+      "value": "無法讀取檔案，可能已損壞或被移動"
+    },
+    {
+      "name": "pdf_parse_format_err",
+      "value": "不是有效的 PDF 檔案"
+    },
+    {
+      "name": "pdf_parse_zero_err",
+      "value": "該 PDF 沒有頁面"
+    },
+    {
+      "name": "pdf_parse_other_err",
+      "value": "無法打開該 PDF（錯誤 %s）"
+    },
+    {
+      "name": "poster_truncated_hint",
+      "value": "已省略 %d 字"
+    },
+    {
+      "name": "poster_cat_simple",
+      "value": "簡約清新"
+    },
+    {
+      "name": "poster_cat_bold",
+      "value": "大字金句"
+    },
+    {
+      "name": "poster_cat_tech",
+      "value": "科技復古"
+    },
+    {
+      "name": "poster_cat_life",
+      "value": "生活質感"
+    },
+    {
+      "name": "poster_cat_festival",
+      "value": "節日節氣"
+    },
+    {
+      "name": "poster_tmpl_t19",
+      "value": "撕紙拼貼"
+    },
+    {
+      "name": "poster_tmpl_t20",
+      "value": "豎排標點"
+    },
+    {
+      "name": "poster_tmpl_t21",
+      "value": "層疊色塊"
+    },
+    {
+      "name": "tmpl_pal_kraft_desk",
+      "value": "牛皮桌面"
+    },
+    {
+      "name": "tmpl_pal_slate_blue",
+      "value": "石板藍"
+    },
+    {
+      "name": "tmpl_pal_moss_green",
+      "value": "苔蘚綠"
+    },
+    {
+      "name": "tmpl_pal_plum_dark",
+      "value": "暗夜梅"
+    },
+    {
+      "name": "tmpl_pal_charcoal",
+      "value": "炭黑"
+    },
+    {
+      "name": "tmpl_pal_washi",
+      "value": "和紙米"
+    },
+    {
+      "name": "tmpl_pal_indigo_washi",
+      "value": "靛青和紙"
+    },
+    {
+      "name": "tmpl_pal_ink_washi",
+      "value": "墨黑和紙"
+    },
+    {
+      "name": "tmpl_pal_moss_washi",
+      "value": "苔色和紙"
+    },
+    {
+      "name": "tmpl_pal_blush_washi",
+      "value": "胭脂和紙"
+    },
+    {
+      "name": "tmpl_pal_cobalt_stack",
+      "value": "鈷藍疊色"
+    },
+    {
+      "name": "tmpl_pal_sunset_stack",
+      "value": "落日疊色"
+    },
+    {
+      "name": "tmpl_pal_lilac_stack",
+      "value": "丁香疊色"
+    },
+    {
+      "name": "tmpl_pal_mint_stack",
+      "value": "薄荷疊色"
+    },
+    {
+      "name": "tmpl_pal_sand_stack",
+      "value": "砂金疊色"
+    },
+    {
+      "name": "wc_shape_circle",
+      "value": "圓形"
+    },
+    {
+      "name": "wc_shape_cardioid",
+      "value": "心形"
+    },
+    {
+      "name": "wc_shape_star5",
+      "value": "五角星"
+    },
+    {
+      "name": "wc_shape_diamond",
+      "value": "菱形"
+    },
+    {
+      "name": "wc_shape_triangle",
+      "value": "倒三角"
+    },
+    {
+      "name": "wc_shape_triangle_up",
+      "value": "正三角"
+    },
+    {
+      "name": "wc_shape_triangle_left",
+      "value": "左三角"
+    },
+    {
+      "name": "wc_shape_triangle_right",
+      "value": "右三角"
+    },
+    {
+      "name": "wc_shape_square",
+      "value": "方形"
+    },
+    {
+      "name": "wc_shape_pentagon",
+      "value": "五邊"
+    },
+    {
+      "name": "wc_shape_hexagon",
+      "value": "六邊"
+    },
+    {
+      "name": "wc_shape_cross",
+      "value": "十字"
+    },
+    {
+      "name": "wc_shape_cloud",
+      "value": "雲朵"
+    },
+    {
+      "name": "wc_shape_oval",
+      "value": "橢圓"
+    },
+    {
+      "name": "wc_shape_leaf",
+      "value": "葉片"
+    },
+    {
+      "name": "wc_shape_star8",
+      "value": "八角星"
+    },
+    {
+      "name": "wc_shape_flower",
+      "value": "花朵"
+    },
+    {
+      "name": "wc_shape_octagon",
+      "value": "八邊形"
+    },
+    {
+      "name": "theme_default",
+      "value": "簡約藍"
+    },
+    {
+      "name": "theme_wechat",
+      "value": "清新綠"
+    },
+    {
+      "name": "theme_xiaohongshu",
+      "value": "櫻桃紅"
+    },
+    {
+      "name": "theme_douyin",
+      "value": "暗夜紅"
+    },
+    {
+      "name": "theme_ink",
+      "value": "水墨風"
+    },
+    {
+      "name": "theme_cyberpunk",
+      "value": "賽博朋克"
+    },
+    {
+      "name": "theme_minimalist",
+      "value": "極簡白"
+    },
+    {
+      "name": "theme_neon",
+      "value": "霓虹燈"
+    },
+    {
+      "name": "theme_nature",
+      "value": "自然綠"
+    },
+    {
+      "name": "theme_nordic",
+      "value": "北歐風"
+    },
+    {
+      "name": "tmpl_palette_title",
+      "value": "配色方案"
+    },
+    {
+      "name": "cover_slot_title",
+      "value": "主標題"
+    },
+    {
+      "name": "wc_config_hint",
+      "value": "配色：%1 | 形狀：%2 | 字體：%3"
+    },
+    {
+      "name": "cover_restored",
+      "value": "已恢復：%1"
+    },
+    {
+      "name": "cover_slot_subtitle",
+      "value": "副標題"
+    },
+    {
+      "name": "cover_slot_author",
+      "value": "署名 / 公眾號名"
+    },
+    {
+      "name": "cover_slot_issue",
+      "value": "期號 / 日期"
+    },
+    {
+      "name": "cover_slot_quote",
+      "value": "引言"
+    },
+    {
+      "name": "cover_slot_quote_source",
+      "value": "出處"
+    },
+    {
+      "name": "cover_slot_pinyin",
+      "value": "拼音（自動生成，點音節選擇讀音）"
+    },
+    {
+      "name": "cover_slot_seal",
+      "value": "印章（2-4 字）"
+    },
+    {
+      "name": "readlist_input_name",
+      "value": "請輸入清單名稱"
+    },
+    {
+      "name": "readlist_created",
+      "value": "清單已創建"
+    },
+    {
+      "name": "readlist_renamed",
+      "value": "已重命名"
+    },
+    {
+      "name": "readlist_confirm_delete",
+      "value": "確認刪除"
+    },
+    {
+      "name": "readlist_delete_msg",
+      "value": "確定要刪除清單「%1$s」嗎？"
+    },
+    {
+      "name": "readlist_cancel",
+      "value": "取消"
+    },
+    {
+      "name": "readlist_delete",
+      "value": "刪除"
+    },
+    {
+      "name": "readlist_deleted",
+      "value": "已刪除"
+    },
+    {
+      "name": "readlist_no_items",
+      "value": "暫無內容"
+    },
+    {
+      "name": "readlist_item_poem",
+      "value": "詩詞%1$d"
+    },
+    {
+      "name": "readlist_item_idiom",
+      "value": "成語%1$d"
+    },
+    {
+      "name": "readlist_item_xiehouyu",
+      "value": "歇後語%1$d"
+    },
+    {
+      "name": "readlist_count_summary",
+      "value": "共%1$d項：%2$s"
+    },
+    {
+      "name": "readlist_count_sep",
+      "value": "、"
+    },
+    {
+      "name": "readlist_updated_at",
+      "value": "更新於 %1$s"
+    },
+    {
+      "name": "readlist_empty_title",
+      "value": "暫無朗讀清單"
+    },
+    {
+      "name": "readlist_empty_hint",
+      "value": "點擊下方按鈕創建您的第一個清單"
+    },
+    {
+      "name": "readlist_new_list",
+      "value": "+ 新建清單"
+    },
+    {
+      "name": "readlist_create_title",
+      "value": "新建朗讀清單"
+    },
+    {
+      "name": "readlist_name_hint",
+      "value": "輸入清單名稱，如：每日詩詞"
+    },
+    {
+      "name": "readlist_create",
+      "value": "創建"
+    },
+    {
+      "name": "readlist_rename_title",
+      "value": "重命名清單"
+    },
+    {
+      "name": "readlist_rename_hint",
+      "value": "輸入新的清單名稱"
+    },
+    {
+      "name": "readlist_save",
+      "value": "儲存"
+    },
+    {
+      "name": "player_title",
+      "value": "朗讀播放"
+    },
+    {
+      "name": "player_tts_unsupported",
+      "value": "當前設備暫不支援朗讀"
+    },
+    {
+      "name": "player_tts_failed",
+      "value": "朗讀失敗(%1$d)，請稍後重試"
+    },
+    {
+      "name": "player_status_playing",
+      "value": "朗讀中 %1$d/%2$d"
+    },
+    {
+      "name": "player_status_playing_short",
+      "value": "朗讀中"
+    },
+    {
+      "name": "player_paused",
+      "value": "已暫停"
+    },
+    {
+      "name": "player_tap_to_read",
+      "value": "點擊朗讀"
+    },
+    {
+      "name": "player_all_done",
+      "value": "全部朗讀完畢"
+    },
+    {
+      "name": "player_removed",
+      "value": "已移除"
+    },
+    {
+      "name": "player_type_poem",
+      "value": "詩詞"
+    },
+    {
+      "name": "player_type_idiom",
+      "value": "成語"
+    },
+    {
+      "name": "player_type_text",
+      "value": "文本"
+    },
+    {
+      "name": "player_empty_list",
+      "value": "清單為空"
+    },
+    {
+      "name": "player_empty_hint",
+      "value": "請在詩詞、成語或歇後語詳情頁添加內容"
+    },
+    {
+      "name": "player_list_missing",
+      "value": "清單不存在或已刪除"
+    },
+    {
+      "name": "player_speed",
+      "value": "語速 %1$s"
+    },
+    {
+      "name": "player_speed_title",
+      "value": "朗讀語速"
+    },
+    {
+      "name": "player_confirm",
+      "value": "確定"
+    },
+    {
+      "name": "player_move_up",
+      "value": "上移"
+    },
+    {
+      "name": "player_move_down",
+      "value": "下移"
+    },
+    {
+      "name": "player_remove",
+      "value": "移除"
+    },
+    {
+      "name": "poemdetail_search_hint",
+      "value": "搜尋詩名..."
+    },
+    {
+      "name": "poemdetail_works",
+      "value": "作品"
+    },
+    {
+      "name": "poemdetail_no_result",
+      "value": "未找到相關詩詞"
+    },
+    {
+      "name": "poemct_title",
+      "value": "詩詞鑑賞"
+    },
+    {
+      "name": "poemct_copied",
+      "value": "已複製到剪貼簿"
+    },
+    {
+      "name": "poemct_poet_not_found",
+      "value": "未找到詩人資訊"
+    },
+    {
+      "name": "poemct_unfavorited",
+      "value": "已取消收藏"
+    },
+    {
+      "name": "poemct_fav_full",
+      "value": "收藏已達上限，最早一條已移除"
+    },
+    {
+      "name": "poemct_favorited",
+      "value": "已收藏"
+    },
+    {
+      "name": "poemct_charbook_added",
+      "value": "已加入生字本 %1$d 個字"
+    },
+    {
+      "name": "poemct_charbook_dup",
+      "value": "所選字已在生字本中"
+    },
+    {
+      "name": "poemct_in_reading_list",
+      "value": "已在朗讀清單中"
+    },
+    {
+      "name": "poemct_add_to_reading",
+      "value": "加入朗讀清單"
+    },
+    {
+      "name": "poemct_a11y_unfav",
+      "value": "取消收藏"
+    },
+    {
+      "name": "poemct_a11y_fav",
+      "value": "收藏"
+    },
+    {
+      "name": "poemct_copy",
+      "value": "複製"
+    },
+    {
+      "name": "poemct_share_image",
+      "value": "分享圖片"
+    },
+    {
+      "name": "poemct_trace",
+      "value": "描紅"
+    },
+    {
+      "name": "poemct_pick_chars_hint",
+      "value": "選取生字加入生字本"
+    },
+    {
+      "name": "poemct_no_lists",
+      "value": "暫無朗讀清單，請先創建"
+    },
+    {
+      "name": "poemct_items_count",
+      "value": "%1$d項"
+    },
+    {
+      "name": "poemct_pick_chars_title",
+      "value": "選取生字"
+    },
+    {
+      "name": "poemct_pick_chars_desc",
+      "value": "點選詩文中的字加入生字本，綠框為已收錄，可在生字卡中一鍵匯入"
+    },
+    {
+      "name": "poemct_add_to_book",
+      "value": "加入生字本(%1$d)"
+    },
+    {
+      "name": "favsp_delete_msg",
+      "value": "確定要取消收藏「%1$s」嗎？"
+    },
+    {
+      "name": "favsp_tab_all",
+      "value": "全部"
+    },
+    {
+      "name": "favsp_tab_poem",
+      "value": "詩詞"
+    },
+    {
+      "name": "favsp_tab_idiom",
+      "value": "成語"
+    },
+    {
+      "name": "favsp_empty_all",
+      "value": "暫無收藏"
+    },
+    {
+      "name": "favsp_empty_poem",
+      "value": "暫無收藏的詩詞"
+    },
+    {
+      "name": "favsp_empty_idiom",
+      "value": "暫無收藏的成語"
+    },
+    {
+      "name": "favsp_empty_xiehouyu",
+      "value": "暫無收藏的歇後語"
+    },
+    {
+      "name": "detail_explanation",
+      "value": "釋義"
+    },
+    {
+      "name": "detail_example",
+      "value": "例句"
+    },
+    {
+      "name": "detail_copy_all",
+      "value": "複製全部"
+    },
+    {
+      "name": "favd_riddle",
+      "value": "謎面"
+    },
+    {
+      "name": "favd_answer",
+      "value": "謎底"
+    },
+    {
+      "name": "share_snapshot_failed",
+      "value": "截圖失敗"
+    },
+    {
+      "name": "share_generated",
+      "value": "圖片已生成"
+    },
+    {
+      "name": "share_generate_failed",
+      "value": "生成失敗"
+    },
+    {
+      "name": "share_generate_failed_no_share",
+      "value": "生成圖片失敗，無法分享"
+    },
+    {
+      "name": "share_failed",
+      "value": "分享失敗"
+    },
+    {
+      "name": "share_generate_first",
+      "value": "請先生成圖片"
+    },
+    {
+      "name": "share_saved_to_album",
+      "value": "已儲存到相簿"
+    },
+    {
+      "name": "share_save_failed",
+      "value": "儲存失敗"
+    },
+    {
+      "name": "share_generating",
+      "value": "生成中..."
+    },
+    {
+      "name": "share_generate",
+      "value": "生成圖片"
+    },
+    {
+      "name": "share_share",
+      "value": "分享"
+    },
+    {
+      "name": "imgbar_save_image",
+      "value": "儲存圖片"
+    },
+    {
+      "name": "err_load_failed",
+      "value": "加載失敗"
+    },
+    {
+      "name": "err_retry",
+      "value": "重試"
+    },
+    {
+      "name": "poemq_no_results",
+      "value": "未找到相關結果"
+    },
+    {
+      "name": "poemq_ocr_no_text",
+      "value": "未識別到文本"
+    },
+    {
+      "name": "poemq_ocr_failed",
+      "value": "識別失敗，請重試"
+    },
+    {
+      "name": "poemq_no_poem_detail",
+      "value": "未找到詩詞詳情"
+    },
+    {
+      "name": "poemq_no_poet_info",
+      "value": "未找到詩人資訊"
+    },
+    {
+      "name": "poemq_search_poet_hint",
+      "value": "請搜尋詩人姓名查看詳情"
+    },
+    {
+      "name": "poemq_ocr_result_title",
+      "value": "識詩結果 · 點擊一行搜尋"
+    },
+    {
+      "name": "poemq_search_hint",
+      "value": "搜尋詩人/詩詞..."
+    },
+    {
+      "name": "poemq_search",
+      "value": "搜尋"
+    },
+    {
+      "name": "poemq_loading",
+      "value": "加載中..."
+    },
+    {
+      "name": "poemq_load_failed",
+      "value": "數據加載失敗"
+    },
+    {
+      "name": "poemq_load_failed_sub",
+      "value": "數據讀取異常，請重試"
+    },
+    {
+      "name": "poemq_type_poet",
+      "value": "詩人"
+    },
+    {
+      "name": "poemq_type_poem",
+      "value": "詩詞"
+    },
+    {
+      "name": "poemq_poet_count",
+      "value": "%1$s · %2$d首"
+    },
+    {
+      "name": "poemq_load_more",
+      "value": "加載更多"
+    },
+    {
+      "name": "idiomq_not_in_lib",
+      "value": "該成語不在詞庫中"
+    },
+    {
+      "name": "idiomq_tip_forward",
+      "value": "共 %1$d 條順查結果"
+    },
+    {
+      "name": "idiomq_tip_reverse",
+      "value": "共 %1$d 條逆查結果"
+    },
+    {
+      "name": "idiomq_fuzzy_tip",
+      "value": "模糊匹配到 %1$d 個成語"
+    },
+    {
+      "name": "idiomq_no_detail",
+      "value": "暫無詳情"
+    },
+    {
+      "name": "idiomq_copied",
+      "value": "已複製到剪貼簿"
+    },
+    {
+      "name": "idiomq_reverse_loading",
+      "value": "逆查數據加載中，請稍候..."
+    },
+    {
+      "name": "idiomq_tab_pinyin",
+      "value": "拼音搜尋"
+    },
+    {
+      "name": "idiomq_tab_solitaire",
+      "value": "接龍查詢"
+    },
+    {
+      "name": "idiomq_tab_browse",
+      "value": "按字瀏覽"
+    },
+    {
+      "name": "idiomq_hint_forward",
+      "value": "輸入成語，順查接龍..."
+    },
+    {
+      "name": "idiomq_hint_reverse",
+      "value": "輸入成語，逆查接龍..."
+    },
+    {
+      "name": "idiomq_mode_forward",
+      "value": "順查"
+    },
+    {
+      "name": "idiomq_mode_reverse",
+      "value": "逆查"
+    },
+    {
+      "name": "idiomq_query",
+      "value": "查詢"
+    },
+    {
+      "name": "idiomq_copy_results",
+      "value": "複製結果"
+    },
+    {
+      "name": "idiomq_empty_solitaire",
+      "value": "輸入成語開始接龍查詢"
+    },
+    {
+      "name": "idiomq_letter_header",
+      "value": "%1$s 開頭的成語"
+    },
+    {
+      "name": "idiomq_letter_empty",
+      "value": "暫無該字母開頭的成語"
+    },
+    {
+      "name": "idiomq_letter_pick",
+      "value": "選擇首字母瀏覽成語"
+    },
+    {
+      "name": "idiomq_pinyin_hint",
+      "value": "輸入拼音或漢字搜尋，如 bai / 百"
+    },
+    {
+      "name": "idiomq_total_count",
+      "value": "(共 %1$d 條)"
+    },
+    {
+      "name": "idiomq_load_more_remaining",
+      "value": "加載更多 (剩餘 %1$d 條)"
+    },
+    {
+      "name": "idiomq_no_match",
+      "value": "未找到匹配的成語"
+    },
+    {
+      "name": "idiomq_pinyin_empty",
+      "value": "輸入拼音或漢字搜尋成語"
+    },
+    {
+      "name": "idiomq_pinyin_example",
+      "value": "例如: bai 或 百 → 百發百中、百步穿楊"
+    },
+    {
+      "name": "xhyq_guess_correct_streak",
+      "value": "答對了！連對 %1$d 題"
+    },
+    {
+      "name": "xhyq_guess_correct",
+      "value": "答對了！"
+    },
+    {
+      "name": "xhyq_guess_wrong",
+      "value": "不對哦，答案是：%1$s"
+    },
+    {
+      "name": "xhyq_unfaved",
+      "value": "已取消收藏"
+    },
+    {
+      "name": "xhyq_fav_full",
+      "value": "收藏已達上限，最早一條已移除"
+    },
+    {
+      "name": "xhyq_faved",
+      "value": "已收藏"
+    },
+    {
+      "name": "xhyq_load_failed_sub",
+      "value": "歇後語數據讀取異常，請重試"
+    },
+    {
+      "name": "xhyq_tab_search",
+      "value": "搜尋查詢"
+    },
+    {
+      "name": "xhyq_tab_browse",
+      "value": "分類瀏覽"
+    },
+    {
+      "name": "xhyq_tab_guess",
+      "value": "猜謎玩法"
+    },
+    {
+      "name": "xhyq_search_hint",
+      "value": "搜尋歇後語..."
+    },
+    {
+      "name": "xhyq_no_match",
+      "value": "未找到匹配的歇後語"
+    },
+    {
+      "name": "xhyq_search_empty",
+      "value": "輸入關鍵詞搜尋歇後語"
+    },
+    {
+      "name": "xhyq_search_hint_sub",
+      "value": "搜尋謎面或謎底"
+    },
+    {
+      "name": "xhyq_related",
+      "value": "相關歇後語"
+    },
+    {
+      "name": "xhyq_loaded_count",
+      "value": "已加載 %1$d 條"
+    },
+    {
+      "name": "xhyq_load_more",
+      "value": "加載更多..."
+    },
+    {
+      "name": "xhyq_all_loaded",
+      "value": "已全部加載"
+    },
+    {
+      "name": "xhyq_category_empty",
+      "value": "該分類暫無歇後語"
+    },
+    {
+      "name": "xhyq_pick_category",
+      "value": "選擇分類瀏覽歇後語"
+    },
+    {
+      "name": "xhyq_guess_score",
+      "value": "得分：%1$d/%2$d"
+    },
+    {
+      "name": "xhyq_skip",
+      "value": "跳過"
+    },
+    {
+      "name": "xhyq_guess_riddle_label",
+      "value": "猜謎面"
+    },
+    {
+      "name": "xhyq_guess_input_hint",
+      "value": "輸入你的答案..."
+    },
+    {
+      "name": "xhyq_submit",
+      "value": "提交答案"
+    },
+    {
+      "name": "xhyq_hide_answer",
+      "value": "隱藏答案"
+    },
+    {
+      "name": "xhyq_show_answer",
+      "value": "查看答案"
+    },
+    {
+      "name": "xhyq_next",
+      "value": "下一題"
+    },
+    {
+      "name": "xhyq_answer_label",
+      "value": "答案：%1$s"
+    },
+    {
+      "name": "xhyq_input_list_name",
+      "value": "請輸入清單名稱"
+    },
+    {
+      "name": "xhyq_in_reading_list",
+      "value": "已在朗讀清單中"
+    },
+    {
+      "name": "xhyq_add_to_reading_list",
+      "value": "加入朗讀清單"
+    },
+    {
+      "name": "xhyq_riddle_label",
+      "value": "謎面"
+    },
+    {
+      "name": "xhyq_answer_label_short",
+      "value": "謎底"
+    },
+    {
+      "name": "xhyq_copy",
+      "value": "複製"
+    },
+    {
+      "name": "xhyq_share_image",
+      "value": "分享圖片"
+    },
+    {
+      "name": "xhyq_create_list_title",
+      "value": "新建朗讀清單"
+    },
+    {
+      "name": "xhyq_item_count",
+      "value": "%1$d項"
+    },
+    {
+      "name": "xhyq_no_reading_list",
+      "value": "暫無朗讀清單，請先創建"
+    },
+    {
+      "name": "xhyq_new_list",
+      "value": "+ 新建清單"
+    },
+    {
+      "name": "xhyq_list_name_hint",
+      "value": "輸入清單名稱，如：每日詩詞"
+    },
+    {
+      "name": "xhyq_cancel",
+      "value": "取消"
+    },
+    {
+      "name": "xhyq_create",
+      "value": "創建"
+    },
+    {
+      "name": "challenge_type_poem",
+      "value": "詩詞填空"
+    },
+    {
+      "name": "challenge_type_idiom",
+      "value": "成語填字"
+    },
+    {
+      "name": "challenge_type_xiehouyu",
+      "value": "歇後語猜謎"
+    },
+    {
+      "name": "challenge_type_default",
+      "value": "挑戰"
+    },
+    {
+      "name": "challenge_generating",
+      "value": "題目生成中..."
+    },
+    {
+      "name": "challenge_progress",
+      "value": "第%1$d/%2$d題"
+    },
+    {
+      "name": "challenge_score",
+      "value": "得分：%1$d"
+    },
+    {
+      "name": "challenge_correct",
+      "value": "回答正確！+20分"
+    },
+    {
+      "name": "challenge_correct_answer",
+      "value": "正確答案：%1$s"
+    },
+    {
+      "name": "challenge_view_result",
+      "value": "查看結果"
+    },
+    {
+      "name": "challenge_complete",
+      "value": "今日挑戰完成！"
+    },
+    {
+      "name": "challenge_final_score",
+      "value": "得分：%1$d / 100"
+    },
+    {
+      "name": "challenge_grade_excellent",
+      "value": "優秀"
+    },
+    {
+      "name": "challenge_grade_good",
+      "value": "良好"
+    },
+    {
+      "name": "challenge_grade_keep",
+      "value": "加油"
+    },
+    {
+      "name": "challenge_grade_try",
+      "value": "繼續努力"
+    },
+    {
+      "name": "challenge_today_grade",
+      "value": "今日評級"
+    },
+    {
+      "name": "challenge_come_back",
+      "value": "📅 每日挑戰每天更新，明天再來！"
+    },
+    {
+      "name": "achpage_title",
+      "value": "我的成就"
+    },
+    {
+      "name": "ach_unlock_toast",
+      "value": "解鎖%1$d枚新成就"
+    },
+    {
+      "name": "history_recent_title",
+      "value": "最近製作"
+    },
+    {
+      "name": "history_entry_count",
+      "value": "最近製作（%1$d）"
+    },
+    {
+      "name": "history_btn_restore",
+      "value": "恢復"
+    },
+    {
+      "name": "history_btn_delete",
+      "value": "刪除"
+    },
+    {
+      "name": "history_btn_close",
+      "value": "關閉"
+    },
+    {
+      "name": "history_empty",
+      "value": "還沒有製作記錄"
+    },
+    {
+      "name": "clip_hint_text",
+      "value": "檢測到剪貼簿文本"
+    },
+    {
+      "name": "poster_watermark_label",
+      "value": "水印"
+    },
+    {
+      "name": "poster_watermark_on",
+      "value": "開"
+    },
+    {
+      "name": "poster_watermark_off",
+      "value": "關"
+    },
+    {
+      "name": "poster_watermark_hint",
+      "value": "品牌 / 暱稱"
+    },
+    {
+      "name": "poster_watermark_default",
+      "value": "@解語珠璣"
+    },
+    {
+      "name": "achpage_unlocked",
+      "value": "已解鎖成就"
+    },
+    {
+      "name": "achpage_list",
+      "value": "成就列表"
+    },
+    {
+      "name": "about_clear_gif_title",
+      "value": "清空 GIF 製作歷史"
+    },
+    {
+      "name": "about_clear_gif_msg",
+      "value": "將刪除全部 %1$d 條 GIF 製作記錄（約 %2$s），已儲存到相簿的副本不受影響。確定清空？"
+    },
+    {
+      "name": "about_clear",
+      "value": "清空"
+    },
+    {
+      "name": "about_reminder_title",
+      "value": "每日簽到提醒"
+    },
+    {
+      "name": "about_reminder_desc",
+      "value": "開啓後每天 20:00 系統提醒簽到與每日挑戰"
+    },
+    {
+      "name": "reminder_enable_fail",
+      "value": "提醒開啓失敗，請檢查通知設定後重試"
+    },
+    {
+      "name": "about_gif_history",
+      "value": "GIF 製作歷史"
+    },
+    {
+      "name": "about_gif_history_count",
+      "value": "%1$d 條 · %2$s"
+    },
+    {
+      "name": "about_app_desc",
+      "value": "包含詩詞查詢、成語接龍、歇後語猜謎，以及 GIF 製作、數獨求解、單位轉換等實用工具，助您領略文字之美、提升日常效率。"
+    },
+    {
+      "name": "about_copyright",
+      "value": "© 2026 解語珠璣"
+    },
+    {
+      "name": "unitcat_title",
+      "value": "單位轉換"
+    },
+    {
+      "name": "unitcat_base_sub",
+      "value": "二進制、八進制、十六進制、Base64"
+    },
+    {
+      "name": "unitcat_units_more",
+      "value": "等%1$d個單位"
+    },
+    {
+      "name": "wc_edit_section_title",
+      "value": "詞語編輯"
+    },
+    {
+      "name": "wc_restore_source",
+      "value": "還原原文"
+    },
+    {
+      "name": "wc_input_hint",
+      "value": "每行一個詞語，冒號指定權重  例如: 創新:5"
+    },
+    {
+      "name": "wc_btn_example",
+      "value": "示例"
+    },
+    {
+      "name": "wc_btn_clear",
+      "value": "清空"
+    },
+    {
+      "name": "wc_extracting",
+      "value": "分詞中..."
+    },
+    {
+      "name": "wc_extract_from_text",
+      "value": "從文本提取"
+    },
+    {
+      "name": "wc_word_count",
+      "value": "共%1$d詞"
+    },
+    {
+      "name": "wc_settings_title",
+      "value": "樣式設定"
+    },
+    {
+      "name": "wc_btn_done",
+      "value": "完成"
+    },
+    {
+      "name": "wc_section_shape",
+      "value": "形狀"
+    },
+    {
+      "name": "wc_section_font",
+      "value": "字體"
+    },
+    {
+      "name": "wc_label_palette",
+      "value": "配色"
+    },
+    {
+      "name": "wc_force_repeat",
+      "value": "詞少時強制重複填充"
+    },
+    {
+      "name": "wc_generating",
+      "value": "生成中..."
+    },
+    {
+      "name": "wc_generate",
+      "value": "生成詞雲"
+    },
+    {
+      "name": "wc_words_dialog_title",
+      "value": "參與詞語 (%1$d)"
+    },
+    {
+      "name": "wc_input_word_hint",
+      "value": "輸入詞語"
+    },
+    {
+      "name": "wc_weight_hint",
+      "value": "權重"
+    },
+    {
+      "name": "wc_btn_add",
+      "value": "添加"
+    },
+    {
+      "name": "wc_tap_word_to_remove",
+      "value": "點擊詞語可移除"
+    },
+    {
+      "name": "wc_empty_hint",
+      "value": "輸入詞語後點擊生成"
+    },
+    {
+      "name": "wc_toast_input_first",
+      "value": "請先輸入或貼上文本到上方編輯區"
+    },
+    {
+      "name": "wc_toast_no_words",
+      "value": "未提取到有效詞語"
+    },
+    {
+      "name": "wc_toast_extract_failed",
+      "value": "分詞失敗"
+    },
+    {
+      "name": "wc_toast_add_words_first",
+      "value": "請先提取或添加詞語"
+    },
+    {
+      "name": "wc_phase_layout",
+      "value": "佈局中..."
+    },
+    {
+      "name": "wc_phase_coloring",
+      "value": "着色中..."
+    },
+    {
+      "name": "wc_phase_done",
+      "value": "已生成 %1$d 個詞"
+    },
+    {
+      "name": "wc_toast_generate_failed",
+      "value": "生成失敗"
+    },
+    {
+      "name": "gif_btn_cancel",
+      "value": "取消"
+    },
+    {
+      "name": "gif_btn_delete",
+      "value": "刪除"
+    },
+    {
+      "name": "gif_btn_clear",
+      "value": "清空"
+    },
+    {
+      "name": "gif_coming_soon",
+      "value": "敬請期待"
+    },
+    {
+      "name": "gif_privacy_note",
+      "value": "純本地處理，不上傳任何圖片；匯出無水印"
+    },
+    {
+      "name": "gif_mode_images_title",
+      "value": "圖片合成 GIF"
+    },
+    {
+      "name": "gif_mode_images_sub",
+      "value": "選擇 2~30 張圖片，合成動態 GIF"
+    },
+    {
+      "name": "gif_mode_video_title",
+      "value": "影片轉 GIF"
+    },
+    {
+      "name": "gif_mode_video_sub",
+      "value": "截取影片片段，抽幀生成 GIF"
+    },
+    {
+      "name": "gif_mode_edit_title",
+      "value": "編輯 GIF"
+    },
+    {
+      "name": "gif_mode_edit_sub",
+      "value": "拆解已有 GIF，二次編輯加工"
+    },
+    {
+      "name": "gif_mode_history_title",
+      "value": "製作歷史"
+    },
+    {
+      "name": "gif_mode_history_sub",
+      "value": "最近成品 %1$d 條 · 佔用 %2$s"
+    },
+    {
+      "name": "gif_empty_no_images",
+      "value": "尚未選擇圖片"
+    },
+    {
+      "name": "gif_btn_pick_images",
+      "value": "選擇圖片"
+    },
+    {
+      "name": "gif_section_clip",
+      "value": "影片片段"
+    },
+    {
+      "name": "gif_clip_info",
+      "value": "影片時長 %1$ss · 已選 %2$ss 片段"
+    },
+    {
+      "name": "gif_clip_start",
+      "value": "起始時間 %1$ss"
+    },
+    {
+      "name": "gif_clip_span",
+      "value": "截取時長 %1$ss（最長 15s）"
+    },
+    {
+      "name": "gif_label_fps",
+      "value": "抽幀幀率"
+    },
+    {
+      "name": "gif_fps_n",
+      "value": "%1$d幀/秒"
+    },
+    {
+      "name": "gif_extract_estimate",
+      "value": "預計抽取 %1$d 幀（上限 %2$d 幀）"
+    },
+    {
+      "name": "gif_btn_start_extract",
+      "value": "開始抽幀"
+    },
+    {
+      "name": "gif_btn_rechoose_video",
+      "value": "重新選擇影片"
+    },
+    {
+      "name": "gif_preview",
+      "value": "預覽"
+    },
+    {
+      "name": "gif_section_frames",
+      "value": "幀管理（點選縮略圖後可調整）"
+    },
+    {
+      "name": "gif_section_overlay",
+      "value": "貼紙與文字"
+    },
+    {
+      "name": "gif_section_params",
+      "value": "參數"
+    },
+    {
+      "name": "gif_section_result",
+      "value": "生成結果"
+    },
+    {
+      "name": "gif_preview_info",
+      "value": "實際幀間隔 %1$ss · 輸出 %2$s×%3$s"
+    },
+    {
+      "name": "gif_overlay_count",
+      "value": "貼紙 %1$d"
+    },
+    {
+      "name": "gif_op_move_left",
+      "value": "左移"
+    },
+    {
+      "name": "gif_op_move_right",
+      "value": "右移"
+    },
+    {
+      "name": "gif_op_reverse",
+      "value": "倒序"
+    },
+    {
+      "name": "gif_op_rotate",
+      "value": "旋轉"
+    },
+    {
+      "name": "gif_frame_strip_hint",
+      "value": "已選 %1$d/%2$d · 長按可拖拽排序"
+    },
+    {
+      "name": "gif_frame_n",
+      "value": "第 %1$d 幀"
+    },
+    {
+      "name": "gif_perframe_duration_hint",
+      "value": "單幀時長(秒)，留空跟隨全局"
+    },
+    {
+      "name": "gif_op_reset_duration",
+      "value": "恢復全局"
+    },
+    {
+      "name": "gif_overlay_text_hint",
+      "value": "輸入文字內容"
+    },
+    {
+      "name": "gif_btn_add_text",
+      "value": "添加文字"
+    },
+    {
+      "name": "gif_sticker_cat_emoji",
+      "value": "表情"
+    },
+    {
+      "name": "gif_sticker_cat_deco",
+      "value": "裝飾"
+    },
+    {
+      "name": "gif_sticker_cat_bubble",
+      "value": "氣泡"
+    },
+    {
+      "name": "gif_overlay_hint_active",
+      "value": "拖動調整位置，雙指捏合縮放旋轉；疊加層應用於全部幀"
+    },
+    {
+      "name": "gif_overlay_hint_empty",
+      "value": "添加的文字與貼紙將疊加在所有幀上"
+    },
+    {
+      "name": "gif_label_content",
+      "value": "內容"
+    },
+    {
+      "name": "gif_label_text_color",
+      "value": "文字顏色"
+    },
+    {
+      "name": "gif_color_sample",
+      "value": "字"
+    },
+    {
+      "name": "gif_btn_custom",
+      "value": "自定義"
+    },
+    {
+      "name": "gif_label_size",
+      "value": "大小（%1$d）"
+    },
+    {
+      "name": "gif_label_rotation",
+      "value": "旋轉"
+    },
+    {
+      "name": "gif_btn_delete_overlay",
+      "value": "刪除該疊加層"
+    },
+    {
+      "name": "gif_label_frame_duration",
+      "value": "幀時長（秒）"
+    },
+    {
+      "name": "gif_label_speed",
+      "value": "倍速（與幀時長疊加生效）"
+    },
+    {
+      "name": "gif_label_play_mode",
+      "value": "播放模式"
+    },
+    {
+      "name": "gif_play_forward",
+      "value": "正放"
+    },
+    {
+      "name": "gif_play_reverse",
+      "value": "倒放"
+    },
+    {
+      "name": "gif_play_pingpong",
+      "value": "來回"
+    },
+    {
+      "name": "gif_label_loop",
+      "value": "循環播放"
+    },
+    {
+      "name": "gif_loop_infinite",
+      "value": "無限"
+    },
+    {
+      "name": "gif_loop_n",
+      "value": "%1$d次"
+    },
+    {
+      "name": "gif_label_output_size",
+      "value": "輸出尺寸"
+    },
+    {
+      "name": "gif_size_original",
+      "value": "原始"
+    },
+    {
+      "name": "gif_label_quality",
+      "value": "畫質"
+    },
+    {
+      "name": "gif_quality_standard",
+      "value": "標準"
+    },
+    {
+      "name": "gif_quality_hd",
+      "value": "高清"
+    },
+    {
+      "name": "gif_btn_generate",
+      "value": "生成 GIF"
+    },
+    {
+      "name": "gif_toast_need_two_images",
+      "value": "至少需要 2 張圖片"
+    },
+    {
+      "name": "gif_dialog_size_title",
+      "value": "體積提示"
+    },
+    {
+      "name": "gif_dialog_size_msg",
+      "value": "按當前參數預計生成檔案較大（可能超過 30MB），建議降低尺寸或減少幀數。是否繼續？"
+    },
+    {
+      "name": "gif_btn_continue",
+      "value": "繼續"
+    },
+    {
+      "name": "gif_phase_preparing",
+      "value": "準備中..."
+    },
+    {
+      "name": "gif_phase_decode",
+      "value": "解碼 %1$d/%2$d"
+    },
+    {
+      "name": "gif_phase_compose",
+      "value": "合成 %1$d/%2$d"
+    },
+    {
+      "name": "gif_phase_encoding",
+      "value": "編碼中..."
+    },
+    {
+      "name": "gif_phase_writing",
+      "value": "寫入檔案..."
+    },
+    {
+      "name": "gif_toast_export_done",
+      "value": "GIF 生成完成"
+    },
+    {
+      "name": "gif_toast_export_cancelled",
+      "value": "已取消匯出"
+    },
+    {
+      "name": "gif_toast_export_failed",
+      "value": "匯出失敗: %1$s"
+    },
+    {
+      "name": "gif_exporting_title",
+      "value": "正在生成 GIF"
+    },
+    {
+      "name": "gif_btn_save_album",
+      "value": "儲存到相簿"
+    },
+    {
+      "name": "gif_btn_share",
+      "value": "分享"
+    },
+    {
+      "name": "gif_btn_back_edit",
+      "value": "返回編輯"
+    },
+    {
+      "name": "gif_result_info",
+      "value": "%1$s×%2$s · %3$d 幀 · %4$s"
+    },
+    {
+      "name": "gif_history_summary",
+      "value": "共 %1$d 條 · 佔用 %2$s"
+    },
+    {
+      "name": "gif_btn_clear_all",
+      "value": "清空全部"
+    },
+    {
+      "name": "gif_history_empty",
+      "value": "暫無製作歷史"
+    },
+    {
+      "name": "gif_history_empty_hint",
+      "value": "匯出的成品 GIF 會自動儲存在這裏（沙箱內，最多保留 50 條）"
+    },
+    {
+      "name": "gif_btn_save",
+      "value": "儲存"
+    },
+    {
+      "name": "gif_btn_back",
+      "value": "返回"
+    },
+    {
+      "name": "gif_dialog_delete_title",
+      "value": "刪除記錄"
+    },
+    {
+      "name": "gif_dialog_delete_msg",
+      "value": "刪除後該成品 GIF 將從沙箱中移除，已儲存到相簿的副本不受影響。確定刪除？"
+    },
+    {
+      "name": "gif_toast_deleted",
+      "value": "已刪除"
+    },
+    {
+      "name": "gif_dialog_clear_title",
+      "value": "清空歷史"
+    },
+    {
+      "name": "gif_dialog_clear_msg",
+      "value": "將刪除全部 %1$d 條記錄（約 %2$s），已儲存到相簿的副本不受影響。確定清空？"
+    },
+    {
+      "name": "gif_toast_cleared",
+      "value": "已清空"
+    },
+    {
+      "name": "gif_toast_max_images",
+      "value": "最多支援 %1$d 張圖片"
+    },
+    {
+      "name": "gif_toast_min_images",
+      "value": "至少選擇 2 張圖片"
+    },
+    {
+      "name": "gif_toast_max_kept",
+      "value": "最多支援 %1$d 張，已保留前 %2$d 張"
+    },
+    {
+      "name": "gif_toast_pick_failed",
+      "value": "選擇圖片失敗: %1$s"
+    },
+    {
+      "name": "gif_toast_select_frame_first",
+      "value": "請先點選一個幀"
+    },
+    {
+      "name": "gif_toast_frames_below_min",
+      "value": "幀數不足 2 張，無法匯出"
+    },
+    {
+      "name": "gif_phase_parsing",
+      "value": "解析 GIF 中..."
+    },
+    {
+      "name": "gif_toast_invalid_gif",
+      "value": "不是有效的 GIF 檔案"
+    },
+    {
+      "name": "gif_toast_gif_too_short",
+      "value": "該 GIF 幀數不足，無法編輯"
+    },
+    {
+      "name": "gif_toast_frames_truncated",
+      "value": "幀數超過 %1$d，已保留前 %1$d 幀"
+    },
+    {
+      "name": "gif_phase_parse_frame",
+      "value": "解析幀 %1$d/%2$d"
+    },
+    {
+      "name": "gif_toast_import_cancelled",
+      "value": "已取消匯入"
+    },
+    {
+      "name": "gif_toast_imported_frames",
+      "value": "已匯入 %1$d 幀"
+    },
+    {
+      "name": "gif_toast_parse_failed",
+      "value": "解析 GIF 失敗: %1$s"
+    },
+    {
+      "name": "gif_phase_video_info",
+      "value": "讀取影片資訊..."
+    },
+    {
+      "name": "gif_toast_no_duration",
+      "value": "無法讀取影片時長，可能是不支援的格式"
+    },
+    {
+      "name": "gif_toast_read_video_failed",
+      "value": "讀取影片失敗: %1$s"
+    },
+    {
+      "name": "gif_phase_prepare_extract",
+      "value": "準備抽幀..."
+    },
+    {
+      "name": "gif_phase_extract_frame",
+      "value": "抽幀 %1$d/%2$d"
+    },
+    {
+      "name": "gif_toast_extract_cancelled",
+      "value": "已取消抽幀"
+    },
+    {
+      "name": "gif_toast_extracted_frames",
+      "value": "已抽取 %1$d 幀"
+    },
+    {
+      "name": "gif_toast_extract_failed",
+      "value": "抽幀失敗: %1$s"
+    },
+    {
+      "name": "gif_err_unsupported_format",
+      "value": "不支援的影片幀格式"
+    },
+    {
+      "name": "gif_err_not_enough_frames",
+      "value": "抽幀數量不足"
+    },
+    {
+      "name": "gif_toast_enter_text",
+      "value": "請輸入文字內容"
+    },
+    {
+      "name": "gif_toast_invalid_color",
+      "value": "請輸入 #RRGGBB 格式顏色"
+    },
+    {
+      "name": "gif_toast_saved_album",
+      "value": "已儲存到相簿"
+    },
+    {
+      "name": "gif_toast_save_failed",
+      "value": "儲存失敗"
+    },
+    {
+      "name": "gif_unit_sec_per_frame",
+      "value": "s/幀"
+    },
+    {
+      "name": "md2_filled_md_example",
+      "value": "已填入 Markdown 示例"
+    },
+    {
+      "name": "md2_filled_text_example",
+      "value": "已填入文本示例"
+    },
+    {
+      "name": "md2_keyword_exists",
+      "value": "該詞已在高亮列表中"
+    },
+    {
+      "name": "md2_discard_title",
+      "value": "放棄修改？"
+    },
+    {
+      "name": "md2_discard_message",
+      "value": "當前的位置選擇尚未儲存，是否放棄修改？"
+    },
+    {
+      "name": "md2_keep_editing",
+      "value": "繼續編輯"
+    },
+    {
+      "name": "md2_discard",
+      "value": "放棄"
+    },
+    {
+      "name": "md2_overwrite_title",
+      "value": "已手動調整過高亮詞"
+    },
+    {
+      "name": "md2_overwrite_message",
+      "value": "檢測到當前高亮詞已被手動調整。是否用新文本的提取結果覆蓋？\n\n點擊外部空白處取消（保持當前高亮詞不變）。"
+    },
+    {
+      "name": "md2_overwrite_keep",
+      "value": "保留當前（推薦）"
+    },
+    {
+      "name": "md2_overwrite_apply",
+      "value": "用新結果覆蓋"
+    },
+    {
+      "name": "md2_generate_failed",
+      "value": "生成失敗"
+    },
+    {
+      "name": "md2_generate_first",
+      "value": "請先生成圖片"
+    },
+    {
+      "name": "md2_saved_to_album",
+      "value": "已儲存到相簿"
+    },
+    {
+      "name": "md2_save_failed",
+      "value": "儲存失敗"
+    },
+    {
+      "name": "md2_input_label",
+      "value": "輸入內容"
+    },
+    {
+      "name": "md2_md_example",
+      "value": "Markdown示例"
+    },
+    {
+      "name": "md2_text_example",
+      "value": "文本示例"
+    },
+    {
+      "name": "md2_input_hint",
+      "value": "輸入Markdown或普通文本..."
+    },
+    {
+      "name": "md2_max_chars",
+      "value": "最多輸入 %1$d 字符"
+    },
+    {
+      "name": "md2_keywords_title",
+      "value": "高亮詞"
+    },
+    {
+      "name": "md2_reset",
+      "value": "重置"
+    },
+    {
+      "name": "md2_keywords_hint",
+      "value": "輕點詞調整位置  ×移除"
+    },
+    {
+      "name": "md2_add_keyword_hint",
+      "value": "添加高亮詞"
+    },
+    {
+      "name": "md2_occurrences_count",
+      "value": "  共 %1$d 次出現"
+    },
+    {
+      "name": "md2_close",
+      "value": "關閉"
+    },
+    {
+      "name": "md2_keyword_not_found",
+      "value": "當前文本中未找到該關鍵字"
+    },
+    {
+      "name": "md2_occurrence_nth",
+      "value": "第 %1$d 次"
+    },
+    {
+      "name": "md2_select_all",
+      "value": "全選"
+    },
+    {
+      "name": "md2_select_none",
+      "value": "全不選"
+    },
+    {
+      "name": "md2_remove_word",
+      "value": "移除該詞"
+    },
+    {
+      "name": "md2_confirm",
+      "value": "確定"
+    },
+    {
+      "name": "md2_preview_title",
+      "value": "預覽效果"
+    },
+    {
+      "name": "md2_swipe_hint",
+      "value": "左右滑動切換模板"
+    },
+    {
+      "name": "md2_result_title",
+      "value": "生成結果"
+    },
+    {
+      "name": "md2_share",
+      "value": "分享"
+    },
+    {
+      "name": "md2_save_image",
+      "value": "儲存圖片"
+    },
+    {
+      "name": "char_pinyin_show",
+      "value": "顯示"
+    },
+    {
+      "name": "char_pinyin_hide",
+      "value": "隱藏"
+    },
+    {
+      "name": "char_book_removed",
+      "value": "已刪除「%1$s」"
+    },
+    {
+      "name": "char_filled_from_book",
+      "value": "已從生字本填入 %1$d 個字"
+    },
+    {
+      "name": "char_restored",
+      "value": "已恢復"
+    },
+    {
+      "name": "char_save_cancelled",
+      "value": "已取消儲存"
+    },
+    {
+      "name": "char_export_failed",
+      "value": "匯出失敗：%1$s"
+    },
+    {
+      "name": "char_saved_count",
+      "value": "已儲存 %1$d 張到相簿"
+    },
+    {
+      "name": "char_export_cancelled",
+      "value": "已取消匯出"
+    },
+    {
+      "name": "char_export_size",
+      "value": "%1$s · %2$d × %3$d"
+    },
+    {
+      "name": "char_label_size",
+      "value": "尺寸"
+    },
+    {
+      "name": "char_label_grid",
+      "value": "格型"
+    },
+    {
+      "name": "char_label_mode",
+      "value": "字色"
+    },
+    {
+      "name": "char_label_pinyin",
+      "value": "拼音"
+    },
+    {
+      "name": "char_chars_label",
+      "value": "生字（1-12 個漢字）"
+    },
+    {
+      "name": "char_book_title",
+      "value": "生字本"
+    },
+    {
+      "name": "char_pinyin_locked_label",
+      "value": "拼音（已手動鎖定）"
+    },
+    {
+      "name": "char_pinyin_auto_label",
+      "value": "拼音（自動生成，可修改）"
+    },
+    {
+      "name": "char_pinyin_auto",
+      "value": "恢復自動"
+    },
+    {
+      "name": "char_book_done",
+      "value": "完成"
+    },
+    {
+      "name": "char_book_manage",
+      "value": "管理"
+    },
+    {
+      "name": "char_count_unit",
+      "value": "%1$d 字"
+    },
+    {
+      "name": "char_book_manage_hint",
+      "value": "管理模式：點擊生字即可刪除"
+    },
+    {
+      "name": "char_book_pick_hint",
+      "value": "從詩詞頁選取生字，點選後填入製作"
+    },
+    {
+      "name": "char_book_empty_hint",
+      "value": "生字本為空，可在「首頁 → 詩詞鑑賞」中點「描紅選字」收藏生字"
+    },
+    {
+      "name": "char_cancel",
+      "value": "取消"
+    },
+    {
+      "name": "char_fill_selected",
+      "value": "填入所選(%1$d)"
+    },
+    {
+      "name": "char_fill_all",
+      "value": "全部填入"
+    },
+    {
+      "name": "char_recent",
+      "value": "最近製作"
+    },
+    {
+      "name": "char_clear",
+      "value": "清空"
+    },
+    {
+      "name": "char_exporting",
+      "value": "匯出中…"
+    },
+    {
+      "name": "char_save_album",
+      "value": "儲存到相簿"
+    },
+    {
+      "name": "char_batch_exporting",
+      "value": "匯出中 %1$d / %2$d"
+    },
+    {
+      "name": "char_batch_export",
+      "value": "全部匯出（每字一卡，共 %1$d 張）"
+    },
+    {
+      "name": "cover_pick_failed",
+      "value": "推薦失敗，請重試"
+    },
+    {
+      "name": "cover_size_hint",
+      "value": "公眾號首圖 900 × 383"
+    },
+    {
+      "name": "cover_title_too_long",
+      "value": "文案偏長，建議精簡（當前標題 %1$d 字）"
+    },
+    {
+      "name": "cover_tab_text",
+      "value": "文字"
+    },
+    {
+      "name": "cover_tab_style",
+      "value": "樣式"
+    },
+    {
+      "name": "cover_lib_label",
+      "value": "內容庫推薦（詩詞 / 成語 / 歇後語）"
+    },
+    {
+      "name": "cover_change_quote",
+      "value": "換一句"
+    },
+    {
+      "name": "cover_pinyin_locked",
+      "value": "已手動選擇讀音"
+    },
+    {
+      "name": "cover_pinyin_empty_hint",
+      "value": "（輸入生字後自動生成拼音）"
+    },
+    {
+      "name": "cover_pinyin_mismatch",
+      "value": "拼音與字數不一致，已暫停逐字編輯"
+    },
+    {
+      "name": "cover_font_label",
+      "value": "字體"
+    },
+    {
+      "name": "tmpl_series_all",
+      "value": "全部"
+    },
+    {
+      "name": "tmpl_series_simple",
+      "value": "簡約"
+    },
+    {
+      "name": "tmpl_series_culture",
+      "value": "文化"
+    },
+    {
+      "name": "tmpl_series_big",
+      "value": "大字"
+    },
+    {
+      "name": "tmpl_series_magazine",
+      "value": "雜誌"
+    },
+    {
+      "name": "tmpl_series_photo",
+      "value": "圖片"
+    },
+    {
+      "name": "tmpl_size_square",
+      "value": "方卡 1:1"
+    },
+    {
+      "name": "tmpl_size_practice",
+      "value": "練習卡 3:4"
+    },
+    {
+      "name": "tmpl_size_cover",
+      "value": "公眾號首圖 2.35:1"
+    },
+    {
+      "name": "tmpl_grid_tian",
+      "value": "田字格"
+    },
+    {
+      "name": "tmpl_grid_mi",
+      "value": "米字格"
+    },
+    {
+      "name": "tmpl_grid_none",
+      "value": "無邊框"
+    },
+    {
+      "name": "tmpl_mode_read",
+      "value": "認讀"
+    },
+    {
+      "name": "tmpl_mode_trace",
+      "value": "描紅"
+    },
+    {
+      "name": "tmpl_name_solid",
+      "value": "純色極簡"
+    },
+    {
+      "name": "tmpl_name_gradient",
+      "value": "漸變大氣"
+    },
+    {
+      "name": "tmpl_name_neon_night",
+      "value": "暗夜霓虹"
+    },
+    {
+      "name": "tmpl_name_poetic",
+      "value": "詩詞意境"
+    },
+    {
+      "name": "tmpl_name_idiom",
+      "value": "成語典故"
+    },
+    {
+      "name": "tmpl_name_xiehouyu",
+      "value": "歇後語趣味"
+    },
+    {
+      "name": "tmpl_name_solar",
+      "value": "節氣雅緻"
+    },
+    {
+      "name": "tmpl_name_grid_card",
+      "value": "田字格字卡"
+    },
+    {
+      "name": "tmpl_name_big_type",
+      "value": "大字報"
+    },
+    {
+      "name": "tmpl_name_issue_number",
+      "value": "數字期號"
+    },
+    {
+      "name": "tmpl_name_question",
+      "value": "問句懸念"
+    },
+    {
+      "name": "tmpl_name_geoblock",
+      "value": "幾何色塊"
+    },
+    {
+      "name": "tmpl_name_twocolumn",
+      "value": "雙欄雜誌"
+    },
+    {
+      "name": "tmpl_name_seal",
+      "value": "印章落款"
+    },
+    {
+      "name": "tmpl_name_texture",
+      "value": "紋理質感"
+    },
+    {
+      "name": "tmpl_slot_solar_name",
+      "value": "節氣名"
+    },
+    {
+      "name": "tmpl_slot_chars",
+      "value": "生字（1-8 字）"
+    },
+    {
+      "name": "tmpl_slot_big_title",
+      "value": "大標題（建議 8 字內）"
+    },
+    {
+      "name": "tmpl_slot_question_title",
+      "value": "問句標題"
+    },
+    {
+      "name": "tmpl_pal_blue_red",
+      "value": "藍底紅格黑字"
+    },
+    {
+      "name": "tmpl_pal_cream_red",
+      "value": "米白底紅格"
+    },
+    {
+      "name": "tmpl_pal_board_green",
+      "value": "黑板綠底米格"
+    },
+    {
+      "name": "tmpl_pal_maroon_cream",
+      "value": "暗紅底米格"
+    },
+    {
+      "name": "tmpl_pal_cream_ink",
+      "value": "米白底墨格"
+    },
+    {
+      "name": "tmpl_pal_serene_blue",
+      "value": "靜謐藍"
+    },
+    {
+      "name": "tmpl_pal_warm_cream",
+      "value": "暖米白"
+    },
+    {
+      "name": "tmpl_pal_mint",
+      "value": "薄荷綠"
+    },
+    {
+      "name": "tmpl_pal_graphite",
+      "value": "石墨黑"
+    },
+    {
+      "name": "tmpl_pal_sakura",
+      "value": "櫻花粉"
+    },
+    {
+      "name": "tmpl_pal_amber",
+      "value": "琥珀"
+    },
+    {
+      "name": "tmpl_pal_green_hill",
+      "value": "青山"
+    },
+    {
+      "name": "tmpl_pal_dusk_blue",
+      "value": "暮藍"
+    },
+    {
+      "name": "tmpl_pal_rose",
+      "value": "玫瑰"
+    },
+    {
+      "name": "tmpl_pal_ink_night",
+      "value": "墨夜"
+    },
+    {
+      "name": "tmpl_pal_neon_purple",
+      "value": "霓虹紫"
+    },
+    {
+      "name": "tmpl_pal_electric_cyan",
+      "value": "電光青"
+    },
+    {
+      "name": "tmpl_pal_neon_pink",
+      "value": "霓虹粉"
+    },
+    {
+      "name": "tmpl_pal_neon_green",
+      "value": "熒光綠"
+    },
+    {
+      "name": "tmpl_pal_dark_gold",
+      "value": "暗金"
+    },
+    {
+      "name": "tmpl_pal_rice_paper",
+      "value": "宣紙米"
+    },
+    {
+      "name": "tmpl_pal_pale_cyan",
+      "value": "淡青"
+    },
+    {
+      "name": "tmpl_pal_moon_white",
+      "value": "月白"
+    },
+    {
+      "name": "tmpl_pal_dusk_purple",
+      "value": "暮山紫"
+    },
+    {
+      "name": "tmpl_pal_ink",
+      "value": "墨色"
+    },
+    {
+      "name": "tmpl_pal_beige",
+      "value": "米黃"
+    },
+    {
+      "name": "tmpl_pal_crimson",
+      "value": "絳紅"
+    },
+    {
+      "name": "tmpl_pal_indigo",
+      "value": "黛藍"
+    },
+    {
+      "name": "tmpl_pal_bright_yellow",
+      "value": "明黃"
+    },
+    {
+      "name": "tmpl_pal_warm_orange",
+      "value": "暖橙"
+    },
+    {
+      "name": "tmpl_pal_sky_blue",
+      "value": "天藍"
+    },
+    {
+      "name": "tmpl_pal_grass_green",
+      "value": "草綠"
+    },
+    {
+      "name": "tmpl_pal_cherry_pink",
+      "value": "櫻粉"
+    },
+    {
+      "name": "tmpl_pal_spring",
+      "value": "春青"
+    },
+    {
+      "name": "tmpl_pal_summer",
+      "value": "夏碧"
+    },
+    {
+      "name": "tmpl_pal_autumn",
+      "value": "秋橙"
+    },
+    {
+      "name": "tmpl_pal_winter",
+      "value": "冬藍"
+    },
+    {
+      "name": "tmpl_pal_plum",
+      "value": "梅紅"
+    },
+    {
+      "name": "tmpl_pal_cream_red_black",
+      "value": "米白底紅格黑字"
+    },
+    {
+      "name": "tmpl_pal_dark_green_red",
+      "value": "墨綠底米格紅字"
+    },
+    {
+      "name": "tmpl_pal_dark_red_black",
+      "value": "暗紅底米格黑字"
+    },
+    {
+      "name": "tmpl_pal_true_red",
+      "value": "正紅"
+    },
+    {
+      "name": "tmpl_pal_vivid_yellow",
+      "value": "亮黃"
+    },
+    {
+      "name": "tmpl_pal_emerald",
+      "value": "翠綠"
+    },
+    {
+      "name": "tmpl_pal_royal_blue",
+      "value": "寶藍"
+    },
+    {
+      "name": "tmpl_pal_pure_black",
+      "value": "純黑"
+    },
+    {
+      "name": "tmpl_pal_navy",
+      "value": "藏藍"
+    },
+    {
+      "name": "tmpl_pal_dark_night",
+      "value": "暗夜"
+    },
+    {
+      "name": "tmpl_pal_cream",
+      "value": "米白"
+    },
+    {
+      "name": "tmpl_pal_wine",
+      "value": "酒紅"
+    },
+    {
+      "name": "tmpl_pal_ink_blue",
+      "value": "墨藍"
+    },
+    {
+      "name": "tmpl_pal_deep_purple",
+      "value": "深紫"
+    },
+    {
+      "name": "tmpl_pal_dark_green",
+      "value": "暗綠"
+    },
+    {
+      "name": "tmpl_pal_clash_yellow",
+      "value": "撞黃"
+    },
+    {
+      "name": "tmpl_pal_clash_blue",
+      "value": "撞藍"
+    },
+    {
+      "name": "tmpl_pal_clash_red",
+      "value": "撞紅"
+    },
+    {
+      "name": "tmpl_pal_clash_green",
+      "value": "撞綠"
+    },
+    {
+      "name": "tmpl_pal_mono",
+      "value": "黑白"
+    },
+    {
+      "name": "tmpl_pal_red_black",
+      "value": "紅黑"
+    },
+    {
+      "name": "tmpl_pal_navy_blue",
+      "value": "藏青"
+    },
+    {
+      "name": "tmpl_pal_forest_green",
+      "value": "墨綠"
+    },
+    {
+      "name": "tmpl_pal_warm_brown",
+      "value": "暖棕"
+    },
+    {
+      "name": "tmpl_pal_plain_white",
+      "value": "素白"
+    },
+    {
+      "name": "tmpl_pal_moon_gray",
+      "value": "月灰"
+    },
+    {
+      "name": "tmpl_pal_morning_mist",
+      "value": "晨霧"
+    },
+    {
+      "name": "tmpl_pal_celadon",
+      "value": "青瓷"
+    },
+    {
+      "name": "tmpl_pal_twilight",
+      "value": "暮色"
+    },
+    {
+      "name": "tmpl_pal_gray_blue",
+      "value": "灰藍"
+    },
+    {
+      "name": "sudoku_title",
+      "value": "數獨求解器"
+    },
+    {
+      "name": "sudoku_diff_easy",
+      "value": "簡單"
+    },
+    {
+      "name": "sudoku_diff_medium",
+      "value": "中等"
+    },
+    {
+      "name": "sudoku_diff_hard",
+      "value": "困難"
+    },
+    {
+      "name": "sudoku_board_copied",
+      "value": "棋盤已複製到剪貼簿"
+    },
+    {
+      "name": "sudoku_copy_failed",
+      "value": "複製失敗"
+    },
+    {
+      "name": "sudoku_parse_failed",
+      "value": "無法解析，請輸入 81 位數字（0 或 . 表示空格）"
+    },
+    {
+      "name": "sudoku_paste_success",
+      "value": "貼上成功！加載 %1$d 個數字"
+    },
+    {
+      "name": "sudoku_conflict",
+      "value": "當前棋盤存在衝突，請檢查輸入"
+    },
+    {
+      "name": "sudoku_solved",
+      "value": "求解完成！"
+    },
+    {
+      "name": "sudoku_solved_multi",
+      "value": "求解完成（提示：該題目有多個解）"
+    },
+    {
+      "name": "sudoku_no_solution",
+      "value": "該數獨無解，請檢查輸入是否正確"
+    },
+    {
+      "name": "sudoku_hint_result",
+      "value": "提示: R%1$dC%2$d = %3$d"
+    },
+    {
+      "name": "sudoku_congrats",
+      "value": "恭喜！已完成且正確！"
+    },
+    {
+      "name": "sudoku_full_but_wrong",
+      "value": "棋盤已填滿但存在錯誤，請檢查"
+    },
+    {
+      "name": "sudoku_no_next_step",
+      "value": "無法確定下一步，請嘗試手動推理"
+    },
+    {
+      "name": "sudoku_pick_failed",
+      "value": "選擇圖片失敗: %1$s"
+    },
+    {
+      "name": "sudoku_pick_cancelled",
+      "value": "拍照/選圖取消"
+    },
+    {
+      "name": "sudoku_ocr_processing",
+      "value": "正在識別圖片中的數獨..."
+    },
+    {
+      "name": "sudoku_ocr_success",
+      "value": "識別成功！檢測到 %1$d 個數字"
+    },
+    {
+      "name": "sudoku_ocr_failed",
+      "value": "未能識別出數獨"
+    },
+    {
+      "name": "sudoku_image_error",
+      "value": "圖片處理異常，請重試"
+    },
+    {
+      "name": "sudoku_dbg_header",
+      "value": "=== 識別偵錯資訊 ==="
+    },
+    {
+      "name": "sudoku_dbg_pipeline",
+      "value": "【流水線】%1$s"
+    },
+    {
+      "name": "sudoku_dbg_resize",
+      "value": "【縮放參數】%1$s"
+    },
+    {
+      "name": "sudoku_dbg_bbox",
+      "value": "【圖片與棋盤】%1$s"
+    },
+    {
+      "name": "sudoku_dbg_probe",
+      "value": "【探測圖詳情】%1$s"
+    },
+    {
+      "name": "sudoku_dbg_bbox_diag",
+      "value": "【棋盤定位診斷】"
+    },
+    {
+      "name": "sudoku_dbg_pixel_bg",
+      "value": "【像素背景分析】%1$s"
+    },
+    {
+      "name": "sudoku_dbg_pixel_bbox",
+      "value": "【像素棋盤定位】%1$s"
+    },
+    {
+      "name": "sudoku_dbg_pixel_warp",
+      "value": "【像素透視/網格】%1$s"
+    },
+    {
+      "name": "sudoku_dbg_pixel_cells",
+      "value": "【像素單元格統計】%1$s"
+    },
+    {
+      "name": "sudoku_dbg_raw_digits",
+      "value": "【VisionKit原始數字數】%1$d"
+    },
+    {
+      "name": "sudoku_dbg_vk_size",
+      "value": "【VisionKit OCR圖尺寸】%1$s"
+    },
+    {
+      "name": "sudoku_dbg_vk_blocks",
+      "value": "【VisionKit Block數】%1$d"
+    },
+    {
+      "name": "sudoku_dbg_vk_blocks_detail",
+      "value": "【VisionKit Block詳情】\n%1$s"
+    },
+    {
+      "name": "sudoku_dbg_vk_raw",
+      "value": "【VisionKit原始文本】%1$s"
+    },
+    {
+      "name": "sudoku_dbg_vk_error",
+      "value": "【VisionKit錯誤診斷】%1$s"
+    },
+    {
+      "name": "sudoku_dbg_vk_grid",
+      "value": "【VisionKit網格】"
+    },
+    {
+      "name": "sudoku_dbg_pixel_grid",
+      "value": "【像素分析網格】"
+    },
+    {
+      "name": "sudoku_dbg_final_grid",
+      "value": "【最終網格】"
+    },
+    {
+      "name": "sudoku_dbg_confidence",
+      "value": "【置信度】"
+    },
+    {
+      "name": "sudoku_dbg_conflicts",
+      "value": "【衝突格子】%1$s"
+    },
+    {
+      "name": "sudoku_dbg_low_conf",
+      "value": "【低置信格子】%1$s"
+    },
+    {
+      "name": "sudoku_dbg_empty",
+      "value": "【空格子待修正】%1$d個待填充"
+    },
+    {
+      "name": "sudoku_dbg_fixed",
+      "value": "【實際修正】%1$d個成功"
+    },
+    {
+      "name": "sudoku_dbg_fix_details",
+      "value": "【逐格修正詳情】"
+    },
+    {
+      "name": "sudoku_dbg_steps",
+      "value": "【步驟詳情】"
+    },
+    {
+      "name": "sudoku_no_debug",
+      "value": "尚無識別偵錯資訊，請先進行圖片識別"
+    },
+    {
+      "name": "sudoku_log_copied",
+      "value": "識別日誌已複製到剪貼簿"
+    },
+    {
+      "name": "sudoku_done",
+      "value": "✔ 完成"
+    },
+    {
+      "name": "sudoku_edit",
+      "value": "✏ 修改"
+    },
+    {
+      "name": "sudoku_clear_board",
+      "value": "清空棋盤"
+    },
+    {
+      "name": "sudoku_board_cleared",
+      "value": "棋盤已清空"
+    },
+    {
+      "name": "sudoku_copy_board",
+      "value": "複製棋盤"
+    },
+    {
+      "name": "sudoku_paste_puzzle",
+      "value": "貼上題目"
+    },
+    {
+      "name": "sudoku_recognizing_dots",
+      "value": "識別中..."
+    },
+    {
+      "name": "sudoku_scan_photo",
+      "value": "拍照識別"
+    },
+    {
+      "name": "sudoku_ocr_disclaimer",
+      "value": "拍照識別數據技術不斷完善中，如果遇到題目識別錯誤，請手動進行修改。"
+    },
+    {
+      "name": "sudoku_paste_title",
+      "value": "貼上數獨題目"
+    },
+    {
+      "name": "sudoku_example_n",
+      "value": "示例%1$d"
+    },
+    {
+      "name": "sudoku_clear",
+      "value": "清空"
+    },
+    {
+      "name": "sudoku_example_hint",
+      "value": "示例1: 0表示空格 | 示例2: .表示空格 | 示例3: 多行格式"
+    },
+    {
+      "name": "sudoku_paste_placeholder",
+      "value": "支援 81 位數字（0 或 . 表示空格），可多行輸入"
+    },
+    {
+      "name": "sudoku_cancel",
+      "value": "取消"
+    },
+    {
+      "name": "sudoku_confirm",
+      "value": "確定"
+    },
+    {
+      "name": "sudoku_candidate_on",
+      "value": "✎ 候選中"
+    },
+    {
+      "name": "sudoku_candidate_off",
+      "value": "✎ 候選數"
+    },
+    {
+      "name": "sudoku_erase",
+      "value": "⌫ 擦除"
+    },
+    {
+      "name": "sudoku_solving",
+      "value": "求解中..."
+    },
+    {
+      "name": "sudoku_solve",
+      "value": "🔍 求解"
+    },
+    {
+      "name": "sudoku_hint",
+      "value": "💡 提示"
+    },
+    {
+      "name": "sudoku_copy_log",
+      "value": "複製識別日誌"
+    },
+    {
+      "name": "sudoku_collapse",
+      "value": "收起"
+    },
+    {
+      "name": "sudoku_edit_hint",
+      "value": "修改模式：點擊數字可修改或擦除，識別錯誤可在此糾正"
+    },
+    {
+      "name": "sudoku_input_hint",
+      "value": "點擊空格輸入數字 | 相同數字高亮顯示 | 長按清空"
+    },
+    {
+      "name": "tz_title",
+      "value": "時區轉換"
+    },
+    {
+      "name": "tz_tab_meeting",
+      "value": "會議協調"
+    },
+    {
+      "name": "tz_results",
+      "value": "轉換結果"
+    },
+    {
+      "name": "tz_work_hours",
+      "value": "工作時間"
+    },
+    {
+      "name": "tz_off_hours",
+      "value": "非工作時間"
+    },
+    {
+      "name": "tz_add_city",
+      "value": "添加城市"
+    },
+    {
+      "name": "tz_base_city",
+      "value": "基準城市"
+    },
+    {
+      "name": "tz_set_time",
+      "value": "🕒 設定當地時間"
+    },
+    {
+      "name": "tz_favorites",
+      "value": "⭐ 收藏城市"
+    },
+    {
+      "name": "tz_duration",
+      "value": "會議時長"
+    },
+    {
+      "name": "tz_duration_30",
+      "value": "30分鐘"
+    },
+    {
+      "name": "tz_duration_60",
+      "value": "1小時"
+    },
+    {
+      "name": "tz_duration_90",
+      "value": "1.5小時"
+    },
+    {
+      "name": "tz_duration_120",
+      "value": "2小時"
+    },
+    {
+      "name": "tz_cities",
+      "value": "參與城市"
+    },
+    {
+      "name": "tz_need_two",
+      "value": "請至少添加2個城市"
+    },
+    {
+      "name": "tz_analysis",
+      "value": "時間分析"
+    },
+    {
+      "name": "tz_overtime",
+      "value": "加班時間"
+    },
+    {
+      "name": "tz_suggest_all_work",
+      "value": "所有城市都在工作時間，非常適合開會！"
+    },
+    {
+      "name": "tz_suggest_night",
+      "value": "有城市處於深夜，建議調整會議時間"
+    },
+    {
+      "name": "tz_suggest_partial",
+      "value": "部分城市處於非工作時間，請注意協調"
+    },
+    {
+      "name": "tz_select_city",
+      "value": "選擇城市"
+    },
+    {
+      "name": "tz_search_city",
+      "value": "搜尋城市"
+    },
+    {
+      "name": "tz_load_failed",
+      "value": "⚠️ 城市數據加載失敗"
+    },
+    {
+      "name": "tz_load_failed_hint",
+      "value": "請嘗試重新進入頁面或重啓應用"
+    },
+    {
+      "name": "gcd_step_intro",
+      "value": "使用歐幾里得算法求 %1$d 和 %2$d 的最大公約數"
+    },
+    {
+      "name": "gcd_step_div_rem",
+      "value": "%1$d ÷ %2$d = %3$d 餘 %4$d"
+    },
+    {
+      "name": "gcd_step_gcd",
+      "value": "餘數為0，最大公約數為 %1$d"
+    },
+    {
+      "name": "gcd_step_lcm",
+      "value": "最小公倍數 = (%1$d × %2$d) ÷ %3$d = %4$d"
+    },
+    {
+      "name": "gcd_copy_pair",
+      "value": "%1$s 和 %2$s"
+    },
+    {
+      "name": "gcd_label_gcd",
+      "value": "最大公約數：%1$d"
+    },
+    {
+      "name": "gcd_label_lcm",
+      "value": "最小公倍數：%1$d"
+    },
+    {
+      "name": "gcd_copy_success",
+      "value": "已複製轉換結果"
+    },
+    {
+      "name": "gcd_example_pair",
+      "value": "%1$d 和 %2$d"
+    },
+    {
+      "name": "gcd_input_hint1",
+      "value": "第一個正整數"
+    },
+    {
+      "name": "gcd_input_hint2",
+      "value": "第二個正整數"
+    },
+    {
+      "name": "gcd_result_gcd",
+      "value": "最大公約數 (GCD)"
+    },
+    {
+      "name": "gcd_result_lcm",
+      "value": "最小公倍數 (LCM)"
+    },
+    {
+      "name": "gcd_steps_title",
+      "value": "計算過程"
+    },
+    {
+      "name": "gcd_copy_result",
+      "value": "複製結果"
+    },
+    {
+      "name": "gcd_empty_hint",
+      "value": "輸入兩個正整數，實時計算"
+    },
+    {
+      "name": "prime_step_start",
+      "value": "開始分解 %1$d"
+    },
+    {
+      "name": "prime_step_div",
+      "value": "步驟%1$d：%2$d ÷ %3$d = %4$d"
+    },
+    {
+      "name": "prime_step_power",
+      "value": "步驟%1$d：%2$d ÷ %3$d^%4$d = %5$d"
+    },
+    {
+      "name": "prime_step_remainder",
+      "value": "步驟%1$d：剩餘 %2$d 是質數"
+    },
+    {
+      "name": "prime_is_prime_step",
+      "value": "%1$d 是質數，無需分解"
+    },
+    {
+      "name": "prime_copy_success",
+      "value": "已複製結果"
+    },
+    {
+      "name": "prime_input_hint",
+      "value": "輸入正整數"
+    },
+    {
+      "name": "prime_range_hint",
+      "value": "支援 2 ~ 999,999,999,999"
+    },
+    {
+      "name": "prime_is_prime_note",
+      "value": "%1$s 本身就是質數，無需分解"
+    },
+    {
+      "name": "prime_steps_title",
+      "value": "分解過程"
+    },
+    {
+      "name": "prime_what_title",
+      "value": "什麼是質因數分解？"
+    },
+    {
+      "name": "prime_what_desc",
+      "value": "把一個合數分解成若干個質數相乘的形式"
+    },
+    {
+      "name": "basec_title",
+      "value": "進制轉換"
+    },
+    {
+      "name": "basec_input_placeholder",
+      "value": "輸入數值"
+    },
+    {
+      "name": "basec_radix_dec",
+      "value": "十進制"
+    },
+    {
+      "name": "basec_radix_bin",
+      "value": "二進制"
+    },
+    {
+      "name": "basec_radix_oct",
+      "value": "八進制"
+    },
+    {
+      "name": "basec_radix_hex",
+      "value": "十六進制"
+    },
+    {
+      "name": "basec_copy_all",
+      "value": "複製轉換結果"
+    },
+    {
+      "name": "basec_copy_line",
+      "value": "%1$s：%2$s"
+    },
+    {
+      "name": "basec_err_dec",
+      "value": "請輸入有效的十進制數字"
+    },
+    {
+      "name": "basec_err_bin",
+      "value": "請輸入有效的二進制數字（0和1）"
+    },
+    {
+      "name": "basec_err_oct",
+      "value": "請輸入有效的八進制數字（0-7）"
+    },
+    {
+      "name": "basec_err_hex",
+      "value": "請輸入有效的十六進制數字（0-9, A-F）"
+    },
+    {
+      "name": "basec_err_b64",
+      "value": "無效的Base64字符"
+    },
+    {
+      "name": "basec_examples_title",
+      "value": "快速示例"
+    },
+    {
+      "name": "basec_info_title",
+      "value": "進制説明"
+    },
+    {
+      "name": "basec_info_dec_title",
+      "value": "十進制 (DEC)"
+    },
+    {
+      "name": "basec_info_dec_desc",
+      "value": "使用0-9，10個數字"
+    },
+    {
+      "name": "basec_info_bin_title",
+      "value": "二進制 (BIN)"
+    },
+    {
+      "name": "basec_info_bin_desc",
+      "value": "使用0和1，計算機基礎"
+    },
+    {
+      "name": "basec_info_oct_title",
+      "value": "八進制 (OCT)"
+    },
+    {
+      "name": "basec_info_oct_desc",
+      "value": "使用0-7，8個數字"
+    },
+    {
+      "name": "basec_info_hex_title",
+      "value": "十六進制 (HEX)"
+    },
+    {
+      "name": "basec_info_hex_desc",
+      "value": "使用0-9和A-F"
+    },
+    {
+      "name": "basec_info_b64_desc",
+      "value": "編碼二進制數據為文本"
+    },
+    {
+      "name": "unitcv_ref_title",
+      "value": "常用參考"
+    },
+    {
+      "name": "idiomq_data_loading",
+      "value": "數據加載中…"
+    },
+    {
+      "name": "idiomq_chain_continue",
+      "value": "繼續接龍"
+    },
+    {
+      "name": "idiomq_chain_reverse",
+      "value": "逆查接龍"
+    },
+    {
+      "name": "poemq_poet_subtitle",
+      "value": "%1 · %2"
+    },
+    {
+      "name": "ff_title",
+      "value": "飛花令"
+    },
+    {
+      "name": "ff_entry_desc",
+      "value": "含字詩句接龍，看看你能連對幾句"
+    },
+    {
+      "name": "ff_input_hint",
+      "value": "輸入含「%1$s」的詩句"
+    },
+    {
+      "name": "ff_submit",
+      "value": "提交"
+    },
+    {
+      "name": "ff_change_char",
+      "value": "換一字"
+    },
+    {
+      "name": "ff_hint",
+      "value": "提示"
+    },
+    {
+      "name": "ff_hint_toast",
+      "value": "試試「%1$s…」開頭的詩句"
+    },
+    {
+      "name": "ff_miss_char",
+      "value": "詩句中需含「%1$s」"
+    },
+    {
+      "name": "ff_not_found",
+      "value": "詩庫未收錄此句，換一句試試"
+    },
+    {
+      "name": "ff_used",
+      "value": "此句已用過"
+    },
+    {
+      "name": "ff_streak_end",
+      "value": "本輪連對%1$d句，最佳%2$d句"
+    },
+    {
+      "name": "ff_source",
+      "value": "《%1$s》·%2$s"
+    },
+    {
+      "name": "ff_best_streak",
+      "value": "最佳連對"
+    },
+    {
+      "name": "ff_total",
+      "value": "累計詩句"
+    },
+    {
+      "name": "ff_current_streak",
+      "value": "當前連對"
+    },
+    {
+      "name": "ff_empty_history",
+      "value": "對出的詩句會顯示在這裏"
+    },
+    {
+      "name": "ff_loading",
+      "value": "詩庫加載中…"
+    },
+    {
+      "name": "ff_load_fail",
+      "value": "詩庫加載失敗"
+    },
+    {
+      "name": "bk_title",
+      "value": "數據備份"
+    },
+    {
+      "name": "bk_export",
+      "value": "匯出數據"
+    },
+    {
+      "name": "bk_import",
+      "value": "匯入數據"
+    },
+    {
+      "name": "bk_scope_title",
+      "value": "備份範圍"
+    },
+    {
+      "name": "bk_scope_desc",
+      "value": "收藏、閲讀清單、朗讀設定、簽到與成就、生字簿、使用統計。匯出為JSON檔案儲存到您選擇的位置；匯入時備份中包含的數據將覆蓋當前數據。"
+    },
+    {
+      "name": "bk_export_ok",
+      "value": "匯出成功"
+    },
+    {
+      "name": "bk_export_cancel",
+      "value": "已取消匯出"
+    },
+    {
+      "name": "bk_export_fail",
+      "value": "匯出失敗，請重試"
+    },
+    {
+      "name": "bk_import_confirm_title",
+      "value": "匯入數據"
+    },
+    {
+      "name": "bk_import_confirm_msg",
+      "value": "匯入將覆蓋備份中包含的數據，且無法撤銷。建議先匯出當前數據。確定繼續嗎？"
+    },
+    {
+      "name": "bk_import_ok",
+      "value": "匯入成功，部分頁面返回後生效"
+    },
+    {
+      "name": "bk_import_cancel",
+      "value": "已取消匯入"
+    },
+    {
+      "name": "bk_import_fail",
+      "value": "檔案無效或匯入失敗"
+    },
+    {
+      "name": "mine_data_backup",
+      "value": "數據備份"
+    },
+    {
+      "name": "poemct_pinyin",
+      "value": "注音"
+    },
+    {
+      "name": "poemct_pinyin_a11y",
+      "value": "切換詩句注音顯示"
+    },
+    {
+      "name": "ach_flyflower_first_title",
+      "value": "初試啼聲"
+    },
+    {
+      "name": "ach_flyflower_first_desc",
+      "value": "飛花令對出第一句詩句"
+    },
+    {
+      "name": "ach_flyflower_streak_10_title",
+      "value": "出口成章"
+    },
+    {
+      "name": "ach_flyflower_streak_10_desc",
+      "value": "飛花令單輪連對10句"
+    },
+    {
+      "name": "ach_flyflower_total_30_title",
+      "value": "詩中蛟龍"
+    },
+    {
+      "name": "ach_flyflower_total_30_desc",
+      "value": "飛花令累計對出30句"
+    },
+    {
+      "name": "dc_title",
+      "value": "默寫練習"
+    },
+    {
+      "name": "dc_entry_desc",
+      "value": "看拼音補全詩句，練一手好字"
+    },
+    {
+      "name": "dc_progress",
+      "value": "第%1$d/%2$d句"
+    },
+    {
+      "name": "dc_input_hint",
+      "value": "依次輸入%1$d個空缺字"
+    },
+    {
+      "name": "dc_submit",
+      "value": "提交"
+    },
+    {
+      "name": "dc_retry",
+      "value": "重練本句"
+    },
+    {
+      "name": "dc_next",
+      "value": "下一句"
+    },
+    {
+      "name": "dc_finish_title",
+      "value": "默寫完成"
+    },
+    {
+      "name": "dc_finish_score",
+      "value": "完成度%1$d%%"
+    },
+    {
+      "name": "dc_finish_perfect",
+      "value": "完美%1$d/%2$d句"
+    },
+    {
+      "name": "dc_all_perfect",
+      "value": "🎉 全部答對，太棒了"
+    },
+    {
+      "name": "dc_again",
+      "value": "再練一次"
+    },
+    {
+      "name": "dc_loading",
+      "value": "詩庫加載中…"
+    },
+    {
+      "name": "dc_today_poem",
+      "value": "今日詩詞"
+    },
+    {
+      "name": "dc_no_poem",
+      "value": "今日詩詞未就緒，請稍後再試"
+    },
+    {
+      "name": "poemct_dictation",
+      "value": "默寫"
+    },
+    {
+      "name": "poemct_dictation_a11y",
+      "value": "開始默寫本詩"
+    },
+    {
+      "name": "wr_title",
+      "value": "本週學習"
+    },
+    {
+      "name": "wr_checkin_week",
+      "value": "本週簽到"
+    },
+    {
+      "name": "wr_checkin_streak",
+      "value": "連續簽到"
+    },
+    {
+      "name": "wr_flyflower",
+      "value": "飛花令"
+    },
+    {
+      "name": "wr_dictation",
+      "value": "默寫"
+    },
+    {
+      "name": "wr_days",
+      "value": "%1$d天"
+    },
+    {
+      "name": "wr_sentences",
+      "value": "%1$d句"
+    },
+    {
+      "name": "ach_dictation_first_title",
+      "value": "落筆成章"
+    },
+    {
+      "name": "ach_dictation_first_desc",
+      "value": "默寫練習完成第一句"
+    },
+    {
+      "name": "ach_dictation_perfect_10_title",
+      "value": "字字珠璣"
+    },
+    {
+      "name": "ach_dictation_perfect_10_desc",
+      "value": "默寫練習完美默出10句"
+    },
+    {
+      "name": "ach_dictation_total_30_title",
+      "value": "熟讀成誦"
+    },
+    {
+      "name": "ach_dictation_total_30_desc",
+      "value": "默寫練習累計完成30句"
+    },
+    {
+      "name": "mb_title",
+      "value": "錯題本"
+    },
+    {
+      "name": "mb_entry_desc",
+      "value": "%1$d句待重練"
+    },
+    {
+      "name": "mb_entry_none",
+      "value": "暫無錯題，繼續保持"
+    },
+    {
+      "name": "mb_empty",
+      "value": "答錯的句子會收進這裏，重練全對即可消滅"
+    },
+    {
+      "name": "mb_retry",
+      "value": "重練"
+    },
+    {
+      "name": "mb_removed",
+      "value": "已消滅，掌握得不錯"
+    },
+    {
+      "name": "mb_wrong_times",
+      "value": "錯%1$d次"
+    },
+    {
+      "name": "rv_title",
+      "value": "今日複習"
+    },
+    {
+      "name": "rv_entry_desc",
+      "value": "%1$d句待複習"
+    },
+    {
+      "name": "rv_done_short",
+      "value": "今日複習已完成"
+    },
+    {
+      "name": "rv_reminder",
+      "value": "複習提醒"
+    },
+    {
+      "name": "rv_queue_title",
+      "value": "今日待複習"
+    },
+    {
+      "name": "rv_count",
+      "value": "%1$d句"
+    },
+    {
+      "name": "rv_start",
+      "value": "開始複習"
+    },
+    {
+      "name": "rv_empty",
+      "value": "今日沒有待複習的句子，去默寫一首新詩吧"
+    },
+    {
+      "name": "rv_done_title",
+      "value": "今日複習完成"
+    },
+    {
+      "name": "rv_done_desc",
+      "value": "堅持複習，詩句自然熟記於心"
+    },
+    {
+      "name": "rv_back_to_list",
+      "value": "返回列表"
+    },
+    {
+      "name": "reminder_review_content",
+      "value": "今日有詩句待複習，來檢驗一下記憶吧"
+    },
+    {
+      "name": "ach_review_first_title",
+      "value": "温故知新"
+    },
+    {
+      "name": "ach_review_first_desc",
+      "value": "完成第一次複習"
+    },
+    {
+      "name": "ach_review_30_title",
+      "value": "學而時習"
+    },
+    {
+      "name": "ach_review_30_desc",
+      "value": "累計複習30句"
+    },
+    {
+      "name": "tool_poster_title",
+      "value": "文案海報"
+    },
+    {
+      "name": "tool_poster_sub",
+      "value": "一句話生成精美分享圖"
+    },
+    {
+      "name": "poster_label_ratio",
+      "value": "比例"
+    },
+    {
+      "name": "poster_ratio_square",
+      "value": "方圖 1:1"
+    },
+    {
+      "name": "poster_ratio_portrait",
+      "value": "豎圖 3:4"
+    },
+    {
+      "name": "poster_ratio_long",
+      "value": "長圖 9:16"
+    },
+    {
+      "name": "poster_pinyin_label",
+      "value": "注音"
+    },
+    {
+      "name": "poster_pinyin_on",
+      "value": "開"
+    },
+    {
+      "name": "poster_pinyin_off",
+      "value": "關"
+    },
+    {
+      "name": "poster_slot_body",
+      "value": "主文案"
+    },
+    {
+      "name": "poster_slot_sign",
+      "value": "署名"
+    },
+    {
+      "name": "poster_slot_tag",
+      "value": "標籤"
+    },
+    {
+      "name": "poster_body_hint",
+      "value": "輸入主文案…"
+    },
+    {
+      "name": "poster_sign_hint",
+      "value": "署名（可選）"
+    },
+    {
+      "name": "poster_tag_hint",
+      "value": "標籤（可選）"
+    },
+    {
+      "name": "poster_tmpl_t1",
+      "value": "暖調標籤卡"
+    },
+    {
+      "name": "poster_tmpl_t2",
+      "value": "純色簡約"
+    },
+    {
+      "name": "poster_tmpl_t3",
+      "value": "文藝手寫"
+    },
+    {
+      "name": "poster_tmpl_t4",
+      "value": "大字衝擊"
+    },
+    {
+      "name": "poster_insp_label",
+      "value": "靈感文案"
+    },
+    {
+      "name": "poster_empty_hint",
+      "value": "輸入文字開始創作"
+    },
+    {
+      "name": "ach_poster_first_title",
+      "value": "首張海報"
+    },
+    {
+      "name": "ach_poster_first_desc",
+      "value": "匯出第一張文案海報"
+    },
+    {
+      "name": "ach_poster_10_title",
+      "value": "海報達人"
+    },
+    {
+      "name": "ach_poster_10_desc",
+      "value": "累計匯出 10 張文案海報"
+    },
+    {
+      "name": "char_label_input",
+      "value": "輸入"
+    },
+    {
+      "name": "char_mode_chars",
+      "value": "單字"
+    },
+    {
+      "name": "char_mode_sentence",
+      "value": "句子"
+    },
+    {
+      "name": "char_sentence_hint",
+      "value": "輸入句子，自動按詞換行…"
+    },
+    {
+      "name": "poster_insp_1",
+      "value": "把日子過成詩，簡單而精緻。"
+    },
+    {
+      "name": "poster_insp_2",
+      "value": "願所有的努力都不被辜負。"
+    },
+    {
+      "name": "poster_insp_3",
+      "value": "生活明朗，萬物可愛。"
+    },
+    {
+      "name": "poster_insp_4",
+      "value": "保持熱愛，奔赴山海。"
+    },
+    {
+      "name": "poster_insp_5",
+      "value": "慢慢來，比較快。"
+    },
+    {
+      "name": "poster_insp_6",
+      "value": "今天也要元氣滿滿哦。"
+    },
+    {
+      "name": "poster_insp_7",
+      "value": "做自己的太陽，無需借誰的光。"
+    },
+    {
+      "name": "poster_insp_8",
+      "value": "心中有光，慢食三餐。"
+    },
+    {
+      "name": "poster_insp_9",
+      "value": "世界很大，我們去看看。"
+    },
+    {
+      "name": "poster_insp_10",
+      "value": "平凡的日子裏，藏着小歡喜。"
+    },
+    {
+      "name": "poster_insp_11",
+      "value": "萬物皆有裂痕，那是光照進來的地方。"
+    },
+    {
+      "name": "poster_insp_12",
+      "value": "你若盛開，清風自來。"
+    },
+    {
+      "name": "poster_insp_13",
+      "value": "星光不問趕路人，時光不負有心人。"
+    },
+    {
+      "name": "poster_insp_14",
+      "value": "生活的美好，藏在細枝末節裏。"
+    },
+    {
+      "name": "poster_insp_15",
+      "value": "與其在別處仰望，不如在這裏並肩。"
+    },
+    {
+      "name": "poster_insp_16",
+      "value": "山野萬里，你是我藏在星星裏的浪漫。"
+    },
+    {
+      "name": "poster_insp_17",
+      "value": "認真生活，就能找到生活藏起來的糖果。"
+    },
+    {
+      "name": "poster_insp_18",
+      "value": "温柔半兩，從容一生。"
+    },
+    {
+      "name": "poster_insp_19",
+      "value": "日日是好日。"
+    },
+    {
+      "name": "poster_insp_20",
+      "value": "人間煙火氣，最撫凡人心。"
+    },
+    {
+      "name": "poster_insp_21",
+      "value": "往事清零，愛恨隨意。"
+    },
+    {
+      "name": "poster_insp_22",
+      "value": "凡是過往，皆為序章。"
+    },
+    {
+      "name": "poster_insp_23",
+      "value": "前方無絕路，希望在轉角。"
+    },
+    {
+      "name": "poster_insp_24",
+      "value": "熬過漫長無戲可演的日子，才能迎來人生的春天。"
+    },
+    {
+      "name": "poster_insp_25",
+      "value": "人生沒有白走的路，每一步都算數。"
+    },
+    {
+      "name": "poster_insp_26",
+      "value": "生活原本沉悶，但跑起來就有風。"
+    },
+    {
+      "name": "poster_insp_27",
+      "value": "滿懷希望就會所向披靡。"
+    },
+    {
+      "name": "poster_insp_28",
+      "value": "順其自然，是對生活最大的成全。"
+    },
+    {
+      "name": "poster_insp_29",
+      "value": "別慌，月亮也正在大海某處迷茫。"
+    },
+    {
+      "name": "poster_insp_30",
+      "value": "把普通的日子過得浪漫一些。"
+    },
+    {
+      "name": "poster_insp_31",
+      "value": "治癒自己的最好方式是忙碌和早睡。"
+    },
+    {
+      "name": "poster_insp_32",
+      "value": "春風得意的時候不多，且行且珍惜。"
+    },
+    {
+      "name": "poster_insp_33",
+      "value": "見慣了量產的温柔，對笨拙的真誠格外心動。"
+    },
+    {
+      "name": "poster_insp_34",
+      "value": "落日歸山海，山海藏深意。"
+    },
+    {
+      "name": "poster_insp_35",
+      "value": "家人閒坐，燈火可親。"
+    },
+    {
+      "name": "poster_insp_36",
+      "value": "心之所向，素履以往。"
+    },
+    {
+      "name": "poster_insp_37",
+      "value": "歲月不饒人，我亦未曾饒過歲月。"
+    },
+    {
+      "name": "poster_insp_38",
+      "value": "讀書，走路，識人，看世界。"
+    },
+    {
+      "name": "poster_insp_39",
+      "value": "願你走出半生，歸來仍是少年。"
+    },
+    {
+      "name": "poster_insp_40",
+      "value": "熱愛可抵歲月漫長。"
+    },
+    {
+      "name": "poster_insp_41",
+      "value": "春風如貴客，一到便繁華。"
+    },
+    {
+      "name": "poster_insp_42",
+      "value": "雨水潤萬物，靜待花開時。"
+    },
+    {
+      "name": "poster_insp_43",
+      "value": "驚蟄春雷響，萬物皆甦醒。"
+    },
+    {
+      "name": "poster_insp_44",
+      "value": "春分晝夜均，人間恰好時。"
+    },
+    {
+      "name": "poster_insp_45",
+      "value": "清明時節雨，思念落成詩。"
+    },
+    {
+      "name": "poster_insp_46",
+      "value": "穀雨催新綠，春深不自知。"
+    },
+    {
+      "name": "poster_insp_47",
+      "value": "小滿未全滿，人生最好的狀態。"
+    },
+    {
+      "name": "poster_insp_48",
+      "value": "芒種忙種，願種下的都有收成。"
+    },
+    {
+      "name": "poster_insp_49",
+      "value": "夏至白晝長，熱愛也綿長。"
+    },
+    {
+      "name": "poster_insp_50",
+      "value": "立秋新風涼，一葉知秋來。"
+    },
+    {
+      "name": "poster_insp_51",
+      "value": "白露凝秋色，歲月自温柔。"
+    },
+    {
+      "name": "poster_insp_52",
+      "value": "秋分晝夜分，豐收正當時。"
+    },
+    {
+      "name": "poster_insp_53",
+      "value": "寒露添衣時，記得照顧自己。"
+    },
+    {
+      "name": "poster_insp_54",
+      "value": "霜降柿子紅，事事皆如意。"
+    },
+    {
+      "name": "poster_insp_55",
+      "value": "立冬藏温暖，圍爐話家常。"
+    },
+    {
+      "name": "poster_insp_56",
+      "value": "小雪落無聲，人間煙火暖。"
+    },
+    {
+      "name": "poster_insp_57",
+      "value": "大雪兆豐年，靜候春消息。"
+    },
+    {
+      "name": "poster_insp_58",
+      "value": "冬至大如年，人間小團圓。"
+    },
+    {
+      "name": "poster_insp_59",
+      "value": "大寒到頂點，日後天漸暖。"
+    },
+    {
+      "name": "poster_insp_60",
+      "value": "瑞雪迎新歲，萬事皆可期。"
+    },
+    {
+      "name": "poster_tmpl_t5",
+      "value": "LCD 像素屏"
+    },
+    {
+      "name": "tmpl_pal_night_glow",
+      "value": "夜幕藍光"
+    },
+    {
+      "name": "tmpl_pal_jade_lcd",
+      "value": "翡翠綠屏"
+    },
+    {
+      "name": "tmpl_pal_amber_lcd",
+      "value": "琥珀橙屏"
+    },
+    {
+      "name": "tmpl_pal_warm_desk",
+      "value": "暖木桌面"
+    },
+    {
+      "name": "tmpl_pal_neon_magenta",
+      "value": "霓虹紫光"
+    },
+    {
+      "name": "poster_soft_left",
+      "value": "選項"
+    },
+    {
+      "name": "poster_soft_right",
+      "value": "清除"
+    },
+    {
+      "name": "poster_tmpl_t6",
+      "value": "CRT 終端屏"
+    },
+    {
+      "name": "tmpl_pal_emerald_phosphor",
+      "value": "翡翠熒光"
+    },
+    {
+      "name": "tmpl_pal_amber_terminal",
+      "value": "琥珀終端"
+    },
+    {
+      "name": "tmpl_pal_ice_glow",
+      "value": "冰藍熒光"
+    },
+    {
+      "name": "tmpl_pal_rose_ray",
+      "value": "玫瑰紅光"
+    },
+    {
+      "name": "tmpl_pal_paper_white",
+      "value": "紙白單色"
+    },
+    {
+      "name": "poster_tmpl_t7",
+      "value": "霓虹燈招牌"
+    },
+    {
+      "name": "tmpl_pal_pink_haze",
+      "value": "粉霧霓虹"
+    },
+    {
+      "name": "tmpl_pal_cyan_flame",
+      "value": "青焰霓虹"
+    },
+    {
+      "name": "tmpl_pal_gold_purple",
+      "value": "金紫夜市"
+    },
+    {
+      "name": "tmpl_pal_lime_light",
+      "value": "青檸綠光"
+    },
+    {
+      "name": "tmpl_pal_ice_nocturne",
+      "value": "冰藍夜曲"
+    },
+    {
+      "name": "poster_tmpl_t8",
+      "value": "掌機遊戲機"
+    },
+    {
+      "name": "tmpl_pal_classic_gray",
+      "value": "經典灰"
+    },
+    {
+      "name": "tmpl_pal_clear_purple",
+      "value": "透明紫"
+    },
+    {
+      "name": "tmpl_pal_berry_pink",
+      "value": "漿果粉"
+    },
+    {
+      "name": "tmpl_pal_mint_teal",
+      "value": "薄荷青"
+    },
+    {
+      "name": "tmpl_pal_amber_shell",
+      "value": "琥珀黃"
+    },
+    {
+      "name": "poster_tmpl_t9",
+      "value": "復古車票"
+    },
+    {
+      "name": "tmpl_pal_classic_red_seal",
+      "value": "經典紅章"
+    },
+    {
+      "name": "tmpl_pal_indigo_seal",
+      "value": "靛藍印章"
+    },
+    {
+      "name": "tmpl_pal_pine_postmark",
+      "value": "松綠郵戳"
+    },
+    {
+      "name": "tmpl_pal_coffee_paper",
+      "value": "咖啡舊紙"
+    },
+    {
+      "name": "tmpl_pal_midnight_gold",
+      "value": "午夜金章"
+    },
+    {
+      "name": "poster_tmpl_t10",
+      "value": "翻牌顯示屏"
+    },
+    {
+      "name": "tmpl_pal_classic_platform",
+      "value": "經典站台"
+    },
+    {
+      "name": "tmpl_pal_subway_blue",
+      "value": "地鐵深藍"
+    },
+    {
+      "name": "tmpl_pal_signal_green",
+      "value": "信號綠"
+    },
+    {
+      "name": "tmpl_pal_station_red",
+      "value": "車站紅棕"
+    },
+    {
+      "name": "tmpl_pal_steel_slate",
+      "value": "鋼鐵藍灰"
+    },
+    {
+      "name": "poster_tmpl_t11",
+      "value": "復古報紙"
+    },
+    {
+      "name": "tmpl_pal_aged_press",
+      "value": "老紙咖印"
+    },
+    {
+      "name": "tmpl_pal_morning_paper",
+      "value": "晨報白"
+    },
+    {
+      "name": "tmpl_pal_evening_edition",
+      "value": "晚報米黃"
+    },
+    {
+      "name": "tmpl_pal_ink_reprint",
+      "value": "墨黑重印"
+    },
+    {
+      "name": "tmpl_pal_rose_gazette",
+      "value": "玫瑰公報"
+    },
+    {
+      "name": "poster_tmpl_t12",
+      "value": "聊天氣泡"
+    },
+    {
+      "name": "tmpl_pal_wechat_green",
+      "value": "經典綠聊"
+    },
+    {
+      "name": "tmpl_pal_midnight_chat",
+      "value": "午夜深聊"
+    },
+    {
+      "name": "tmpl_pal_bubblegum_pink",
+      "value": "粉彩氣泡"
+    },
+    {
+      "name": "tmpl_pal_business_blue",
+      "value": "商務藍"
+    },
+    {
+      "name": "tmpl_pal_cream_talk",
+      "value": "奶油閒談"
+    },
+    {
+      "name": "poster_tmpl_t13",
+      "value": "黑膠唱片"
+    },
+    {
+      "name": "tmpl_pal_retro_orange_label",
+      "value": "復古橙標"
+    },
+    {
+      "name": "tmpl_pal_blue_jazz",
+      "value": "藍調爵士"
+    },
+    {
+      "name": "tmpl_pal_midnight_vinyl",
+      "value": "午夜黑膠"
+    },
+    {
+      "name": "tmpl_pal_rose_label",
+      "value": "玫瑰粉標"
+    },
+    {
+      "name": "tmpl_pal_emerald_groove",
+      "value": "翡翠綠紋"
+    },
+    {
+      "name": "poster_tmpl_t14",
+      "value": "電影字幕卡"
+    },
+    {
+      "name": "tmpl_pal_midnight_premiere",
+      "value": "午夜首映"
+    },
+    {
+      "name": "tmpl_pal_sepia_film",
+      "value": "懷舊膠片"
+    },
+    {
+      "name": "tmpl_pal_cool_blue_ray",
+      "value": "藍光冷調"
+    },
+    {
+      "name": "tmpl_pal_rose_premiere",
+      "value": "玫瑰首映"
+    },
+    {
+      "name": "tmpl_pal_neon_green_reel",
+      "value": "綠幕霓虹"
+    },
+    {
+      "name": "poster_tmpl_t15",
+      "value": "公告欄啓事"
+    },
+    {
+      "name": "tmpl_pal_classic_cork",
+      "value": "軟木經典"
+    },
+    {
+      "name": "tmpl_pal_blue_pin",
+      "value": "藍釘公告"
+    },
+    {
+      "name": "tmpl_pal_cream_notes",
+      "value": "奶油便籤"
+    },
+    {
+      "name": "tmpl_pal_midnight_chalk",
+      "value": "深夜黑板"
+    },
+    {
+      "name": "tmpl_pal_kraft_paper",
+      "value": "牛皮紙板"
+    },
+    {
+      "name": "poster_tmpl_t16",
+      "value": "二十四節氣"
+    },
+    {
+      "name": "tmpl_pal_rice_seal",
+      "value": "米紙青黛"
+    },
+    {
+      "name": "tmpl_pal_celadon_term",
+      "value": "天青節氣"
+    },
+    {
+      "name": "tmpl_pal_ink_term",
+      "value": "玄墨節氣"
+    },
+    {
+      "name": "tmpl_pal_rouge_term",
+      "value": "胭脂節氣"
+    },
+    {
+      "name": "tmpl_pal_xiang_paper",
+      "value": "緗色古紙"
+    },
+    {
+      "name": "poster_tmpl_t17",
+      "value": "節日祝福"
+    },
+    {
+      "name": "tmpl_pal_midmoon_night",
+      "value": "中秋月夜"
+    },
+    {
+      "name": "tmpl_pal_spring_red",
+      "value": "春節紅金"
+    },
+    {
+      "name": "tmpl_pal_lantern_night",
+      "value": "元宵燈會"
+    },
+    {
+      "name": "tmpl_pal_duanwu_green",
+      "value": "端午艾綠"
+    },
+    {
+      "name": "tmpl_pal_qixi_purple",
+      "value": "七夕星紫"
+    },
+    {
+      "name": "poster_tmpl_t18",
+      "value": "紅包對聯"
+    },
+    {
+      "name": "tmpl_pal_true_gold",
+      "value": "正紅描金"
+    },
+    {
+      "name": "tmpl_pal_zhusha_gold",
+      "value": "硃砂流金"
+    },
+    {
+      "name": "tmpl_pal_dark_red_gold",
+      "value": "玄紅鎏金"
+    },
+    {
+      "name": "tmpl_pal_crimson_plum",
+      "value": "絳紫鎏金"
+    },
+    {
+      "name": "tmpl_pal_jade_gold",
+      "value": "翠玉點金"
+    },
+    {
+      "name": "poster_chat_sub",
+      "value": "公眾號"
+    }
+  ]
+}

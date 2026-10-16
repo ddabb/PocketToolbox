@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-"""1.4.7 代码质量优化 Phase 3 P3-3：三语字符串资源治理。
+"""1.4.7 代码质量优化 Phase 3 P3-3：多语字符串资源治理。
 
 用法（Windows 需 py -3）：
   py -3 scripts/check_strings.py            # 报告：键数统计 + 键集合 diff + 占位符一致性 + 前缀审计
   py -3 scripts/check_strings.py --check    # 校验模式（pre-commit 调用，违规 exit 1）
 
 校验规则（docs/1.4.7开发计划_代码质量优化.md §4.4 P3-3）：
-- base/zh/ja 三目录 string.json 键集合必须一致：缺键 = 运行时回退 base（中/日用户
-  看到英文）；多键 = 死资源；
+- base/zh/zh_Hant/ja 四目录 string.json 键集合必须一致：缺键 = 运行时回退 base（中/
+  繁/日用户看到英文）；多键 = 死资源；
 - 同文件内键名不得重复（后者静默覆盖前者）；
 - 同键三语占位符签名必须一致（%s/%d 按出现序隐式编号，%N$s/%N$d 显式编号；
   缺失/多余/类型不符都会导致 $r() 传参错位或显示异常）；
@@ -20,7 +20,7 @@ import re
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LOCALES = ['base', 'zh', 'ja']
+LOCALES = ['base', 'zh', 'zh_Hant', 'ja']
 BASE = 'base'
 PATH_TPL = os.path.join(ROOT, 'entry', 'src', 'main', 'resources',
                         '%s', 'element', 'string.json')

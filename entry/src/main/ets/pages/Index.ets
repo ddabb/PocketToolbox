@@ -807,7 +807,7 @@ struct Index {
       Scroll() {
         Column() {
           Row() {
-            Text('解语珠玑')
+            Text($r('app.string.EntryAbility_label'))
               .fontSize(22)
               .fontWeight(FontWeight.Bold)
               .fontColor($r('app.color.primary_text'))
@@ -1138,7 +1138,7 @@ struct Index {
               .width(28)
               .height(28)
               .borderRadius(8)
-            Text('解语珠玑')
+            Text($r('app.string.EntryAbility_label'))
               .fontSize(22)
               .fontWeight(FontWeight.Bold)
               .fontColor($r('app.color.primary_text'))
@@ -1612,7 +1612,7 @@ struct Index {
             this.mineStack.pushPathByName('DataBackupPage', null);
           })
 
-          Text('解语珠玑' + (this.appVersionName ? ' \u00B7 v' + this.appVersionName : ''))
+          Text(this.textOf($r('app.string.EntryAbility_label')) + (this.appVersionName ? ' \u00B7 v' + this.appVersionName : ''))
             .fontSize(12)
             .fontColor($r('app.color.hint_text'))
             .margin({ top: 24, bottom: 16 })
