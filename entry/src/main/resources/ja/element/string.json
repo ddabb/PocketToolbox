@@ -2889,6 +2889,10 @@
       "value": "スタイル"
     },
     {
+      "name": "cover_tab_template",
+      "value": "テンプレート"
+    },
+    {
       "name": "cover_lib_label",
       "value": "コンテンツライブラリからのおすすめ（漢詩 / 成語 / 謎かけ）"
     },

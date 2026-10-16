@@ -2889,6 +2889,10 @@
       "value": "Style"
     },
     {
+      "name": "cover_tab_template",
+      "value": "Template"
+    },
+    {
       "name": "cover_lib_label",
       "value": "Library picks (poems / idioms / sayings)"
     },

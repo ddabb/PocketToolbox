@@ -2889,6 +2889,10 @@
       "value": "樣式"
     },
     {
+      "name": "cover_tab_template",
+      "value": "模板"
+    },
+    {
       "name": "cover_lib_label",
       "value": "內容庫推薦（詩詞 / 成語 / 歇後語）"
     },

@@ -2,6 +2,7 @@
  * 文案海报页面：预览 + 比例(1:1/3:4/9:16长图) + 模板分类选择(T1-T21) + 文字/样式编辑(含注音开关) + 换一句灵感 + 导出 + 历史
  * 需求文档：docs/文案海报生成器需求文档.md；1.4.4 计划：docs/1.4.4开发计划.md
  * 分类导航与模板优化：docs/文案海报优化计划.md（1.4.5）
+ * 布局改版（1.4.7 A+B）：预览与三页签（文字/模板/样式）固定在面板 Scroll 之外，编辑面板独立滚动，预览常驻可见
  */
 import { display } from '@kit.ArkUI';
 import { image } from '@kit.ImageKit';
@@ -381,12 +382,14 @@ struct CopyPosterEditor {
 
   // ---------- UI ----------
 
+  // 1.4.7 A+B 布局改版：预览与页签固定在面板 Scroll 之外，预览常驻可见；
+  // 编辑面板（页签内容 + 历史）独立滚动，保存/分享栏固定底部。
   build() {
     Column() {
+      this.PreviewSection()
+      this.EditorTabs()
       Scroll() {
         Column({ space: 14 }) {
-          this.PreviewSection()
-          this.EditorTabs()
           if (this.editorTab === 0) {
             if (this.showClipHint) {
               ClipboardHintBar({
@@ -399,11 +402,12 @@ struct CopyPosterEditor {
               })
             }
             this.TextEditor()
+          } else if (this.editorTab === 1) {
+            this.RatioChips()
+            this.TemplateScroller()
           } else {
             this.StyleEditor()
           }
-          this.RatioChips()
-          this.TemplateScroller()
           this.HistorySection()
         }
         .width('100%')
@@ -451,6 +455,7 @@ struct CopyPosterEditor {
         .fontColor(this.labelColor())
     }
     .width('100%')
+    .padding({ left: 16, right: 16, top: 12, bottom: 8 })
   }
 
   @Builder
@@ -575,25 +580,30 @@ struct CopyPosterEditor {
   @Builder
   EditorTabs() {
     Row({ space: 0 }) {
-      Text($r('app.string.cover_tab_text'))
-        .fontSize(14)
-        .fontWeight(this.editorTab === 0 ? FontWeight.Bold : FontWeight.Normal)
-        .fontColor(this.editorTab === 0 ? $r('app.color.brand_blue') : this.labelColor())
-        .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-        .onClick(() => {
-          this.editorTab = 0;
-        })
-      Text($r('app.string.cover_tab_style'))
-        .fontSize(14)
-        .fontWeight(this.editorTab === 1 ? FontWeight.Bold : FontWeight.Normal)
-        .fontColor(this.editorTab === 1 ? $r('app.color.brand_blue') : this.labelColor())
-        .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-        .onClick(() => {
-          this.editorTab = 1;
-        })
+      ForEach([0, 1, 2], (idx: number) => {
+        Text(this.tabLabel(idx))
+          .fontSize(14)
+          .fontWeight(this.editorTab === idx ? FontWeight.Bold : FontWeight.Normal)
+          .fontColor(this.editorTab === idx ? $r('app.color.brand_blue') : this.labelColor())
+          .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+          .onClick(() => {
+            this.editorTab = idx;
+          })
+      }, (idx: number) => idx.toString())
     }
     .width('100%')
     .border({ width: { bottom: 1 }, color: this.lineColor() })
+  }
+
+  /** 页签文案：0 文字 / 1 模板 / 2 样式（1.4.7 三页签改版） */
+  private tabLabel(idx: number): ResourceStr {
+    if (idx === 0) {
+      return $r('app.string.cover_tab_text');
+    }
+    if (idx === 1) {
+      return $r('app.string.cover_tab_template');
+    }
+    return $r('app.string.cover_tab_style');
   }
 
   @Builder
@@ -713,52 +723,55 @@ struct CopyPosterEditor {
       .width('100%')
       .alignItems(HorizontalAlign.Start)
 
-      if (this.currentTemplate().supportsPinyin) {
-        Column({ space: 10 }) {
-          Text($r('app.string.poster_pinyin_label'))
+      // 1.4.7 注音/水印压成一行开关，缩短样式面板纵深（自然宽度排列，注音缺失时水印靠左不悬空）
+      Row({ space: 24 }) {
+        if (this.currentTemplate().supportsPinyin) {
+          Column({ space: 6 }) {
+            Text($r('app.string.poster_pinyin_label'))
+              .fontSize(12)
+              .fontColor(this.labelColor())
+            Text(this.pinyinOn ? $r('app.string.poster_pinyin_on') : $r('app.string.poster_pinyin_off'))
+              .fontSize(13)
+              .padding({ left: 14, right: 14, top: 7, bottom: 7 })
+              .backgroundColor(this.pinyinOn ? $r('app.color.brand_blue') : this.chipBg())
+              .fontColor(this.pinyinOn ? $r('app.color.on_accent_text') : this.chipText())
+              .borderRadius(14)
+              .onClick(() => {
+                this.pinyinOn = !this.pinyinOn;
+              })
+          }
+          .alignItems(HorizontalAlign.Start)
+        }
+        Column({ space: 6 }) {
+          Text($r('app.string.poster_watermark_label'))
             .fontSize(12)
             .fontColor(this.labelColor())
-          Text(this.pinyinOn ? $r('app.string.poster_pinyin_on') : $r('app.string.poster_pinyin_off'))
+          Text(this.content.watermarkOn ? $r('app.string.poster_watermark_on') : $r('app.string.poster_watermark_off'))
             .fontSize(13)
             .padding({ left: 14, right: 14, top: 7, bottom: 7 })
-            .backgroundColor(this.pinyinOn ? $r('app.color.brand_blue') : this.chipBg())
-            .fontColor(this.pinyinOn ? $r('app.color.on_accent_text') : this.chipText())
+            .backgroundColor(this.content.watermarkOn ? $r('app.color.brand_blue') : this.chipBg())
+            .fontColor(this.content.watermarkOn ? $r('app.color.on_accent_text') : this.chipText())
             .borderRadius(14)
             .onClick(() => {
-              this.pinyinOn = !this.pinyinOn;
+              this.onWatermarkToggle();
             })
         }
-        .width('100%')
         .alignItems(HorizontalAlign.Start)
       }
-
-      Column({ space: 10 }) {
-        Text($r('app.string.poster_watermark_label'))
-          .fontSize(12)
-          .fontColor(this.labelColor())
-        Text(this.content.watermarkOn ? $r('app.string.poster_watermark_on') : $r('app.string.poster_watermark_off'))
-          .fontSize(13)
-          .padding({ left: 14, right: 14, top: 7, bottom: 7 })
-          .backgroundColor(this.content.watermarkOn ? $r('app.color.brand_blue') : this.chipBg())
-          .fontColor(this.content.watermarkOn ? $r('app.color.on_accent_text') : this.chipText())
-          .borderRadius(14)
-          .onClick(() => {
-            this.onWatermarkToggle();
-          })
-        if (this.content.watermarkOn) {
-          TextInput({ text: this.content.watermarkText, placeholder: $r('app.string.poster_watermark_hint') })
-            .height(40)
-            .fontSize(14)
-            .maxLength(CopyPosterTemplates.MAX_WATERMARK)
-            .backgroundColor(this.inputBg())
-            .borderRadius(8)
-            .onChange((value: string) => {
-              this.onWatermarkTextChange(value);
-            })
-        }
-      }
       .width('100%')
-      .alignItems(HorizontalAlign.Start)
+      .alignItems(VerticalAlign.Top)
+
+      if (this.content.watermarkOn) {
+        TextInput({ text: this.content.watermarkText, placeholder: $r('app.string.poster_watermark_hint') })
+          .height(40)
+          .fontSize(14)
+          .maxLength(CopyPosterTemplates.MAX_WATERMARK)
+          .backgroundColor(this.inputBg())
+          .borderRadius(8)
+          .onChange((value: string) => {
+            this.onWatermarkTextChange(value);
+          })
+      }
     }
     .width('100%')
     .padding({ top: 12 })

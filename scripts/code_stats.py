@@ -8,8 +8,8 @@
   py -3 scripts/code_stats.py --check           # 行数护栏（pre-commit 调用，违规 exit 1）
   py -3 scripts/code_stats.py --init-whitelist  # 按当前状态生成/重置白名单
 
-护栏规则（docs/1.4.7开发计划_代码质量优化.md §4.1，2026-10-15 用户裁定）：
-- 新增/修改文件 ≤ threshold（默认 800）行；
+护栏规则（docs/1.4.7开发计划_代码质量优化.md §4.1，2026-10-15 用户裁定；2026-10-16 用户裁定 threshold 800→900）：
+- 新增/修改文件 ≤ threshold（默认 900）行；
 - 存量超标文件登记于 scripts/size_whitelist.json，白名单只减不增
   （行数不得超过登记上限；拆小到 ≤threshold 后条目应移除，--check 会提示）。
 
@@ -27,7 +27,7 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, 'entry', 'src', 'main', 'ets')
 WHITELIST = os.path.join(ROOT, 'scripts', 'size_whitelist.json')
-THRESHOLD = 800
+THRESHOLD = 900
 
 
 def line_count(path):
@@ -77,7 +77,7 @@ def init_whitelist():
             entries[rel] = n
     doc = {
         '_comment': ('1.4.7 行数护栏白名单：只减不增。条目值 = 允许的最大行数；'
-                     '文件拆到 <=800 行后请移除条目；'
+                     '文件拆到 <=900 行后请移除条目；'
                      '重新生成：py -3 scripts/code_stats.py --init-whitelist'),
         'threshold': THRESHOLD,
         'entries': dict(sorted(entries.items())),
@@ -127,13 +127,13 @@ def report(top):
     rows = collect()
     total = sum(r[0] for r in rows)
     over1000 = [r for r in rows if r[0] > 1000]
-    over800 = [r for r in rows if r[0] > 800]
+    over_thr = [r for r in rows if r[0] > THRESHOLD]
 
     print('%d files, %d lines total' % (len(rows), total))
     print('>1000 lines: %d files (%d lines, %.0f%% of total)'
           % (len(over1000), sum(r[0] for r in over1000),
              100.0 * sum(r[0] for r in over1000) / max(total, 1)))
-    print('>800 lines:  %d files' % len(over800))
+    print('>%d lines:  %d files' % (THRESHOLD, len(over_thr)))
     print()
     print('%8s  %s' % ('lines', 'file'))
     for n, rel in rows[:top]:
