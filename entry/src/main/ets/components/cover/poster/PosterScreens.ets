@@ -1,6 +1,16 @@
 /**
  * 文案海报模板 · 屏幕设备组（1.4.7 P2-1 拆分自 CopyPosterPreview）：
- * T5 LCD 像素屏 / T6 CRT 终端屏 / T8 掌机游戏机；LcdSignalBars/LcdTopBar/LcdBox/LcdSoftBar 为组内局部子构建器。
+ * T5 LCD 像素屏 / T6 CRT 终端屏 / T8 掌机游戏机。
+ * 1.4.6 §2.1.4 根因 D 分层（第二批，同 Festival 批 1 纪律）：设备写真组为流式布局
+ * （内容在设备壳内成列流动），与 Festival 全绝对定位组不同，不适用全画布 Decor/Content
+ * 双 Stack——采用构建器级分层（树形与渲染节点零变化，行为与 1.4.6 完全一致）：
+ *   装饰层（*Icon/*Tag/*BottomBar/*Dpad/*FaceButtons/*SelectStart/*SpeakerGrille/*Dots/
+ *     *Scanlines/*Gloss/*Vignette）：纯图形与固定丝印（BATTERY/PHOSPHOR·80C/SELECT/START
+ *     等），不读 tag/body/sign/bodyLen 任何内容状态；
+ *   内容层（*TopBar/*Box/*SoftBar/*ScreenContent/*BodySlot/*BodyBox/*Header/*ScoreBar）：
+ *     tag/body/sign 槽位 + 空态/截断提示 + 实时计数（字数、SCORE）；
+ *   组合层（LcdPixel/CrtTerminal/HandheldConsole）：设备壳（背景/边框/阴影/3D 旋转）
+ *     按原树组装，暗角统一置顶。
  */
 import { CopyPosterRatio } from '../../../model/CopyPosterModels';
 import { CopyPosterTemplates } from '../../../core/cover/CopyPosterTemplates';
@@ -14,7 +24,7 @@ function glowColor(c: PosterRenderCtx, alphaHex: string): string {
   return alphaHex + c.pal().accent.substring(1);
 }
 
-/** 信号格：4 根递增竖条 */
+/** T5 装饰件：信号格（4 根递增竖条） */
 @Builder
 function LcdSignalBars(c: PosterRenderCtx) {
   Row({ space: c.f(4) }) {
@@ -26,7 +36,49 @@ function LcdSignalBars(c: PosterRenderCtx) {
   .alignItems(VerticalAlign.Bottom)
 }
 
-/** 顶部状态栏：左（信号 + 笔图标 + 标签）右（字数 + 静音 + 电池），辉光文字 */
+/** T5 装饰件：标签笔图标（左上双边框斜置） */
+@Builder
+function LcdPenIcon(c: PosterRenderCtx) {
+  Row()
+    .width(c.f(24))
+    .height(c.f(12))
+    .border({ width: { top: c.f(3.5), left: c.f(3.5) }, color: c.pal().sub })
+    .rotate({ angle: -35 })
+}
+
+/** T5 装饰件：静音图标（喇叭边 + 斜杠） */
+@Builder
+function LcdMuteIcon(c: PosterRenderCtx) {
+  Row({ space: c.f(4) }) {
+    Row()
+      .width(c.f(11))
+      .height(c.f(14))
+      .border({ width: { left: c.f(3), top: c.f(3), bottom: c.f(3) }, color: c.pal().sub })
+    Row().width(c.f(13)).height(c.f(3)).backgroundColor(c.pal().sub).rotate({ angle: 45 })
+  }
+  .alignItems(VerticalAlign.Center)
+}
+
+/** T5 装饰件：电池图标（电芯 + 正极凸点） */
+@Builder
+function LcdBatteryIcon(c: PosterRenderCtx) {
+  Row() {
+    Stack({ alignContent: Alignment.Start }) {
+      Row()
+        .width(c.f(15))
+        .height(c.f(7))
+        .backgroundColor(c.pal().sub)
+        .margin({ left: c.f(3) })
+    }
+    .width(c.f(24))
+    .height(c.f(13))
+    .border({ width: c.f(3), color: c.pal().sub })
+    Row().width(c.f(4)).height(c.f(6)).borderRadius(c.f(1)).backgroundColor(c.pal().sub)
+  }
+  .alignItems(VerticalAlign.Center)
+}
+
+/** T5 内容层·顶部状态栏：左（信号格 + 笔图标 + 标签槽位）右（实时字数 + 静音 + 电池），辉光文字 */
 @Builder
 function LcdTopBar(c: PosterRenderCtx) {
   Row() {
@@ -34,11 +86,7 @@ function LcdTopBar(c: PosterRenderCtx) {
       LcdSignalBars(c)
       if (c.content.tag.trim() !== '') {
         Row({ space: c.f(9) }) {
-          Row()
-            .width(c.f(24))
-            .height(c.f(12))
-            .border({ width: { top: c.f(3.5), left: c.f(3.5) }, color: c.pal().sub })
-            .rotate({ angle: -35 })
+          LcdPenIcon(c)
           Text(c.content.tag)
             .fontSize(c.f(34))
             .fontColor(c.pal().sub)
@@ -57,28 +105,8 @@ function LcdTopBar(c: PosterRenderCtx) {
         .fontColor(c.pal().sub)
         .fontFamily(c.font())
         .textShadow([{ radius: c.f(4), color: glowColor(c, '#B3'), offsetX: 0, offsetY: 0 }])
-      Row({ space: c.f(4) }) {
-        Row()
-          .width(c.f(11))
-          .height(c.f(14))
-          .border({ width: { left: c.f(3), top: c.f(3), bottom: c.f(3) }, color: c.pal().sub })
-        Row().width(c.f(13)).height(c.f(3)).backgroundColor(c.pal().sub).rotate({ angle: 45 })
-      }
-      .alignItems(VerticalAlign.Center)
-      Row() {
-        Stack({ alignContent: Alignment.Start }) {
-          Row()
-            .width(c.f(15))
-            .height(c.f(7))
-            .backgroundColor(c.pal().sub)
-            .margin({ left: c.f(3) })
-        }
-        .width(c.f(24))
-        .height(c.f(13))
-        .border({ width: c.f(3), color: c.pal().sub })
-        Row().width(c.f(4)).height(c.f(6)).borderRadius(c.f(1)).backgroundColor(c.pal().sub)
-      }
-      .alignItems(VerticalAlign.Center)
+      LcdMuteIcon(c)
+      LcdBatteryIcon(c)
     }
     .alignItems(VerticalAlign.Center)
   }
@@ -87,7 +115,7 @@ function LcdTopBar(c: PosterRenderCtx) {
   .alignItems(VerticalAlign.Center)
 }
 
-/** 中央文本框：浅灰底 + 像素点纹理 + 深色正文，左对齐，按长度分档缩字号 */
+/** T5 内容层·中央文本框：浅灰底 + 像素点纹理 + 深色正文，左对齐，按长度分档缩字号 */
 @Builder
 function LcdBox(c: PosterRenderCtx) {
   Column() {
@@ -138,7 +166,7 @@ function LcdBox(c: PosterRenderCtx) {
   .backgroundImageSize({ width: c.f(7), height: c.f(7) })
 }
 
-/** 底部软键行：左软键 + 中间署名（运营商位）+ 右软键 */
+/** T5 内容层·底部软键行：左软键丝印 + 中间署名（运营商位槽位）+ 右软键丝印（流式同行不可拆） */
 @Builder
 function LcdSoftBar(c: PosterRenderCtx) {
   Row() {
@@ -188,7 +216,21 @@ function lcdAngle(c: PosterRenderCtx): number {
   return c.ratioKind === CopyPosterRatio.PORTRAIT ? -5 : -3;
 }
 
-/** LCD 面板整体：状态栏 + 文本框 + 软键 + 暗角，3D 斜拍透视（斜着拍的感觉也要在） */
+/** T5 装饰层·面板暗角（径向渐变，压在内容之上） */
+@Builder
+function LcdVignette(c: PosterRenderCtx) {
+  Column()
+    .width('100%')
+    .height('100%')
+    .radialGradient({
+      center: ['50%', '50%'],
+      radius: '85%',
+      colors: [['#00000000', 0], ['#00000000', 0.42], ['#CC000000', 1]],
+    })
+    .hitTestBehavior(HitTestMode.None)
+}
+
+/** T5 面板整体：装饰件 + 内容槽 + 暗角，3D 斜拍透视（斜着拍的感觉也要在） */
 @Builder
 export function LcdPixel(c: PosterRenderCtx) {
   Column() {
@@ -204,15 +246,7 @@ export function LcdPixel(c: PosterRenderCtx) {
         .justifyContent(FlexAlign.SpaceBetween)
         .padding({ left: c.f(34), right: c.f(34), top: c.f(28), bottom: c.f(26) })
 
-        Column()
-          .width('100%')
-          .height('100%')
-          .radialGradient({
-            center: ['50%', '50%'],
-            radius: '85%',
-            colors: [['#00000000', 0], ['#00000000', 0.42], ['#CC000000', 1]],
-          })
-          .hitTestBehavior(HitTestMode.None)
+        LcdVignette(c)
       }
       .width('100%')
       .backgroundColor(c.pal().grid)
@@ -239,85 +273,162 @@ export function LcdPixel(c: PosterRenderCtx) {
 
 // ---------- T6 CRT 终端屏（米色复古显示器 + 荧光屏） ----------
 
+/** T6 内容层·正文槽：空态 / 注音 / 荧光正文 + 截断提示 */
+@Builder
+function CrtBodySlot(c: PosterRenderCtx) {
+  if (c.content.body.trim() === '') {
+    Text($r('app.string.poster_empty_hint'))
+      .fontSize(c.f(28))
+      .fontColor(c.pal().sub)
+      .fontFamily(c.font())
+      .width('100%')
+      .textAlign(TextAlign.Start)
+  } else if (c.pyEnabled()) {
+    // 可用宽 = 显示器 720 - 壳 padding 44 - 屏 padding 60 = 616
+    PinyinBody(c, c.bodyFont(50, false, 616), c.pal().title, c.pal().sub, false, false, 'soft', '100%')
+  } else {
+    Text(c.content.body)
+      .fontSize(c.bodyFont(50, false, 616))
+      .lineHeight(c.bodyFont(50, false, 616) * 1.5)
+      .fontColor(c.pal().title)
+      .fontFamily(c.font())
+      .maxLines(c.maxBodyLines(false))
+      .textAlign(TextAlign.Start)
+      .textOverflow({ overflow: TextOverflow.Ellipsis })
+      .textShadow([{ radius: c.f(3), color: c.hexA(c.pal().accent, '#B3'), offsetX: 0, offsetY: 0 }])
+      .width('100%')
+    // 1.4.6 根因 C 补缺：T6 此前 maxLines 静默吞字无提示
+    if (c.truncatedHint() > 0 && !c.isThumb) {
+      Text($r('app.string.poster_truncated_hint', c.truncatedHint()))
+        .fontSize(c.f(18))
+        .fontColor(c.pal().sub)
+        .fontFamily(c.font())
+        .opacity(0.75)
+        .width('100%')
+        .textAlign(TextAlign.Start)
+        .maxLines(1)
+    }
+  }
+}
 
+/** T6 内容层·荧光屏内容流：标题行（tag 槽位）+ 荧光分隔线 + 正文槽 + 署名行 */
+@Builder
+function CrtScreenContent(c: PosterRenderCtx) {
+  Column() {
+    Text('C:\\> type ' + (c.content.tag.trim() !== '' ? c.content.tag.trim() : 'quote') + '.txt')
+      .fontSize(c.f(28))
+      .fontColor(c.pal().sub)
+      .fontFamily(c.font())
+      .maxLines(1)
+      .width('100%')
+      .textAlign(TextAlign.Start)
+    Row()
+      .width('100%')
+      .height(c.f(2))
+      .backgroundColor(c.pal().accent)
+      .opacity(0.5)
+      .margin({ top: c.f(12), bottom: c.f(18) })
+    CrtBodySlot(c)
+    Text('> -- ' + (c.content.sign.trim() !== '' ? c.content.sign : '_') + ' ▌')
+      .fontSize(c.f(32))
+      .fontColor(c.pal().sub)
+      .fontFamily(c.font())
+      .maxLines(1)
+      .margin({ top: c.f(20) })
+      .width('100%')
+      .textAlign(TextAlign.Start)
+  }
+  .width('100%')
+  .alignItems(HorizontalAlign.Start)
+  .padding({ left: c.f(30), right: c.f(30), top: c.f(28), bottom: c.f(28) })
+}
+
+/** T6 装饰层·屏面高光（左上斜向渐变） */
+@Builder
+function CrtGloss(c: PosterRenderCtx) {
+  Column()
+    .width('64%')
+    .height('42%')
+    .linearGradient({ angle: 115, colors: [['#17FFFFFF', 0], ['#06FFFFFF', 0.55], ['#00FFFFFF', 1]] })
+    .position({ x: 0, y: 0 })
+    .hitTestBehavior(HitTestMode.None)
+}
+
+/** T6 装饰层·扫描线纹理（纵向重复） */
+@Builder
+function CrtScanlines(c: PosterRenderCtx) {
+  Column()
+    .width('100%')
+    .height('100%')
+    .backgroundImage($r('app.media.poster_crt_scanlines'), ImageRepeat.Y)
+    .backgroundImageSize({ width: c.f(4), height: c.f(4) })
+    .hitTestBehavior(HitTestMode.None)
+}
+
+/** T6 装饰层·机身下控制条：电源灯 + PHOSPHOR·80C 丝印 + 双旋钮 */
+@Builder
+function CrtBottomBar(c: PosterRenderCtx) {
+  Row() {
+    Circle({ width: c.f(12), height: c.f(12) })
+      .fill('#FF4433')
+      .shadow({ radius: c.f(6), color: '#80FF4433' })
+    Text('PHOSPHOR · 80C')
+      .fontSize(c.f(16))
+      .letterSpacing(c.f(5))
+      .fontColor('#8D8471')
+      .layoutWeight(1)
+      .textAlign(TextAlign.Center)
+    Row({ space: c.f(10) }) {
+      Stack({ alignContent: Alignment.Top }) {
+        Row().width(c.f(2)).height(c.f(8)).backgroundColor('#8D8471')
+      }
+      .width(c.f(22))
+      .height(c.f(22))
+      .borderRadius(c.f(11))
+      .backgroundColor('#EFEADE')
+      .shadow({ radius: c.f(3), color: '#4D000000', offsetY: c.f(1) })
+      .rotate({ angle: -30 })
+      Stack({ alignContent: Alignment.Top }) {
+        Row().width(c.f(2)).height(c.f(8)).backgroundColor('#8D8471')
+      }
+      .width(c.f(22))
+      .height(c.f(22))
+      .borderRadius(c.f(11))
+      .backgroundColor('#EFEADE')
+      .shadow({ radius: c.f(3), color: '#4D000000', offsetY: c.f(1) })
+      .rotate({ angle: 20 })
+    }
+    .alignItems(VerticalAlign.Center)
+  }
+  .width('100%')
+  .height(c.f(72))
+  .padding({ left: c.f(8), right: c.f(18) })
+  .alignItems(VerticalAlign.Center)
+}
+
+/** T6 装饰层·画布暗角 */
+@Builder
+function CrtVignette(c: PosterRenderCtx) {
+  Column()
+    .width('100%')
+    .height('100%')
+    .radialGradient({
+      center: ['50%', '50%'],
+      radius: '88%',
+      colors: [['#00000000', 0], ['#00000000', 0.55], ['#B3000000', 1]],
+    })
+    .hitTestBehavior(HitTestMode.None)
+}
+
+/** T6 显示器整体：荧光屏（内容流 + 高光 + 扫描线）+ 控制条，米色壳 3D 斜置 */
 @Builder
 export function CrtTerminal(c: PosterRenderCtx) {
   Stack() {
     Column() {
       Stack() {
-        Column() {
-          Text('C:\\> type ' + (c.content.tag.trim() !== '' ? c.content.tag.trim() : 'quote') + '.txt')
-            .fontSize(c.f(28))
-            .fontColor(c.pal().sub)
-            .fontFamily(c.font())
-            .maxLines(1)
-            .width('100%')
-            .textAlign(TextAlign.Start)
-          Row()
-            .width('100%')
-            .height(c.f(2))
-            .backgroundColor(c.pal().accent)
-            .opacity(0.5)
-            .margin({ top: c.f(12), bottom: c.f(18) })
-          if (c.content.body.trim() === '') {
-            Text($r('app.string.poster_empty_hint'))
-              .fontSize(c.f(28))
-              .fontColor(c.pal().sub)
-              .fontFamily(c.font())
-              .width('100%')
-              .textAlign(TextAlign.Start)
-          } else if (c.pyEnabled()) {
-            // 可用宽 = 显示器 720 - 壳 padding 44 - 屏 padding 60 = 616
-            PinyinBody(c, c.bodyFont(50, false, 616), c.pal().title, c.pal().sub, false, false, 'soft', '100%')
-          } else {
-            Text(c.content.body)
-              .fontSize(c.bodyFont(50, false, 616))
-              .lineHeight(c.bodyFont(50, false, 616) * 1.5)
-              .fontColor(c.pal().title)
-              .fontFamily(c.font())
-              .maxLines(c.maxBodyLines(false))
-              .textAlign(TextAlign.Start)
-              .textOverflow({ overflow: TextOverflow.Ellipsis })
-              .textShadow([{ radius: c.f(3), color: c.hexA(c.pal().accent, '#B3'), offsetX: 0, offsetY: 0 }])
-              .width('100%')
-            // 1.4.6 根因 C 补缺：T6 此前 maxLines 静默吞字无提示
-            if (c.truncatedHint() > 0 && !c.isThumb) {
-              Text($r('app.string.poster_truncated_hint', c.truncatedHint()))
-                .fontSize(c.f(18))
-                .fontColor(c.pal().sub)
-                .fontFamily(c.font())
-                .opacity(0.75)
-                .width('100%')
-                .textAlign(TextAlign.Start)
-                .maxLines(1)
-            }
-          }
-          Text('> -- ' + (c.content.sign.trim() !== '' ? c.content.sign : '_') + ' ▌')
-            .fontSize(c.f(32))
-            .fontColor(c.pal().sub)
-            .fontFamily(c.font())
-            .maxLines(1)
-            .margin({ top: c.f(20) })
-            .width('100%')
-            .textAlign(TextAlign.Start)
-        }
-        .width('100%')
-        .alignItems(HorizontalAlign.Start)
-        .padding({ left: c.f(30), right: c.f(30), top: c.f(28), bottom: c.f(28) })
-
-        Column()
-          .width('64%')
-          .height('42%')
-          .linearGradient({ angle: 115, colors: [['#17FFFFFF', 0], ['#06FFFFFF', 0.55], ['#00FFFFFF', 1]] })
-          .position({ x: 0, y: 0 })
-          .hitTestBehavior(HitTestMode.None)
-
-        Column()
-          .width('100%')
-          .height('100%')
-          .backgroundImage($r('app.media.poster_crt_scanlines'), ImageRepeat.Y)
-          .backgroundImageSize({ width: c.f(4), height: c.f(4) })
-          .hitTestBehavior(HitTestMode.None)
+        CrtScreenContent(c)
+        CrtGloss(c)
+        CrtScanlines(c)
       }
       .width('100%')
       .backgroundColor(c.pal().grid)
@@ -325,42 +436,7 @@ export function CrtTerminal(c: PosterRenderCtx) {
       .clip(true)
       .shadow({ radius: c.f(26), color: c.hexA(c.pal().accent, '#30'), offsetX: 0, offsetY: 0 })
 
-      Row() {
-        Circle({ width: c.f(12), height: c.f(12) })
-          .fill('#FF4433')
-          .shadow({ radius: c.f(6), color: '#80FF4433' })
-        Text('PHOSPHOR · 80C')
-          .fontSize(c.f(16))
-          .letterSpacing(c.f(5))
-          .fontColor('#8D8471')
-          .layoutWeight(1)
-          .textAlign(TextAlign.Center)
-        Row({ space: c.f(10) }) {
-          Stack({ alignContent: Alignment.Top }) {
-            Row().width(c.f(2)).height(c.f(8)).backgroundColor('#8D8471')
-          }
-          .width(c.f(22))
-          .height(c.f(22))
-          .borderRadius(c.f(11))
-          .backgroundColor('#EFEADE')
-          .shadow({ radius: c.f(3), color: '#4D000000', offsetY: c.f(1) })
-          .rotate({ angle: -30 })
-          Stack({ alignContent: Alignment.Top }) {
-            Row().width(c.f(2)).height(c.f(8)).backgroundColor('#8D8471')
-          }
-          .width(c.f(22))
-          .height(c.f(22))
-          .borderRadius(c.f(11))
-          .backgroundColor('#EFEADE')
-          .shadow({ radius: c.f(3), color: '#4D000000', offsetY: c.f(1) })
-          .rotate({ angle: 20 })
-        }
-        .alignItems(VerticalAlign.Center)
-      }
-      .width('100%')
-      .height(c.f(72))
-      .padding({ left: c.f(8), right: c.f(18) })
-      .alignItems(VerticalAlign.Center)
+      CrtBottomBar(c)
     }
     .width(c.f(720))
     .padding({ left: c.f(22), right: c.f(22), top: c.f(22), bottom: c.f(0) })
@@ -377,15 +453,7 @@ export function CrtTerminal(c: PosterRenderCtx) {
       perspective: c.f(1100) * c.density,
     })
 
-    Column()
-      .width('100%')
-      .height('100%')
-      .radialGradient({
-        center: ['50%', '50%'],
-        radius: '88%',
-        colors: [['#00000000', 0], ['#00000000', 0.55], ['#B3000000', 1]],
-      })
-      .hitTestBehavior(HitTestMode.None)
+    CrtVignette(c)
   }
   .width('100%')
   .height('100%')
@@ -394,188 +462,259 @@ export function CrtTerminal(c: PosterRenderCtx) {
 
 // ---------- T8 掌机游戏机（橄榄绿点阵屏） ----------
 
+/** T8 装饰件：电源灯 + BATTERY 丝印 */
+@Builder
+function HandheldBatteryTag(c: PosterRenderCtx) {
+  Row({ space: c.f(5) }) {
+    Circle({ width: c.f(8), height: c.f(8) })
+      .fill('#E33B22')
+      .shadow({ radius: c.f(4), color: '#80FF4433' })
+    Text('BATTERY')
+      .fontSize(c.f(10))
+      .fontColor('#8B909A')
+      .letterSpacing(c.f(1))
+  }
+  .alignItems(VerticalAlign.Center)
+}
+
+/** T8 内容层·顶部机型行：电源丝印（装饰件）+ 型号名（tag 槽位，缺省 POCKET-8） */
+@Builder
+function HandheldHeader(c: PosterRenderCtx) {
+  Row() {
+    HandheldBatteryTag(c)
+    Text(c.content.tag.trim() !== '' ? c.content.tag : 'POCKET-8')
+      .fontSize(c.f(14))
+      .fontColor('#AEB3BD')
+      .letterSpacing(c.f(3))
+      .fontWeight(FontWeight.Bold)
+      .maxLines(1)
+  }
+  .width('100%')
+  .justifyContent(FlexAlign.SpaceBetween)
+  .alignItems(VerticalAlign.Center)
+}
+
+/** T8 内容层·状态行：血量图形（装饰丝印）+ SCORE 实时字数（读 bodyLen） */
+@Builder
+function HandheldScoreBar(c: PosterRenderCtx) {
+  Row() {
+    Text('♥♥♥✦')
+      .fontSize(c.f(20))
+      .fontColor(c.pal().accent)
+      .fontWeight(FontWeight.Bold)
+    Text('SCORE ' + c.bodyLen().toString())
+      .fontSize(c.f(17))
+      .fontColor(c.pal().accent)
+      .fontWeight(FontWeight.Bold)
+  }
+  .width('100%')
+  .justifyContent(FlexAlign.SpaceBetween)
+}
+
+/** T8 内容层·正文框：空态 / 注音 / 点阵正文 + 截断提示 */
+@Builder
+function HandheldBodyBox(c: PosterRenderCtx) {
+  Column() {
+    if (c.content.body.trim() === '') {
+      Text($r('app.string.poster_empty_hint'))
+        .fontSize(c.f(24))
+        .fontColor(c.pal().accent)
+        .fontFamily(c.font())
+        .width('100%')
+        .textAlign(TextAlign.Start)
+    } else if (c.pyEnabled()) {
+      // 可用宽 = 主机 440 - padding 48 - 屏 padding 28 - 边框 6 - 内 padding 28 - 文本框边框 6+padding 26 = 298
+      PinyinBody(c, c.bodyFont(38, false, 298, 5), c.pal().title, c.pal().accent, false, false,
+        'none', '100%')
+    } else {
+      Text(c.content.body)
+        .fontSize(c.bodyFont(38, false, 298, 5))
+        .lineHeight(c.bodyFont(38, false, 298, 5) * 1.55)
+        .fontColor(c.pal().title)
+        .fontFamily(c.font())
+        .maxLines(5)
+        .textAlign(TextAlign.Start)
+        .textOverflow({ overflow: TextOverflow.Ellipsis })
+        .width('100%')
+      if (c.truncatedHint() > 0 && !c.isThumb) {
+        Text($r('app.string.poster_truncated_hint', c.truncatedHint()))
+          .fontSize(c.f(16))
+          .fontColor(c.pal().accent)
+          .fontFamily(c.font())
+          .width('100%')
+          .textAlign(TextAlign.Start)
+          .maxLines(1)
+      }
+    }
+  }
+  .width('100%')
+  .border({ width: c.f(3), color: c.pal().accent })
+  .padding(c.f(13))
+}
+
+/** T8 装饰层·点阵屏纹理 */
+@Builder
+function HandheldDots(c: PosterRenderCtx) {
+  Column()
+    .width('100%')
+    .height('100%')
+    .backgroundImage($r('app.media.poster_lcd_dots'), ImageRepeat.XY)
+    .backgroundImageSize({ width: c.f(6), height: c.f(6) })
+    .hitTestBehavior(HitTestMode.None)
+}
+
+/** T8 屏幕块：点阵屏（状态行 + 正文框 + 署名槽 + 纹理）+ DOT MATRIX 丝印 */
+@Builder
+function HandheldScreen(c: PosterRenderCtx) {
+  Column() {
+    Stack() {
+      Column({ space: c.f(12) }) {
+        HandheldScoreBar(c)
+        HandheldBodyBox(c)
+        if (c.content.sign.trim() !== '') {
+          Text('▶ ' + c.content.sign + ' ▼')
+            .fontSize(c.f(20))
+            .fontColor(c.pal().accent)
+            .fontWeight(FontWeight.Bold)
+            .letterSpacing(c.f(2))
+            .maxLines(1)
+        }
+      }
+      .width('100%')
+      .padding(c.f(14))
+
+      HandheldDots(c)
+    }
+    .width('100%')
+    .backgroundColor(c.pal().grid)
+    .border({ width: c.f(3), color: c.pal().accent })
+    .clip(true)
+
+    Text('DOT MATRIX TEXT SYSTEM')
+      .fontSize(c.f(9))
+      .letterSpacing(c.f(3))
+      .fontColor('#7D828D')
+      .margin({ top: c.f(9) })
+  }
+  .width('100%')
+  .backgroundColor('#171920')
+  .borderRadius({ topLeft: c.f(10), topRight: c.f(10), bottomLeft: c.f(18), bottomRight: c.f(18) })
+  .padding(c.f(14))
+}
+
+/** T8 装饰件：十字方向键 */
+@Builder
+function HandheldDpad(c: PosterRenderCtx) {
+  Stack() {
+    Row().width(c.f(78)).height(c.f(25)).borderRadius(c.f(6)).backgroundColor('#212329')
+    Row().width(c.f(25)).height(c.f(78)).borderRadius(c.f(6)).backgroundColor('#212329')
+    Circle({ width: c.f(19), height: c.f(19) }).fill('#15171B')
+  }
+  .width(c.f(78))
+  .height(c.f(78))
+}
+
+/** T8 装饰件：AB 动作键（斜置） */
+@Builder
+function HandheldFaceButtons(c: PosterRenderCtx) {
+  Row({ space: c.f(13) }) {
+    Column({ space: c.f(5) }) {
+      Circle({ width: c.f(37), height: c.f(37) }).fill('#B04A70')
+      Text('B')
+        .fontSize(c.f(12))
+        .fontColor('#C9CDD6')
+        .fontWeight(FontWeight.Bold)
+    }
+    .alignItems(HorizontalAlign.Center)
+    Column({ space: c.f(5) }) {
+      Circle({ width: c.f(37), height: c.f(37) }).fill('#B04A70')
+      Text('A')
+        .fontSize(c.f(12))
+        .fontColor('#C9CDD6')
+        .fontWeight(FontWeight.Bold)
+    }
+    .alignItems(HorizontalAlign.Center)
+  }
+  .rotate({ angle: -16 })
+  .margin({ right: c.f(4) })
+}
+
+/** T8 装饰件：SELECT / START 键（斜置） */
+@Builder
+function HandheldSelectStart(c: PosterRenderCtx) {
+  Row({ space: c.f(26) }) {
+    Column({ space: c.f(4) }) {
+      Row().width(c.f(34)).height(c.f(10)).borderRadius(c.f(6)).backgroundColor('#212329')
+      Text('SELECT')
+        .fontSize(c.f(9))
+        .fontColor('#AEB3BD')
+        .letterSpacing(c.f(2))
+    }
+    .alignItems(HorizontalAlign.Center)
+    Column({ space: c.f(4) }) {
+      Row().width(c.f(34)).height(c.f(10)).borderRadius(c.f(6)).backgroundColor('#212329')
+      Text('START')
+        .fontSize(c.f(9))
+        .fontColor('#AEB3BD')
+        .letterSpacing(c.f(2))
+    }
+    .alignItems(HorizontalAlign.Center)
+  }
+  .rotate({ angle: -16 })
+}
+
+/** T8 装饰件：扬声器格栅（斜置） */
+@Builder
+function HandheldSpeakerGrille(c: PosterRenderCtx) {
+  Row() {
+    Row({ space: c.f(5) }) {
+      Row().width(c.f(30)).height(c.f(4)).borderRadius(c.f(2)).backgroundColor('#1C1E23')
+      Row().width(c.f(30)).height(c.f(4)).borderRadius(c.f(2)).backgroundColor('#1C1E23')
+      Row().width(c.f(30)).height(c.f(4)).borderRadius(c.f(2)).backgroundColor('#1C1E23')
+      Row().width(c.f(30)).height(c.f(4)).borderRadius(c.f(2)).backgroundColor('#1C1E23')
+      Row().width(c.f(30)).height(c.f(4)).borderRadius(c.f(2)).backgroundColor('#1C1E23')
+    }
+    .rotate({ angle: -28 })
+  }
+  .width('100%')
+  .justifyContent(FlexAlign.End)
+  .padding({ right: c.f(18), bottom: c.f(6) })
+}
+
+/** T8 装饰层·画布暗角 */
+@Builder
+function HandheldVignette(c: PosterRenderCtx) {
+  Column()
+    .width('100%')
+    .height('100%')
+    .radialGradient({
+      center: ['50%', '50%'],
+      radius: '85%',
+      colors: [['#00000000', 0], ['#00000000', 0.5], ['#A6000000', 1]],
+    })
+    .hitTestBehavior(HitTestMode.None)
+}
+
+/** T8 主机整体：机型行 + 屏幕块 + 方向键/动作键 + SELECT/START + 格栅，橄榄壳 3D 斜置 */
 @Builder
 export function HandheldConsole(c: PosterRenderCtx) {
   Stack() {
     Column({ space: c.f(16) }) {
-      Row() {
-        Row({ space: c.f(5) }) {
-          Circle({ width: c.f(8), height: c.f(8) })
-            .fill('#E33B22')
-            .shadow({ radius: c.f(4), color: '#80FF4433' })
-          Text('BATTERY')
-            .fontSize(c.f(10))
-            .fontColor('#8B909A')
-            .letterSpacing(c.f(1))
-        }
-        .alignItems(VerticalAlign.Center)
-        Text(c.content.tag.trim() !== '' ? c.content.tag : 'POCKET-8')
-          .fontSize(c.f(14))
-          .fontColor('#AEB3BD')
-          .letterSpacing(c.f(3))
-          .fontWeight(FontWeight.Bold)
-          .maxLines(1)
-      }
-      .width('100%')
-      .justifyContent(FlexAlign.SpaceBetween)
-      .alignItems(VerticalAlign.Center)
-
-      Column() {
-        Stack() {
-          Column({ space: c.f(12) }) {
-            Row() {
-              Text('♥♥♥✦')
-                .fontSize(c.f(20))
-                .fontColor(c.pal().accent)
-                .fontWeight(FontWeight.Bold)
-              Text('SCORE ' + c.bodyLen().toString())
-                .fontSize(c.f(17))
-                .fontColor(c.pal().accent)
-                .fontWeight(FontWeight.Bold)
-            }
-            .width('100%')
-            .justifyContent(FlexAlign.SpaceBetween)
-
-            Column() {
-              if (c.content.body.trim() === '') {
-                Text($r('app.string.poster_empty_hint'))
-                  .fontSize(c.f(24))
-                  .fontColor(c.pal().accent)
-                  .fontFamily(c.font())
-                  .width('100%')
-                  .textAlign(TextAlign.Start)
-              } else if (c.pyEnabled()) {
-                // 可用宽 = 主机 440 - padding 48 - 屏 padding 28 - 边框 6 - 内 padding 28 - 文本框边框 6+padding 26 = 298
-                PinyinBody(c, c.bodyFont(38, false, 298, 5), c.pal().title, c.pal().accent, false, false,
-                  'none', '100%')
-              } else {
-                Text(c.content.body)
-                  .fontSize(c.bodyFont(38, false, 298, 5))
-                  .lineHeight(c.bodyFont(38, false, 298, 5) * 1.55)
-                  .fontColor(c.pal().title)
-                  .fontFamily(c.font())
-                  .maxLines(5)
-                  .textAlign(TextAlign.Start)
-                  .textOverflow({ overflow: TextOverflow.Ellipsis })
-                  .width('100%')
-                if (c.truncatedHint() > 0 && !c.isThumb) {
-                  Text($r('app.string.poster_truncated_hint', c.truncatedHint()))
-                    .fontSize(c.f(16))
-                    .fontColor(c.pal().accent)
-                    .fontFamily(c.font())
-                    .width('100%')
-                    .textAlign(TextAlign.Start)
-                    .maxLines(1)
-                }
-              }
-            }
-            .width('100%')
-            .border({ width: c.f(3), color: c.pal().accent })
-            .padding(c.f(13))
-
-            if (c.content.sign.trim() !== '') {
-              Text('▶ ' + c.content.sign + ' ▼')
-                .fontSize(c.f(20))
-                .fontColor(c.pal().accent)
-                .fontWeight(FontWeight.Bold)
-                .letterSpacing(c.f(2))
-                .maxLines(1)
-            }
-          }
-          .width('100%')
-          .padding(c.f(14))
-
-          Column()
-            .width('100%')
-            .height('100%')
-            .backgroundImage($r('app.media.poster_lcd_dots'), ImageRepeat.XY)
-            .backgroundImageSize({ width: c.f(6), height: c.f(6) })
-            .hitTestBehavior(HitTestMode.None)
-        }
-        .width('100%')
-        .backgroundColor(c.pal().grid)
-        .border({ width: c.f(3), color: c.pal().accent })
-        .clip(true)
-
-        Text('DOT MATRIX TEXT SYSTEM')
-          .fontSize(c.f(9))
-          .letterSpacing(c.f(3))
-          .fontColor('#7D828D')
-          .margin({ top: c.f(9) })
-      }
-      .width('100%')
-      .backgroundColor('#171920')
-      .borderRadius({ topLeft: c.f(10), topRight: c.f(10), bottomLeft: c.f(18), bottomRight: c.f(18) })
-      .padding(c.f(14))
+      HandheldHeader(c)
+      HandheldScreen(c)
 
       Row() {
-        Stack() {
-          Row().width(c.f(78)).height(c.f(25)).borderRadius(c.f(6)).backgroundColor('#212329')
-          Row().width(c.f(25)).height(c.f(78)).borderRadius(c.f(6)).backgroundColor('#212329')
-          Circle({ width: c.f(19), height: c.f(19) }).fill('#15171B')
-        }
-        .width(c.f(78))
-        .height(c.f(78))
-
-        Row({ space: c.f(13) }) {
-          Column({ space: c.f(5) }) {
-            Circle({ width: c.f(37), height: c.f(37) }).fill('#B04A70')
-            Text('B')
-              .fontSize(c.f(12))
-              .fontColor('#C9CDD6')
-              .fontWeight(FontWeight.Bold)
-          }
-          .alignItems(HorizontalAlign.Center)
-          Column({ space: c.f(5) }) {
-            Circle({ width: c.f(37), height: c.f(37) }).fill('#B04A70')
-            Text('A')
-              .fontSize(c.f(12))
-              .fontColor('#C9CDD6')
-              .fontWeight(FontWeight.Bold)
-          }
-          .alignItems(HorizontalAlign.Center)
-        }
-        .rotate({ angle: -16 })
-        .margin({ right: c.f(4) })
+        HandheldDpad(c)
+        HandheldFaceButtons(c)
       }
       .width('100%')
       .justifyContent(FlexAlign.SpaceBetween)
       .alignItems(VerticalAlign.Center)
       .padding({ left: c.f(4), right: c.f(10) })
 
-      Row({ space: c.f(26) }) {
-        Column({ space: c.f(4) }) {
-          Row().width(c.f(34)).height(c.f(10)).borderRadius(c.f(6)).backgroundColor('#212329')
-          Text('SELECT')
-            .fontSize(c.f(9))
-            .fontColor('#AEB3BD')
-            .letterSpacing(c.f(2))
-        }
-        .alignItems(HorizontalAlign.Center)
-        Column({ space: c.f(4) }) {
-          Row().width(c.f(34)).height(c.f(10)).borderRadius(c.f(6)).backgroundColor('#212329')
-          Text('START')
-            .fontSize(c.f(9))
-            .fontColor('#AEB3BD')
-            .letterSpacing(c.f(2))
-        }
-        .alignItems(HorizontalAlign.Center)
-      }
-      .rotate({ angle: -16 })
+      HandheldSelectStart(c)
 
-      Row() {
-        Row({ space: c.f(5) }) {
-          Row().width(c.f(30)).height(c.f(4)).borderRadius(c.f(2)).backgroundColor('#1C1E23')
-          Row().width(c.f(30)).height(c.f(4)).borderRadius(c.f(2)).backgroundColor('#1C1E23')
-          Row().width(c.f(30)).height(c.f(4)).borderRadius(c.f(2)).backgroundColor('#1C1E23')
-          Row().width(c.f(30)).height(c.f(4)).borderRadius(c.f(2)).backgroundColor('#1C1E23')
-          Row().width(c.f(30)).height(c.f(4)).borderRadius(c.f(2)).backgroundColor('#1C1E23')
-        }
-        .rotate({ angle: -28 })
-      }
-      .width('100%')
-      .justifyContent(FlexAlign.End)
-      .padding({ right: c.f(18), bottom: c.f(6) })
+      HandheldSpeakerGrille(c)
     }
     .width(c.f(440))
     .padding({ left: c.f(24), right: c.f(24), top: c.f(18), bottom: c.f(22) })
@@ -592,15 +731,7 @@ export function HandheldConsole(c: PosterRenderCtx) {
       perspective: c.f(1000) * c.density,
     })
 
-    Column()
-      .width('100%')
-      .height('100%')
-      .radialGradient({
-        center: ['50%', '50%'],
-        radius: '85%',
-        colors: [['#00000000', 0], ['#00000000', 0.5], ['#A6000000', 1]],
-      })
-      .hitTestBehavior(HitTestMode.None)
+    HandheldVignette(c)
   }
   .width('100%')
   .height('100%')
