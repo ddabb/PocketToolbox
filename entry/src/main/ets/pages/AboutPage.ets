@@ -1,6 +1,6 @@
 import { bundleManager, common } from '@kit.AbilityKit';
 import { GifHistoryStore, formatGifBytes } from '../core/gif/GifHistoryStore';
-import { CheckInReminderUtil } from '../common/utils/CheckInReminderUtil';
+import { CheckInReminderUtil, ReminderEnableStatus } from '../common/utils/CheckInReminderUtil';
 import { ToastUtil } from '../common/utils/ToastUtil';
 
 @Builder
@@ -34,18 +34,23 @@ struct AboutContent {
 
   private onReminderToggle(on: boolean): void {
     if (on) {
+      this.reminderOn = true;
       let ctx: common.UIAbilityContext = this.uiContext.getHostContext() as common.UIAbilityContext;
-      CheckInReminderUtil.enable(ctx).then((ok: boolean) => {
-        if (ok) {
+      CheckInReminderUtil.enable(ctx).then((status: ReminderEnableStatus) => {
+        if (status === ReminderEnableStatus.OK) {
           this.reminderOn = true;
         } else {
           this.reminderOn = false;
-          ToastUtil.show(this.uiContext, $r('app.string.reminder_enable_fail'), 2500);
+          if (status === ReminderEnableStatus.NO_QUOTA) {
+            ToastUtil.show(this.uiContext, $r('app.string.reminder_no_quota'), 2500);
+          } else {
+            ToastUtil.show(this.uiContext, $r('app.string.reminder_enable_fail'), 2500);
+          }
         }
       });
     } else {
-      let ctx: Context = this.uiContext.getHostContext() as Context;
       this.reminderOn = false;
+      let ctx: Context = this.uiContext.getHostContext() as Context;
       CheckInReminderUtil.disable(ctx);
     }
   }
@@ -134,6 +139,9 @@ struct AboutContent {
 
               Toggle({ type: ToggleType.Switch, isOn: this.reminderOn })
                 .onChange((isOn: boolean) => {
+                  if (isOn === this.reminderOn) {
+                    return;
+                  }
                   this.onReminderToggle(isOn);
                 })
             }

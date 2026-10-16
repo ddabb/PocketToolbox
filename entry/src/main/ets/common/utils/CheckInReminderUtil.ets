@@ -7,12 +7,25 @@
  * 3. 发布仍报 1700002 时兜底：cancelAllReminders 清空本应用全部提醒后重试一次（自愈旧版无
  *    groupId 的残留；副作用是同应用的其他代理提醒会被一并清掉，其开关状态由下次开关周期重新同步）；
  * 4. enable 失败时页面层 toast 提示（reminder_enable_fail），不再静默弹回。
+ *
+ * 2026-10-17 诊断（模拟器 API24 实证 + 官方错误码文档）：
+ * publishReminder 报 1700002 且 getValidReminders()===0、清空重发仍 1700002，
+ * 为官方定义的「无代理提醒配额」状态（应用未获 AGC「代理提醒」开放能力授权时配额视为 0），
+ * 与本地残留无关（重启/卸载重装均无效）；授权通过后需重新生成 Profile 并重新签名才生效。
+ * enable() 对该场景返回 NO_QUOTA，页面层提示 reminder_no_quota（不再误导用户去检查通知设置）。
  */
 import { reminderAgentManager } from '@kit.BackgroundTasksKit';
 import { notificationManager } from '@kit.NotificationKit';
 import { preferences } from '@kit.ArkData';
 import { Context, common } from '@kit.AbilityKit';
 import { BusinessError } from '@kit.BasicServicesKit';
+
+export enum ReminderEnableStatus {
+  OK = 0,
+  NOTIFICATION_DISABLED = 1,
+  NO_QUOTA = 2,
+  FAILED = 3
+}
 
 export class CheckInReminderUtil {
   private static readonly PREFS_NAME: string = 'app_cache';
@@ -34,7 +47,7 @@ export class CheckInReminderUtil {
     }
   }
 
-  static async enable(context: common.UIAbilityContext): Promise<boolean> {
+  static async enable(context: common.UIAbilityContext): Promise<ReminderEnableStatus> {
     let enabled: boolean = false;
     try {
       enabled = notificationManager.isNotificationEnabledSync();
@@ -51,7 +64,7 @@ export class CheckInReminderUtil {
         } catch (e2) {
           console.warn('[CheckInReminder] openNotificationSettings failed: ' + (e2 as Error).message);
         }
-        return false;
+        return ReminderEnableStatus.NOTIFICATION_DISABLED;
       }
     }
     let wantAgentInfo: reminderAgentManager.WantAgent = {
@@ -80,7 +93,7 @@ export class CheckInReminderUtil {
       let reminderId: number = await reminderAgentManager.publishReminder(alarm);
       CheckInReminderUtil.saveState(context, true, reminderId);
       console.info('[CheckInReminder] published reminder id=' + reminderId.toString());
-      return true;
+      return ReminderEnableStatus.OK;
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[CheckInReminder] publishReminder failed: ' + err.code.toString() + ' ' + err.message);
@@ -90,13 +103,17 @@ export class CheckInReminderUtil {
           let reminderId: number = await reminderAgentManager.publishReminder(alarm);
           CheckInReminderUtil.saveState(context, true, reminderId);
           console.warn('[CheckInReminder] quota full, wiped all reminders and republished id=' + reminderId.toString());
-          return true;
+          return ReminderEnableStatus.OK;
         } catch (e2) {
-          console.error('[CheckInReminder] republish after wipe failed: ' + (e2 as BusinessError).message);
-          return false;
+          let err2: BusinessError = e2 as BusinessError;
+          console.error('[CheckInReminder] republish after wipe failed: ' + err2.code.toString() + ' ' + err2.message);
+          if (err2.code === CheckInReminderUtil.ERR_QUOTA) {
+            return ReminderEnableStatus.NO_QUOTA;
+          }
+          return ReminderEnableStatus.FAILED;
         }
       }
-      return false;
+      return ReminderEnableStatus.FAILED;
     }
   }
 

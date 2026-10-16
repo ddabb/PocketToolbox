@@ -1933,6 +1933,10 @@
       "value": "Failed to enable the reminder. Please check notification settings and try again"
     },
     {
+      "name": "reminder_no_quota",
+      "value": "Daily reminders are not supported on this device"
+    },
+    {
       "name": "about_gif_history",
       "value": "GIF History"
     },

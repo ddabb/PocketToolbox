@@ -1933,6 +1933,10 @@
       "value": "提醒開啓失敗，請檢查通知設定後重試"
     },
     {
+      "name": "reminder_no_quota",
+      "value": "當前設備暫不支援每日提醒"
+    },
+    {
       "name": "about_gif_history",
       "value": "GIF 製作歷史"
     },
