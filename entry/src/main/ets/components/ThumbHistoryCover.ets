@@ -3,6 +3,12 @@
  *
  * 由页面通过 bindContentCover 挂载，展示 ThumbHistoryStore 中的记录：
  * 缩略图 + 摘要 + 时间，支持恢复参数与删除单条记录。
+ *
+ * 接入约定（缺一不可，否则弹层打开期间列表不刷新、退出重进才生效）：
+ * 1. 页面侧 bindContentCover 传入的 @Builder 根节点必须是内置 UI 节点（Column）：
+ *    Builder 根为自定义组件时该组件会被框架跳过，其状态变量全部失效，只渲染挂载时的值；
+ * 2. records 用 @Link 与页面 @State 建立属性级直接双向绑定：@Prop 是挂载时的一次性深拷贝，
+ *    页面后续重赋值同步不到弹层内容；@Link 不依赖页面重新渲染，删除/保存后列表实时刷新。
  */
 import { ThumbHistoryRecord, ThumbHistoryStore } from '../core/history/ThumbHistoryStore';
 import { fileUri } from '@kit.CoreFileKit';
@@ -10,7 +16,7 @@ import { common } from '@kit.AbilityKit';
 
 @Component
 export struct ThumbHistoryCover {
-  @Prop records: ThumbHistoryRecord[] = [];
+  @Link records: ThumbHistoryRecord[];
   @Prop dirName: string = '';
   onRestore: (record: ThumbHistoryRecord) => void = (record: ThumbHistoryRecord) => {};
   onDelete: (record: ThumbHistoryRecord) => void = (record: ThumbHistoryRecord) => {};

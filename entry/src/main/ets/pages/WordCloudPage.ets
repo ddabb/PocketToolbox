@@ -306,19 +306,18 @@ struct WordCloudContent {
 
   @Builder
   HistoryCoverView() {
-    ThumbHistoryCover({
-      records: this.historyRecords,
-      dirName: this.HISTORY_DIR,
-      onRestore: (record: ThumbHistoryRecord) => {
-        this.restoreFromHistory(record);
-      },
-      onDelete: (record: ThumbHistoryRecord) => {
-        this.deleteHistoryRecord(record);
-      },
-      onClose: () => {
-        this.showHistoryCover = false;
-      }
-    })
+    // 弹层 Builder 根节点须为内置 UI 节点：自定义组件作根会被框架跳过、其状态变量失效
+    Column() {
+      ThumbHistoryCover({
+        records: this.historyRecords,
+        dirName: this.HISTORY_DIR,
+        onRestore: (record: ThumbHistoryRecord) => this.restoreFromHistory(record),
+        onDelete: (record: ThumbHistoryRecord) => this.deleteHistoryRecord(record),
+        onClose: () => { this.showHistoryCover = false; }
+      })
+    }
+    .width('100%')
+    .height('100%')
   }
 
   @Builder
