@@ -1,6 +1,8 @@
 /**
  * 文案海报模板 · 节令风物组（1.4.7 P2-1 拆分自 CopyPosterPreview）：
  * T16 二十四节气卡 / T17 节日祝福卡 / T18 红包对联风；FestStar/CoupletCoin/CoupletCorner 为组内局部子构建器。
+ * 1.4.6 根因 D 分层（第二批，同 T7 NeonDecor/NeonContent 样板）：每模板拆装饰层（纯图形 + HitTestMode.None，
+ * isThumb 精简逻辑收拢于此）+ 内容层（tag/body/sign 槽位 + 截断提示），组合层仅三层堆叠，行为零变化。
  */
 import { CopyPosterRatio } from '../../../model/CopyPosterModels';
 import { PosterRenderCtx } from './PosterRenderCtx';
@@ -42,8 +44,9 @@ function solarLayout(c: PosterRenderCtx): PosterVerticalLayout {
     1.30, 463, 1.63);
 }
 
+/** T16 装饰层：顶光渐变 / 双层边框 / 四角菱形 / 正文分隔线，不含任何文案 */
 @Builder
-export function SolarTerm(c: PosterRenderCtx) {
+function SolarTermDecor(c: PosterRenderCtx) {
   Stack() {
     Column()
       .width('100%')
@@ -82,6 +85,25 @@ export function SolarTerm(c: PosterRenderCtx) {
         .position({ x: c.previewWidth - c.posX(64) - c.posX(14), y: c.h() - c.posY(64) - c.f(14) })
     }
 
+    Column()
+      .width(c.f(1.6))
+      .height(c.h() - c.fy(135) - c.f(135))
+      .linearGradient({
+        angle: 180,
+        colors: [[c.hexA(c.pal().grid, '00'), 0], [c.pal().grid, 0.18],
+          [c.pal().grid, 0.82], [c.hexA(c.pal().grid, '00'), 1]],
+      })
+      .position({ x: c.posX(270), y: c.posY(135) })
+  }
+  .width('100%')
+  .height('100%')
+  .hitTestBehavior(HitTestMode.None)
+}
+
+/** T16 内容层：节气名竖排列 / 竖排正文 / 署名 / 节气歌，字号交由内核计算 */
+@Builder
+function SolarTermContent(c: PosterRenderCtx) {
+  Stack() {
     Column({ space: c.f(29) }) {
       if (termCharCount(c) > 0) {
         Text(vertChars(c.content.tag).join('\n'))
@@ -119,16 +141,6 @@ export function SolarTerm(c: PosterRenderCtx) {
     }
     .alignItems(HorizontalAlign.Center)
     .position({ x: c.posX(119), y: c.posY(148) })
-
-    Column()
-      .width(c.f(1.6))
-      .height(c.h() - c.fy(135) - c.f(135))
-      .linearGradient({
-        angle: 180,
-        colors: [[c.hexA(c.pal().grid, '00'), 0], [c.pal().grid, 0.18],
-          [c.pal().grid, 0.82], [c.hexA(c.pal().grid, '00'), 1]],
-      })
-      .position({ x: c.posX(270), y: c.posY(135) })
 
     Column() {
       if (c.content.body.trim() === '') {
@@ -197,6 +209,16 @@ export function SolarTerm(c: PosterRenderCtx) {
     .justifyContent(FlexAlign.Center)
     .width('100%')
     .position({ x: 0, y: c.h() - c.f(102) })
+  }
+  .width('100%')
+  .height('100%')
+}
+
+@Builder
+export function SolarTerm(c: PosterRenderCtx) {
+  Stack() {
+    SolarTermDecor(c)
+    SolarTermContent(c)
 
     Column()
       .width('100%')
@@ -234,8 +256,9 @@ function festBodyLines(c: PosterRenderCtx): number {
   return c.ratioKind === CopyPosterRatio.SQUARE ? 3 : 4;
 }
 
+/** T17 装饰层：星点 / 月晕 / 圆月 / 月环 / 云带 / 远山剪影，不含任何文案 */
 @Builder
-export function FestivalGreet(c: PosterRenderCtx) {
+function FestivalGreetDecor(c: PosterRenderCtx) {
   Stack() {
     // 星点：96px 下直径不足 2px，与圆环混成噪点，缩略图模式只保留 3 颗大星（1.4.5 P2-6）
     if (c.isThumb) {
@@ -314,7 +337,16 @@ export function FestivalGreet(c: PosterRenderCtx) {
         0.26, 0.52, 0.52, 0.86, 0.76, 0.22))
       .fill(c.hexA('#05070D', 'CC'))
       .position({ x: c.previewWidth - c.posX(466), y: c.h() - c.posY(119) - c.f(154) })
+  }
+  .width('100%')
+  .height('100%')
+  .hitTestBehavior(HitTestMode.None)
+}
 
+/** T17 内容层：tag 胶囊 / 祝福正文 / 题注 / 署名，字号交由内核计算 */
+@Builder
+function FestivalGreetContent(c: PosterRenderCtx) {
+  Stack() {
     if (c.content.tag.trim() !== '') {
       Column() {
         Text(c.content.tag)
@@ -394,6 +426,16 @@ export function FestivalGreet(c: PosterRenderCtx) {
         .textAlign(TextAlign.Center)
         .position({ x: 0, y: c.h() - c.posY(96) })
     }
+  }
+  .width('100%')
+  .height('100%')
+}
+
+@Builder
+export function FestivalGreet(c: PosterRenderCtx) {
+  Stack() {
+    FestivalGreetDecor(c)
+    FestivalGreetContent(c)
 
     Column()
       .width('100%')
@@ -455,8 +497,9 @@ function CoupletCorner(c: PosterRenderCtx, xVp: number, yVp: number, align: Alig
   .position({ x: xVp, y: yVp })
 }
 
+/** T18 装饰层：铜钱团花 / 双层金框 / 四角描金纹 / 对联垂线坠点，不含任何文案 */
 @Builder
-export function RedCouplet(c: PosterRenderCtx) {
+function RedCoupletDecor(c: PosterRenderCtx) {
   Stack() {
     // 铜钱团花：96px 下直径约 4px，5 枚连排糊成噪点，缩略图只留 2 枚大纹（1.4.5 P2-6）
     if (c.isThumb) {
@@ -493,25 +536,6 @@ export function RedCouplet(c: PosterRenderCtx) {
         Alignment.BottomEnd)
     }
 
-    if (c.content.tag.trim() !== '') {
-      Column() {
-        Text(c.content.tag)
-          .fontSize(c.f(38))
-          .fontWeight(FontWeight.Bold)
-          .fontColor(c.pal().title)
-          .fontFamily(c.font())
-          .letterSpacing(c.f(19))
-          .maxLines(1)
-          .padding({ left: c.f(48) + c.f(19), right: c.f(48), top: c.f(14), bottom: c.f(14) })
-          .backgroundColor(c.pal().block)
-          .border({ width: c.f(2.4), color: c.pal().accent })
-          .shadow({ radius: c.f(26), color: '#59000000', offsetY: c.f(6) })
-      }
-      .width('100%')
-      .alignItems(HorizontalAlign.Center)
-      .position({ x: 0, y: c.posY(87) })
-    }
-
     Column()
       .width(c.f(2.4))
       .height(c.h() - c.fy(225) - c.fy(161))
@@ -543,6 +567,34 @@ export function RedCouplet(c: PosterRenderCtx) {
     Circle({ width: c.f(16), height: c.f(16) }).fill(c.pal().accent)
       .shadow({ radius: c.f(8), color: '#66000000', offsetY: c.f(2) })
       .position({ x: c.previewWidth - c.posX(212) - c.posX(1.2) - c.posX(8), y: c.h() - c.posY(161) + c.f(3) })
+  }
+  .width('100%')
+  .height('100%')
+  .hitTestBehavior(HitTestMode.None)
+}
+
+/** T18 内容层：横批 / 竖排正文 / 署名 / 题注，字号交由内核计算 */
+@Builder
+function RedCoupletContent(c: PosterRenderCtx) {
+  Stack() {
+    if (c.content.tag.trim() !== '') {
+      Column() {
+        Text(c.content.tag)
+          .fontSize(c.f(38))
+          .fontWeight(FontWeight.Bold)
+          .fontColor(c.pal().title)
+          .fontFamily(c.font())
+          .letterSpacing(c.f(19))
+          .maxLines(1)
+          .padding({ left: c.f(48) + c.f(19), right: c.f(48), top: c.f(14), bottom: c.f(14) })
+          .backgroundColor(c.pal().block)
+          .border({ width: c.f(2.4), color: c.pal().accent })
+          .shadow({ radius: c.f(26), color: '#59000000', offsetY: c.f(6) })
+      }
+      .width('100%')
+      .alignItems(HorizontalAlign.Center)
+      .position({ x: 0, y: c.posY(87) })
+    }
 
     Column() {
       if (c.content.body.trim() === '') {
@@ -607,6 +659,16 @@ export function RedCouplet(c: PosterRenderCtx) {
       .width('100%')
       .textAlign(TextAlign.Center)
       .position({ x: 0, y: c.h() - c.posY(93) })
+  }
+  .width('100%')
+  .height('100%')
+}
+
+@Builder
+export function RedCouplet(c: PosterRenderCtx) {
+  Stack() {
+    RedCoupletDecor(c)
+    RedCoupletContent(c)
 
     Column()
       .width('100%')
