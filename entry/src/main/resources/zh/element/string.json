@@ -4377,6 +4377,34 @@
       "value": "标签"
     },
     {
+      "name": "poster_slot_couplet_up",
+      "value": "上联"
+    },
+    {
+      "name": "poster_slot_couplet_down",
+      "value": "下联"
+    },
+    {
+      "name": "poster_slot_banner",
+      "value": "横批"
+    },
+    {
+      "name": "poster_slot_chat_peer",
+      "value": "对方昵称"
+    },
+    {
+      "name": "poster_slot_chat_reply",
+      "value": "我方回复"
+    },
+    {
+      "name": "poster_slot_chat_msg",
+      "value": "消息内容"
+    },
+    {
+      "name": "poster_slot_solar_term",
+      "value": "节气名"
+    },
+    {
       "name": "poster_body_hint",
       "value": "输入主文案…"
     },

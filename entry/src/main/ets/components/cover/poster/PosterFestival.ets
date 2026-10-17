@@ -464,6 +464,31 @@ function coupletLayout(c: PosterRenderCtx): PosterVerticalLayout {
     1.36, 476, 1.90);
 }
 
+/** 1.4.8 上下联内核：各单列竖排（右=上联 左=下联），字号取两联较小值保持对称 */
+function coupletUpLayout(c: PosterRenderCtx): PosterVerticalLayout {
+  let dh: number = CopyPosterRatio.designHeight(c.ratioKind);
+  return PosterTypeset.layoutVertical(c.content.coupletUp, dh * 488 / 900, 1, 70, false,
+    1.36, 476, 1.90);
+}
+
+function coupletDownLayout(c: PosterRenderCtx): PosterVerticalLayout {
+  let dh: number = CopyPosterRatio.designHeight(c.ratioKind);
+  return PosterTypeset.layoutVertical(c.content.coupletDown, dh * 488 / 900, 1, 70, false,
+    1.36, 476, 1.90);
+}
+
+function coupletPairFontPx(c: PosterRenderCtx): number {
+  return Math.min(coupletUpLayout(c).fontPx, coupletDownLayout(c).fontPx);
+}
+
+function coupletPairTruncated(c: PosterRenderCtx): number {
+  return coupletUpLayout(c).truncatedChars + coupletDownLayout(c).truncatedChars;
+}
+
+function coupletColText(l: PosterVerticalLayout): string {
+  return l.columns.length > 0 ? l.columns[0].join('\n') : '';
+}
+
 @Builder
 function CoupletCoin(c: PosterRenderCtx, xVp: number, yVp: number) {
   Stack({ alignContent: Alignment.Center }) {
@@ -597,7 +622,40 @@ function RedCoupletContent(c: PosterRenderCtx) {
     }
 
     Column() {
-      if (c.content.body.trim() === '') {
+      if (c.content.coupletUp.trim() !== '' || c.content.coupletDown.trim() !== '') {
+        // 1.4.8 上下联双列：Row 左->右为 [下联, 上联]，即上联居右（传统右起阅读序）
+        Row({ space: c.f(coupletPairFontPx(c) * 1.8) }) {
+          if (c.content.coupletDown.trim() !== '') {
+            Text(coupletColText(coupletDownLayout(c)))
+              .fontSize(c.f(coupletPairFontPx(c)))
+              .lineHeight(c.f(coupletPairFontPx(c) * 1.36))
+              .fontWeight(FontWeight.Bold)
+              .fontColor(c.pal().title)
+              .fontFamily(c.font())
+              .textAlign(TextAlign.Center)
+              .shadow({ radius: c.f(16), color: '#66000000', offsetY: c.f(3) })
+          }
+          if (c.content.coupletUp.trim() !== '') {
+            Text(coupletColText(coupletUpLayout(c)))
+              .fontSize(c.f(coupletPairFontPx(c)))
+              .lineHeight(c.f(coupletPairFontPx(c) * 1.36))
+              .fontWeight(FontWeight.Bold)
+              .fontColor(c.pal().title)
+              .fontFamily(c.font())
+              .textAlign(TextAlign.Center)
+              .shadow({ radius: c.f(16), color: '#66000000', offsetY: c.f(3) })
+          }
+        }
+        .alignItems(VerticalAlign.Top)
+        if (coupletPairTruncated(c) > 0 && !c.isThumb) {
+          Text($r('app.string.poster_truncated_hint', coupletPairTruncated(c)))
+            .fontSize(c.f(18))
+            .fontColor(c.hexA(c.pal().title, 'B3'))
+            .fontFamily(c.font())
+            .opacity(0.75)
+            .maxLines(1)
+        }
+      } else if (c.content.body.trim() === '') {
         Text($r('app.string.poster_empty_hint'))
           .fontSize(c.f(30))
           .fontColor(c.hexA(c.pal().title, 'CC'))

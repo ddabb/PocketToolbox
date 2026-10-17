@@ -12,7 +12,7 @@
  * 分类导航见 model/CopyPosterModels.ets 的 CopyPosterCategories（1.4.5 优化新增）
  */
 import { CoverPalette } from '../../model/CoverModels';
-import { CopyPosterTemplate } from '../../model/CopyPosterModels';
+import { CopyPosterTemplate, CopyPosterSlotDef } from '../../model/CopyPosterModels';
 import { CoverFont } from './CoverTemplates';
 
 export class CopyPosterTemplates {
@@ -368,7 +368,10 @@ export class CopyPosterTemplates {
           '#0E4A3A', '#072A20', '#D9B84E'),
       ],
       [CoverFont.HUANG_YOU, CoverFont.XIAO_WEI, CoverFont.FEI_BAI, CoverFont.MA_SHAN, CoverFont.HANI_SANS],
-      { 'body': '岁岁平安，万事胜意', 'sign': '随身工具宝', 'tag': '新春大吉' }, false));
+      { 'body': '岁岁平安，万事胜意', 'coupletUp': '岁岁平安福常在', 'coupletDown': '年年顺意喜盈门',
+        'sign': '随身工具宝', 'tag': '新春大吉' }, false,
+      [CopyPosterSlotDef.of('coupletUp', $r('app.string.poster_slot_couplet_up'), 14),
+        CopyPosterSlotDef.of('coupletDown', $r('app.string.poster_slot_couplet_down'), 14)]));
 
     // ---------- T19 撕纸拼贴（大字金句 · 手撕纸 + 胶带） ----------
     // 配色字段约定：bg=桌面底色 accent=强调/胶带 title=纸面墨色 sub=次要墨色 block=纸面块色 grid=胶带色

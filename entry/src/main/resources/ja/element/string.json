@@ -4377,6 +4377,34 @@
       "value": "タグ"
     },
     {
+      "name": "poster_slot_couplet_up",
+      "value": "上聯"
+    },
+    {
+      "name": "poster_slot_couplet_down",
+      "value": "下聯"
+    },
+    {
+      "name": "poster_slot_banner",
+      "value": "横批"
+    },
+    {
+      "name": "poster_slot_chat_peer",
+      "value": "相手の名前"
+    },
+    {
+      "name": "poster_slot_chat_reply",
+      "value": "自分の返信"
+    },
+    {
+      "name": "poster_slot_chat_msg",
+      "value": "メッセージ"
+    },
+    {
+      "name": "poster_slot_solar_term",
+      "value": "節気名"
+    },
+    {
       "name": "poster_body_hint",
       "value": "メインテキストを入力…"
     },

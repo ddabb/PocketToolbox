@@ -4377,6 +4377,34 @@
       "value": "標籤"
     },
     {
+      "name": "poster_slot_couplet_up",
+      "value": "上聯"
+    },
+    {
+      "name": "poster_slot_couplet_down",
+      "value": "下聯"
+    },
+    {
+      "name": "poster_slot_banner",
+      "value": "橫批"
+    },
+    {
+      "name": "poster_slot_chat_peer",
+      "value": "對方暱稱"
+    },
+    {
+      "name": "poster_slot_chat_reply",
+      "value": "我方回覆"
+    },
+    {
+      "name": "poster_slot_chat_msg",
+      "value": "訊息內容"
+    },
+    {
+      "name": "poster_slot_solar_term",
+      "value": "節氣名"
+    },
+    {
       "name": "poster_body_hint",
       "value": "輸入主文案…"
     },

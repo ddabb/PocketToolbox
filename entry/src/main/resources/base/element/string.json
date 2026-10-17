@@ -4377,6 +4377,34 @@
       "value": "Tag"
     },
     {
+      "name": "poster_slot_couplet_up",
+      "value": "Upper line"
+    },
+    {
+      "name": "poster_slot_couplet_down",
+      "value": "Lower line"
+    },
+    {
+      "name": "poster_slot_banner",
+      "value": "Banner"
+    },
+    {
+      "name": "poster_slot_chat_peer",
+      "value": "Peer name"
+    },
+    {
+      "name": "poster_slot_chat_reply",
+      "value": "Your reply"
+    },
+    {
+      "name": "poster_slot_chat_msg",
+      "value": "Message"
+    },
+    {
+      "name": "poster_slot_solar_term",
+      "value": "Solar term"
+    },
+    {
       "name": "poster_body_hint",
       "value": "Enter the main text…"
     },

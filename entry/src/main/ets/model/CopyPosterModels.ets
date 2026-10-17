@@ -9,6 +9,24 @@ export class CopyPosterSlot {
   static readonly BODY: string = 'body';
   static readonly SIGN: string = 'sign';
   static readonly TAG: string = 'tag';
+  /** 1.4.8 T18 对联定制槽位（id 与 CopyPosterContent 字段名一致） */
+  static readonly COUPLET_UP: string = 'coupletUp';
+  static readonly COUPLET_DOWN: string = 'coupletDown';
+}
+
+/** 定制槽位定义（1.4.8：模板声明的额外输入控件，如 T18 对联的上联/下联） */
+export class CopyPosterSlotDef {
+  id: string = '';
+  label: ResourceStr = '';
+  maxLen: number = 20;
+
+  static of(id: string, label: ResourceStr, maxLen: number): CopyPosterSlotDef {
+    let d: CopyPosterSlotDef = new CopyPosterSlotDef();
+    d.id = id;
+    d.label = label;
+    d.maxLen = maxLen;
+    return d;
+  }
 }
 
 /** 导出比例：1:1（1080x1080）/ 3:4（1080x1440）/ 9:16 长图（1080x1920） */
@@ -59,6 +77,10 @@ export class CopyPosterContent {
   body: string = '';
   sign: string = '';
   tag: string = '';
+  /** T18 对联上联（1.4.8 定制槽位，旧记录缺省 '' 兼容） */
+  coupletUp: string = '';
+  /** T18 对联下联 */
+  coupletDown: string = '';
   /** 水印开关（随历史存储，旧记录缺省 false 兼容） */
   watermarkOn: boolean = false;
   /** 水印文字（清空则不渲染） */
@@ -69,6 +91,8 @@ export class CopyPosterContent {
     c.body = this.body;
     c.sign = this.sign;
     c.tag = this.tag;
+    c.coupletUp = this.coupletUp;
+    c.coupletDown = this.coupletDown;
     c.watermarkOn = this.watermarkOn;
     c.watermarkText = this.watermarkText;
     return c;
@@ -79,6 +103,8 @@ export class CopyPosterContent {
       'body': this.body,
       'sign': this.sign,
       'tag': this.tag,
+      'coupletUp': this.coupletUp,
+      'coupletDown': this.coupletDown,
       'watermarkOn': this.watermarkOn,
       'watermarkText': this.watermarkText,
     };
@@ -92,6 +118,8 @@ export class CopyPosterContent {
       c.body = String(r['body'] ?? '');
       c.sign = String(r['sign'] ?? '');
       c.tag = String(r['tag'] ?? '');
+      c.coupletUp = String(r['coupletUp'] ?? '');
+      c.coupletDown = String(r['coupletDown'] ?? '');
       c.watermarkOn = r['watermarkOn'] === true;
       c.watermarkText = String(r['watermarkText'] ?? '');
     } catch (e) {
@@ -210,9 +238,12 @@ export class CopyPosterTemplate {
   defaults: Record<string, string> = {};
   /** 是否支持主文案拼音注音（固定构图模板传 false 隐藏注音开关） */
   supportsPinyin: boolean = true;
+  /** 定制输入槽位（非空时页面隐藏主文案输入与换一句，渲染定制输入） */
+  customSlots: CopyPosterSlotDef[] = [];
 
   static of(id: string, name: ResourceStr, layout: string, slots: string[], palettes: CoverPalette[],
-    fonts: string[], defaults: Record<string, string>, supportsPinyin: boolean = true): CopyPosterTemplate {
+    fonts: string[], defaults: Record<string, string>, supportsPinyin: boolean = true,
+    customSlots: CopyPosterSlotDef[] = []): CopyPosterTemplate {
     let t: CopyPosterTemplate = new CopyPosterTemplate();
     t.id = id;
     t.name = name;
@@ -222,6 +253,7 @@ export class CopyPosterTemplate {
     t.fonts = fonts;
     t.defaults = defaults;
     t.supportsPinyin = supportsPinyin;
+    t.customSlots = customSlots;
     return t;
   }
 }
