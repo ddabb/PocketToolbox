@@ -800,95 +800,95 @@
       "name": "poster_truncated_hint",
       "value": "%d文字を省略しました"
     },
-        {
+    {
       "name": "poster_cat_simple",
       "value": "シンプル"
     },
-        {
+    {
       "name": "poster_cat_bold",
       "value": "ビッグキャッチー"
     },
-        {
+    {
       "name": "poster_cat_tech",
       "value": "レトロテック"
     },
-        {
+    {
       "name": "poster_cat_life",
       "value": "日常の質感"
     },
-        {
+    {
       "name": "poster_cat_festival",
       "value": "祝祭・年中行事"
     },
-        {
+    {
       "name": "poster_tmpl_t19",
       "value": "引き裂き和紙"
     },
-        {
+    {
       "name": "poster_tmpl_t20",
       "value": "縦書き引用"
     },
-        {
+    {
       "name": "poster_tmpl_t21",
       "value": "カラーブロック"
     },
-        {
+    {
       "name": "tmpl_pal_kraft_desk",
       "value": "クラフト机"
     },
-        {
+    {
       "name": "tmpl_pal_slate_blue",
       "value": "スレートブルー"
     },
-        {
+    {
       "name": "tmpl_pal_moss_green",
       "value": "モスグリーン"
     },
-        {
+    {
       "name": "tmpl_pal_plum_dark",
       "value": "ダークプラム"
     },
-        {
+    {
       "name": "tmpl_pal_charcoal",
       "value": "チャコール"
     },
-        {
+    {
       "name": "tmpl_pal_washi",
       "value": "和紙のクリーム"
     },
-        {
+    {
       "name": "tmpl_pal_indigo_washi",
       "value": "インディゴ和紙"
     },
-        {
+    {
       "name": "tmpl_pal_ink_washi",
       "value": "インク和紙"
     },
-        {
+    {
       "name": "tmpl_pal_moss_washi",
       "value": "モス和紙"
     },
-        {
+    {
       "name": "tmpl_pal_blush_washi",
       "value": "ブラッシュ和紙"
     },
-        {
+    {
       "name": "tmpl_pal_cobalt_stack",
       "value": "コバルト重ね"
     },
-        {
+    {
       "name": "tmpl_pal_sunset_stack",
       "value": "サンセット重ね"
     },
-        {
+    {
       "name": "tmpl_pal_lilac_stack",
       "value": "ライラック重ね"
     },
-        {
+    {
       "name": "tmpl_pal_mint_stack",
       "value": "ミント重ね"
     },
-        {
+    {
       "name": "tmpl_pal_sand_stack",
       "value": "サンド重ね"
     },
@@ -2793,6 +2793,14 @@
       "value": "ピンイン"
     },
     {
+      "name": "char_tab_layout",
+      "value": "レイアウト"
+    },
+    {
+      "name": "char_tab_palette",
+      "value": "配色"
+    },
+    {
       "name": "char_chars_label",
       "value": "漢字（1〜12字）"
     },
@@ -2801,12 +2809,8 @@
       "value": "漢字ノート"
     },
     {
-      "name": "char_pinyin_locked_label",
-      "value": "ピンイン（手動でロック中）"
-    },
-    {
-      "name": "char_pinyin_auto_label",
-      "value": "ピンイン（自動生成、編集可能）"
+      "name": "char_pinyin_edit_hint",
+      "value": "多音字をタップして読みを修正"
     },
     {
       "name": "char_pinyin_auto",
@@ -2954,7 +2958,7 @@
     },
     {
       "name": "tmpl_size_cover",
-      "value": "記事カバー 2.35:1"
+      "value": "カバー 2.35:1"
     },
     {
       "name": "tmpl_grid_tian",

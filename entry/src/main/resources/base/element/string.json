@@ -800,95 +800,95 @@
       "name": "poster_truncated_hint",
       "value": "%d more characters omitted"
     },
-        {
+    {
       "name": "poster_cat_simple",
       "value": "Clean & Minimal"
     },
-        {
+    {
       "name": "poster_cat_bold",
       "value": "Bold Quote"
     },
-        {
+    {
       "name": "poster_cat_tech",
       "value": "Retro Tech"
     },
-        {
+    {
       "name": "poster_cat_life",
       "value": "Everyday Texture"
     },
-        {
+    {
       "name": "poster_cat_festival",
       "value": "Festivals & Terms"
     },
-        {
+    {
       "name": "poster_tmpl_t19",
       "value": "Torn Paper Collage"
     },
-        {
+    {
       "name": "poster_tmpl_t20",
       "value": "Vertical Quote"
     },
-        {
+    {
       "name": "poster_tmpl_t21",
       "value": "Color Blocks"
     },
-        {
+    {
       "name": "tmpl_pal_kraft_desk",
       "value": "Kraft Desk"
     },
-        {
+    {
       "name": "tmpl_pal_slate_blue",
       "value": "Slate Blue"
     },
-        {
+    {
       "name": "tmpl_pal_moss_green",
       "value": "Moss Green"
     },
-        {
+    {
       "name": "tmpl_pal_plum_dark",
       "value": "Dark Plum"
     },
-        {
+    {
       "name": "tmpl_pal_charcoal",
       "value": "Charcoal"
     },
-        {
+    {
       "name": "tmpl_pal_washi",
       "value": "Washi Cream"
     },
-        {
+    {
       "name": "tmpl_pal_indigo_washi",
       "value": "Indigo Washi"
     },
-        {
+    {
       "name": "tmpl_pal_ink_washi",
       "value": "Ink Washi"
     },
-        {
+    {
       "name": "tmpl_pal_moss_washi",
       "value": "Moss Washi"
     },
-        {
+    {
       "name": "tmpl_pal_blush_washi",
       "value": "Blush Washi"
     },
-        {
+    {
       "name": "tmpl_pal_cobalt_stack",
       "value": "Cobalt Stack"
     },
-        {
+    {
       "name": "tmpl_pal_sunset_stack",
       "value": "Sunset Stack"
     },
-        {
+    {
       "name": "tmpl_pal_lilac_stack",
       "value": "Lilac Stack"
     },
-        {
+    {
       "name": "tmpl_pal_mint_stack",
       "value": "Mint Stack"
     },
-        {
+    {
       "name": "tmpl_pal_sand_stack",
       "value": "Sand Stack"
     },
@@ -2793,6 +2793,14 @@
       "value": "Pinyin"
     },
     {
+      "name": "char_tab_layout",
+      "value": "Layout"
+    },
+    {
+      "name": "char_tab_palette",
+      "value": "Colors"
+    },
+    {
       "name": "char_chars_label",
       "value": "Characters (1-12 Chinese)"
     },
@@ -2801,12 +2809,8 @@
       "value": "Word book"
     },
     {
-      "name": "char_pinyin_locked_label",
-      "value": "Pinyin (manually locked)"
-    },
-    {
-      "name": "char_pinyin_auto_label",
-      "value": "Pinyin (auto-generated, editable)"
+      "name": "char_pinyin_edit_hint",
+      "value": "Tap a polyphone to fix its reading"
     },
     {
       "name": "char_pinyin_auto",
@@ -2954,7 +2958,7 @@
     },
     {
       "name": "tmpl_size_cover",
-      "value": "Article Cover 2.35:1"
+      "value": "Cover 2.35:1"
     },
     {
       "name": "tmpl_grid_tian",

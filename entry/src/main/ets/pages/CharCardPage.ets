@@ -12,7 +12,9 @@ import { CharCards, CharCardCharMode, CharCardGridType, CharCardInputMode, CharC
 import { CoverContentUtil } from '../core/cover/CoverContentUtil';
 import { CoverHistoryStore } from '../core/cover/CoverHistoryStore';
 import { CharCardPreview } from '../components/cover/CharCardPreview';
-import { PaletteSection } from '../components/template/PaletteSection';
+import { CharPinyinEditor } from '../components/cover/CharPinyinEditor';
+import { CharCardStyleEditor } from '../components/cover/CharCardStyleEditor';
+import { CharCardColorEditor } from '../components/cover/CharCardColorEditor';
 import { ChipRow } from '../components/template/ChipRow';
 import { ChipOption } from '../core/template/UnifiedTemplateModels';
 import { FontUtil } from '../common/utils/FontUtil';
@@ -53,6 +55,8 @@ struct CharCardContent {
   @State sentenceText: string = '';
   /** 句子模式：空格分隔的已截断词串（渲染/导出用） */
   @State wordsText: string = '';
+  /** 编辑区页签：0 文字 / 1 样式（参照文案海报页签化排版） */
+  @State editorTab: number = 0;
   @State exporting: boolean = false;
   @State batchRunning: boolean = false;
   @State batchProgress: number = 0;
@@ -67,31 +71,11 @@ struct CharCardContent {
   previewVp: number = 300;
   snapshotScale: number = 1;
   batchChar: string = '';
-  /** 焦点守卫：拼音框仅在聚焦时才把 onChange 视为手动编辑（防止程序化 text 更新误触发锁定） */
-  pinyinFocused: boolean = false;
   /** 句子分词防抖定时器 id */
   private segmentTimer: number = -1;
   private darkListener: mediaquery.MediaQueryListener | null = null;
   /** 配色/选项数据（静态，构建一次） */
   private paletteList: CoverPalette[] = CharCards.palettes();
-  private sizeOptions: ChipOption[] = [
-    ChipOption.of(CharCardSize.SQUARE, CharCardSize.label(CharCardSize.SQUARE)),
-    ChipOption.of(CharCardSize.PRACTICE, CharCardSize.label(CharCardSize.PRACTICE)),
-    ChipOption.of(CharCardSize.COVER, CharCardSize.label(CharCardSize.COVER)),
-  ];
-  private gridOptions: ChipOption[] = [
-    ChipOption.of(CharCardGridType.TIAN, CharCardGridType.label(CharCardGridType.TIAN)),
-    ChipOption.of(CharCardGridType.MI, CharCardGridType.label(CharCardGridType.MI)),
-    ChipOption.of(CharCardGridType.NONE, CharCardGridType.label(CharCardGridType.NONE)),
-  ];
-  private modeOptions: ChipOption[] = [
-    ChipOption.of(CharCardCharMode.READ, CharCardCharMode.label(CharCardCharMode.READ)),
-    ChipOption.of(CharCardCharMode.TRACE, CharCardCharMode.label(CharCardCharMode.TRACE)),
-  ];
-  private pinyinOptions: ChipOption[] = [
-    ChipOption.of('on', $r('app.string.char_pinyin_show')),
-    ChipOption.of('off', $r('app.string.char_pinyin_hide')),
-  ];
   private inputModeOptions: ChipOption[] = [
     ChipOption.of(CharCardInputMode.CHARS, CharCardInputMode.label(CharCardInputMode.CHARS)),
     ChipOption.of(CharCardInputMode.SENTENCE, CharCardInputMode.label(CharCardInputMode.SENTENCE)),
@@ -183,6 +167,14 @@ struct CharCardContent {
     }, 250);
   }
 
+  /** 尺寸切换：句子模式词串按新尺寸上限重排 */
+  private applySizeKind(value: string): void {
+    this.sizeKind = value;
+    if (this.isSentence()) {
+      this.applyWords(WordSegmentUtil.segmentFast(this.sentenceText));
+    }
+  }
+
   /** 输入模式切换：携带已有内容互转（单字 <-> 句子） */
   private onModeChange(value: string): void {
     if (this.inputMode === value || this.exporting || this.batchRunning) {
@@ -224,6 +216,16 @@ struct CharCardContent {
   private resetPinyin(): void {
     this.pinyinLocked = false;
     this.pinyinText = CoverContentUtil.autoPinyin(this.cleanChars());
+  }
+
+  /** 选项式读音修正：替换第 hanziIndex 个汉字的音节并标记手动 */
+  private applyPinyinSyllable(hanziIndex: number, value: string): void {
+    let next: string = CoverContentUtil.replaceSyllable(this.pinyinText, hanziIndex, value);
+    if (next === this.pinyinText) {
+      return;
+    }
+    this.pinyinText = next;
+    this.pinyinLocked = true;
   }
 
   private openCharBook(): void {
@@ -327,6 +329,9 @@ struct CharCardContent {
           this.applyWords(WordSegmentUtil.segmentFast(this.sentenceText));
         }
         this.charsText = CharCards.cleanChars(this.charsText);
+      }
+      if (!this.pinyinLocked) {
+        this.pinyinText = CoverContentUtil.autoPinyin(this.isSentence() ? this.sentenceChars() : this.cleanChars());
       }
     } catch (e) {
       console.error('[CharCard] restore failed: ' + (e as Error).message);
@@ -511,19 +516,38 @@ struct CharCardContent {
                 },
               })
             }
-            this.TextEditor()
-            this.SizeChips()
-            this.StyleChips()
-            PaletteSection({
-              palettes: this.paletteList,
-              selectedIndex: this.paletteIndex,
-              accentColor: this.accent(),
-              labelColor: this.labelColor(),
-              onSelect: (idx: number) => {
-                this.paletteIndex = idx;
-              },
-            })
-            this.HistorySection()
+            this.EditorTabs()
+            if (this.editorTab === 0) {
+              this.TextEditor()
+              this.HistorySection()
+            } else if (this.editorTab === 1) {
+              CharCardStyleEditor({
+                sizeKind: this.sizeKind,
+                gridType: this.gridType,
+                pinyinOn: this.pinyinOn,
+                onSizeSelect: (value: string) => {
+                  this.applySizeKind(value);
+                },
+                onGridSelect: (value: string) => {
+                  this.gridType = value;
+                },
+                onPinyinToggle: (value: string) => {
+                  this.pinyinOn = value === 'on';
+                },
+              })
+            } else {
+              CharCardColorEditor({
+                palettes: this.paletteList,
+                paletteIndex: this.paletteIndex,
+                charMode: this.charMode,
+                onModeSelect: (value: string) => {
+                  this.charMode = value;
+                },
+                onPaletteSelect: (idx: number) => {
+                  this.paletteIndex = idx;
+                },
+              })
+            }
           }
           .width('100%')
           .padding({ left: 16, right: 16, top: 12, bottom: 16 })
@@ -581,74 +605,30 @@ struct CharCardContent {
     .width('100%')
   }
 
+  /** 编辑区页签（参照文案海报排版）：0 文字 / 1 版式 / 2 配色 */
   @Builder
-  SizeChips() {
-    ChipRow({
-      label: StrUtil.text(this.context(), $r('app.string.char_label_size')),
-      labelColor: this.labelColor(),
-      options: this.sizeOptions,
-      selected: this.sizeKind,
-      accent: this.accent(),
-      chipBg: this.chipBg(),
-      chipText: this.chipText(),
-      onSelect: (value: string) => {
-        this.sizeKind = value;
-        if (this.isSentence()) {
-          this.applyWords(WordSegmentUtil.segmentFast(this.sentenceText));
-        }
-      },
-    })
-  }
-
-  @Builder
-  StyleChips() {
-    Column({ space: 10 }) {
-      Row() {
-        ChipRow({
-          label: StrUtil.text(this.context(), $r('app.string.char_label_grid')),
-          labelWidth: 30,
-          labelColor: this.labelColor(),
-          options: this.gridOptions,
-          selected: this.gridType,
-          accent: this.accent(),
-          chipBg: this.chipBg(),
-          chipText: this.chipText(),
-          onSelect: (value: string) => {
-            this.gridType = value;
-          },
-        })
-        Blank()
-        ChipRow({
-          label: StrUtil.text(this.context(), $r('app.string.char_label_mode')),
-          labelColor: this.labelColor(),
-          options: this.modeOptions,
-          selected: this.charMode,
-          accent: this.accent(),
-          chipBg: this.chipBg(),
-          chipText: this.chipText(),
-          onSelect: (value: string) => {
-            this.charMode = value;
-          },
-        })
-      }
-      .width('100%')
-      .alignItems(VerticalAlign.Center)
-
-      ChipRow({
-        label: StrUtil.text(this.context(), $r('app.string.char_label_pinyin')),
-        labelWidth: 30,
-        labelColor: this.labelColor(),
-        options: this.pinyinOptions,
-        selected: this.pinyinOn ? 'on' : 'off',
-        accent: this.accent(),
-        chipBg: this.chipBg(),
-        chipText: this.chipText(),
-        onSelect: (value: string) => {
-          this.pinyinOn = value === 'on';
-        },
-      })
+  EditorTabs() {
+    Row({ space: 0 }) {
+      ForEach([0, 1, 2], (idx: number) => {
+        Text(this.tabLabel(idx))
+          .fontSize(14)
+          .fontWeight(this.editorTab === idx ? FontWeight.Bold : FontWeight.Normal)
+          .fontColor(this.editorTab === idx ? this.accent() : this.labelColor())
+          .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+          .onClick(() => {
+            this.editorTab = idx;
+          })
+      }, (idx: number) => idx.toString())
     }
     .width('100%')
+    .border({ width: { bottom: 1 }, color: this.lineColor() })
+  }
+
+  private tabLabel(idx: number): ResourceStr {
+    if (idx === 0) {
+      return $r('app.string.cover_tab_text');
+    }
+    return idx === 1 ? $r('app.string.char_tab_layout') : $r('app.string.char_tab_palette');
   }
 
   @Builder
@@ -715,47 +695,17 @@ struct CharCardContent {
       }
 
       if (this.pinyinOn) {
-        Column({ space: 5 }) {
-          Text(this.pinyinLocked ? $r('app.string.char_pinyin_locked_label') : $r('app.string.char_pinyin_auto_label'))
-            .fontSize(12)
-            .fontColor(this.labelColor())
-          Row({ space: 8 }) {
-            TextInput({ text: this.pinyinText })
-              .layoutWeight(1)
-              .height(40)
-              .fontSize(14)
-              .maxLength(48)
-              .backgroundColor(this.inputBg())
-              .borderRadius(8)
-              .onFocus(() => {
-                this.pinyinFocused = true;
-              })
-              .onBlur(() => {
-                this.pinyinFocused = false;
-              })
-              .onChange((value: string) => {
-                if (this.pinyinFocused) {
-                  this.pinyinText = value;
-                  this.pinyinLocked = true;
-                }
-              })
-            if (this.pinyinLocked) {
-              Text($r('app.string.char_pinyin_auto'))
-                .fontSize(12)
-                .fontColor(this.accent())
-                .padding({ left: 10, right: 10, top: 9, bottom: 9 })
-                .backgroundColor($r('app.color.char_accent_tint'))
-                .borderRadius(12)
-                .onClick(() => {
-                  this.resetPinyin();
-                })
-            }
-          }
-          .width('100%')
-          .alignItems(VerticalAlign.Center)
-        }
-        .width('100%')
-        .alignItems(HorizontalAlign.Start)
+        CharPinyinEditor({
+          charsText: this.isSentence() ? this.sentenceChars() : this.cleanChars(),
+          pinyinText: this.pinyinText,
+          locked: this.pinyinLocked,
+          onApply: (hanziIndex: number, value: string) => {
+            this.applyPinyinSyllable(hanziIndex, value);
+          },
+          onReset: () => {
+            this.resetPinyin();
+          },
+        })
       }
     }
     .width('100%')

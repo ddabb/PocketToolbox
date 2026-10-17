@@ -800,95 +800,95 @@
       "name": "poster_truncated_hint",
       "value": "已省略 %d 字"
     },
-        {
+    {
       "name": "poster_cat_simple",
       "value": "简约清新"
     },
-        {
+    {
       "name": "poster_cat_bold",
       "value": "大字金句"
     },
-        {
+    {
       "name": "poster_cat_tech",
       "value": "科技复古"
     },
-        {
+    {
       "name": "poster_cat_life",
       "value": "生活质感"
     },
-        {
+    {
       "name": "poster_cat_festival",
       "value": "节日节气"
     },
-        {
+    {
       "name": "poster_tmpl_t19",
       "value": "撕纸拼贴"
     },
-        {
+    {
       "name": "poster_tmpl_t20",
       "value": "竖排标点"
     },
-        {
+    {
       "name": "poster_tmpl_t21",
       "value": "层叠色块"
     },
-        {
+    {
       "name": "tmpl_pal_kraft_desk",
       "value": "牛皮桌面"
     },
-        {
+    {
       "name": "tmpl_pal_slate_blue",
       "value": "石板蓝"
     },
-        {
+    {
       "name": "tmpl_pal_moss_green",
       "value": "苔藓绿"
     },
-        {
+    {
       "name": "tmpl_pal_plum_dark",
       "value": "暗夜梅"
     },
-        {
+    {
       "name": "tmpl_pal_charcoal",
       "value": "炭黑"
     },
-        {
+    {
       "name": "tmpl_pal_washi",
       "value": "和纸米"
     },
-        {
+    {
       "name": "tmpl_pal_indigo_washi",
       "value": "靛青和纸"
     },
-        {
+    {
       "name": "tmpl_pal_ink_washi",
       "value": "墨黑和纸"
     },
-        {
+    {
       "name": "tmpl_pal_moss_washi",
       "value": "苔色和纸"
     },
-        {
+    {
       "name": "tmpl_pal_blush_washi",
       "value": "胭脂和纸"
     },
-        {
+    {
       "name": "tmpl_pal_cobalt_stack",
       "value": "钴蓝叠色"
     },
-        {
+    {
       "name": "tmpl_pal_sunset_stack",
       "value": "落日叠色"
     },
-        {
+    {
       "name": "tmpl_pal_lilac_stack",
       "value": "丁香叠色"
     },
-        {
+    {
       "name": "tmpl_pal_mint_stack",
       "value": "薄荷叠色"
     },
-        {
+    {
       "name": "tmpl_pal_sand_stack",
       "value": "砂金叠色"
     },
@@ -2793,6 +2793,14 @@
       "value": "拼音"
     },
     {
+      "name": "char_tab_layout",
+      "value": "版式"
+    },
+    {
+      "name": "char_tab_palette",
+      "value": "配色"
+    },
+    {
       "name": "char_chars_label",
       "value": "生字（1-12 个汉字）"
     },
@@ -2801,12 +2809,8 @@
       "value": "生字本"
     },
     {
-      "name": "char_pinyin_locked_label",
-      "value": "拼音（已手动锁定）"
-    },
-    {
-      "name": "char_pinyin_auto_label",
-      "value": "拼音（自动生成，可修改）"
+      "name": "char_pinyin_edit_hint",
+      "value": "点击多音字修正读音"
     },
     {
       "name": "char_pinyin_auto",
@@ -2954,7 +2958,7 @@
     },
     {
       "name": "tmpl_size_cover",
-      "value": "公众号首图 2.35:1"
+      "value": "首图 2.35:1"
     },
     {
       "name": "tmpl_grid_tian",

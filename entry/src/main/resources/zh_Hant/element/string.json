@@ -2793,6 +2793,14 @@
       "value": "拼音"
     },
     {
+      "name": "char_tab_layout",
+      "value": "版式"
+    },
+    {
+      "name": "char_tab_palette",
+      "value": "配色"
+    },
+    {
       "name": "char_chars_label",
       "value": "生字（1-12 個漢字）"
     },
@@ -2801,12 +2809,8 @@
       "value": "生字本"
     },
     {
-      "name": "char_pinyin_locked_label",
-      "value": "拼音（已手動鎖定）"
-    },
-    {
-      "name": "char_pinyin_auto_label",
-      "value": "拼音（自動生成，可修改）"
+      "name": "char_pinyin_edit_hint",
+      "value": "點擊多音字修正讀音"
     },
     {
       "name": "char_pinyin_auto",
@@ -2954,7 +2958,7 @@
     },
     {
       "name": "tmpl_size_cover",
-      "value": "公眾號首圖 2.35:1"
+      "value": "首圖 2.35:1"
     },
     {
       "name": "tmpl_grid_tian",
