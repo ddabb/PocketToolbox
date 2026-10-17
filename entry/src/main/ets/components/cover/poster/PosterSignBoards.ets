@@ -1,11 +1,33 @@
 /**
- * 文案海报模板 · 招牌标识组（1.4.7 P2-1 拆分自 CopyPosterPreview）：
- * T7 霓虹灯招牌（1.4.5 P1-5 装饰层/内容层分层样板）/ T10 翻牌显示屏；NeonDecor/NeonContent/FlapModule 为组内局部子构建器。
+ * 文案海报模板 · 招牌标识组（1.4.7 P2-1 拆分自 CopyPosterPreview，1.4.8 批 5 分层精简）：
+ * T7 霓虹灯招牌（装饰层/内容层分层样板）/ T10 翻牌显示屏（表头/翻牌区/署名行分层）。
+ * BoardVignette 为组内共用暗角，FlapLed 收敛 T10 四处发光指示灯。
  */
 import { CopyPosterRatio } from '../../../model/CopyPosterModels';
 import { PosterRenderCtx } from './PosterRenderCtx';
 import { PinyinBody } from './PosterSharedBuilders';
 import { PosterTypeset } from '../../../core/cover/PosterTypeset';
+
+// ---------- 组内共用 ----------
+
+/** T7 暗角边缘压暗色（比 T10 略深） */
+const NEON_VIGNETTE_END: string = '#A6000000';
+/** T10 暗角边缘压暗色 */
+const FLAP_VIGNETTE_END: string = '#96000000';
+
+/** 招牌暗角：全幅径向渐晕，T7/T10 共用（仅边缘压暗色不同） */
+@Builder
+function BoardVignette(c: PosterRenderCtx, endColor: string) {
+  Column()
+    .width('100%')
+    .height('100%')
+    .radialGradient({
+      center: ['50%', '50%'],
+      radius: '85%',
+      colors: [['#00000000', 0], ['#00000000', 0.5], [endColor, 1]],
+    })
+    .hitTestBehavior(HitTestMode.None)
+}
 
 // ---------- T7 霓虹灯招牌（夜墙灯管） ----------
 // 1.4.5 P1-5 分层样板：本模板是装饰层/内容层拆分的参考实现，其余模板按此结构迁移。
@@ -134,16 +156,7 @@ export function NeonSign(c: PosterRenderCtx) {
   Stack() {
     NeonDecor(c)
     NeonContent(c)
-
-    Column()
-      .width('100%')
-      .height('100%')
-      .radialGradient({
-        center: ['50%', '50%'],
-        radius: '85%',
-        colors: [['#00000000', 0], ['#00000000', 0.5], ['#A6000000', 1]],
-      })
-      .hitTestBehavior(HitTestMode.None)
+    BoardVignette(c, NEON_VIGNETTE_END)
   }
   .width('100%')
   .height('100%')
@@ -152,9 +165,34 @@ export function NeonSign(c: PosterRenderCtx) {
 
 // ---------- T10 翻牌显示屏（车站翻牌板） ----------
 
-/** 正文去空白后按每行 12 字拆行（最多 6 行） */
+/** 翻牌单模块宽（设计稿 px） */
+const FLAP_PER_ROW: number = 12;
+/** 翻牌模块字高（设计稿 px） */
+const FLAP_ROW_H: number = 72;
+/** 翻牌模块间距（设计稿 px） */
+const FLAP_ROW_GAP: number = 9;
+/** 底板宽（设计稿 px）：900 画布左右各留 55 */
+const FLAP_BOARD_W: number = 790;
+
+/** 指示灯：常亮绿（GitHub contribution 配色族） */
+const FLAP_LED_GREEN: string = '#39D353';
+/** 指示灯：告警红 */
+const FLAP_LED_RED: string = '#FF5544';
+/** 绿灯外发光 */
+const FLAP_LED_GREEN_GLOW: string = '#8039D353';
+/** 红灯外发光 */
+const FLAP_LED_RED_GLOW: string = '#80FF5544';
+
+/** 翻牌最大行数：1:1 保持 6；3:4/9:16 画布越高预算越多，底板随行数增长填满画布 */
+function flapMaxRows(c: PosterRenderCtx): number {
+  if (c.ratioKind === CopyPosterRatio.SQUARE) {
+    return 6;
+  }
+  return c.ratioKind === CopyPosterRatio.PORTRAIT ? 8 : 10;
+}
+
 /**
- * T10 翻牌屏：把正文拆成每行 12 字的翻牌模块行。
+ * T10 翻牌屏：把正文拆成翻牌模块行。
  *
  * 1.4.5 优化：原先固定「12 字/行、最多 6 行」且超出部分**直接丢弃**（用户无感知丢字），
  * 同时底板高度写死导致多行时撑破。现改为：
@@ -186,20 +224,6 @@ function flapRows(c: PosterRenderCtx): string[][] {
   return rows;
 }
 
-/** 翻牌单模块宽（设计稿 px） */
-const FLAP_PER_ROW: number = 12;
-/** 翻牌最大行数：1:1 保持 6；3:4/9:16 画布越高预算越多，底板随行数增长填满画布 */
-function flapMaxRows(c: PosterRenderCtx): number {
-  if (c.ratioKind === CopyPosterRatio.SQUARE) {
-    return 6;
-  }
-  return c.ratioKind === CopyPosterRatio.PORTRAIT ? 8 : 10;
-}
-/** 翻牌模块字高（设计稿 px） */
-const FLAP_ROW_H: number = 72;
-/** 翻牌模块间距（设计稿 px） */
-const FLAP_ROW_GAP: number = 9;
-
 /** 底板高度：随实际行数增长，避免长文案撑破固定底板 */
 function flapBoardH(c: PosterRenderCtx): number {
   let rows: number = flapRows(c).length;
@@ -207,7 +231,7 @@ function flapBoardH(c: PosterRenderCtx): number {
     (rows - 1) * FLAP_ROW_GAP + c.f(46);
 }
 
-/** 翻牌放不下的字数：超出 12 字/行 × 6 行容量部分（0 表示全部显示） */
+/** 翻牌放不下的字数：超出每行容量 × 行数上限部分（0 表示全部显示） */
 function flapDropped(c: PosterRenderCtx): number {
   if (c.content.body.trim() === '') {
     return 0;
@@ -217,6 +241,15 @@ function flapDropped(c: PosterRenderCtx): number {
   return chars > cap ? chars - cap : 0;
 }
 
+/** 指示灯：发光圆点，表头与署名行共用（尺寸/光晕随用途区分） */
+@Builder
+function FlapLed(c: PosterRenderCtx, size: number, color: string, glow: string, shadowR: number) {
+  Circle({ width: c.f(size), height: c.f(size) })
+    .fill(color)
+    .shadow({ radius: c.f(shadowR), color: glow })
+}
+
+/** 翻牌单模块：底板渐变 + 中缝线 + 字符 */
 @Builder
 function FlapModule(c: PosterRenderCtx, ch: string) {
   Stack() {
@@ -243,96 +276,104 @@ function FlapModule(c: PosterRenderCtx, ch: string) {
   .shadow({ radius: c.f(4), color: '#55000000', offsetY: c.f(2) })
 }
 
+/** 表头：QUOTE BOARD 标题 + 状态灯（绿常亮 / 红告警） */
+@Builder
+function FlapHeader(c: PosterRenderCtx) {
+  Row() {
+    Text('QUOTE BOARD · ' + c.content.tag)
+      .fontSize(c.f(20))
+      .letterSpacing(c.f(4))
+      .fontColor(c.pal().accent)
+      .fontWeight(FontWeight.Bold)
+      .maxLines(1)
+    Row({ space: c.f(6) }) {
+      FlapLed(c, 9, FLAP_LED_GREEN, FLAP_LED_GREEN_GLOW, 5)
+      FlapLed(c, 9, FLAP_LED_RED, FLAP_LED_RED_GLOW, 5)
+    }
+    .alignItems(VerticalAlign.Center)
+  }
+  .width('100%')
+  .justifyContent(FlexAlign.SpaceBetween)
+  .alignItems(VerticalAlign.Center)
+}
+
+/** 翻牌区：正文按行拆成翻牌模块 */
+@Builder
+function FlapRows(c: PosterRenderCtx) {
+  Column({ space: c.f(FLAP_ROW_GAP) }) {
+    ForEach(flapRows(c), (row: string[], ri: number) => {
+      Row({ space: c.f(8) }) {
+        ForEach(row, (ch: string, ci: number) => {
+          FlapModule(c, ch)
+        }, (ch: string, ci: number) => ci.toString() + ch)
+      }
+    }, (row: string[], ri: number) => ri.toString() + '-' + row.length.toString())
+  }
+}
+
+/** 容量截断提示：缩略图（96px）不显示，避免挤爆布局（1.4.6 根因 C） */
+@Builder
+function FlapTruncHint(c: PosterRenderCtx) {
+  if (flapDropped(c) > 0 && !c.isThumb) {
+    Text($r('app.string.poster_truncated_hint', flapDropped(c)))
+      .fontSize(c.f(20))
+      .fontColor(c.pal().sub)
+      .fontFamily(c.font())
+      .opacity(0.75)
+      .textAlign(TextAlign.Center)
+      .maxLines(1)
+  }
+}
+
+/** 署名行：状态灯 + 虚线包夹署名 */
+@Builder
+function FlapSignRow(c: PosterRenderCtx) {
+  Row({ space: c.f(12) }) {
+    FlapLed(c, 8, FLAP_LED_GREEN, FLAP_LED_GREEN_GLOW, 4)
+    Text('——')
+      .fontSize(c.f(16))
+      .fontColor(c.pal().sub)
+    if (c.content.sign.trim() !== '') {
+      Text(c.content.sign)
+        .fontSize(c.f(19))
+        .letterSpacing(c.f(4))
+        .fontColor(c.pal().accent)
+        .maxLines(1)
+    }
+    Text('——')
+      .fontSize(c.f(16))
+      .fontColor(c.pal().sub)
+    FlapLed(c, 8, FLAP_LED_GREEN, FLAP_LED_GREEN_GLOW, 4)
+  }
+  .alignItems(VerticalAlign.Center)
+}
+
+/** 内容底板：表头 / 翻牌区 / 截断提示 / 署名行 + 板体样式（高度随行数增长） */
+@Builder
+function FlapBoard(c: PosterRenderCtx) {
+  Column({ space: c.f(18) }) {
+    FlapHeader(c)
+    FlapRows(c)
+    FlapTruncHint(c)
+    FlapSignRow(c)
+  }
+  // 高度随翻牌行数增长（1.4.5 优化：原先固定高度，长文案会撑破底板）
+  .height(flapBoardH(c))
+  .width(c.f(FLAP_BOARD_W))
+  .padding({ left: c.f(24), right: c.f(24), top: c.f(22), bottom: c.f(24) })
+  .backgroundColor(c.pal().block)
+  .borderRadius(c.f(14))
+  .border({ width: c.f(2), color: c.pal().grid })
+  .shadow({ radius: c.f(44), color: '#8C000000', offsetY: c.f(18) })
+  .rotate({ angle: -1.5 })
+  .alignItems(HorizontalAlign.Center)
+}
+
 @Builder
 export function SplitFlap(c: PosterRenderCtx) {
   Stack() {
-    Column({ space: c.f(18) }) {
-      Row() {
-        Text('QUOTE BOARD · ' + c.content.tag)
-          .fontSize(c.f(20))
-          .letterSpacing(c.f(4))
-          .fontColor(c.pal().accent)
-          .fontWeight(FontWeight.Bold)
-          .maxLines(1)
-        Row({ space: c.f(6) }) {
-          Circle({ width: c.f(9), height: c.f(9) })
-            .fill('#39D353')
-            .shadow({ radius: c.f(5), color: '#8039D353' })
-          Circle({ width: c.f(9), height: c.f(9) })
-            .fill('#FF5544')
-            .shadow({ radius: c.f(5), color: '#80FF5544' })
-        }
-        .alignItems(VerticalAlign.Center)
-      }
-      .width('100%')
-      .justifyContent(FlexAlign.SpaceBetween)
-      .alignItems(VerticalAlign.Center)
-
-      Column({ space: c.f(9) }) {
-        ForEach(flapRows(c), (row: string[], ri: number) => {
-          Row({ space: c.f(8) }) {
-            ForEach(row, (ch: string, ci: number) => {
-              FlapModule(c, ch)
-            }, (ch: string, ci: number) => ci.toString() + ch)
-          }
-        }, (row: string[], ri: number) => ri.toString() + '-' + row.length.toString())
-      }
-
-      // 1.4.5 优化：翻牌容量有限（12 字/行 × 6 行），超出部分原本静默丢弃，此处显式提示
-      // 1.4.6 根因 C：缩略图（96px）不显示提示，避免挤爆布局
-      if (flapDropped(c) > 0 && !c.isThumb) {
-        Text($r('app.string.poster_truncated_hint', flapDropped(c)))
-          .fontSize(c.f(20))
-          .fontColor(c.pal().sub)
-          .fontFamily(c.font())
-          .opacity(0.75)
-          .textAlign(TextAlign.Center)
-          .maxLines(1)
-      }
-
-      Row({ space: c.f(12) }) {
-        Circle({ width: c.f(8), height: c.f(8) })
-          .fill('#39D353')
-          .shadow({ radius: c.f(4), color: '#8039D353' })
-        Text('——')
-          .fontSize(c.f(16))
-          .fontColor(c.pal().sub)
-        if (c.content.sign.trim() !== '') {
-          Text(c.content.sign)
-            .fontSize(c.f(19))
-            .letterSpacing(c.f(4))
-            .fontColor(c.pal().accent)
-            .maxLines(1)
-        }
-        Text('——')
-          .fontSize(c.f(16))
-          .fontColor(c.pal().sub)
-        Circle({ width: c.f(8), height: c.f(8) })
-          .fill('#39D353')
-          .shadow({ radius: c.f(4), color: '#8039D353' })
-      }
-      .alignItems(VerticalAlign.Center)
-    }
-    // 高度随翻牌行数增长（1.4.5 优化：原先固定高度，长文案会撑破底板）
-    .height(flapBoardH(c))
-    .width(c.f(790))
-    .padding({ left: c.f(24), right: c.f(24), top: c.f(22), bottom: c.f(24) })
-    .backgroundColor(c.pal().block)
-    .borderRadius(c.f(14))
-    .border({ width: c.f(2), color: c.pal().grid })
-    .shadow({ radius: c.f(44), color: '#8C000000', offsetY: c.f(18) })
-    .rotate({ angle: -1.5 })
-    .alignItems(HorizontalAlign.Center)
-
-    Column()
-      .width('100%')
-      .height('100%')
-      .radialGradient({
-        center: ['50%', '50%'],
-        radius: '85%',
-        colors: [['#00000000', 0], ['#00000000', 0.5], ['#96000000', 1]],
-      })
-      .hitTestBehavior(HitTestMode.None)
+    FlapBoard(c)
+    BoardVignette(c, FLAP_VIGNETTE_END)
   }
   .width('100%')
   .height('100%')
