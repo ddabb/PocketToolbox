@@ -3,6 +3,7 @@ import sudokuOcrTest from './SudokuOcr.test';
 import coverTest from './Cover.test';
 import charCardTest from './CharCard.test';
 import posterTypesetTest from './PosterTypeset.test';
+import copyPosterTest from './CopyPoster.test';
 import sudokuEngineTest from './SudokuEngine.test';
 import gifCodecTest from './GifCodec.test';
 import pdfUtilTest from './PdfUtil.test';
@@ -16,6 +17,7 @@ export default function testsuite() {
   coverTest();
   charCardTest();
   posterTypesetTest();
+  copyPosterTest();
   sudokuEngineTest();
   gifCodecTest();
   pdfUtilTest();
