@@ -254,7 +254,7 @@ export class CopyPosterTemplates {
           '', '#FFF8EC', '#EADFC8'),
       ],
       [CoverFont.HANI_SANS, CoverFont.SMILEY, CoverFont.KUAI_LE, CoverFont.ROUND, CoverFont.WENKAI],
-      { 'body': '周末有空吗？想和你去晒太阳', 'sign': '好呀好呀', 'tag': '随身工具宝' }));
+      { 'body': '周末有空吗？想和你去晒太阳', 'sign': '好呀好呀', 'tag': '随身工具宝' }, true, true));
 
     // ---------- T13 黑胶唱片（聚光灯唱片 + 曲目单，参照 docs/文案海报候选_黑胶唱片.html） ----------
     // 配色字段约定：bg=舞台底色 accent=中心标签色 title=曲目文字 sub=次要文字 block=标签文字色 grid=唱片纹色
@@ -369,7 +369,7 @@ export class CopyPosterTemplates {
       ],
       [CoverFont.HUANG_YOU, CoverFont.XIAO_WEI, CoverFont.FEI_BAI, CoverFont.MA_SHAN, CoverFont.HANI_SANS],
       { 'body': '岁岁平安，万事胜意', 'coupletUp': '岁岁平安福常在', 'coupletDown': '年年顺意喜盈门',
-        'sign': '随身工具宝', 'tag': '新春大吉' }, false,
+        'sign': '随身工具宝', 'tag': '新春大吉' }, false, false,
       [CopyPosterSlotDef.of('coupletUp', $r('app.string.poster_slot_couplet_up'), 14),
         CopyPosterSlotDef.of('coupletDown', $r('app.string.poster_slot_couplet_down'), 14)]));
 

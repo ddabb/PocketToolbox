@@ -4405,6 +4405,22 @@
       "value": "節気名"
     },
     {
+      "name": "poster_avatar_label",
+      "value": "アバター"
+    },
+    {
+      "name": "poster_avatar_upload",
+      "value": "画像をアップロード"
+    },
+    {
+      "name": "poster_avatar_change",
+      "value": "画像を変更"
+    },
+    {
+      "name": "poster_avatar_remove",
+      "value": "削除"
+    },
+    {
       "name": "poster_body_hint",
       "value": "メインテキストを入力…"
     },

@@ -4405,6 +4405,22 @@
       "value": "节气名"
     },
     {
+      "name": "poster_avatar_label",
+      "value": "头像"
+    },
+    {
+      "name": "poster_avatar_upload",
+      "value": "上传头像"
+    },
+    {
+      "name": "poster_avatar_change",
+      "value": "更换头像"
+    },
+    {
+      "name": "poster_avatar_remove",
+      "value": "移除"
+    },
+    {
       "name": "poster_body_hint",
       "value": "输入主文案…"
     },

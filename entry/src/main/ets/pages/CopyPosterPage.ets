@@ -20,10 +20,13 @@ import {
   CopyPosterTemplate
 } from '../model/CopyPosterModels';
 import { CopyPosterTemplates } from '../core/cover/CopyPosterTemplates';
+import { PosterAvatarStore } from '../core/cover/PosterAvatarStore';
 import { CoverContentUtil } from '../core/cover/CoverContentUtil';
 import { CoverHistoryStore } from '../core/cover/CoverHistoryStore';
 import { CopyPosterPreview } from '../components/cover/CopyPosterPreview';
 import { CopyPosterStyleEditor } from '../components/cover/CopyPosterStyleEditor';
+import { CopyPosterAvatarRow } from '../components/cover/CopyPosterAvatarRow';
+import { CopyPosterHistorySection } from '../components/cover/CopyPosterHistorySection';
 import { ChipRow } from '../components/template/ChipRow';
 import { ChipOption } from '../core/template/UnifiedTemplateModels';
 import { StickinessUtil } from '../common/utils/StickinessUtil';
@@ -279,6 +282,33 @@ struct CopyPosterEditor {
     this.content = c;
   }
 
+  /** T12 头像：选图拷贝入沙箱并替换（旧文件同步删除）；取消/失败保持原头像 */
+  private async onPickAvatar(): Promise<void> {
+    let old: string = this.content.avatarUri;
+    let path: string = await PosterAvatarStore.pick(this.context());
+    if (path === '') {
+      return;
+    }
+    let c: CopyPosterContent = this.content.copy();
+    c.avatarUri = path;
+    this.content = c;
+    if (old !== '') {
+      PosterAvatarStore.remove(old);
+    }
+  }
+
+  /** T12 头像：移除（删文件 + 清字段） */
+  private onRemoveAvatar(): void {
+    let old: string = this.content.avatarUri;
+    if (old === '') {
+      return;
+    }
+    let c: CopyPosterContent = this.content.copy();
+    c.avatarUri = '';
+    this.content = c;
+    PosterAvatarStore.remove(old);
+  }
+
   /** 换一句：自有内容库（诗词/成语/歇后语，出处入署名）+ 预置灵感文案，会话内去重 */
   private changeBody(): void {
     let context: common.UIAbilityContext = this.context();
@@ -348,6 +378,10 @@ struct CopyPosterEditor {
     this.paletteIndex = r.paletteIndex;
     this.fontIndex = r.fontIndex;
     this.content = CopyPosterContent.fromJson(r.textsJson);
+    // 头像文件失联回退首字渲染（不阻塞恢复）
+    if (this.content.avatarUri !== '' && !PosterAvatarStore.exists(this.content.avatarUri)) {
+      this.content.avatarUri = '';
+    }
     // 历史恢复即用户内容：三槽全部标记已编辑，后续切模板不再覆盖
     this.editedSlots.add(CopyPosterSlot.BODY);
     this.editedSlots.add(CopyPosterSlot.SIGN);
@@ -493,7 +527,15 @@ struct CopyPosterEditor {
               },
             })
           }
-          this.HistorySection()
+          CopyPosterHistorySection({
+            historyRecords: this.historyRecords,
+            onRestore: (r: CoverHistoryRecord) => {
+              this.restoreFromHistory(r);
+            },
+            onClear: () => {
+              this.clearHistory();
+            },
+          })
         }
         .width('100%')
         .padding({ left: 16, right: 16, top: 12, bottom: 16 })
@@ -694,6 +736,17 @@ struct CopyPosterEditor {
   @Builder
   TextEditor() {
     Column({ space: 12 }) {
+      if (this.currentTemplate().supportsAvatar) {
+        CopyPosterAvatarRow({
+          avatarUri: this.content.avatarUri,
+          onPick: () => {
+            this.onPickAvatar();
+          },
+          onRemove: () => {
+            this.onRemoveAvatar();
+          },
+        })
+      }
       if (this.currentTemplate().customSlots.length > 0) {
         // 1.4.8 定制槽位（对联上下联）：隐藏换一句与主文案，渲染模板声明的定制输入
         ForEach(this.currentTemplate().customSlots, (def: CopyPosterSlotDef) => {
@@ -791,66 +844,6 @@ struct CopyPosterEditor {
     }
     .width('100%')
     .padding({ top: 12 })
-  }
-
-  @Builder
-  HistorySection() {
-    if (this.historyRecords.length > 0) {
-      Column({ space: 8 }) {
-        Row() {
-          Text($r('app.string.char_recent'))
-            .fontSize(12)
-            .fontColor(this.labelColor())
-            .layoutWeight(1)
-          Text($r('app.string.char_clear'))
-            .fontSize(12)
-            .fontColor(this.labelColor())
-            .padding(6)
-            .onClick(() => {
-              this.clearHistory();
-            })
-        }
-        .width('100%')
-        .alignItems(VerticalAlign.Center)
-
-        List({ space: 10 }) {
-          ForEach(this.historyRecords, (r: CoverHistoryRecord) => {
-            ListItem() {
-              Column({ space: 4 }) {
-                Image('file://' + CoverHistoryStore.filePath(this.context(), r.fileName, CoverHistoryStore.DIR_POSTER))
-                  .width(64)
-                  .height(64)
-                  .objectFit(ImageFit.Cover)
-                  .borderRadius(4)
-                  .border({ width: 1, color: this.lineColor() })
-                Text(this.historyLabel(r))
-                  .fontSize(10)
-                  .fontColor(this.labelColor())
-                  .maxLines(1)
-              }
-              .alignItems(HorizontalAlign.Center)
-              .onClick(() => {
-                this.restoreFromHistory(r);
-              })
-            }
-          }, (r: CoverHistoryRecord) => r.id)
-        }
-        .listDirection(Axis.Horizontal)
-        .scrollBar(BarState.Off)
-        .width('100%')
-        .height(92)
-        .edgeEffect(EdgeEffect.Spring)
-      }
-      .width('100%')
-      .padding({ top: 8 })
-      .border({ width: { top: 1 }, color: this.lineColor() })
-    }
-  }
-
-  private historyLabel(r: CoverHistoryRecord): string {
-    let parts: string[] = r.templateId.split('|');
-    let t: CopyPosterTemplate = CopyPosterTemplates.getById(parts.length > 0 ? parts[0] : 'T1');
-    return StrUtil.text(this.context(), t.name);
   }
 
   @Builder

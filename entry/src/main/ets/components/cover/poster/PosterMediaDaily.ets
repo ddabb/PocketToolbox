@@ -26,28 +26,54 @@ function avatarChar(c: PosterRenderCtx): string {
   return 'P';
 }
 
-/** T12 装饰件：头像圆块（参数化首字/底色/字色） */
-@Builder
-function ChatAvatar(c: PosterRenderCtx, sizePx: number, bg: string, ch: string, color: string) {
-  Stack() {
-    Text(ch)
-      .fontSize(c.f(sizePx * 0.5))
-      .fontWeight(FontWeight.Bold)
-      .fontColor(color)
-      .fontFamily(c.font())
-      .maxLines(1)
+/** T12 装饰件：头像圆块（参数化首字/底色/字色；1.4.8 M2 对方头像接图——avatarUri 非空渲染图片，空回退首字）
+ * 组件化说明：原全局 @Builder 按值传参在 V1 下不随 content.avatarUri 变化刷新（set/remove/re-pick 均冻结），
+ * 改 @Component + @Prop 后由父作用域重渲染驱动 @Prop 同步，if 分支逐帧重估（与编辑行 AvatarRow 同模式）。
+ */
+@Component
+struct ChatAvatarNode {
+  @Prop sizeVp: number = 0;
+  @Prop radiusVp: number = 0;
+  @Prop fontVp: number = 0;
+  @Prop bg: string = '';
+  @Prop ch: string = '';
+  @Prop color: string = '';
+  @Prop fontFam: string = '';
+  @Prop avatarUri: string = '';
+
+  build() {
+    if (this.avatarUri !== '') {
+      Image('file://' + this.avatarUri)
+        .width(this.sizeVp)
+        .height(this.sizeVp)
+        .borderRadius(this.radiusVp)
+        .objectFit(ImageFit.Cover)
+    } else {
+      Stack() {
+        Text(this.ch)
+          .fontSize(this.fontVp)
+          .fontWeight(FontWeight.Bold)
+          .fontColor(this.color)
+          .fontFamily(this.fontFam)
+          .maxLines(1)
+      }
+      .width(this.sizeVp)
+      .height(this.sizeVp)
+      .borderRadius(this.radiusVp)
+      .backgroundColor(this.bg)
+    }
   }
-  .width(c.f(sizePx))
-  .height(c.f(sizePx))
-  .borderRadius(c.f(sizePx * 0.21))
-  .backgroundColor(bg)
 }
 
 /** T12 内容层·会话顶栏：头像 + 对方昵称（标签槽，空态兜底 POCKET）+ 副题 + ··· */
 @Builder
 function ChatHeaderBar(c: PosterRenderCtx) {
   Row({ space: c.f(18) }) {
-    ChatAvatar(c, 61, c.pal().accent, avatarChar(c), c.pal().title)
+    ChatAvatarNode({
+      sizeVp: c.f(61), radiusVp: c.f(61 * 0.21), fontVp: c.f(61 * 0.5),
+      bg: c.pal().accent, ch: avatarChar(c), color: c.pal().title,
+      fontFam: c.font(), avatarUri: c.content.avatarUri,
+    })
     Column() {
       Text(c.content.tag.trim() !== '' ? c.content.tag.trim() : 'POCKET')
         .fontSize(c.f(26))
@@ -160,7 +186,11 @@ function ChatSignBubble(c: PosterRenderCtx) {
         .borderRadius({ topLeft: c.f(19), topRight: c.f(7), bottomLeft: c.f(19), bottomRight: c.f(19) })
         .constraintSize({ maxWidth: c.previewWidth * 0.64 })
         .shadow({ radius: c.f(8), color: '#12000000', offsetY: c.f(3) })
-      ChatAvatar(c, 55, c.pal().block, c.content.sign.trim().charAt(0), c.pal().accent)
+      ChatAvatarNode({
+        sizeVp: c.f(55), radiusVp: c.f(55 * 0.21), fontVp: c.f(55 * 0.5),
+        bg: c.pal().block, ch: c.content.sign.trim().charAt(0), color: c.pal().accent,
+        fontFam: c.font(), avatarUri: '',
+      })
     }
     .width('100%')
     .margin({ top: c.f(26) })
@@ -225,7 +255,11 @@ export function ChatBubbles(c: PosterRenderCtx) {
       ChatTimePill(c)
 
       Row({ space: c.f(14) }) {
-        ChatAvatar(c, 55, c.pal().accent, avatarChar(c), c.pal().title)
+        ChatAvatarNode({
+          sizeVp: c.f(55), radiusVp: c.f(55 * 0.21), fontVp: c.f(55 * 0.5),
+          bg: c.pal().accent, ch: avatarChar(c), color: c.pal().title,
+          fontFam: c.font(), avatarUri: c.content.avatarUri,
+        })
         ChatBodyBubble(c)
         Row().layoutWeight(1)
       }

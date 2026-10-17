@@ -4405,6 +4405,22 @@
       "value": "Solar term"
     },
     {
+      "name": "poster_avatar_label",
+      "value": "Avatar"
+    },
+    {
+      "name": "poster_avatar_upload",
+      "value": "Upload avatar"
+    },
+    {
+      "name": "poster_avatar_change",
+      "value": "Change avatar"
+    },
+    {
+      "name": "poster_avatar_remove",
+      "value": "Remove"
+    },
+    {
       "name": "poster_body_hint",
       "value": "Enter the main text…"
     },

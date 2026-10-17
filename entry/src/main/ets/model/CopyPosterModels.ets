@@ -81,6 +81,8 @@ export class CopyPosterContent {
   coupletUp: string = '';
   /** T18 对联下联 */
   coupletDown: string = '';
+  /** T12 对方头像沙箱路径（1.4.8 M2，旧记录缺省 '' 兼容；空=首字回退） */
+  avatarUri: string = '';
   /** 水印开关（随历史存储，旧记录缺省 false 兼容） */
   watermarkOn: boolean = false;
   /** 水印文字（清空则不渲染） */
@@ -93,6 +95,7 @@ export class CopyPosterContent {
     c.tag = this.tag;
     c.coupletUp = this.coupletUp;
     c.coupletDown = this.coupletDown;
+    c.avatarUri = this.avatarUri;
     c.watermarkOn = this.watermarkOn;
     c.watermarkText = this.watermarkText;
     return c;
@@ -105,6 +108,7 @@ export class CopyPosterContent {
       'tag': this.tag,
       'coupletUp': this.coupletUp,
       'coupletDown': this.coupletDown,
+      'avatarUri': this.avatarUri,
       'watermarkOn': this.watermarkOn,
       'watermarkText': this.watermarkText,
     };
@@ -120,6 +124,7 @@ export class CopyPosterContent {
       c.tag = String(r['tag'] ?? '');
       c.coupletUp = String(r['coupletUp'] ?? '');
       c.coupletDown = String(r['coupletDown'] ?? '');
+      c.avatarUri = String(r['avatarUri'] ?? '');
       c.watermarkOn = r['watermarkOn'] === true;
       c.watermarkText = String(r['watermarkText'] ?? '');
     } catch (e) {
@@ -238,12 +243,14 @@ export class CopyPosterTemplate {
   defaults: Record<string, string> = {};
   /** 是否支持主文案拼音注音（固定构图模板传 false 隐藏注音开关） */
   supportsPinyin: boolean = true;
+  /** 是否支持对方头像上传（1.4.8 M2，仅 T12；页面据此显示头像行） */
+  supportsAvatar: boolean = false;
   /** 定制输入槽位（非空时页面隐藏主文案输入与换一句，渲染定制输入） */
   customSlots: CopyPosterSlotDef[] = [];
 
   static of(id: string, name: ResourceStr, layout: string, slots: string[], palettes: CoverPalette[],
     fonts: string[], defaults: Record<string, string>, supportsPinyin: boolean = true,
-    customSlots: CopyPosterSlotDef[] = []): CopyPosterTemplate {
+    supportsAvatar: boolean = false, customSlots: CopyPosterSlotDef[] = []): CopyPosterTemplate {
     let t: CopyPosterTemplate = new CopyPosterTemplate();
     t.id = id;
     t.name = name;
@@ -253,6 +260,7 @@ export class CopyPosterTemplate {
     t.fonts = fonts;
     t.defaults = defaults;
     t.supportsPinyin = supportsPinyin;
+    t.supportsAvatar = supportsAvatar;
     t.customSlots = customSlots;
     return t;
   }
