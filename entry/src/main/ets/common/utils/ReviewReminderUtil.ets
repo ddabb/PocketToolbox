@@ -5,12 +5,18 @@
  * 1. 提醒携带固定 groupId（同组一起取消），取消保存的 id 即整组清理，不再累积重复提醒；
  * 2. 发布报 1700002 时兜底 cancelAllReminders 后重试一次（自愈旧版残留）；
  * 3. enable 失败时页面层 toast 提示（reminder_enable_fail）。
+ *
+ * 2026-10-17 对齐 CheckInReminderUtil（1.4.8 M5）：enable() 返回 ReminderEnableStatus
+ * （复用 CheckInReminderUtil 导出的枚举，单一事实源），清空重发仍 1700002 时返回
+ * NO_QUOTA——官方定义的「无代理提醒配额」状态（应用未获 AGC「代理提醒」开放能力授权
+ * 时配额视为 0），页面层提示 reminder_no_quota（不再误导用户去检查通知设置）。
  */
 import { reminderAgentManager } from '@kit.BackgroundTasksKit';
 import { notificationManager } from '@kit.NotificationKit';
 import { preferences } from '@kit.ArkData';
 import { Context, common } from '@kit.AbilityKit';
 import { BusinessError } from '@kit.BasicServicesKit';
+import { ReminderEnableStatus } from './CheckInReminderUtil';
 
 export class ReviewReminderUtil {
   private static readonly PREFS_NAME: string = 'app_cache';
@@ -32,7 +38,7 @@ export class ReviewReminderUtil {
     }
   }
 
-  static async enable(context: common.UIAbilityContext): Promise<boolean> {
+  static async enable(context: common.UIAbilityContext): Promise<ReminderEnableStatus> {
     let enabled: boolean = false;
     try {
       enabled = notificationManager.isNotificationEnabledSync();
@@ -49,7 +55,7 @@ export class ReviewReminderUtil {
         } catch (e2) {
           console.warn('[ReviewReminder] openNotificationSettings failed: ' + (e2 as Error).message);
         }
-        return false;
+        return ReminderEnableStatus.NOTIFICATION_DISABLED;
       }
     }
     let wantAgentInfo: reminderAgentManager.WantAgent = {
@@ -78,7 +84,7 @@ export class ReviewReminderUtil {
       let reminderId: number = await reminderAgentManager.publishReminder(alarm);
       ReviewReminderUtil.saveState(context, true, reminderId);
       console.info('[ReviewReminder] published reminder id=' + reminderId.toString());
-      return true;
+      return ReminderEnableStatus.OK;
     } catch (e) {
       let err: BusinessError = e as BusinessError;
       console.error('[ReviewReminder] publishReminder failed: ' + err.code.toString() + ' ' + err.message);
@@ -88,17 +94,21 @@ export class ReviewReminderUtil {
           let reminderId: number = await reminderAgentManager.publishReminder(alarm);
           ReviewReminderUtil.saveState(context, true, reminderId);
           console.warn('[ReviewReminder] quota full, wiped all reminders and republished id=' + reminderId.toString());
-          return true;
+          return ReminderEnableStatus.OK;
         } catch (e2) {
-          console.error('[ReviewReminder] republish after wipe failed: ' + (e2 as BusinessError).message);
-          return false;
+          let err2: BusinessError = e2 as BusinessError;
+          console.error('[ReviewReminder] republish after wipe failed: ' + err2.code.toString() + ' ' + err2.message);
+          if (err2.code === ReviewReminderUtil.ERR_QUOTA) {
+            return ReminderEnableStatus.NO_QUOTA;
+          }
+          return ReminderEnableStatus.FAILED;
         }
       }
-      return false;
+      return ReminderEnableStatus.FAILED;
     }
   }
 
-  static async disable(context: common.UIAbilityContext): Promise<void> {
+  static async disable(context: Context): Promise<void> {
     try {
       await ReviewReminderUtil.cancelPublished(context);
     } catch (e) {

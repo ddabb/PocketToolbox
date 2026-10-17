@@ -4,6 +4,7 @@ import { ReviewStore, SentenceRecord } from '../common/utils/ReviewStore';
 import { DictationUtil, DictationSentence, DictationChar } from '../common/utils/DictationUtil';
 import { StickinessUtil } from '../common/utils/StickinessUtil';
 import { ReviewReminderUtil } from '../common/utils/ReviewReminderUtil';
+import { ReminderEnableStatus } from '../common/utils/CheckInReminderUtil';
 import { StrUtil } from '../common/utils/StrUtil';
 import { ToastUtil } from '../common/utils/ToastUtil';
 
@@ -37,18 +38,25 @@ struct ReviewContent {
   }
 
   private onReminderToggle(on: boolean): void {
-    let ctx: common.UIAbilityContext = this.uiContext.getHostContext() as common.UIAbilityContext;
     if (on) {
-      ReviewReminderUtil.enable(ctx).then((ok: boolean) => {
-        this.reminderOn = ok;
-        if (!ok) {
-          ToastUtil.show(this.uiContext, $r('app.string.reminder_enable_fail'), 2500);
+      this.reminderOn = true;
+      let ctx: common.UIAbilityContext = this.uiContext.getHostContext() as common.UIAbilityContext;
+      ReviewReminderUtil.enable(ctx).then((status: ReminderEnableStatus) => {
+        if (status === ReminderEnableStatus.OK) {
+          this.reminderOn = true;
+        } else {
+          this.reminderOn = false;
+          if (status === ReminderEnableStatus.NO_QUOTA) {
+            ToastUtil.show(this.uiContext, $r('app.string.reminder_no_quota'), 2500);
+          } else {
+            ToastUtil.show(this.uiContext, $r('app.string.reminder_enable_fail'), 2500);
+          }
         }
       });
     } else {
-      ReviewReminderUtil.disable(ctx).then(() => {
-        this.reminderOn = false;
-      });
+      this.reminderOn = false;
+      let ctx: Context = this.uiContext.getHostContext() as Context;
+      ReviewReminderUtil.disable(ctx);
     }
   }
 
