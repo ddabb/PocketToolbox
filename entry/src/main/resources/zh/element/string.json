@@ -4425,6 +4425,10 @@
       "value": "表头标题"
     },
     {
+      "name": "poster_recent_templates",
+      "value": "最近使用"
+    },
+    {
       "name": "poster_avatar_label",
       "value": "头像"
     },

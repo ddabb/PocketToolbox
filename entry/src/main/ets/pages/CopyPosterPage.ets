@@ -36,6 +36,7 @@ import { StrUtil } from '../common/utils/StrUtil';
 import { savePixelMapToAlbum, shareImageViaPanel } from '../common/utils/ShareImageUtil';
 import { ClipboardFillUtil } from '../common/utils/ClipboardFillUtil';
 import { CopyPosterCategoryUtil } from '../common/utils/CopyPosterCategoryUtil';
+import { CopyPosterTemplatePrefsUtil } from '../common/utils/CopyPosterTemplatePrefsUtil';
 import { ClipboardHintBar } from '../components/ClipboardHintBar';
 
 const PREVIEW_ID: string = 'copyposter_preview';
@@ -82,6 +83,10 @@ struct CopyPosterEditor {
   ];
   /** 分类 chips 选项（每项带该分类模板数，便于用户预判） */
   private categoryOptions: ChipOption[] = [];
+  /** 收藏模板 id（1.4.9 A2：star 角标切换，分类内置前） */
+  @State favoriteIds: string[] = [];
+  /** 最近使用模板 id（1.4.9 A2：保存/导出成功记录 top5，模板面板顶部置顶分组） */
+  @State recentIds: string[] = [];
 
   aboutToAppear(): void {
     FontUtil.registerAll(this.getUIContext());
@@ -106,6 +111,8 @@ struct CopyPosterEditor {
     }
     this.historyRecords = CoverHistoryStore.loadRecords(this.context(), CoverHistoryStore.DIR_POSTER);
     this.showClipHint = ClipboardFillUtil.hasClipboardText();
+    this.favoriteIds = CopyPosterTemplatePrefsUtil.loadFavoriteIds(this.context());
+    this.recentIds = CopyPosterTemplatePrefsUtil.loadRecentIds(this.context());
   }
 
   /** 构建分类 chips：名称 + 该分类模板数（three 语） */
@@ -126,25 +133,30 @@ struct CopyPosterEditor {
     CopyPosterCategoryUtil.saveLastCategory(this.context(), catId);
     let cat: CopyPosterCategory = CopyPosterCategories.getById(catId);
     let list: CopyPosterTemplate[] = CopyPosterCategories.templatesOf(cat, CopyPosterTemplates.all());
-    if (list.length === 0) {
-      return;
-    }
+    if (list.length === 0) { return; }
     let inThis: boolean = false;
     for (let i = 0; i < list.length; i++) {
-      if (list[i].id === this.currentTemplateId) {
-        inThis = true;
-        break;
-      }
+      if (list[i].id === this.currentTemplateId) { inThis = true; break; }
     }
-    if (!inThis) {
-      this.selectTemplate(list[0]);
-    }
+    if (!inThis) { this.selectTemplate(list[0]); }
   }
 
-  /** 当前分类下的模板列表 */
+  /** 当前分类下的模板列表（1.4.9 A2：收藏置前，组内各自保持注册顺序，稳定不跳变） */
   private currentCategoryTemplates(): CopyPosterTemplate[] {
-    return CopyPosterCategories.templatesOf(CopyPosterCategories.getById(this.categoryId),
+    let list: CopyPosterTemplate[] = CopyPosterCategories.templatesOf(CopyPosterCategories.getById(this.categoryId),
       CopyPosterTemplates.all());
+    let favs: CopyPosterTemplate[] = [];
+    let rest: CopyPosterTemplate[] = [];
+    for (let i = 0; i < list.length; i++) {
+      if (this.favoriteIds.indexOf(list[i].id) >= 0) { favs.push(list[i]); } else { rest.push(list[i]); }
+    }
+    return favs.length > 0 ? favs.concat(rest) : list;
+  }
+
+  /** 切换模板收藏：更新 prefs 与页内状态（1.4.9 A2） */
+  private toggleFavorite(templateId: string): void {
+    CopyPosterTemplatePrefsUtil.toggleFavorite(this.context(), templateId);
+    this.favoriteIds = CopyPosterTemplatePrefsUtil.loadFavoriteIds(this.context());
   }
 
   /** 剪贴板填入主文案：按上限截断后走既有 onSlotChange 管道，本会话不再提示 */
@@ -217,22 +229,12 @@ struct CopyPosterEditor {
   /** 槽位标签语义化（1.4.8）：按模板返回语义标签，缺省回退通用标签 */
   private slotLabelFor(slot: string): ResourceStr {
     let tid: string = this.currentTemplateId;
-    if (slot === CopyPosterSlot.BODY) {
-      return tid === 'T12' ? $r('app.string.poster_slot_chat_msg') : $r('app.string.poster_slot_body');
-    }
-    if (slot === CopyPosterSlot.SIGN) {
-      return tid === 'T12' ? $r('app.string.poster_slot_chat_reply') : $r('app.string.poster_slot_sign');
-    }
+    if (slot === CopyPosterSlot.BODY) { return tid === 'T12' ? $r('app.string.poster_slot_chat_msg') : $r('app.string.poster_slot_body'); }
+    if (slot === CopyPosterSlot.SIGN) { return tid === 'T12' ? $r('app.string.poster_slot_chat_reply') : $r('app.string.poster_slot_sign'); }
     if (slot === CopyPosterSlot.TAG) {
-      if (tid === 'T12') {
-        return $r('app.string.poster_slot_chat_peer');
-      }
-      if (tid === 'T16') {
-        return $r('app.string.poster_slot_solar_term');
-      }
-      if (tid === 'T18') {
-        return $r('app.string.poster_slot_banner');
-      }
+      if (tid === 'T12') { return $r('app.string.poster_slot_chat_peer'); }
+      if (tid === 'T16') { return $r('app.string.poster_slot_solar_term'); }
+      if (tid === 'T18') { return $r('app.string.poster_slot_banner'); }
       return $r('app.string.poster_slot_tag');
     }
     return $r('app.string.poster_slot_body');
@@ -425,6 +427,9 @@ struct CopyPosterEditor {
         this.historyRecords = CoverHistoryStore.loadRecords(context, CoverHistoryStore.DIR_POSTER);
       }
       StickinessUtil.recordPosterExport(context);
+      // 1.4.9 A2：保存/导出成功即记一次模板使用（头插去重 top5），模板面板「最近使用」分组即时刷新
+      CopyPosterTemplatePrefsUtil.recordTemplateUse(context, this.currentTemplateId);
+      this.recentIds = CopyPosterTemplatePrefsUtil.loadRecentIds(context);
       if (save) {
         let ok: boolean = await savePixelMapToAlbum(uiCtx, pixelMap);
         ToastUtil.show(uiCtx, ok ? $r('app.string.md2_saved_to_album') : $r('app.string.char_save_cancelled'), 1500);
@@ -594,7 +599,7 @@ struct CopyPosterEditor {
   @Builder
   TemplateThumb(t: CopyPosterTemplate) {
     Column({ space: 5 }) {
-      Column() {
+      Stack({ alignContent: Alignment.TopEnd }) {
         CopyPosterPreview({
           template: t,
           content: this.content,
@@ -606,6 +611,17 @@ struct CopyPosterEditor {
           showWatermark: false,
           isThumb: true,
         })
+        // 1.4.9 A2：右上角收藏角标（★ 已收藏/☆ 未收藏），点击切换不打断当前编辑
+        Text(this.favoriteIds.indexOf(t.id) >= 0 ? '★' : '☆')
+          .fontSize(13)
+          .fontColor(this.favoriteIds.indexOf(t.id) >= 0 ? '#F7B500' : '#C4C9D2')
+          .width(22)
+          .height(22)
+          .textAlign(TextAlign.Center)
+          .backgroundColor('#59000000')
+          .borderRadius(11)
+          .margin(3)
+          .onClick(() => { this.toggleFavorite(t.id); })
       }
       .width(96)
       .height(96)
@@ -635,6 +651,26 @@ struct CopyPosterEditor {
   @Builder
   TemplateScroller() {
     Column({ space: 8 }) {
+      if (this.recentIds.length > 0) {
+        // 1.4.9 A2：最近使用模板置顶分组（保存/导出成功记录，横滑条复用 TemplateThumb）
+        Text($r('app.string.poster_recent_templates'))
+          .fontSize(12)
+          .fontColor(this.labelColor())
+          .width('100%')
+          .textAlign(TextAlign.Start)
+        List({ space: 10 }) {
+          ForEach(this.recentIds, (tid: string) => {
+            ListItem() {
+              this.TemplateThumb(CopyPosterTemplates.getById(tid))
+            }
+          }, (tid: string) => tid)
+        }
+        .listDirection(Axis.Horizontal)
+        .scrollBar(BarState.Off)
+        .width('100%')
+        .height(126)
+        .edgeEffect(EdgeEffect.Spring)
+      }
       // 1.4.5 真机走查修复：分类 chips 共 5 类总宽超出屏宽，ChipRow 根为不可滚动的 Row，
       // 第 5 类「节日节气」被屏幕右缘裁掉、T16-T18 无法选择。
       // 包一层横向 Scroll（同 CoverMakerPage.SeriesChips 模式）即可滚动可达。
@@ -699,9 +735,7 @@ struct CopyPosterEditor {
           .fontWeight(this.editorTab === idx ? FontWeight.Bold : FontWeight.Normal)
           .fontColor(this.editorTab === idx ? $r('app.color.brand_blue') : this.labelColor())
           .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-          .onClick(() => {
-            this.editorTab = idx;
-          })
+          .onClick(() => { this.editorTab = idx; })
       }, (idx: number) => idx.toString())
     }
     .width('100%')
@@ -710,12 +744,8 @@ struct CopyPosterEditor {
 
   /** 页签文案：0 文字 / 1 模板 / 2 样式（1.4.7 三页签改版） */
   private tabLabel(idx: number): ResourceStr {
-    if (idx === 0) {
-      return $r('app.string.cover_tab_text');
-    }
-    if (idx === 1) {
-      return $r('app.string.cover_tab_template');
-    }
+    if (idx === 0) { return $r('app.string.cover_tab_text'); }
+    if (idx === 1) { return $r('app.string.cover_tab_template'); }
     return $r('app.string.cover_tab_style');
   }
 
@@ -746,9 +776,7 @@ struct CopyPosterEditor {
               .maxLength(def.maxLen)
               .backgroundColor(this.inputBg())
               .borderRadius(8)
-              .onChange((value: string) => {
-                this.onSlotChange(def.id, value);
-              })
+              .onChange((value: string) => { this.onSlotChange(def.id, value); })
           }
           .width('100%')
           .alignItems(HorizontalAlign.Start)
@@ -765,9 +793,7 @@ struct CopyPosterEditor {
             .padding({ left: 14, right: 14, top: 7, bottom: 7 })
             .backgroundColor($r('app.color.brand_blue_tint'))
             .borderRadius(14)
-            .onClick(() => {
-              this.changeBody();
-            })
+            .onClick(() => { this.changeBody(); })
         }
         .width('100%')
         .alignItems(VerticalAlign.Center)
@@ -782,9 +808,7 @@ struct CopyPosterEditor {
             .maxLength(CopyPosterTemplates.MAX_BODY)
             .backgroundColor(this.inputBg())
             .borderRadius(8)
-            .onChange((value: string) => {
-              this.onSlotChange(CopyPosterSlot.BODY, value);
-            })
+            .onChange((value: string) => { this.onSlotChange(CopyPosterSlot.BODY, value); })
         }
         .width('100%')
         .alignItems(HorizontalAlign.Start)
@@ -801,9 +825,7 @@ struct CopyPosterEditor {
             .maxLength(CopyPosterTemplates.MAX_SIGN)
             .backgroundColor(this.inputBg())
             .borderRadius(8)
-            .onChange((value: string) => {
-              this.onSlotChange(CopyPosterSlot.SIGN, value);
-            })
+            .onChange((value: string) => { this.onSlotChange(CopyPosterSlot.SIGN, value); })
         }
         .layoutWeight(1)
         .alignItems(HorizontalAlign.Start)
@@ -818,9 +840,7 @@ struct CopyPosterEditor {
             .maxLength(CopyPosterTemplates.MAX_TAG)
             .backgroundColor(this.inputBg())
             .borderRadius(8)
-            .onChange((value: string) => {
-              this.onSlotChange(CopyPosterSlot.TAG, value);
-            })
+            .onChange((value: string) => { this.onSlotChange(CopyPosterSlot.TAG, value); })
         }
         .layoutWeight(1)
         .alignItems(HorizontalAlign.Start)
@@ -841,9 +861,7 @@ struct CopyPosterEditor {
               .maxLength(def.maxLen)
               .backgroundColor(this.inputBg())
               .borderRadius(8)
-              .onChange((value: string) => {
-                this.onSlotChange(def.id, value);
-              })
+              .onChange((value: string) => { this.onSlotChange(def.id, value); })
           }
           .width('100%')
           .alignItems(HorizontalAlign.Start)
@@ -863,9 +881,7 @@ struct CopyPosterEditor {
         .fontSize(15)
         .backgroundColor($r('app.color.brand_blue'))
         .enabled(this.canExport() && !this.exporting)
-        .onClick(() => {
-          this.doExport(true);
-        })
+        .onClick(() => { this.doExport(true); })
       Button($r('app.string.md2_share'))
         .layoutWeight(1)
         .height(44)
@@ -873,9 +889,7 @@ struct CopyPosterEditor {
         .backgroundColor(this.chipBg())
         .fontColor(this.chipText())
         .enabled(this.canExport() && !this.exporting)
-        .onClick(() => {
-          this.doExport(false);
-        })
+        .onClick(() => { this.doExport(false); })
     }
     .width('100%')
     .padding({ left: 16, right: 16, top: 10, bottom: 12 })

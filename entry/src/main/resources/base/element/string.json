@@ -4425,6 +4425,10 @@
       "value": "Board title"
     },
     {
+      "name": "poster_recent_templates",
+      "value": "Recently used"
+    },
+    {
       "name": "poster_avatar_label",
       "value": "Avatar"
     },

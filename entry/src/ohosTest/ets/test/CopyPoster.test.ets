@@ -1,11 +1,16 @@
 /**
- * 文案海报内容模型 - 单元测试（1.4.8 §4 验收项；1.4.9 M1-A1 附加槽位）
+ * 文案海报内容模型 - 单元测试（1.4.8 §4 验收项；1.4.9 M1-A1 附加槽位、M2-A2 模板偏好）
  * 覆盖：CopyPosterContent 序列化回环（coupletUp/coupletDown/avatarUri/1.4.9 附加槽位缺省容错）
  *      / copy 深拷贝独立性 / T18 定制槽位声明 / T12 头像能力声明 / T5-T10 附加槽位声明
+ *      / 模板偏好纯逻辑（parseIds 脏数据防御 + mergeRecentIds 头插去重 top5 + 存储格式回环）
+ * 注：prefs I/O 回环不在本套件——模拟器 aa test 进程 context 为壳（getPreferencesSync 报
+ *     "Parameter error. The context is invalid."，backupUtilTest 同源存量债），按 1.4.7
+ *     「用例只测纯逻辑」哲学抽取纯函数直测，持久化链路由 E2E 重启验证（见计划 §10）。
  */
 import { describe, it, expect } from '@ohos/hypium';
 import { CopyPosterContent, CopyPosterSlot, CopyPosterSlotDef } from '../../../main/ets/model/CopyPosterModels';
 import { CopyPosterTemplates } from '../../../main/ets/core/cover/CopyPosterTemplates';
+import { CopyPosterTemplatePrefsUtil } from '../../../main/ets/common/utils/CopyPosterTemplatePrefsUtil';
 
 export default function copyPosterTest() {
   describe('copyPosterTest', () => {
@@ -156,6 +161,46 @@ export default function copyPosterTest() {
       expect(extraIds[0]).assertEqual('T5');
       expect(extraIds[1]).assertEqual('T8');
       expect(extraIds[2]).assertEqual('T10');
+    });
+
+    /** tc9: 1.4.9 M2-A2 模板偏好纯逻辑 —— parseIds 脏数据防御/去重/截断 + mergeRecentIds 头插去重 top5 + 存储格式回环 */
+    it('tc9_templatePrefsPure', 0, () => {
+      // parseIds：合法 id 保序 + 重复去重 + 未注册 id 剔除
+      let ids: string[] = CopyPosterTemplatePrefsUtil.parseIds(JSON.stringify(['T1', 'T1', 'T99', 'T2']), 0);
+      expect(ids.length).assertEqual(2);
+      expect(ids[0]).assertEqual('T1');
+      expect(ids[1]).assertEqual('T2');
+      // parseIds：limit 截断（收藏 0 不截，最近 5 截前 5）
+      let capped: string[] = CopyPosterTemplatePrefsUtil.parseIds(
+        JSON.stringify(['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']), 5);
+      expect(capped.length).assertEqual(5);
+      expect(capped[4]).assertEqual('T5');
+      // parseIds：空串/坏 JSON/非数组 JSON/非字符串元素全部安全回退或剔除
+      expect(CopyPosterTemplatePrefsUtil.parseIds('', 0).length).assertEqual(0);
+      expect(CopyPosterTemplatePrefsUtil.parseIds('not a json {{{', 0).length).assertEqual(0);
+      expect(CopyPosterTemplatePrefsUtil.parseIds('{"a":1}', 0).length).assertEqual(0);
+      expect(CopyPosterTemplatePrefsUtil.parseIds('null', 0).length).assertEqual(0);
+      let mixed: string[] = CopyPosterTemplatePrefsUtil.parseIds('[3, "T5", true]', 0);
+      expect(mixed.length).assertEqual(1);
+      expect(mixed[0]).assertEqual('T5');
+      // mergeRecentIds：连续使用 7 个仅留最新 5（最新在前）
+      let recent: string[] = [];
+      for (let i = 1; i <= 7; i++) {
+        recent = CopyPosterTemplatePrefsUtil.mergeRecentIds(recent, 'T' + i);
+      }
+      expect(recent.length).assertEqual(5);
+      expect(recent[0]).assertEqual('T7');
+      expect(recent[4]).assertEqual('T3');
+      // mergeRecentIds：重复使用头插
+      recent = CopyPosterTemplatePrefsUtil.mergeRecentIds(recent, 'T3');
+      expect(recent.length).assertEqual(5);
+      expect(recent[0]).assertEqual('T3');
+      // 存储格式回环：recordTemplateUse 写入即 JSON.stringify(merge 结果)，读取即 parseIds——合成 prefs 值经回环还原
+      let stored: string = JSON.stringify(recent);
+      let back: string[] = CopyPosterTemplatePrefsUtil.parseIds(stored, 5);
+      expect(back.length).assertEqual(5);
+      expect(back[0]).assertEqual('T3');
+      expect(back[4]).assertEqual('T4');
     });
   });
 }
