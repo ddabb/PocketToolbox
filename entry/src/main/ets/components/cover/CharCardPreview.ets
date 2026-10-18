@@ -1,9 +1,11 @@
 /**
  * 生字卡卡面渲染组件：设计稿 900x900（方卡）/ 900x1200（练习卡）/ 900x383（公众号首图，恒单行）等比渲染
- * 结构：拼音（可关，逐字槽位对齐：汉字按序取音节，无音节字顶上留空白槽，槽宽恒等格边长不迁移；系统字体防部分设备声调字符渲染异常） + 田字格/米字格格区（1-12 字，>8 字两行）
+ * 结构：拼音（可关，逐字槽位对齐：汉字按序取音节，无音节字顶上留空白槽，槽宽恒等格边长不迁移；系统字体防部分设备声调字符渲染异常） + 田字格/米字格格区（1-12 字，>8 字两行）；
+ * 标点字格不注音不出格线（标点非练字对象），仅居中渲染，占位保持行几何对齐
  */
 import { CoverPalette } from '../../model/CoverModels';
 import { CharCardCharMode, CharCardGridType, CharCardInputMode, CharCardSize, CharCards } from '../../core/cover/CharCardTemplates';
+import { WordSegmentUtil } from '../../common/utils/WordSegmentUtil';
 
 const KAI_FONT: string = 'LXGWWenKai';
 
@@ -188,11 +190,12 @@ export struct CharCardPreview {
     return all.slice(start, start + lens[rowIndex]);
   }
 
-  /** 田字格/米字格/无边框单元格：外框实线 + 十字虚线（米字格加对角虚线，无边框仅保留字）+ 居中楷体字（字在最上层压住格线） */
+  /** 田字格/米字格/无边框单元格：外框实线 + 十字虚线（米字格加对角虚线，无边框仅保留字）+ 居中楷体字（字在最上层压住格线）
+   *  标点字格不出格线（标点非练字对象），仅居中渲染 */
   @Builder
   GridCell(size: number, ch: string) {
     Stack({ alignContent: Alignment.Center }) {
-      if (this.gridType !== CharCardGridType.NONE) {
+      if (this.gridType !== CharCardGridType.NONE && !WordSegmentUtil.isPunctuation(ch)) {
         Row()
           .width('100%')
           .height(this.lineW())
@@ -224,6 +227,6 @@ export struct CharCardPreview {
     }
     .width(size)
     .height(size)
-    .border({ width: this.outerW(), color: this.pal().accent })
+    .border({ width: WordSegmentUtil.isPunctuation(ch) ? 0 : this.outerW(), color: this.pal().accent })
   }
 }

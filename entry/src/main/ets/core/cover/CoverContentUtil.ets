@@ -23,29 +23,52 @@ export class CoverContentUtil {
   private static usedIdiom: Set<string> = new Set<string>();
   private static usedXhy: Set<string> = new Set<string>();
 
-  /** 生字自动注音（带音调，仅汉字注音；非汉字不输出，失败返回空串） */
+  /** 生字自动注音（带音调，仅汉字注音；非汉字不输出，失败返回空串）
+   *  2026-10-18 改逐段注音：按连续汉字段分段调 pinyin-pro（段内多音字上下文保留），
+   *  标点/拉丁/emoji 不进 pinyin() 入参——array 模式对连续非汉字存在合并行为，
+   *  整串下标对齐在标点后易错位（连续标点可致整串丢拼音），分段后标点仅隔断不参与对齐
+   */
   static autoPinyin(text: string): string {
     let clean: string = text.replace(new RegExp('\\s', 'g'), '');
     if (clean === '') {
       return '';
     }
-    try {
-      let raw: string[] = pinyin(clean, { toneType: 'symbol', type: 'array' });
-      let han: RegExp = new RegExp('[\\u4e00-\\u9fff]');
-      let out: string[] = [];
-      for (let i = 0; i < clean.length && i < raw.length; i++) {
-        if (!han.test(clean.charAt(i))) {
-          continue;
+    let han: RegExp = new RegExp('[\\u4e00-\\u9fff]');
+    let out: string[] = [];
+    let runStart: number = -1;
+    for (let i = 0; i <= clean.length; i++) {
+      let isHan: boolean = i < clean.length && han.test(clean.charAt(i));
+      if (isHan && runStart < 0) {
+        runStart = i;
+      } else if (!isHan && runStart >= 0) {
+        let seg: string[] = CoverContentUtil.pinyinRun(clean.substring(runStart, i));
+        for (let j = 0; j < seg.length; j++) {
+          out.push(seg[j]);
         }
+        runStart = -1;
+      }
+    }
+    return out.join(' ');
+  }
+
+  /** 单段连续汉字注音（段内纯汉字，array 与字符一一对应）；异常返回空数组不影响其余段 */
+  private static pinyinRun(run: string): string[] {
+    if (run === '') {
+      return [];
+    }
+    try {
+      let raw: string[] = pinyin(run, { toneType: 'symbol', type: 'array' });
+      let out: string[] = [];
+      for (let i = 0; i < run.length && i < raw.length; i++) {
         let s: string = raw[i].trim();
         if (s !== '') {
           out.push(s);
         }
       }
-      return out.join(' ');
+      return out;
     } catch (e) {
-      console.error('[Cover] autoPinyin failed: ' + (e as Error).message);
-      return '';
+      console.error('[Cover] autoPinyin run failed: ' + (e as Error).message);
+      return [];
     }
   }
 

@@ -10,6 +10,7 @@ import pdfUtilTest from './PdfUtil.test';
 import backupUtilTest from './BackupUtil.test';
 import sudokuPixelTest from './SudokuPixel.test';
 import sudokuGridFixTest from './SudokuGridFix.test';
+import wordSegmentTest from './WordSegment.test';
 
 export default function testsuite() {
   abilityTest();
@@ -24,4 +25,5 @@ export default function testsuite() {
   backupUtilTest();
   sudokuPixelTest();
   sudokuGridFixTest();
+  wordSegmentTest();
 }

@@ -71,12 +71,16 @@ export default function coverTest() {
       expect(seriesCount).assertEqual(0);
     });
 
-    /** tc3: 自动注音 —— PRD 验收：学而时习之 -> xué ér shí xí zhī */
+    /** tc3: 自动注音 —— 仅汉字注音、非汉字不输出（bafcf69 口径；2026-10-18 修正过期断言 'a b'→''）；
+     *  标点隔断不注音、连续标点不丢音节（逐段注音回归） */
     it('tc3_autoPinyin', 0, () => {
       expect(CoverContentUtil.autoPinyin('学而时习之')).assertEqual('xué ér shí xí zhī');
       expect(CoverContentUtil.autoPinyin('你好')).assertEqual('nǐ hǎo');
       expect(CoverContentUtil.autoPinyin('')).assertEqual('');
-      expect(CoverContentUtil.autoPinyin('a b')).assertEqual('a b');
+      expect(CoverContentUtil.autoPinyin('a b')).assertEqual('');
+      expect(CoverContentUtil.autoPinyin('床前明月光，疑是地上霜。'))
+        .assertEqual('chuáng qián míng yuè guāng yí shì dì shàng shuāng');
+      expect(CoverContentUtil.autoPinyin('你好！！世界')).assertEqual('nǐ hǎo shì jiè');
     });
 
     /** tc4: 日期格式 YYYY.MM.DD */
