@@ -465,6 +465,14 @@
       "value": "温故知新"
     },
     {
+      "name": "home_review_due_banner",
+      "value": "今日待复习：%d 句"
+    },
+    {
+      "name": "home_review_due_badge",
+      "value": "待复习 %d"
+    },
+    {
       "name": "feedback_subject",
       "value": "解语珠玑意见反馈"
     },

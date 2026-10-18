@@ -87,6 +87,11 @@ struct CopyPosterEditor {
   @State favoriteIds: string[] = [];
   /** 最近使用模板 id（1.4.9 A2：保存/导出成功记录 top5，模板面板顶部置顶分组） */
   @State recentIds: string[] = [];
+  /** 面板滚动控制器（1.4.9 B5：比例切换补偿滚动，锚定模板列表视线不跳变） */
+  private panelScroller: Scroller = new Scroller();
+  /** 1.4.9 B6：分类条横滑防误触 —— 横滑期间及结束后 300ms 内吞掉 chip onSelect */
+  private categorySwipeGuard: boolean = false;
+  private categoryGuardResetId: number = -1;
 
   aboutToAppear(): void {
     FontUtil.registerAll(this.getUIContext());
@@ -139,6 +144,15 @@ struct CopyPosterEditor {
       if (list[i].id === this.currentTemplateId) { inThis = true; break; }
     }
     if (!inThis) { this.selectTemplate(list[0]); }
+  }
+
+  /** 1.4.9 B6：横滑结束 300ms 后放开 chip 点击（短窗吞掉滑动尾段误触的 onSelect） */
+  private scheduleCategoryGuardReset(): void {
+    if (this.categoryGuardResetId >= 0) { clearTimeout(this.categoryGuardResetId); }
+    this.categoryGuardResetId = setTimeout(() => {
+      this.categorySwipeGuard = false;
+      this.categoryGuardResetId = -1;
+    }, 300);
   }
 
   /** 当前分类下的模板列表（1.4.9 A2：收藏置前，组内各自保持注册顺序，稳定不跳变） */
@@ -474,17 +488,13 @@ struct CopyPosterEditor {
     Column() {
       this.PreviewSection()
       this.EditorTabs()
-      Scroll() {
+      Scroll(this.panelScroller) {
         Column({ space: 14 }) {
           if (this.editorTab === 0) {
             if (this.showClipHint && this.currentTemplate().customSlots.length === 0) {
               ClipboardHintBar({
-                onFill: (text: string) => {
-                  this.onClipFill(text);
-                },
-                onDismiss: () => {
-                  this.showClipHint = false;
-                },
+                onFill: (text: string) => { this.onClipFill(text); },
+                onDismiss: () => { this.showClipHint = false; },
               })
             }
             this.TextEditor()
@@ -501,31 +511,17 @@ struct CopyPosterEditor {
               pinyinOn: this.pinyinOn,
               watermarkOn: this.content.watermarkOn,
               watermarkText: this.content.watermarkText,
-              onPaletteSelect: (idx: number) => {
-                this.paletteIndex = idx;
-              },
-              onFontSelect: (idx: number) => {
-                this.fontIndex = idx;
-              },
-              onPinyinToggle: () => {
-                this.pinyinOn = !this.pinyinOn;
-              },
-              onWatermarkToggle: () => {
-                this.onWatermarkToggle();
-              },
-              onWatermarkTextChange: (value: string) => {
-                this.onWatermarkTextChange(value);
-              },
+              onPaletteSelect: (idx: number) => { this.paletteIndex = idx; },
+              onFontSelect: (idx: number) => { this.fontIndex = idx; },
+              onPinyinToggle: () => { this.pinyinOn = !this.pinyinOn; },
+              onWatermarkToggle: () => { this.onWatermarkToggle(); },
+              onWatermarkTextChange: (value: string) => { this.onWatermarkTextChange(value); },
             })
           }
           CopyPosterHistorySection({
             historyRecords: this.historyRecords,
-            onRestore: (r: CoverHistoryRecord) => {
-              this.restoreFromHistory(r);
-            },
-            onClear: () => {
-              this.clearHistory();
-            },
+            onRestore: (r: CoverHistoryRecord) => { this.restoreFromHistory(r); },
+            onClear: () => { this.clearHistory(); },
           })
         }
         .width('100%')
@@ -587,7 +583,12 @@ struct CopyPosterEditor {
       chipBg: this.chipBg(),
       chipText: this.chipText(),
       onSelect: (value: string) => {
+        if (value === this.ratioKind) { return; }
+        let oldH: number = this.previewW() * CopyPosterRatio.designHeight(this.ratioKind) / 900;
         this.ratioKind = value;
+        let newH: number = this.previewW() * CopyPosterRatio.designHeight(this.ratioKind) / 900;
+        this.panelScroller.scrollTo({ xOffset: 0,
+          yOffset: this.panelScroller.currentOffset().yOffset + newH - oldH });
       },
     })
   }
@@ -615,12 +616,8 @@ struct CopyPosterEditor {
         Text(this.favoriteIds.indexOf(t.id) >= 0 ? '★' : '☆')
           .fontSize(13)
           .fontColor(this.favoriteIds.indexOf(t.id) >= 0 ? '#F7B500' : '#C4C9D2')
-          .width(22)
-          .height(22)
-          .textAlign(TextAlign.Center)
-          .backgroundColor('#59000000')
-          .borderRadius(11)
-          .margin(3)
+          .width(22).height(22).textAlign(TextAlign.Center)
+          .backgroundColor('#59000000').borderRadius(11).margin(3)
           .onClick(() => { this.toggleFavorite(t.id); })
       }
       .width(96)
@@ -685,6 +682,7 @@ struct CopyPosterEditor {
             chipBg: this.chipBg(),
             chipText: this.chipText(),
             onSelect: (value: string) => {
+              if (this.categorySwipeGuard) { return; }
               this.onCategoryChange(value);
             },
           })
@@ -694,6 +692,10 @@ struct CopyPosterEditor {
       .scrollable(ScrollDirection.Horizontal)
       .scrollBar(BarState.Off)
       .width('100%')
+      .gesture(PanGesture({ fingers: 1, distance: 8 })
+        .onActionStart(() => { this.categorySwipeGuard = true; })
+        .onActionEnd(() => { this.scheduleCategoryGuardReset(); })
+        .onActionCancel(() => { this.scheduleCategoryGuardReset(); }))
 
       if (this.currentCategoryTemplates().length <= 4) {
         // 该类模板不多于一屏：每行 4 个网格铺满，省掉横滑动作

@@ -48,6 +48,8 @@ import { ClipboardUtil } from '../common/utils/ClipboardUtil';
 import { VibrateUtil } from '../common/utils/VibrateUtil';
 import { BreakpointObserver, ScreenBreakpoint } from '../common/utils/BreakpointUtil';
 import { StrUtil } from '../common/utils/StrUtil';
+import { ReviewStore } from '../common/utils/ReviewStore';
+import { ReviewDueBanner, ReviewDueBadge } from '../components/ReviewDueBanner';
 
 const FEEDBACK_EMAIL: string = '1011888891@qq.com';
 
@@ -115,6 +117,8 @@ struct Index {
   @StorageLink('AchievementUnlockEvent') @Watch('onAchievementUnlockEvent') achievementUnlockEvent: number = 0;
   @State toolGridCols: number = 4;
   @StorageLink('ReadingDataVersion') @Watch('onReadingDataChanged') readingDataVersion: number = 0;
+  @StorageLink('ReviewDataVersion') @Watch('onReviewDataChanged') reviewDataVersion: number = 0;
+  @State reviewDueCount: number = 0;
   private poetryVm: PoetryViewModel = PoetryViewModel.getInstance();
   private idiomVm: IdiomViewModel = IdiomViewModel.getInstance();
   private xiehouyuVm: XiehouyuViewModel = XiehouyuViewModel.getInstance();
@@ -154,6 +158,7 @@ struct Index {
     }, 0);
     this.loadFavCount();
     this.loadStickinessData();
+    this.loadReviewDueCount();
     this.lastUnlockEventTotal = this.achievementUnlockEvent;
     AppStorage.setOrCreate('AchievementUnseenCount',
       StickinessUtil.loadAchievementUnseen(this.getUIContext().getHostContext() as Context));
@@ -308,8 +313,26 @@ struct Index {
   onPageShow(): void {
     this.loadFavCount();
     this.loadStickinessData();
+    this.loadReviewDueCount();
     this.handleWidgetOpenPoem();
     this.handleWidgetOpenCheckIn();
+  }
+
+  /** 1.4.9 B2：今日待复习数（默写/复习页保存时经 ReviewDataVersion 版本泵自动刷新） */
+  private loadReviewDueCount(): void {
+    this.reviewDueCount = ReviewStore.getDueCount(this.getUIContext().getHostContext() as Context);
+  }
+
+  private onReviewDataChanged(): void {
+    this.loadReviewDueCount();
+  }
+
+  /** 1.4.9 B2：直达复习页 —— 重算后再跳（复习完回到首页提示条自消失） */
+  private openReviewDue(): void {
+    this.loadReviewDueCount();
+    if (this.reviewDueCount > 0) {
+      this.homeStack.pushPathByName('ReviewPage', null);
+    }
   }
 
   // 桌面卡片点击深链：打开对应诗词详情页
@@ -785,12 +808,9 @@ struct Index {
   @Builder
   TabBarItem(index: number, icon: Resource, label: ResourceStr) {
     Column() {
-      Image(icon)
-        .width(24)
-        .height(24)
+      Image(icon).width(24).height(24)
         .fillColor(this.currentTab === index ? $r('app.color.poetry_green') : $r('app.color.tertiary_text'))
-      Text(label)
-        .fontSize(11)
+      Text(label).fontSize(11)
         .fontColor(this.currentTab === index ? $r('app.color.poetry_green') : $r('app.color.tertiary_text'))
         .margin({ top: 2 })
     }
@@ -807,17 +827,19 @@ struct Index {
       Scroll() {
         Column() {
           Row() {
-            Text($r('app.string.EntryAbility_label'))
-              .fontSize(22)
-              .fontWeight(FontWeight.Bold)
+            Text($r('app.string.EntryAbility_label')).fontSize(22).fontWeight(FontWeight.Bold)
               .fontColor($r('app.color.primary_text'))
             Blank()
-            Text($r('app.string.home_slogan'))
-              .fontSize(11)
+            Text($r('app.string.home_slogan')).fontSize(11)
               .fontColor($r('app.color.tertiary_text'))
           }
           .width('100%')
           .padding({ left: 16, right: 16, top: 12, bottom: 4 })
+
+          ReviewDueBanner({
+            dueCount: this.reviewDueCount,
+            onOpen: () => { this.openReviewDue(); },
+          })
 
           this.QuickToolsRow()
 
@@ -825,14 +847,9 @@ struct Index {
 
           Row() {
             Column() {
-              Image($r('app.media.home_poem'))
-                .width(44)
-                .height(44)
-                .borderRadius(12)
-                .margin({ bottom: 6 })
-              Text($r('app.string.page_poetry_query'))
-                .fontSize(14)
-                .fontWeight(FontWeight.Bold)
+              Image($r('app.media.home_poem')).width(44).height(44)
+                .borderRadius(12).margin({ bottom: 6 })
+              Text($r('app.string.page_poetry_query')).fontSize(14).fontWeight(FontWeight.Bold)
                 .fontColor($r('app.color.primary_text'))
               Text($r('app.string.home_poetry_sub'))
                 .fontSize(10)
@@ -850,14 +867,9 @@ struct Index {
             })
 
             Column() {
-              Image($r('app.media.home_idiom'))
-                .width(44)
-                .height(44)
-                .borderRadius(12)
-                .margin({ bottom: 6 })
-              Text($r('app.string.page_idiom_query'))
-                .fontSize(14)
-                .fontWeight(FontWeight.Bold)
+              Image($r('app.media.home_idiom')).width(44).height(44)
+                .borderRadius(12).margin({ bottom: 6 })
+              Text($r('app.string.page_idiom_query')).fontSize(14).fontWeight(FontWeight.Bold)
                 .fontColor($r('app.color.primary_text'))
               Text($r('app.string.home_idiom_sub'))
                 .fontSize(10)
@@ -876,15 +888,10 @@ struct Index {
 
             Column() {
               Column() {
-                Image($r('app.media.mine_xiehouyu'))
-                  .width(44)
-                  .height(44)
-                  .borderRadius(12)
+                Image($r('app.media.mine_xiehouyu')).width(44).height(44).borderRadius(12)
               }
               .margin({ bottom: 6 })
-              Text($r('app.string.xiehouyu_short'))
-                .fontSize(14)
-                .fontWeight(FontWeight.Bold)
+              Text($r('app.string.xiehouyu_short')).fontSize(14).fontWeight(FontWeight.Bold)
                 .fontColor($r('app.color.primary_text'))
               Text($r('app.string.home_xiehouyu_sub'))
                 .fontSize(10)
@@ -1942,9 +1949,7 @@ struct Index {
     Row() {
       Column() {
         Row() {
-          Text('\uD83D\uDCC5')
-            .fontSize(14)
-            .margin({ right: 4 })
+          Text('\uD83D\uDCC5').fontSize(14).margin({ right: 4 })
           Text($r('app.string.daily_checkin'))
             .fontSize(12)
             .fontWeight(FontWeight.Bold)
@@ -1992,9 +1997,7 @@ struct Index {
 
       Column() {
         Row() {
-          Text('\uD83C\uDFC6')
-            .fontSize(14)
-            .margin({ right: 4 })
+          Text('\uD83C\uDFC6').fontSize(14).margin({ right: 4 })
           Text($r('app.string.daily_challenge'))
             .fontSize(12)
             .fontWeight(FontWeight.Bold)
@@ -2039,17 +2042,14 @@ struct Index {
   ReviewCard() {
     Column() {
       Row() {
-        Text('\uD83D\uDCDD')
-          .fontSize(13)
-          .margin({ right: 3 })
+        Text('\uD83D\uDCDD').fontSize(13).margin({ right: 3 })
         Text($r('app.string.review_card_title'))
           .fontSize(12)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.poetry_green'))
         Blank()
-        Text('\u203A')
-          .fontSize(16)
-          .fontColor($r('app.color.hint_text'))
+        ReviewDueBadge({ count: this.reviewDueCount, onTap: () => { this.openReviewDue(); } })
+        Text('\u203A').fontSize(16).fontColor($r('app.color.hint_text'))
       }
       .margin({ bottom: 5 })
       if (this.reviewItem) {

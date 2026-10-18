@@ -133,8 +133,11 @@ export class ReviewStore {
   }
 
   static getDueReviews(context: Context): SentenceRecord[] {
-    let now: number = new Date().getTime();
-    let records: SentenceRecord[] = ReviewStore.loadRecords(context);
+    return ReviewStore.filterDue(ReviewStore.loadRecords(context), new Date().getTime());
+  }
+
+  /** 纯函数：过滤到期记录并按到期时间升序（1.4.9 B2 抽取，绕开壳进程 prefs 限制供单测直测） */
+  static filterDue(records: SentenceRecord[], now: number): SentenceRecord[] {
     let list: SentenceRecord[] = [];
     for (let i = 0; i < records.length; i++) {
       if (records[i].nextReviewAt > 0 && records[i].nextReviewAt <= now) {

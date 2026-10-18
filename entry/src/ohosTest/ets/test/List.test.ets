@@ -8,6 +8,7 @@ import sudokuEngineTest from './SudokuEngine.test';
 import gifCodecTest from './GifCodec.test';
 import pdfUtilTest from './PdfUtil.test';
 import backupUtilTest from './BackupUtil.test';
+import reviewStoreTest from './ReviewStore.test';
 import sudokuPixelTest from './SudokuPixel.test';
 import sudokuGridFixTest from './SudokuGridFix.test';
 import wordSegmentTest from './WordSegment.test';
@@ -23,6 +24,7 @@ export default function testsuite() {
   gifCodecTest();
   pdfUtilTest();
   backupUtilTest();
+  reviewStoreTest();
   sudokuPixelTest();
   sudokuGridFixTest();
   wordSegmentTest();

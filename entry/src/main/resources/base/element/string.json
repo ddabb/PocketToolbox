@@ -465,6 +465,14 @@
       "value": "Review & Remember"
     },
     {
+      "name": "home_review_due_banner",
+      "value": "Review due today: %d"
+    },
+    {
+      "name": "home_review_due_badge",
+      "value": "%d to review"
+    },
+    {
       "name": "feedback_subject",
       "value": "JieYu ZhuJi Feedback"
     },

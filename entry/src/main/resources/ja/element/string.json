@@ -465,6 +465,14 @@
       "value": "温故知新"
     },
     {
+      "name": "home_review_due_banner",
+      "value": "今日の復習：%d 件"
+    },
+    {
+      "name": "home_review_due_badge",
+      "value": "要復習 %d"
+    },
+    {
       "name": "feedback_subject",
       "value": "解语珠玑フィードバック"
     },
