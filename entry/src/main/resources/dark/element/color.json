@@ -203,6 +203,14 @@
     {
       "name": "editor_line",
       "value": "#3A3A3C"
+    },
+    {
+      "name": "toast_bg",
+      "value": "#E6E8E8E8"
+    },
+    {
+      "name": "toast_text",
+      "value": "#1a1a1a"
     }
   ]
 }

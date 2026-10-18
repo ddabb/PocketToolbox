@@ -338,7 +338,7 @@
     },
     {
       "name": "mine_about",
-      "value": "關於"
+      "value": "設定與關於"
     },
     {
       "name": "mine_today_checkin",
@@ -1927,6 +1927,14 @@
     {
       "name": "about_reminder_desc",
       "value": "開啓後每天 20:00 系統提醒簽到與每日挑戰"
+    },
+    {
+      "name": "settings_reminder_group",
+      "value": "提醒設定"
+    },
+    {
+      "name": "about_review_reminder_desc",
+      "value": "開啓後每天 19:30 系統提醒複習與鞏固"
     },
     {
       "name": "reminder_enable_fail",

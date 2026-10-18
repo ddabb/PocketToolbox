@@ -338,7 +338,7 @@
     },
     {
       "name": "mine_about",
-      "value": "About"
+      "value": "Settings & About"
     },
     {
       "name": "mine_today_checkin",
@@ -1927,6 +1927,14 @@
     {
       "name": "about_reminder_desc",
       "value": "When on, you'll be reminded daily at 20:00 to check in and take the challenge"
+    },
+    {
+      "name": "settings_reminder_group",
+      "value": "Reminders"
+    },
+    {
+      "name": "about_review_reminder_desc",
+      "value": "When on, you'll be reminded daily at 19:30 to review and consolidate"
     },
     {
       "name": "reminder_enable_fail",

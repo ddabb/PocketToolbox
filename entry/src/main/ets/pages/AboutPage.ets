@@ -1,6 +1,7 @@
 import { bundleManager, common } from '@kit.AbilityKit';
 import { GifHistoryStore, formatGifBytes } from '../core/gif/GifHistoryStore';
 import { CheckInReminderUtil, ReminderEnableStatus } from '../common/utils/CheckInReminderUtil';
+import { ReviewReminderUtil } from '../common/utils/ReviewReminderUtil';
 import { ToastUtil } from '../common/utils/ToastUtil';
 
 @Builder
@@ -19,6 +20,7 @@ struct AboutContent {
   @State gifHistoryCount: number = 0;
   @State gifHistoryBytes: number = 0;
   @State reminderOn: boolean = false;
+  @State reviewReminderOn: boolean = false;
   private uiContext: UIContext = this.getUIContext();
 
   aboutToAppear(): void {
@@ -30,6 +32,7 @@ struct AboutContent {
   private loadReminderState(): void {
     let ctx: Context = this.uiContext.getHostContext() as Context;
     this.reminderOn = CheckInReminderUtil.isOn(ctx);
+    this.reviewReminderOn = ReviewReminderUtil.isOn(ctx);
   }
 
   private onReminderToggle(on: boolean): void {
@@ -52,6 +55,29 @@ struct AboutContent {
       this.reminderOn = false;
       let ctx: Context = this.uiContext.getHostContext() as Context;
       CheckInReminderUtil.disable(ctx);
+    }
+  }
+
+  private onReviewReminderToggle(on: boolean): void {
+    if (on) {
+      this.reviewReminderOn = true;
+      let ctx: common.UIAbilityContext = this.uiContext.getHostContext() as common.UIAbilityContext;
+      ReviewReminderUtil.enable(ctx).then((status: ReminderEnableStatus) => {
+        if (status === ReminderEnableStatus.OK) {
+          this.reviewReminderOn = true;
+        } else {
+          this.reviewReminderOn = false;
+          if (status === ReminderEnableStatus.NO_QUOTA) {
+            ToastUtil.show(this.uiContext, $r('app.string.reminder_no_quota'), 2500);
+          } else {
+            ToastUtil.show(this.uiContext, $r('app.string.reminder_enable_fail'), 2500);
+          }
+        }
+      });
+    } else {
+      this.reviewReminderOn = false;
+      let ctx: Context = this.uiContext.getHostContext() as Context;
+      ReviewReminderUtil.disable(ctx);
     }
   }
 
@@ -123,6 +149,13 @@ struct AboutContent {
           .padding({ top: 32, bottom: 24 })
           .alignItems(HorizontalAlign.Center)
 
+          Text($r('app.string.settings_reminder_group'))
+            .fontSize(13)
+            .fontColor($r('app.color.hint_text'))
+            .width('100%')
+            .padding({ left: 32, bottom: 6 })
+            .textAlign(TextAlign.Start)
+
           Column() {
             Row() {
               Column() {
@@ -143,6 +176,34 @@ struct AboutContent {
                     return;
                   }
                   this.onReminderToggle(isOn);
+                })
+            }
+            .width('100%')
+            .padding({ left: 16, right: 16, top: 14, bottom: 14 })
+
+            Divider()
+              .color($r('app.color.border_color'))
+              .margin({ left: 16, right: 16 })
+
+            Row() {
+              Column() {
+                Text($r('app.string.rv_reminder'))
+                  .fontSize(15)
+                  .fontColor($r('app.color.primary_text'))
+                Text($r('app.string.about_review_reminder_desc'))
+                  .fontSize(12)
+                  .fontColor($r('app.color.hint_text'))
+                  .margin({ top: 2 })
+              }
+              .alignItems(HorizontalAlign.Start)
+              .layoutWeight(1)
+
+              Toggle({ type: ToggleType.Switch, isOn: this.reviewReminderOn })
+                .onChange((isOn: boolean) => {
+                  if (isOn === this.reviewReminderOn) {
+                    return;
+                  }
+                  this.onReviewReminderToggle(isOn);
                 })
             }
             .width('100%')
