@@ -4409,6 +4409,22 @@
       "value": "Solar term"
     },
     {
+      "name": "poster_slot_soft_left",
+      "value": "Left key"
+    },
+    {
+      "name": "poster_slot_soft_right",
+      "value": "Right key"
+    },
+    {
+      "name": "poster_slot_screen_slogan",
+      "value": "Screen slogan"
+    },
+    {
+      "name": "poster_slot_board_title",
+      "value": "Board title"
+    },
+    {
       "name": "poster_avatar_label",
       "value": "Avatar"
     },

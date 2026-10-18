@@ -4409,6 +4409,22 @@
       "value": "節気名"
     },
     {
+      "name": "poster_slot_soft_left",
+      "value": "左ソフトキー"
+    },
+    {
+      "name": "poster_slot_soft_right",
+      "value": "右ソフトキー"
+    },
+    {
+      "name": "poster_slot_screen_slogan",
+      "value": "画面下スローガン"
+    },
+    {
+      "name": "poster_slot_board_title",
+      "value": "ボード見出し"
+    },
+    {
       "name": "poster_avatar_label",
       "value": "アバター"
     },

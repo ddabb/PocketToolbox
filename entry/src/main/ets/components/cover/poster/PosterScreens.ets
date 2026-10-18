@@ -166,11 +166,11 @@ function LcdBox(c: PosterRenderCtx) {
   .backgroundImageSize({ width: c.f(7), height: c.f(7) })
 }
 
-/** T5 内容层·底部软键行：左软键丝印 + 中间署名（运营商位槽位）+ 右软键丝印（流式同行不可拆） */
+/** T5 内容层·底部软键行：左软键（1.4.9 槽位，空=资源丝印）+ 中间署名（运营商位槽位）+ 右软键（流式同行不可拆） */
 @Builder
 function LcdSoftBar(c: PosterRenderCtx) {
   Row() {
-    Text($r('app.string.poster_soft_left'))
+    Text(c.content.softLeft.trim() !== '' ? c.content.softLeft : $r('app.string.poster_soft_left'))
       .fontSize(c.f(33))
       .fontColor(c.pal().sub)
       .fontFamily(c.font())
@@ -183,7 +183,7 @@ function LcdSoftBar(c: PosterRenderCtx) {
         .maxLines(1)
         .textShadow([{ radius: c.f(3), color: glowColor(c, '#99'), offsetX: 0, offsetY: 0 }])
     }
-    Text($r('app.string.poster_soft_right'))
+    Text(c.content.softRight.trim() !== '' ? c.content.softRight : $r('app.string.poster_soft_right'))
       .fontSize(c.f(33))
       .fontColor(c.pal().sub)
       .fontFamily(c.font())
@@ -590,7 +590,7 @@ function HandheldScreen(c: PosterRenderCtx) {
     .border({ width: c.f(3), color: c.pal().accent })
     .clip(true)
 
-    Text('DOT MATRIX TEXT SYSTEM')
+    Text(c.content.screenSlogan.trim() !== '' ? c.content.screenSlogan : 'DOT MATRIX TEXT SYSTEM')
       .fontSize(c.f(9))
       .letterSpacing(c.f(3))
       .fontColor('#7D828D')

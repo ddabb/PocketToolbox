@@ -1,7 +1,7 @@
 /**
- * 文案海报内容模型 - 单元测试（1.4.8 §4 验收项）
- * 覆盖：CopyPosterContent 序列化回环（coupletUp/coupletDown/avatarUri 缺省容错）
- *      / copy 深拷贝独立性 / T18 定制槽位声明 / T12 头像能力声明
+ * 文案海报内容模型 - 单元测试（1.4.8 §4 验收项；1.4.9 M1-A1 附加槽位）
+ * 覆盖：CopyPosterContent 序列化回环（coupletUp/coupletDown/avatarUri/1.4.9 附加槽位缺省容错）
+ *      / copy 深拷贝独立性 / T18 定制槽位声明 / T12 头像能力声明 / T5-T10 附加槽位声明
  */
 import { describe, it, expect } from '@ohos/hypium';
 import { CopyPosterContent, CopyPosterSlot, CopyPosterSlotDef } from '../../../main/ets/model/CopyPosterModels';
@@ -18,6 +18,10 @@ export default function copyPosterTest() {
       c.tag = '新春大吉';
       c.coupletUp = '岁岁平安福常在';
       c.coupletDown = '年年顺意喜盈门';
+      c.softLeft = '菜单';
+      c.softRight = '返回';
+      c.screenSlogan = 'POCKET SYSTEM';
+      c.boardTitle = 'INFO BOARD';
       c.avatarUri = '/data/app/el2/100/base/com.ddabb.toolbox/files/poster_avatar/test.png';
       c.watermarkOn = true;
       c.watermarkText = '@解语珠玑';
@@ -27,6 +31,10 @@ export default function copyPosterTest() {
       expect(back.tag).assertEqual(c.tag);
       expect(back.coupletUp).assertEqual(c.coupletUp);
       expect(back.coupletDown).assertEqual(c.coupletDown);
+      expect(back.softLeft).assertEqual(c.softLeft);
+      expect(back.softRight).assertEqual(c.softRight);
+      expect(back.screenSlogan).assertEqual(c.screenSlogan);
+      expect(back.boardTitle).assertEqual(c.boardTitle);
       expect(back.avatarUri).assertEqual(c.avatarUri);
       expect(back.watermarkOn).assertTrue();
       expect(back.watermarkText).assertEqual(c.watermarkText);
@@ -41,6 +49,10 @@ export default function copyPosterTest() {
       expect(c.tag).assertEqual('随身日报');
       expect(c.coupletUp).assertEqual('');
       expect(c.coupletDown).assertEqual('');
+      expect(c.softLeft).assertEqual('');
+      expect(c.softRight).assertEqual('');
+      expect(c.screenSlogan).assertEqual('');
+      expect(c.boardTitle).assertEqual('');
       expect(c.avatarUri).assertEqual('');
       expect(c.watermarkOn).assertFalse();
       expect(c.watermarkText).assertEqual('');
@@ -108,6 +120,42 @@ export default function copyPosterTest() {
       let d: CopyPosterSlotDef = CopyPosterSlotDef.of('coupletUp', '上联', 14);
       expect(d.id).assertEqual('coupletUp');
       expect(d.maxLen).assertEqual(14);
+      expect(CopyPosterSlot.SOFT_LEFT).assertEqual('softLeft');
+      expect(CopyPosterSlot.SOFT_RIGHT).assertEqual('softRight');
+      expect(CopyPosterSlot.SCREEN_SLOGAN).assertEqual('screenSlogan');
+      expect(CopyPosterSlot.BOARD_TITLE).assertEqual('boardTitle');
+    });
+
+    /** tc8: 1.4.9 附加槽位声明 —— T5 软键×2 / T8 屏下标语 / T10 表头标题；全注册表仅此 3 模板，customSlots 替换语义不混用 */
+    it('tc8_extraSlots', 0, () => {
+      let t5 = CopyPosterTemplates.getById('T5');
+      expect(t5.extraSlots.length).assertEqual(2);
+      expect(t5.extraSlots[0].id).assertEqual(CopyPosterSlot.SOFT_LEFT);
+      expect(t5.extraSlots[0].maxLen).assertEqual(4);
+      expect(t5.extraSlots[1].id).assertEqual(CopyPosterSlot.SOFT_RIGHT);
+      expect(t5.extraSlots[1].maxLen).assertEqual(4);
+      expect(t5.customSlots.length).assertEqual(0);
+      let t8 = CopyPosterTemplates.getById('T8');
+      expect(t8.extraSlots.length).assertEqual(1);
+      expect(t8.extraSlots[0].id).assertEqual(CopyPosterSlot.SCREEN_SLOGAN);
+      expect(t8.extraSlots[0].maxLen).assertEqual(24);
+      expect(t8.customSlots.length).assertEqual(0);
+      let t10 = CopyPosterTemplates.getById('T10');
+      expect(t10.extraSlots.length).assertEqual(1);
+      expect(t10.extraSlots[0].id).assertEqual(CopyPosterSlot.BOARD_TITLE);
+      expect(t10.extraSlots[0].maxLen).assertEqual(16);
+      expect(t10.customSlots.length).assertEqual(0);
+      let all = CopyPosterTemplates.all();
+      let extraIds: string[] = [];
+      for (let i = 0; i < all.length; i++) {
+        if (all[i].extraSlots.length > 0) {
+          extraIds.push(all[i].id);
+        }
+      }
+      expect(extraIds.length).assertEqual(3);
+      expect(extraIds[0]).assertEqual('T5');
+      expect(extraIds[1]).assertEqual('T8');
+      expect(extraIds[2]).assertEqual('T10');
     });
   });
 }

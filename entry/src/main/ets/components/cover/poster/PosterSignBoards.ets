@@ -280,7 +280,7 @@ function FlapModule(c: PosterRenderCtx, ch: string) {
 @Builder
 function FlapHeader(c: PosterRenderCtx) {
   Row() {
-    Text('QUOTE BOARD · ' + c.content.tag)
+    Text((c.content.boardTitle.trim() !== '' ? c.content.boardTitle : 'QUOTE BOARD') + ' · ' + c.content.tag)
       .fontSize(c.f(20))
       .letterSpacing(c.f(4))
       .fontColor(c.pal().accent)

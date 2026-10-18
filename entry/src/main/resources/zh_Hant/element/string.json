@@ -4409,6 +4409,22 @@
       "value": "節氣名"
     },
     {
+      "name": "poster_slot_soft_left",
+      "value": "左軟鍵"
+    },
+    {
+      "name": "poster_slot_soft_right",
+      "value": "右軟鍵"
+    },
+    {
+      "name": "poster_slot_screen_slogan",
+      "value": "螢幕標語"
+    },
+    {
+      "name": "poster_slot_board_title",
+      "value": "表頭標題"
+    },
+    {
       "name": "poster_avatar_label",
       "value": "頭像"
     },

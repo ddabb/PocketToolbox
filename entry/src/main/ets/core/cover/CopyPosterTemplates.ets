@@ -121,7 +121,10 @@ export class CopyPosterTemplates {
         'body': '信号满格，心情也满格',
         'sign': '菜单',
         'tag': '5G'
-      }));
+      }, true, false, [],
+      // 1.4.9 附加槽位：左右软键丝印可编辑（空=回退 poster_soft_left/right 资源文案）
+      [CopyPosterSlotDef.of('softLeft', $r('app.string.poster_slot_soft_left'), 4),
+        CopyPosterSlotDef.of('softRight', $r('app.string.poster_slot_soft_right'), 4)]));
 
     // ---------- T6 CRT 终端屏（米色复古显示器 + 荧光屏） ----------
     // 配色字段约定：bg=舞台底色 accent=荧光辉光 title=正文亮荧光 sub=暗荧光 block=机壳米色 grid=屏幕底色
@@ -178,7 +181,10 @@ export class CopyPosterTemplates {
           '', '#C9A23F', '#9BB069'),
       ],
       [CoverFont.HANI_SANS, CoverFont.SMILEY, CoverFont.WENKAI, CoverFont.KUAI_LE, CoverFont.ROUND],
-      { 'body': '欢迎来到口袋世界，冒险现在开始！', 'sign': '开始', 'tag': 'POCKET-8' }));
+      { 'body': '欢迎来到口袋世界，冒险现在开始！', 'sign': '开始', 'tag': 'POCKET-8' },
+      true, false, [],
+      // 1.4.9 附加槽位：屏下丝印可编辑（空=回退 DOT MATRIX TEXT SYSTEM）
+      [CopyPosterSlotDef.of('screenSlogan', $r('app.string.poster_slot_screen_slogan'), 24)]));
 
     // ---------- T9 复古车票（票纸 + 撕票线 + 邮戳） ----------
     // 配色字段约定：bg=舞台底色 accent=印章红 title=票面墨色 sub=票面浅墨 block=票纸颜色 grid=分隔线色
@@ -216,7 +222,9 @@ export class CopyPosterTemplates {
           '', '#1A2129', '#34404C'),
       ],
       [CoverFont.HANI_SANS, CoverFont.SMILEY, CoverFont.SERIF, CoverFont.ROUND, CoverFont.WENKAI],
-      { 'body': '开往春天的列车，即将出发', 'sign': '随身工具宝', 'tag': '文案站' }, false));
+      { 'body': '开往春天的列车，即将出发', 'sign': '随身工具宝', 'tag': '文案站' }, false, false, [],
+      // 1.4.9 附加槽位：翻牌表头标题可编辑（空=回退 QUOTE BOARD）
+      [CopyPosterSlotDef.of('boardTitle', $r('app.string.poster_slot_board_title'), 16)]));
 
     // ---------- T11 复古报纸（老报纸头版，参照 docs/文案海报候选_复古报纸.html） ----------
     // 配色字段约定：bg=纸色 accent=号外红章 title=标题墨 sub=次要墨 block=亮纸色 grid=分隔线色

@@ -180,22 +180,17 @@ struct CopyPosterEditor {
     this.fontIndex = 0;
     let c: CopyPosterContent = this.content.copy();
     let d: Record<string, string> = t.defaults;
-    if (!this.editedSlots.has(CopyPosterSlot.BODY) || c.body.trim() === '') {
-      c.body = d['body'] ?? '';
-    }
-    if (!this.editedSlots.has(CopyPosterSlot.SIGN) || c.sign.trim() === '') {
-      c.sign = d['sign'] ?? '';
-    }
-    if (!this.editedSlots.has(CopyPosterSlot.TAG) || c.tag.trim() === '') {
-      c.tag = d['tag'] ?? '';
-    }
+    if (!this.editedSlots.has(CopyPosterSlot.BODY) || c.body.trim() === '') { c.body = d['body'] ?? ''; }
+    if (!this.editedSlots.has(CopyPosterSlot.SIGN) || c.sign.trim() === '') { c.sign = d['sign'] ?? ''; }
+    if (!this.editedSlots.has(CopyPosterSlot.TAG) || c.tag.trim() === '') { c.tag = d['tag'] ?? ''; }
     // 1.4.8 定制槽位默认跟随（对联上下联；无默认值的模板清空为 ''，与 body 行为一致）
-    if (!this.editedSlots.has(CopyPosterSlot.COUPLET_UP) || c.coupletUp.trim() === '') {
-      c.coupletUp = d['coupletUp'] ?? '';
-    }
-    if (!this.editedSlots.has(CopyPosterSlot.COUPLET_DOWN) || c.coupletDown.trim() === '') {
-      c.coupletDown = d['coupletDown'] ?? '';
-    }
+    if (!this.editedSlots.has(CopyPosterSlot.COUPLET_UP) || c.coupletUp.trim() === '') { c.coupletUp = d['coupletUp'] ?? ''; }
+    if (!this.editedSlots.has(CopyPosterSlot.COUPLET_DOWN) || c.coupletDown.trim() === '') { c.coupletDown = d['coupletDown'] ?? ''; }
+    // 1.4.9 附加槽位默认跟随（T5 软键/T8 屏下标语/T10 表头标题；模板 defaults 无键时置空，渲染层回退丝印）
+    if (!this.editedSlots.has(CopyPosterSlot.SOFT_LEFT) || c.softLeft.trim() === '') { c.softLeft = d['softLeft'] ?? ''; }
+    if (!this.editedSlots.has(CopyPosterSlot.SOFT_RIGHT) || c.softRight.trim() === '') { c.softRight = d['softRight'] ?? ''; }
+    if (!this.editedSlots.has(CopyPosterSlot.SCREEN_SLOGAN) || c.screenSlogan.trim() === '') { c.screenSlogan = d['screenSlogan'] ?? ''; }
+    if (!this.editedSlots.has(CopyPosterSlot.BOARD_TITLE) || c.boardTitle.trim() === '') { c.boardTitle = d['boardTitle'] ?? ''; }
     this.content = c;
   }
 
@@ -205,19 +200,16 @@ struct CopyPosterEditor {
       return;
     }
     let c: CopyPosterContent = this.content.copy();
-    if (slot === CopyPosterSlot.BODY) {
-      c.body = value;
-    } else if (slot === CopyPosterSlot.SIGN) {
-      c.sign = value;
-    } else if (slot === CopyPosterSlot.TAG) {
-      c.tag = value;
-    } else if (slot === CopyPosterSlot.COUPLET_UP) {
-      c.coupletUp = value;
-    } else if (slot === CopyPosterSlot.COUPLET_DOWN) {
-      c.coupletDown = value;
-    } else {
-      return;
-    }
+    if (slot === CopyPosterSlot.BODY) { c.body = value; }
+    else if (slot === CopyPosterSlot.SIGN) { c.sign = value; }
+    else if (slot === CopyPosterSlot.TAG) { c.tag = value; }
+    else if (slot === CopyPosterSlot.COUPLET_UP) { c.coupletUp = value; }
+    else if (slot === CopyPosterSlot.COUPLET_DOWN) { c.coupletDown = value; }
+    else if (slot === CopyPosterSlot.SOFT_LEFT) { c.softLeft = value; }
+    else if (slot === CopyPosterSlot.SOFT_RIGHT) { c.softRight = value; }
+    else if (slot === CopyPosterSlot.SCREEN_SLOGAN) { c.screenSlogan = value; }
+    else if (slot === CopyPosterSlot.BOARD_TITLE) { c.boardTitle = value; }
+    else { return; }
     this.editedSlots.add(slot);
     this.content = c;
   }
@@ -248,21 +240,15 @@ struct CopyPosterEditor {
 
   /** 槽位当前值（基础与定制槽位统一入口；定制槽位 id 与 CopyPosterContent 字段名一致） */
   private slotValueOf(slot: string): string {
-    if (slot === CopyPosterSlot.BODY) {
-      return this.content.body;
-    }
-    if (slot === CopyPosterSlot.SIGN) {
-      return this.content.sign;
-    }
-    if (slot === CopyPosterSlot.TAG) {
-      return this.content.tag;
-    }
-    if (slot === CopyPosterSlot.COUPLET_UP) {
-      return this.content.coupletUp;
-    }
-    if (slot === CopyPosterSlot.COUPLET_DOWN) {
-      return this.content.coupletDown;
-    }
+    if (slot === CopyPosterSlot.BODY) { return this.content.body; }
+    if (slot === CopyPosterSlot.SIGN) { return this.content.sign; }
+    if (slot === CopyPosterSlot.TAG) { return this.content.tag; }
+    if (slot === CopyPosterSlot.COUPLET_UP) { return this.content.coupletUp; }
+    if (slot === CopyPosterSlot.COUPLET_DOWN) { return this.content.coupletDown; }
+    if (slot === CopyPosterSlot.SOFT_LEFT) { return this.content.softLeft; }
+    if (slot === CopyPosterSlot.SOFT_RIGHT) { return this.content.softRight; }
+    if (slot === CopyPosterSlot.SCREEN_SLOGAN) { return this.content.screenSlogan; }
+    if (slot === CopyPosterSlot.BOARD_TITLE) { return this.content.boardTitle; }
     return '';
   }
 
@@ -841,6 +827,28 @@ struct CopyPosterEditor {
       }
       .width('100%')
       .alignItems(VerticalAlign.Top)
+
+      if (this.currentTemplate().extraSlots.length > 0) {
+        // 1.4.9 附加槽位（T5 软键/T8 屏下标语/T10 表头标题）：标准输入保留，追加模板声明输入
+        ForEach(this.currentTemplate().extraSlots, (def: CopyPosterSlotDef) => {
+          Column({ space: 5 }) {
+            Text(def.label)
+              .fontSize(12)
+              .fontColor(this.labelColor())
+            TextInput({ text: this.slotValueOf(def.id) })
+              .height(40)
+              .fontSize(14)
+              .maxLength(def.maxLen)
+              .backgroundColor(this.inputBg())
+              .borderRadius(8)
+              .onChange((value: string) => {
+                this.onSlotChange(def.id, value);
+              })
+          }
+          .width('100%')
+          .alignItems(HorizontalAlign.Start)
+        }, (def: CopyPosterSlotDef) => def.id + this.currentTemplateId)
+      }
     }
     .width('100%')
     .padding({ top: 12 })

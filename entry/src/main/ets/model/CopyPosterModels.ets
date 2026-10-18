@@ -12,6 +12,11 @@ export class CopyPosterSlot {
   /** 1.4.8 T18 对联定制槽位（id 与 CopyPosterContent 字段名一致） */
   static readonly COUPLET_UP: string = 'coupletUp';
   static readonly COUPLET_DOWN: string = 'coupletDown';
+  /** 1.4.9 附加槽位（id 与 CopyPosterContent 字段名一致；T5/T8/T10 固定丝印可编辑） */
+  static readonly SOFT_LEFT: string = 'softLeft';
+  static readonly SOFT_RIGHT: string = 'softRight';
+  static readonly SCREEN_SLOGAN: string = 'screenSlogan';
+  static readonly BOARD_TITLE: string = 'boardTitle';
 }
 
 /** 定制槽位定义（1.4.8：模板声明的额外输入控件，如 T18 对联的上联/下联） */
@@ -81,6 +86,14 @@ export class CopyPosterContent {
   coupletUp: string = '';
   /** T18 对联下联 */
   coupletDown: string = '';
+  /** T5 左软键文案（1.4.9 附加槽位，空=回退资源丝印 poster_soft_left） */
+  softLeft: string = '';
+  /** T5 右软键文案（空=回退资源丝印 poster_soft_right） */
+  softRight: string = '';
+  /** T8 屏下标语（空=回退丝印 DOT MATRIX TEXT SYSTEM） */
+  screenSlogan: string = '';
+  /** T10 翻牌表头标题（空=回退丝印 QUOTE BOARD） */
+  boardTitle: string = '';
   /** T12 对方头像沙箱路径（1.4.8 M2，旧记录缺省 '' 兼容；空=首字回退） */
   avatarUri: string = '';
   /** 水印开关（随历史存储，旧记录缺省 false 兼容） */
@@ -95,6 +108,10 @@ export class CopyPosterContent {
     c.tag = this.tag;
     c.coupletUp = this.coupletUp;
     c.coupletDown = this.coupletDown;
+    c.softLeft = this.softLeft;
+    c.softRight = this.softRight;
+    c.screenSlogan = this.screenSlogan;
+    c.boardTitle = this.boardTitle;
     c.avatarUri = this.avatarUri;
     c.watermarkOn = this.watermarkOn;
     c.watermarkText = this.watermarkText;
@@ -108,6 +125,10 @@ export class CopyPosterContent {
       'tag': this.tag,
       'coupletUp': this.coupletUp,
       'coupletDown': this.coupletDown,
+      'softLeft': this.softLeft,
+      'softRight': this.softRight,
+      'screenSlogan': this.screenSlogan,
+      'boardTitle': this.boardTitle,
       'avatarUri': this.avatarUri,
       'watermarkOn': this.watermarkOn,
       'watermarkText': this.watermarkText,
@@ -124,6 +145,10 @@ export class CopyPosterContent {
       c.tag = String(r['tag'] ?? '');
       c.coupletUp = String(r['coupletUp'] ?? '');
       c.coupletDown = String(r['coupletDown'] ?? '');
+      c.softLeft = String(r['softLeft'] ?? '');
+      c.softRight = String(r['softRight'] ?? '');
+      c.screenSlogan = String(r['screenSlogan'] ?? '');
+      c.boardTitle = String(r['boardTitle'] ?? '');
       c.avatarUri = String(r['avatarUri'] ?? '');
       c.watermarkOn = r['watermarkOn'] === true;
       c.watermarkText = String(r['watermarkText'] ?? '');
@@ -247,10 +272,13 @@ export class CopyPosterTemplate {
   supportsAvatar: boolean = false;
   /** 定制输入槽位（非空时页面隐藏主文案输入与换一句，渲染定制输入） */
   customSlots: CopyPosterSlotDef[] = [];
+  /** 附加输入槽位（1.4.9：主文案/署名/标签保留，追加渲染；槽位值空=渲染层回退固定丝印） */
+  extraSlots: CopyPosterSlotDef[] = [];
 
   static of(id: string, name: ResourceStr, layout: string, slots: string[], palettes: CoverPalette[],
     fonts: string[], defaults: Record<string, string>, supportsPinyin: boolean = true,
-    supportsAvatar: boolean = false, customSlots: CopyPosterSlotDef[] = []): CopyPosterTemplate {
+    supportsAvatar: boolean = false, customSlots: CopyPosterSlotDef[] = [],
+    extraSlots: CopyPosterSlotDef[] = []): CopyPosterTemplate {
     let t: CopyPosterTemplate = new CopyPosterTemplate();
     t.id = id;
     t.name = name;
@@ -262,6 +290,7 @@ export class CopyPosterTemplate {
     t.supportsPinyin = supportsPinyin;
     t.supportsAvatar = supportsAvatar;
     t.customSlots = customSlots;
+    t.extraSlots = extraSlots;
     return t;
   }
 }
