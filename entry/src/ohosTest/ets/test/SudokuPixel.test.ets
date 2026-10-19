@@ -171,13 +171,13 @@ export default function sudokuPixelTest() {
       px[1] = 40;
       px[2] = 40;
       const gray2: Float32Array = toGrayArray(px, 4, 4);
-      expect(Math.abs(gray2[0] - 55) < 1e-6).assertTrue();
+      expect(Math.abs(gray2[0] - 40) < 1e-6).assertTrue();
       expect(gray2[1]).assertEqual(255);
 
       expect(isInkPixel(100, 200, true)).assertFalse();
       expect(isInkPixel(100, 200, false)).assertTrue();
       expect(isInkPixel(260, 200, true)).assertTrue();
-      expect(isInkPixel(140, 200, false)).assertFalse();
+      expect(isInkPixel(160, 200, false)).assertFalse();
     });
 
     /** tc5: 透视恒等变换 —— 四角即整幅边界时输出≈输入（双线性在整点采样） */

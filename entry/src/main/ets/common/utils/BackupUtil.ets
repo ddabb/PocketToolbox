@@ -13,6 +13,15 @@ import { fileIo, picker } from '@kit.CoreFileKit';
 import { util } from '@kit.ArkTS';
 import { GifHistoryStore, GifHistoryRecord } from '../../core/gif/GifHistoryStore';
 
+/** 备份解析结果（1.4.9 C1 抽取）：applyBackupText 的解析段纯数据载体，供 ohosTest 直测格式兼容 */
+export class BackupPayload {
+  format: number = 0;
+  /** 本应用 3 个 prefs 名中备份内出现的 section（section 名 → kv 表），序与 PREFS_NAMES 一致 */
+  prefsSections: Record<string, Record<string, Object>> = {};
+  /** format 2 的 gifHistory 段；format 1 或缺段时为 undefined */
+  gifHistory: Record<string, Object> | undefined = undefined;
+}
+
 export class BackupUtil {
   private static readonly PREFS_NAMES: string[] = ['app_cache', 'reading_lists', 'reading_settings'];
   private static readonly FORMAT: number = 2;
@@ -154,53 +163,37 @@ export class BackupUtil {
   }
 
   /**
-   * 解析并应用备份文本（format 1 / 2 兼容矩阵：1=仅偏好；2=偏好+gifHistory 段）。
-   * 1.4.7 Phase 1 从 importBackup 原样抽出（行为零变化），供 ohosTest 直测格式兼容。
+   * 解析并校验备份文本（format 1 / 2 兼容矩阵：1=仅偏好；2=偏好+gifHistory 段）。
+   * 1.4.9 C1 从 applyBackupText 抽为纯函数（行为零变化），供 ohosTest 直测格式兼容。
    * 校验失败抛 Error（调用方负责提示，不崩溃）。
    */
-  static applyBackupText(context: Context, text: string): boolean {
+  static parseBackupText(text: string): BackupPayload {
     let obj: Record<string, Object> = JSON.parse(text) as Record<string, Object>;
     let fmt: number = obj['format'] as number;
     if ((obj['app'] as string) !== BackupUtil.APP_ID || (fmt !== 1 && fmt !== BackupUtil.FORMAT)) {
       throw new Error('invalid backup format');
     }
+    let payload: BackupPayload = new BackupPayload();
+    payload.format = fmt;
     let prefsObj: Record<string, Object> = obj['prefs'] as Record<string, Object>;
     for (let i = 0; i < BackupUtil.PREFS_NAMES.length; i++) {
       let name: string = BackupUtil.PREFS_NAMES[i];
       let section: Object = prefsObj[name];
-      if (section === undefined) {
-        continue;
+      if (section !== undefined) {
+        payload.prefsSections[name] = section as Record<string, Object>;
       }
-      let kv: Record<string, Object> = section as Record<string, Object>;
-      let p: preferences.Preferences = preferences.getPreferencesSync(context, { name: name });
-      let keys: string[] = Object.keys(kv);
-      for (let j = 0; j < keys.length; j++) {
-        let k: string = keys[j];
-        let v: Object = kv[k];
-        if (typeof v === 'number') {
-          p.putSync(k, v as number);
-        } else if (typeof v === 'boolean') {
-          p.putSync(k, v as boolean);
-        } else if (typeof v === 'string') {
-          p.putSync(k, v as string);
-        } else {
-          p.putSync(k, v as Array<number | string | boolean>);
-        }
-      }
-      p.flush();
     }
-    // format 2 新增：GIF 制作历史恢复（备份优先全量替换；旧版备份无此段则跳过）
     if (fmt >= 2) {
       let gh: Object = obj['gifHistory'];
       if (gh !== undefined) {
-        BackupUtil.restoreGifHistory(context, gh as Record<string, Object>);
+        payload.gifHistory = gh as Record<string, Object>;
       }
     }
-    return true;
+    return payload;
   }
 
-  /** 全量替换本地 GIF 制作历史：先落索引（replaceAll 内部清空本地），再写文件本体 */
-  private static restoreGifHistory(context: Context, gh: Record<string, Object>): void {
+  /** gifHistory 段 records 纯解析（1.4.9 C1 抽取）：缺 id/fileName 的非法条目剔除，restore 与直测复用 */
+  static parseGifHistoryRecords(gh: Record<string, Object>): GifHistoryRecord[] {
     let records: GifHistoryRecord[] = [];
     let recsObj: Object = gh['records'];
     if (recsObj !== undefined) {
@@ -221,6 +214,47 @@ export class BackupUtil {
         }
       }
     }
+    return records;
+  }
+
+  /**
+   * 解析并应用备份文本（format 1 / 2 兼容矩阵：1=仅偏好；2=偏好+gifHistory 段）。
+   * 1.4.7 Phase 1 从 importBackup 原样抽出（行为零变化），供 ohosTest 直测格式兼容；
+   * 1.4.9 C1 解析段委托 parseBackupText（行为零变化）。
+   * 校验失败抛 Error（调用方负责提示，不崩溃）。
+   */
+  static applyBackupText(context: Context, text: string): boolean {
+    let payload: BackupPayload = BackupUtil.parseBackupText(text);
+    let names: string[] = Object.keys(payload.prefsSections);
+    for (let i = 0; i < names.length; i++) {
+      let name: string = names[i];
+      let kv: Record<string, Object> = payload.prefsSections[name];
+      let p: preferences.Preferences = preferences.getPreferencesSync(context, { name: name });
+      let keys: string[] = Object.keys(kv);
+      for (let j = 0; j < keys.length; j++) {
+        let k: string = keys[j];
+        let v: Object = kv[k];
+        if (typeof v === 'number') {
+          p.putSync(k, v as number);
+        } else if (typeof v === 'boolean') {
+          p.putSync(k, v as boolean);
+        } else if (typeof v === 'string') {
+          p.putSync(k, v as string);
+        } else {
+          p.putSync(k, v as Array<number | string | boolean>);
+        }
+      }
+      p.flush();
+    }
+    if (payload.format >= 2 && payload.gifHistory !== undefined) {
+      BackupUtil.restoreGifHistory(context, payload.gifHistory);
+    }
+    return true;
+  }
+
+  /** 全量替换本地 GIF 制作历史：先落索引（replaceAll 内部清空本地），再写文件本体 */
+  private static restoreGifHistory(context: Context, gh: Record<string, Object>): void {
+    let records: GifHistoryRecord[] = BackupUtil.parseGifHistoryRecords(gh);
     GifHistoryStore.replaceAll(context, records);
     let filesObj: Object = gh['files'];
     if (filesObj !== undefined) {

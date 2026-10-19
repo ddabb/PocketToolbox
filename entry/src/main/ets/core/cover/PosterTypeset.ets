@@ -72,16 +72,26 @@ export class PosterTypeset {
    */
   static measureEm(text: string): number {
     let em: number = 0;
-    for (let i = 0; i < text.length; i++) {
+    let i: number = 0;
+    while (i < text.length) {
+      let code: number = text.charCodeAt(i);
+      // 代理对（emoji 等）是 1 个码点：整体按 1.2em 计，避免高低代理位各计一次翻倍
+      if (code >= 0xD800 && code <= 0xDBFF && i + 1 < text.length
+        && text.charCodeAt(i + 1) >= 0xDC00 && text.charCodeAt(i + 1) <= 0xDFFF) {
+        em += 1.2;
+        i += 2;
+        continue;
+      }
       let ch: string = text.charAt(i);
       if (RE_HANZI.test(ch) || RE_PUNCT.test(ch)) {
         em += 1.0;
-      } else if (ch.charCodeAt(0) < 128) {
+      } else if (code < 128) {
         em += LATIN_EM;
       } else {
-        // emoji / 生僻字 / 其他非 ASCII：按 1.2em 保守估计，避免低估导致顶格
+        // 生僻字 / 其他非 ASCII 单码元：按 1.2em 保守估计，避免低估导致顶格
         em += 1.2;
       }
+      i++;
     }
     return em;
   }

@@ -48,10 +48,20 @@ export default function coverTest() {
       expect(layouts.size).assertEqual(15);
     });
 
-    /** tc2: 按 id / 系列查询（getById 未命中时回退首模板 A1） */
+    /**
+     * tc2: 按 id / 系列查询（getById 未命中时回退首模板 A1）
+     * 1.4.9 C1 修复：name 自 zh_Hant 迁移后为 $r 资源引用。断言语义=id 接线比对——测试构建与
+     * 主代码同表编译（name.id 与测试内 $r 常量同表同值），id 相等即资源接线正确且 locale 无关；
+     * 解析式断言不可用：测试进程资源管理器未加载测试包索引（abc 引用 0x02 前缀测试表 id，
+     * getStringSync(id) 报 Invalid resource ID），zh 值由 E2E 渲染与 check_strings.py 兜底。
+     */
     it('tc2_getByIdAndSeries', 0, () => {
       let b5: CoverTemplate = CoverTemplates.getById('B5');
-      expect(b5.name).assertEqual('田字格字卡');
+      let nameRes: ResourceStr = b5.name;
+      expect(typeof nameRes !== 'string').assertTrue();
+      if (typeof nameRes !== 'string') {
+        expect(nameRes.id).assertEqual($r('app.string.tmpl_name_grid_card').id);
+      }
       expect(b5.slots.indexOf(CoverSlot.PINYIN) >= 0).assertTrue();
       let missing: CoverTemplate = CoverTemplates.getById('no_such_id');
       expect(missing.id).assertEqual('A1');

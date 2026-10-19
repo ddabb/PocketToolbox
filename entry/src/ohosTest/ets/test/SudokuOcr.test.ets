@@ -1,3 +1,16 @@
+/**
+ * 数独 OCR 管线单元测试 —— 运行环境协议（1.4.9 M5-C1 文档化，防再踩 7min 超时）：
+ *  1. 模拟器（Pura 90 等）无 OCR 服务（textRecognition 不可用），本套件管线用例逐个 30s 超时，
+ *     全套 128 用例 >7min —— **模拟器严禁运行本套件（全套或定向）**。
+ *  2. 模拟器只允许 class 过滤定向跑纯逻辑套件（不含本套件）：
+ *     hdc shell aa test -b com.ddabb.toolbox -m entry_test -s unittest OpenHarmonyTestRunner
+ *       -s class <套件名> -s timeout 15000
+ *     （例：coverTest / charCardTest / copyPosterTest / wordSegmentTest / backupUtilTest 等）
+ *  3. 本套件仅在真机全套回归时运行（Mate 60 Pro，1.4.8 M6 + 1.4.9 M5 并轨回归）。
+ *  4. 相关联动坑位：aa test class 过滤模式下 delegator.getAppContext() 为未初始化壳 context
+ *     （preferences 报 "Parameter error. The context is invalid."）——用例只测纯逻辑规避；
+ *     hilog 重定向含 UTF-16 间隔字符（grep -a + strip \x00）。
+ */
 import { describe, it, expect, beforeAll } from '@ohos/hypium';
 import { recognizeSudokuFromBuffer, recognizeSudokuFromImage, OCRResult, getOCRDebugInfo, OCRDebugInfo } from '../../../main/ets/core/sudoku/SudokuOCR';
 import { parseOCRToGrid, gridToString, solveSudoku, validateFullGrid, SolveResult } from '../../../main/ets/core/sudoku/SudokuEngine';

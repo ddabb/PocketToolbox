@@ -70,7 +70,7 @@ export default function posterTypesetTest() {
 
     /** tc4: 字号连续性 —— 1..60 字无骤降（相邻跌落 ≤10px）、单调不增、不截断 */
     it('tc4_fontContinuity', 0, () => {
-      let prevFont: number = 1000;
+      let prevFont: number = 72; // basePx 即字号上限，drop 判据自 n=2 生效
       for (let n = 1; n <= 60; n++) {
         let r: PosterLayout = PosterTypeset.layout(repeatChar('字', n), 540, 8, 72, false);
         expect(r.fontPx).assertLargerOrEqual(20);
@@ -208,7 +208,7 @@ export default function posterTypesetTest() {
     /** tc16: 竖排不变量扫描（T20 量级参数）—— 1..80 字：不截断时列内总字数守恒、
      *  列数不超预算、相邻字号跌落 ≤12px（spike 判据）；200 字触发 MIN_FONT_PX 截断 */
     it('tc16_verticalInvariants', 0, () => {
-      let prevFont: number = 1000;
+      let prevFont: number = 48; // basePx 即字号上限，drop 判据自 n=2 生效
       for (let n = 1; n <= 80; n++) {
         let r: PosterVerticalLayout =
           PosterTypeset.layoutVertical(repeatChar('字', n), 650, 5, 48, false, 1.32, 760, 1.8);

@@ -38,16 +38,34 @@ export default function charCardTest() {
       }
     });
 
-    /** tc2: 尺寸常量 —— 方卡 1080x1080、练习卡 1080x1440 */
+    /**
+     * tc2: 尺寸常量 —— 方卡 1080x1080、练习卡 1080x1440
+     * 1.4.9 C1 修复：label 自 zh_Hant 迁移后为 $r 资源引用。断言语义=id 接线比对——测试构建与
+     * 主代码同表编译，label.id 与测试内 $r 常量同表同值即接线正确且 locale 无关；解析式断言不可用
+     * （测试进程资源管理器未加载测试包索引，getStringSync(id) 报 Invalid resource ID），zh 值由
+     * E2E 渲染与 check_strings.py 兜底。
+     */
     it('tc2_sizes', 0, () => {
       expect(CharCards.EXPORT_W).assertEqual(1080);
       expect(CharCards.EXPORT_H_SQUARE).assertEqual(1080);
       expect(CharCards.EXPORT_H_PRACTICE).assertEqual(1440);
       expect(CharCards.designHeight(CharCardSize.SQUARE)).assertEqual(900);
       expect(CharCards.designHeight(CharCardSize.PRACTICE)).assertEqual(1200);
-      expect(CharCardSize.label(CharCardSize.PRACTICE)).assertEqual('练习卡 3:4');
-      expect(CharCardGridType.label(CharCardGridType.MI)).assertEqual('米字格');
-      expect(CharCardCharMode.label(CharCardCharMode.TRACE)).assertEqual('描红');
+      let sizeLabel: ResourceStr = CharCardSize.label(CharCardSize.PRACTICE);
+      expect(typeof sizeLabel !== 'string').assertTrue();
+      if (typeof sizeLabel !== 'string') {
+        expect(sizeLabel.id).assertEqual($r('app.string.tmpl_size_practice').id);
+      }
+      let gridLabel: ResourceStr = CharCardGridType.label(CharCardGridType.MI);
+      expect(typeof gridLabel !== 'string').assertTrue();
+      if (typeof gridLabel !== 'string') {
+        expect(gridLabel.id).assertEqual($r('app.string.tmpl_grid_mi').id);
+      }
+      let modeLabel: ResourceStr = CharCardCharMode.label(CharCardCharMode.TRACE);
+      expect(typeof modeLabel !== 'string').assertTrue();
+      if (typeof modeLabel !== 'string') {
+        expect(modeLabel.id).assertEqual($r('app.string.tmpl_mode_trace').id);
+      }
     });
 
     /** tc3: 行拆分 —— <=8 字一行，>8 字两行前多后少 */
