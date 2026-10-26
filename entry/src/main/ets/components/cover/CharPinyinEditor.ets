@@ -3,6 +3,8 @@
  * 替代旧版手输带调拼音（手输体验差）：点击文字展开该字候选读音，点选即改
  * 汉字按序消费音节（与 CharCardPreview.rowPinyinSlots 一致），非汉字无读音不可编辑
  * 无多音字（且无手动修正）时整块隐藏：拼音预览已足够，修正控件无的放矢
+ * 1.5.0 M1：A1 候选行尾「应用到全部」次级 chip（同字批量修正，覆盖语义 §9-1，
+ *           N=同字出现数实时计数明示影响范围）；A2 correctable chip 下缘红标（可修正视觉提示）
  */
 
 import { CoverContentUtil } from '../../core/cover/CoverContentUtil';
@@ -18,6 +20,9 @@ export struct CharPinyinEditor {
   /** 存在手动修正时显示「恢复自动」 */
   @Prop locked: boolean = false;
   onApply: (hanziIndex: number, value: string) => void = () => {
+  };
+  /** 同字批量修正（1.5.0 M1-A1）：ch 全部出现位音节统一替换为 syllable（§9-1 覆盖语义） */
+  onApplyAll: (ch: string, syllable: string) => void = () => {
   };
   onReset: () => void = () => {
   };
@@ -90,6 +95,18 @@ export struct CharPinyinEditor {
     return this.candidatesFor(idx).length >= 2;
   }
 
+  /** M1-A1：ch 在当前字串中的出现次数（批量 chip 实时计数，明示批量影响范围） */
+  private occurrenceCount(ch: string): number {
+    let chars: string[] = this.chars();
+    let n: number = 0;
+    for (let i = 0; i < chars.length; i++) {
+      if (chars[i] === ch) {
+        n++;
+      }
+    }
+    return n;
+  }
+
   /** 音节数与汉字数一致（逐字 chips 可用）；不一致（旧手输历史/编辑中错位）退化为纯文本展示 */
   private aligned(): boolean {
     let chars: string[] = this.chars();
@@ -160,6 +177,10 @@ export struct CharPinyinEditor {
               .borderRadius(8)
               .backgroundColor(this.editIndex === idx ? $r('app.color.char_accent_red') :
                 $r('app.color.editor_input_bg'))
+              // M1-A2：correctable chip 下缘红标（可修正视觉提示），非 correctable 无边框
+              .border(this.correctable(idx) ?
+                { width: { bottom: 2 }, color: $r('app.color.char_accent_red') } :
+                { width: 0 })
               .opacity(this.isHanzi(ch) ? 1 : 0.55)
               .margin({ right: 6, bottom: 6 })
               .onClick(() => {
@@ -187,6 +208,19 @@ export struct CharPinyinEditor {
                     this.onApply(this.hanziIndexBefore(this.editIndex), cand);
                   })
               }, (cand: string, ci: number) => cand + ci.toString() + this.editIndex.toString() + this.pinyinText)
+
+              // M1-A1：候选行尾「应用到全部」次级 chip（当前字读音推广到全部同字，覆盖语义）
+              Text($r('app.string.pinyin_apply_all', this.syllableAt(this.editIndex),
+                this.chars()[this.editIndex], this.occurrenceCount(this.chars()[this.editIndex])))
+                .fontSize(12)
+                .fontColor($r('app.color.char_accent_red'))
+                .padding({ left: 12, right: 12, top: 6, bottom: 6 })
+                .backgroundColor($r('app.color.char_accent_tint'))
+                .borderRadius(13)
+                .margin({ right: 4, bottom: 4 })
+                .onClick(() => {
+                  this.onApplyAll(this.chars()[this.editIndex], this.syllableAt(this.editIndex));
+                })
             }
             .width('100%')
           }

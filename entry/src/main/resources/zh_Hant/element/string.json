@@ -2829,6 +2829,10 @@
       "value": "點擊多音字修正讀音"
     },
     {
+      "name": "pinyin_apply_all",
+      "value": "%s → 套用到全部『%s』（%d 處）"
+    },
+    {
       "name": "char_pinyin_auto",
       "value": "恢復自動"
     },

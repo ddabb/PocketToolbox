@@ -128,6 +128,36 @@ export class CoverContentUtil {
     return parts.join(' ');
   }
 
+  /** 同字批量替换音节（1.5.0 M1-A1）：charsText 中所有等于 ch 的汉字音节统一替换为 syllable，
+   *  覆盖已修正位（1.5.0 计划 §9-1 裁定语义，混合读音靠逐字再修正+恢复自动兜底）；
+   *  ch 非汉字 / syllable 空白 / 无同字匹配 / 全部已等于目标值（幂等）返回原串；
+   *  音节数少于汉字数时越界位跳过不越界写
+   */
+  static batchReplaceSyllable(charsText: string, pinyinText: string, ch: string, syllable: string): string {
+    let v: string = syllable.replace(new RegExp('\\s', 'g'), '');
+    let han: RegExp = new RegExp('[\\u4e00-\\u9fff]');
+    if (v === '' || ch === '' || !han.test(ch)) {
+      return pinyinText;
+    }
+    let parts: string[] = CoverContentUtil.syllables(pinyinText);
+    let chars: string[] = Array.from(charsText);
+    let hi: number = 0;
+    let changed: boolean = false;
+    for (let i = 0; i < chars.length; i++) {
+      if (han.test(chars[i])) {
+        if (chars[i] === ch && hi < parts.length && parts[hi] !== v) {
+          parts[hi] = v;
+          changed = true;
+        }
+        hi++;
+      }
+    }
+    if (!changed) {
+      return pinyinText;
+    }
+    return parts.join(' ');
+  }
+
   /** 单字候选读音（多音字返回多个，去重保序；无结果返回空数组） */
   static pinyinCandidates(ch: string): string[] {
     if (ch === '') {

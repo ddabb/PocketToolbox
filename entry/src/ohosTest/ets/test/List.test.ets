@@ -8,7 +8,7 @@
  *    （getPreferencesSync 报 invalid context），涉及 prefs 的断言一律抽纯函数直测（详见各套件头注）。
  *  - 套件分类：纯逻辑=abilityTest/coverTest/charCardTest/posterTypesetTest/copyPosterTest/
  *    sudokuEngineTest/gifCodecTest/pdfUtilTest/backupUtilTest/reviewStoreTest/sudokuPixelTest/
- *    sudokuGridFixTest/wordSegmentTest；真机专属=sudokuOcrTest。
+ *    sudokuGridFixTest/wordSegmentTest/polyphoneTest；真机专属=sudokuOcrTest。
  */
 import abilityTest from './Ability.test';
 import sudokuOcrTest from './SudokuOcr.test';
@@ -24,6 +24,7 @@ import reviewStoreTest from './ReviewStore.test';
 import sudokuPixelTest from './SudokuPixel.test';
 import sudokuGridFixTest from './SudokuGridFix.test';
 import wordSegmentTest from './WordSegment.test';
+import polyphoneTest from './Polyphone.test';
 
 export default function testsuite() {
   abilityTest();
@@ -40,4 +41,5 @@ export default function testsuite() {
   sudokuPixelTest();
   sudokuGridFixTest();
   wordSegmentTest();
+  polyphoneTest();
 }

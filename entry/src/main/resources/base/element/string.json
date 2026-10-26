@@ -2829,6 +2829,10 @@
       "value": "Tap a polyphone to fix its reading"
     },
     {
+      "name": "pinyin_apply_all",
+      "value": "%s → apply to all '%s' (%d)"
+    },
+    {
       "name": "char_pinyin_auto",
       "value": "Back to auto"
     },

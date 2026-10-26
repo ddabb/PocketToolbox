@@ -228,6 +228,17 @@ struct CharCardContent {
     this.pinyinLocked = true;
   }
 
+  /** 同字批量读音修正（1.5.0 M1-A1）：全部同字音节统一替换并标记手动（§9-1 覆盖语义） */
+  private applyPinyinSyllableAll(ch: string, syllable: string): void {
+    let next: string = CoverContentUtil.batchReplaceSyllable(
+      this.isSentence() ? this.sentenceChars() : this.cleanChars(), this.pinyinText, ch, syllable);
+    if (next === this.pinyinText) {
+      return;
+    }
+    this.pinyinText = next;
+    this.pinyinLocked = true;
+  }
+
   private openCharBook(): void {
     this.bookChars = CharBookUtil.load(this.context());
     this.bookSelected = [];
@@ -701,6 +712,9 @@ struct CharCardContent {
           locked: this.pinyinLocked,
           onApply: (hanziIndex: number, value: string) => {
             this.applyPinyinSyllable(hanziIndex, value);
+          },
+          onApplyAll: (ch: string, syllable: string) => {
+            this.applyPinyinSyllableAll(ch, syllable);
           },
           onReset: () => {
             this.resetPinyin();

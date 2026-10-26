@@ -275,6 +275,52 @@ struct CoverMakerContent {
     this.content = c;
   }
 
+  /** 同字出现次数（title 内精确匹配） */
+  private pyCharCount(ch: string): number {
+    let chars: string[] = this.titleChars();
+    let n: number = 0;
+    for (let i = 0; i < chars.length; i++) {
+      if (chars[i] === ch) {
+        n++;
+      }
+    }
+    return n;
+  }
+
+  private pyCharAt(idx: number): string {
+    let chars: string[] = this.titleChars();
+    return idx >= 0 && idx < chars.length ? chars[idx] : '';
+  }
+
+  private pySyllableAt(idx: number): string {
+    let sys: string[] = this.pySyllables();
+    return idx >= 0 && idx < sys.length ? sys[idx] : '';
+  }
+
+  /** 音节数与字数一致（逐字 chips 可用） */
+  private pyAligned(): boolean {
+    return this.titleChars().length > 0 && this.pySyllables().length === this.titleChars().length;
+  }
+
+  /** 候选区可见：音节对齐且已选中有效字位 */
+  private pyCandidatesVisible(): boolean {
+    return this.pyAligned() && this.pyEditIndex >= 0 && this.pyEditIndex < this.pySyllables().length;
+  }
+
+  /** 批量应用 chip 可见：候选区可见、选中位为字、同字出现 ≥2 */
+  private pyApplyAllVisible(): boolean {
+    return this.pyCandidatesVisible() && this.pyEditIndex < this.titleChars().length &&
+      this.pyCharCount(this.pyCharAt(this.pyEditIndex)) >= 2;
+  }
+
+  /** 同字批量读音修正（1.5.0 M1-A3）：全部同字音节统一替换并锁定（§9-1 覆盖语义） */
+  private applyPinyinSyllableAll(ch: string, syllable: string): void {
+    let c: CoverContent = this.content.copy();
+    c.pinyin = CoverContentUtil.batchReplaceSyllable(this.titleChars().join(''), c.pinyin, ch, syllable);
+    c.pinyinLocked = true;
+    this.content = c;
+  }
+
   private restoreFromHistory(r: CoverHistoryRecord): void {
     let t: CoverTemplate = CoverTemplates.getById(r.templateId);
     this.currentTemplateId = t.id;
@@ -597,111 +643,123 @@ struct CoverMakerContent {
     .padding({ top: 12 })
   }
 
-  /** B5 拼音编辑：逐字音节 chips（点击展开该字候选读音选择），音节数=字数时可用 */
+  /** B5 拼音编辑：逐字音节 chips（点击展开该字候选读音选择），音节数=字数时可用
+   * 渲染结构：子块全部常挂载、以 visibility 控制显隐（API 24 嵌套 if 与外层分支同 pass 创建时，内层分支内容会静默丢失） */
   @Builder
   PinyinSyllableEditor() {
     Column({ space: 8 }) {
-      if (this.titleChars().length > 0 && this.pySyllables().length === this.titleChars().length) {
-        Row({ space: 6 }) {
-          ForEach(this.titleChars(), (ch: string, idx: number) => {
-            Column({ space: 2 }) {
-              Text(ch)
-                .fontSize(16)
-                .fontColor(this.pyEditIndex === idx ? $r('app.color.brand_blue') : this.chipText())
-              Text(this.pySyllables()[idx])
-                .fontSize(11)
-                .maxFontSize(11)
-                .minFontSize(7)
-                .heightAdaptivePolicy(TextHeightAdaptivePolicy.MIN_FONT_SIZE_FIRST)
-                .fontColor(this.pyEditIndex === idx ? $r('app.color.brand_blue') : this.labelColor())
-                .maxLines(1)
-            }
-            .layoutWeight(1)
-            .padding({ top: 6, bottom: 6 })
-            .borderRadius(8)
-            .backgroundColor(this.pyEditIndex === idx ? $r('app.color.brand_blue_tint') : this.inputBg())
-            .border({
-              width: this.pyEditIndex === idx ? 1 : 0,
-              color: $r('app.color.brand_blue'),
-            })
-            .onClick(() => {
-              this.pyEditIndex = this.pyEditIndex === idx ? -1 : idx;
-            })
-          }, (ch: string, idx: number) => ch + idx.toString() + this.pyEditIndex.toString() + this.content.pinyin)
-        }
-        .width('100%')
-        .alignItems(VerticalAlign.Center)
-
-        if (this.pyEditIndex >= 0 && this.pyEditIndex < this.pySyllables().length) {
-          Flex({ wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
-            ForEach(this.pyCandidatesFor(this.pyEditIndex), (cand: string) => {
-              Text(cand)
-                .fontSize(13)
-                .fontColor(cand === this.pySyllables()[this.pyEditIndex] ? $r('app.color.on_accent_text') :
-                  $r('app.color.brand_blue'))
-                .padding({ left: 12, right: 12, top: 6, bottom: 6 })
-                .backgroundColor(cand === this.pySyllables()[this.pyEditIndex] ?
-                  $r('app.color.brand_blue') : $r('app.color.brand_blue_tint'))
-                .borderRadius(13)
-                .margin(4)
-                .onClick(() => {
-                  this.applyPinyinSyllable(this.pyEditIndex, cand);
-                })
-            }, (cand: string, ci: number) => cand + ci.toString() + this.pyEditIndex.toString())
-          }
-          .width('100%')
-        }
-
-        if (this.content.pinyinLocked) {
-          Row() {
-            Text($r('app.string.cover_pinyin_locked'))
+      Row({ space: 6 }) {
+        ForEach(this.titleChars(), (ch: string, idx: number) => {
+          Column({ space: 2 }) {
+            Text(ch)
+              .fontSize(16)
+              .fontColor(this.pyEditIndex === idx ? $r('app.color.brand_blue') : this.chipText())
+            Text(this.pySyllableAt(idx))
               .fontSize(11)
-              .fontColor(this.labelColor())
-              .layoutWeight(1)
-            Text($r('app.string.char_pinyin_auto'))
-              .fontSize(12)
-              .fontColor($r('app.color.idiom_blue'))
-              .padding({ left: 10, right: 10, top: 6, bottom: 6 })
-              .backgroundColor($r('app.color.brand_blue_tint'))
-              .borderRadius(12)
-              .onClick(() => {
-                this.resetPinyin();
-              })
+              .maxFontSize(11)
+              .minFontSize(7)
+              .heightAdaptivePolicy(TextHeightAdaptivePolicy.MIN_FONT_SIZE_FIRST)
+              .fontColor(this.pyEditIndex === idx ? $r('app.color.brand_blue') : this.labelColor())
+              .maxLines(1)
           }
-          .width('100%')
-          .alignItems(VerticalAlign.Center)
-        }
-      } else {
-        Text(this.content.pinyin === '' ? $r('app.string.cover_pinyin_empty_hint') : this.content.pinyin)
-          .fontSize(13)
-          .fontColor(this.labelColor())
-          .width('100%')
-          .padding({ left: 4, right: 4 })
-          .onClick(() => {
-            if (this.content.pinyinLocked) {
-              this.resetPinyin();
-            }
+          .layoutWeight(1)
+          .padding({ top: 6, bottom: 6 })
+          .borderRadius(8)
+          .backgroundColor(this.pyEditIndex === idx ? $r('app.color.brand_blue_tint') : this.inputBg())
+          .border({
+            width: 1,
+            color: this.pyEditIndex === idx ? $r('app.color.brand_blue') : Color.Transparent,
           })
-        if (this.content.pinyinLocked) {
-          Row() {
-            Text($r('app.string.cover_pinyin_mismatch'))
-              .fontSize(11)
-              .fontColor(this.labelColor())
-              .layoutWeight(1)
-            Text($r('app.string.char_pinyin_auto'))
-              .fontSize(12)
-              .fontColor($r('app.color.idiom_blue'))
-              .padding({ left: 10, right: 10, top: 6, bottom: 6 })
-              .backgroundColor($r('app.color.brand_blue_tint'))
-              .borderRadius(12)
-              .onClick(() => {
-                this.resetPinyin();
-              })
-          }
-          .width('100%')
-          .alignItems(VerticalAlign.Center)
-        }
+          .onClick(() => {
+            this.pyEditIndex = this.pyEditIndex === idx ? -1 : idx;
+          })
+        }, (ch: string, idx: number) => ch + idx.toString() + this.pyEditIndex.toString() + this.content.pinyin)
       }
+      .width('100%')
+      .alignItems(VerticalAlign.Center)
+      .visibility(this.pyAligned() ? Visibility.Visible : Visibility.None)
+
+      Text(this.content.pinyin === '' ? $r('app.string.cover_pinyin_empty_hint') : this.content.pinyin)
+        .fontSize(13)
+        .fontColor(this.labelColor())
+        .width('100%')
+        .padding({ left: 4, right: 4 })
+        .onClick(() => {
+          if (this.content.pinyinLocked) {
+            this.resetPinyin();
+          }
+        })
+        .visibility(this.pyAligned() ? Visibility.None : Visibility.Visible)
+
+      Flex({ wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
+        ForEach(this.pyCandidatesFor(this.pyEditIndex), (cand: string) => {
+          Text(cand)
+            .fontSize(13)
+            .fontColor(cand === this.pySyllables()[this.pyEditIndex] ? $r('app.color.on_accent_text') :
+              $r('app.color.brand_blue'))
+            .padding({ left: 12, right: 12, top: 6, bottom: 6 })
+            .backgroundColor(cand === this.pySyllables()[this.pyEditIndex] ?
+              $r('app.color.brand_blue') : $r('app.color.brand_blue_tint'))
+            .borderRadius(13)
+            .margin(4)
+            .onClick(() => {
+              this.applyPinyinSyllable(this.pyEditIndex, cand);
+            })
+        }, (cand: string, ci: number) => cand + ci.toString() + this.pyEditIndex.toString())
+      }
+      .width('100%')
+      .visibility(this.pyCandidatesVisible() ? Visibility.Visible : Visibility.None)
+
+      Text($r('app.string.pinyin_apply_all', this.pySyllableAt(this.pyEditIndex),
+        this.pyCharAt(this.pyEditIndex), this.pyCharCount(this.pyCharAt(this.pyEditIndex))))
+        .fontSize(12)
+        .fontColor($r('app.color.brand_blue'))
+        .padding({ left: 12, right: 12, top: 6, bottom: 6 })
+        .backgroundColor($r('app.color.brand_blue_tint'))
+        .borderRadius(13)
+        .margin(4)
+        .visibility(this.pyApplyAllVisible() ? Visibility.Visible : Visibility.None)
+        .onClick(() => {
+          this.applyPinyinSyllableAll(this.pyCharAt(this.pyEditIndex), this.pySyllableAt(this.pyEditIndex));
+        })
+
+      Row() {
+        Text($r('app.string.cover_pinyin_locked'))
+          .fontSize(11)
+          .fontColor(this.labelColor())
+          .layoutWeight(1)
+        Text($r('app.string.char_pinyin_auto'))
+          .fontSize(12)
+          .fontColor($r('app.color.idiom_blue'))
+          .padding({ left: 10, right: 10, top: 6, bottom: 6 })
+          .backgroundColor($r('app.color.brand_blue_tint'))
+          .borderRadius(12)
+          .onClick(() => {
+            this.resetPinyin();
+          })
+      }
+      .width('100%')
+      .alignItems(VerticalAlign.Center)
+      .visibility(this.content.pinyinLocked && this.pyAligned() ? Visibility.Visible : Visibility.None)
+
+      Row() {
+        Text($r('app.string.cover_pinyin_mismatch'))
+          .fontSize(11)
+          .fontColor(this.labelColor())
+          .layoutWeight(1)
+        Text($r('app.string.char_pinyin_auto'))
+          .fontSize(12)
+          .fontColor($r('app.color.idiom_blue'))
+          .padding({ left: 10, right: 10, top: 6, bottom: 6 })
+          .backgroundColor($r('app.color.brand_blue_tint'))
+          .borderRadius(12)
+          .onClick(() => {
+            this.resetPinyin();
+          })
+      }
+      .width('100%')
+      .alignItems(VerticalAlign.Center)
+      .visibility(this.content.pinyinLocked && !this.pyAligned() ? Visibility.Visible : Visibility.None)
     }
     .width('100%')
   }
