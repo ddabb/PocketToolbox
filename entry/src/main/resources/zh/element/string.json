@@ -6,7 +6,7 @@
     },
     {
       "name": "EntryFormAbility_desc",
-      "value": "解语珠玑每日一诗桌面卡片"
+      "value": "随身工具宝每日一诗桌面卡片"
     },
     {
       "name": "daily_poem_widget_name",
@@ -14,7 +14,7 @@
     },
     {
       "name": "daily_poem_widget_desc",
-      "value": "每天一首诗，点击卡片进入解语珠玑"
+      "value": "每天一首诗，点击卡片进入随身工具宝"
     },
     {
       "name": "checkin_widget_name",
@@ -26,15 +26,15 @@
     },
     {
       "name": "module_desc",
-      "value": "解语珠玑主模块"
+      "value": "随身工具宝主模块"
     },
     {
       "name": "EntryAbility_desc",
-      "value": "解语珠玑应用入口"
+      "value": "随身工具宝应用入口"
     },
     {
       "name": "EntryAbility_label",
-      "value": "解语珠玑"
+      "value": "随身工具宝"
     },
     {
       "name": "page_poetry_query",
@@ -94,7 +94,7 @@
     },
     {
       "name": "reading_session_artist",
-      "value": "解语珠玑 · 朗读清单"
+      "value": "随身工具宝 · 朗读清单"
     },
     {
       "name": "added_to_list",
@@ -238,7 +238,7 @@
     },
     {
       "name": "widget_footer",
-      "value": "解语珠玑 · 每日一诗"
+      "value": "随身工具宝 · 每日一诗"
     },
     {
       "name": "tab_home",
@@ -474,7 +474,7 @@
     },
     {
       "name": "feedback_subject",
-      "value": "解语珠玑意见反馈"
+      "value": "随身工具宝意见反馈"
     },
     {
       "name": "feedback_no_mail_app",
@@ -1906,7 +1906,7 @@
     },
     {
       "name": "poster_watermark_default",
-      "value": "@解语珠玑"
+      "value": "@随身工具宝"
     },
     {
       "name": "achpage_unlocked",
@@ -1966,7 +1966,7 @@
     },
     {
       "name": "about_copyright",
-      "value": "© 2026 解语珠玑"
+      "value": "© 2026 随身工具宝"
     },
     {
       "name": "unitcat_title",
@@ -4386,6 +4386,18 @@
     },
     {
       "name": "poster_pinyin_off",
+      "value": "关"
+    },
+    {
+      "name": "poster_texture_label",
+      "value": "纹理"
+    },
+    {
+      "name": "poster_texture_on",
+      "value": "开"
+    },
+    {
+      "name": "poster_texture_off",
       "value": "关"
     },
     {

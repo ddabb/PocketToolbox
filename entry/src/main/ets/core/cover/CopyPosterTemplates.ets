@@ -60,7 +60,7 @@ export class CopyPosterTemplates {
           '', '#172F6E', '#DBEAFE'),
       ],
       [CoverFont.HANI_SANS, CoverFont.XIAO_WEI, CoverFont.WENKAI, CoverFont.ROUND, CoverFont.SMILEY],
-      { 'body': '人生是旷野，不是轨道', 'sign': '—— 解语珠玑', 'tag': '' }));
+      { 'body': '人生是旷野，不是轨道', 'sign': '—— 随身工具宝', 'tag': '' }));
 
     // ---------- T3 文艺手写 ----------
     list.push(CopyPosterTemplate.of('T3', $r('app.string.poster_tmpl_t3'), 'handwrite',
@@ -243,7 +243,8 @@ export class CopyPosterTemplates {
           '', '#F9ECE9', '#CFA3AC'),
       ],
       [CoverFont.SERIF, CoverFont.FEI_BAI, CoverFont.MA_SHAN, CoverFont.WENKAI, CoverFont.XIAO_WEI],
-      { 'body': '世界很大，去过才有发言权', 'sign': '记者 木木', 'tag': '随身日报' }));
+      { 'body': '世界很大，去过才有发言权', 'sign': '记者 木木', 'tag': '随身日报' },
+      true, false, [], [], true));
 
     // ---------- T12 聊天气泡（微信式对话，参照 docs/文案海报候选_聊天气泡.html） ----------
     // 配色字段约定：bg=聊天区底色 accent=我方气泡色 title=正文墨色 sub=次要文字 block=对方气泡色 grid=顶栏底色
@@ -300,7 +301,8 @@ export class CopyPosterTemplates {
           '#0E1A0E', '#142014', '#030803'),
       ],
       [CoverFont.SERIF, CoverFont.HANI_SANS, CoverFont.SMILEY, CoverFont.XIAO_WEI, CoverFont.ROUND],
-      { 'body': '愿所有相遇，都恰逢其时', 'sign': '随身工具宝', 'tag': 'POCKET 电影' }, false));
+      { 'body': '愿所有相遇，都恰逢其时', 'sign': '随身工具宝', 'tag': 'POCKET 电影' },
+      false, false, [], [], true));
 
     // ---------- T15 公告栏启事（软木板图钉便签，参照 docs/文案海报候选_公告栏启事.html） ----------
     // 配色字段约定：bg=软木底色 accent=图钉/红线色 title=便签墨色 sub=次要墨色 block=便签纸色 grid=木框色
@@ -319,7 +321,8 @@ export class CopyPosterTemplates {
           '', '#EFE3C6', '#5E4426'),
       ],
       [CoverFont.MA_SHAN, CoverFont.LONG_CANG, CoverFont.WENKAI, CoverFont.FEI_BAI, CoverFont.ZHI_MANG],
-      { 'body': '走丢的好心情一枚，捡到请归还', 'sign': '失主很着急', 'tag': '失物招领' }, false));
+      { 'body': '走丢的好心情一枚，捡到请归还', 'sign': '失主很着急', 'tag': '失物招领' },
+      false, false, [], [], true));
 
     // ---------- T16 二十四节气卡（竖排主文案 + 节气名/印章/节气歌，参照 docs/文案海报候选_二十四节气卡.html） ----------
     // 配色字段约定：bg=纸色 accent=印章红 title=主文案墨 sub=次要文字 block=节气名色 grid=边框线色

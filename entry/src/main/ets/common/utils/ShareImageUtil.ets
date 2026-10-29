@@ -59,7 +59,7 @@ export function buildIdiomMarkdown(item: IdiomDetailItem): string {
     md += '> **例句**　' + item.example + '\n\n';
   }
   md += '---\n\n';
-  md += '*解语珠玑　·　成语词典*\n\n';
+  md += '*随身工具宝　·　成语词典*\n\n';
   md += '*' + dateInfo.toMarkdownLine() + '*\n';
   return md;
 }
@@ -83,7 +83,7 @@ export function buildPoemMarkdown(item: PoemItem): string {
   }
   md += item.c + '\n\n';
   md += '---\n\n';
-  md += '*诗词鉴赏 · 解语珠玑*\n\n';
+  md += '*诗词鉴赏 · 随身工具宝*\n\n';
   md += '*' + dateInfo.toMarkdownLine() + '*\n';
   return md;
 }
@@ -94,7 +94,7 @@ export function buildXiehouyuMarkdown(item: XiehouyuItem): string {
   md += '# **' + item.riddle + '**\n\n';
   md += '***' + item.answer + '***\n\n';
   md += '---\n\n';
-  md += '*趣味歇后语 · 解语珠玑*\n\n';
+  md += '*趣味歇后语 · 随身工具宝*\n\n';
   md += '*' + dateInfo.toMarkdownLine() + '*\n';
   return md;
 }

@@ -100,6 +100,8 @@ export class CopyPosterContent {
   watermarkOn: boolean = false;
   /** 水印文字（清空则不渲染） */
   watermarkText: string = '';
+  /** 1.5.1 B2 纹理开关（T11 做旧黄渍/咖啡渍、T14 胶片颗粒、T15 软木纹；旧记录缺省 true 兼容=A/B 零变化） */
+  textureOn: boolean = true;
 
   copy(): CopyPosterContent {
     let c: CopyPosterContent = new CopyPosterContent();
@@ -115,6 +117,7 @@ export class CopyPosterContent {
     c.avatarUri = this.avatarUri;
     c.watermarkOn = this.watermarkOn;
     c.watermarkText = this.watermarkText;
+    c.textureOn = this.textureOn;
     return c;
   }
 
@@ -132,6 +135,7 @@ export class CopyPosterContent {
       'avatarUri': this.avatarUri,
       'watermarkOn': this.watermarkOn,
       'watermarkText': this.watermarkText,
+      'textureOn': this.textureOn,
     };
     return JSON.stringify(r);
   }
@@ -152,6 +156,8 @@ export class CopyPosterContent {
       c.avatarUri = String(r['avatarUri'] ?? '');
       c.watermarkOn = r['watermarkOn'] === true;
       c.watermarkText = String(r['watermarkText'] ?? '');
+      // 旧记录无 textureOn 键回退 true：纹理现状=开，缺省必须与现渲染一致（A/B 零变化协议）
+      c.textureOn = r['textureOn'] !== false;
     } catch (e) {
       console.error('[CopyPoster] parse content json failed: ' + (e as Error).message);
     }
@@ -274,11 +280,13 @@ export class CopyPosterTemplate {
   customSlots: CopyPosterSlotDef[] = [];
   /** 附加输入槽位（1.4.9：主文案/署名/标签保留，追加渲染；槽位值空=渲染层回退固定丝印） */
   extraSlots: CopyPosterSlotDef[] = [];
+  /** 是否带固定纹理/做旧装饰（1.5.1 B2：T11/T14/T15；样式页签据此渲染「纹理」开关） */
+  hasTexture: boolean = false;
 
   static of(id: string, name: ResourceStr, layout: string, slots: string[], palettes: CoverPalette[],
     fonts: string[], defaults: Record<string, string>, supportsPinyin: boolean = true,
     supportsAvatar: boolean = false, customSlots: CopyPosterSlotDef[] = [],
-    extraSlots: CopyPosterSlotDef[] = []): CopyPosterTemplate {
+    extraSlots: CopyPosterSlotDef[] = [], hasTexture: boolean = false): CopyPosterTemplate {
     let t: CopyPosterTemplate = new CopyPosterTemplate();
     t.id = id;
     t.name = name;
@@ -291,6 +299,7 @@ export class CopyPosterTemplate {
     t.supportsAvatar = supportsAvatar;
     t.customSlots = customSlots;
     t.extraSlots = extraSlots;
+    t.hasTexture = hasTexture;
     return t;
   }
 }

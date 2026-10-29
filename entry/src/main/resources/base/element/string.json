@@ -6,7 +6,7 @@
     },
     {
       "name": "EntryFormAbility_desc",
-      "value": "JieYu ZhuJi daily poem home-screen card"
+      "value": "SuiShen GongJuBao daily poem home-screen card"
     },
     {
       "name": "daily_poem_widget_name",
@@ -14,7 +14,7 @@
     },
     {
       "name": "daily_poem_widget_desc",
-      "value": "A poem a day. Tap the card to open JieYu ZhuJi"
+      "value": "A poem a day. Tap the card to open SuiShen GongJuBao"
     },
     {
       "name": "checkin_widget_name",
@@ -26,15 +26,15 @@
     },
     {
       "name": "module_desc",
-      "value": "Main module of JieYu ZhuJi"
+      "value": "Main module of SuiShen GongJuBao"
     },
     {
       "name": "EntryAbility_desc",
-      "value": "JieYu ZhuJi app entry"
+      "value": "SuiShen GongJuBao app entry"
     },
     {
       "name": "EntryAbility_label",
-      "value": "解语珠玑"
+      "value": "随身工具宝"
     },
     {
       "name": "page_poetry_query",
@@ -94,7 +94,7 @@
     },
     {
       "name": "reading_session_artist",
-      "value": "解语珠玑 · Reading List"
+      "value": "随身工具宝 · Reading List"
     },
     {
       "name": "added_to_list",
@@ -238,7 +238,7 @@
     },
     {
       "name": "widget_footer",
-      "value": "解语珠玑 · Daily Poem"
+      "value": "随身工具宝 · Daily Poem"
     },
     {
       "name": "tab_home",
@@ -474,7 +474,7 @@
     },
     {
       "name": "feedback_subject",
-      "value": "JieYu ZhuJi Feedback"
+      "value": "SuiShen GongJuBao Feedback"
     },
     {
       "name": "feedback_no_mail_app",
@@ -1906,7 +1906,7 @@
     },
     {
       "name": "poster_watermark_default",
-      "value": "@解语珠玑"
+      "value": "@随身工具宝"
     },
     {
       "name": "achpage_unlocked",
@@ -1966,7 +1966,7 @@
     },
     {
       "name": "about_copyright",
-      "value": "© 2026 解语珠玑"
+      "value": "© 2026 随身工具宝"
     },
     {
       "name": "unitcat_title",
@@ -4386,6 +4386,18 @@
     },
     {
       "name": "poster_pinyin_off",
+      "value": "Off"
+    },
+    {
+      "name": "poster_texture_label",
+      "value": "Texture"
+    },
+    {
+      "name": "poster_texture_on",
+      "value": "On"
+    },
+    {
+      "name": "poster_texture_off",
       "value": "Off"
     },
     {

@@ -6,7 +6,7 @@
     },
     {
       "name": "EntryFormAbility_desc",
-      "value": "解语珠玑の今日の一首ウィジェット"
+      "value": "随身工具宝の今日の一首ウィジェット"
     },
     {
       "name": "daily_poem_widget_name",
@@ -14,7 +14,7 @@
     },
     {
       "name": "daily_poem_widget_desc",
-      "value": "一日一首。カードをタップして解语珠玑を開く"
+      "value": "一日一首。カードをタップして随身工具宝を開く"
     },
     {
       "name": "checkin_widget_name",
@@ -26,15 +26,15 @@
     },
     {
       "name": "module_desc",
-      "value": "解语珠玑のメインモジュール"
+      "value": "随身工具宝のメインモジュール"
     },
     {
       "name": "EntryAbility_desc",
-      "value": "解语珠玑アプリ入口"
+      "value": "随身工具宝アプリ入口"
     },
     {
       "name": "EntryAbility_label",
-      "value": "解语珠玑"
+      "value": "随身工具宝"
     },
     {
       "name": "page_poetry_query",
@@ -94,7 +94,7 @@
     },
     {
       "name": "reading_session_artist",
-      "value": "解语珠玑 · 読み上げリスト"
+      "value": "随身工具宝 · 読み上げリスト"
     },
     {
       "name": "added_to_list",
@@ -238,7 +238,7 @@
     },
     {
       "name": "widget_footer",
-      "value": "解语珠玑 · 今日の一首"
+      "value": "随身工具宝 · 今日の一首"
     },
     {
       "name": "tab_home",
@@ -474,7 +474,7 @@
     },
     {
       "name": "feedback_subject",
-      "value": "解语珠玑フィードバック"
+      "value": "随身工具宝フィードバック"
     },
     {
       "name": "feedback_no_mail_app",
@@ -1906,7 +1906,7 @@
     },
     {
       "name": "poster_watermark_default",
-      "value": "@解语珠玑"
+      "value": "@随身工具宝"
     },
     {
       "name": "achpage_unlocked",
@@ -1966,7 +1966,7 @@
     },
     {
       "name": "about_copyright",
-      "value": "© 2026 解语珠玑"
+      "value": "© 2026 随身工具宝"
     },
     {
       "name": "unitcat_title",
@@ -4386,6 +4386,18 @@
     },
     {
       "name": "poster_pinyin_off",
+      "value": "オフ"
+    },
+    {
+      "name": "poster_texture_label",
+      "value": "テクスチャ"
+    },
+    {
+      "name": "poster_texture_on",
+      "value": "オン"
+    },
+    {
+      "name": "poster_texture_off",
       "value": "オフ"
     },
     {

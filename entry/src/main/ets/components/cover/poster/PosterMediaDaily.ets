@@ -669,7 +669,10 @@ export function CinemaCard(c: PosterRenderCtx) {
 
     CinemaContent(c)
 
-    CinemaGrain(c)
+    // 1.5.1 B2 纹理开关：胶片颗粒随 textureOn 条件渲染（旧历史缺省 true=原渲染逐像素一致）
+    if (c.content.textureOn) {
+      CinemaGrain(c)
+    }
     CinemaVignette(c)
   }
   .width('100%')

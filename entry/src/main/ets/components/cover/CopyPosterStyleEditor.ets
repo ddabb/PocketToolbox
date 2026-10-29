@@ -18,6 +18,9 @@ export struct CopyPosterStyleEditor {
   @Prop pinyinOn: boolean = false;
   @Prop watermarkOn: boolean = false;
   @Prop watermarkText: string = '';
+  /** 1.5.1 B2：当前模板是否带可关纹理（仅 T11/T14/T15 渲染「纹理」开关） */
+  @Prop hasTexture: boolean = false;
+  @Prop textureOn: boolean = true;
   onPaletteSelect: (index: number) => void = () => {
   };
   onFontSelect: (index: number) => void = () => {
@@ -27,6 +30,8 @@ export struct CopyPosterStyleEditor {
   onWatermarkToggle: () => void = () => {
   };
   onWatermarkTextChange: (value: string) => void = () => {
+  };
+  onTextureToggle: () => void = () => {
   };
 
   build() {
@@ -99,6 +104,24 @@ export struct CopyPosterStyleEditor {
             })
         }
         .alignItems(HorizontalAlign.Start)
+        // 1.5.1 B2 纹理开关：仅带固定纹理/做旧装饰的模板渲染（T11/T14/T15）
+        if (this.hasTexture) {
+          Column({ space: 6 }) {
+            Text($r('app.string.poster_texture_label'))
+              .fontSize(12)
+              .fontColor($r('app.color.editor_label_text'))
+            Text(this.textureOn ? $r('app.string.poster_texture_on') : $r('app.string.poster_texture_off'))
+              .fontSize(13)
+              .padding({ left: 14, right: 14, top: 7, bottom: 7 })
+              .backgroundColor(this.textureOn ? $r('app.color.brand_blue') : $r('app.color.editor_chip_bg'))
+              .fontColor(this.textureOn ? $r('app.color.on_accent_text') : $r('app.color.editor_chip_text'))
+              .borderRadius(14)
+              .onClick(() => {
+                this.onTextureToggle();
+              })
+          }
+          .alignItems(HorizontalAlign.Start)
+        }
       }
       .width('100%')
       .alignItems(VerticalAlign.Top)

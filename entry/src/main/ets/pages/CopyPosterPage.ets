@@ -270,8 +270,7 @@ struct CopyPosterEditor {
 
   /** 水印开关：首次开启且文字为空时预填品牌文案；关闭仅停渲染，保留已输入文字 */
   private onWatermarkToggle(): void {
-    let c: CopyPosterContent = this.content.copy();
-    c.watermarkOn = !c.watermarkOn;
+    let c: CopyPosterContent = this.content.copy(); c.watermarkOn = !c.watermarkOn;
     if (c.watermarkOn && c.watermarkText.trim() === '') {
       c.watermarkText = StrUtil.text(this.context(), $r('app.string.poster_watermark_default'));
     }
@@ -279,9 +278,12 @@ struct CopyPosterEditor {
   }
 
   private onWatermarkTextChange(value: string): void {
-    let c: CopyPosterContent = this.content.copy();
-    c.watermarkText = value;
-    this.content = c;
+    let c: CopyPosterContent = this.content.copy(); c.watermarkText = value; this.content = c;
+  }
+
+  /** 1.5.1 B2 纹理开关：翻转随历史存储（与水印同为跨模板保留偏好，切模板不清） */
+  private onTextureToggle(): void {
+    let c: CopyPosterContent = this.content.copy(); c.textureOn = !c.textureOn; this.content = c;
   }
 
   /** T12 头像：选图拷贝入沙箱并替换（旧文件同步删除）；取消/失败保持原头像 */
@@ -506,16 +508,14 @@ struct CopyPosterEditor {
               palettes: this.currentTemplate().palettes,
               fonts: this.currentTemplate().fonts,
               supportsPinyin: this.currentTemplate().supportsPinyin,
-              paletteIndex: this.paletteIndex,
-              fontIndex: this.fontIndex,
-              pinyinOn: this.pinyinOn,
-              watermarkOn: this.content.watermarkOn,
-              watermarkText: this.content.watermarkText,
+              paletteIndex: this.paletteIndex, fontIndex: this.fontIndex, pinyinOn: this.pinyinOn,
+              watermarkOn: this.content.watermarkOn, watermarkText: this.content.watermarkText,
+              hasTexture: this.currentTemplate().hasTexture, textureOn: this.content.textureOn,
               onPaletteSelect: (idx: number) => { this.paletteIndex = idx; },
               onFontSelect: (idx: number) => { this.fontIndex = idx; },
-              onPinyinToggle: () => { this.pinyinOn = !this.pinyinOn; },
-              onWatermarkToggle: () => { this.onWatermarkToggle(); },
+              onPinyinToggle: () => { this.pinyinOn = !this.pinyinOn; }, onWatermarkToggle: () => { this.onWatermarkToggle(); },
               onWatermarkTextChange: (value: string) => { this.onWatermarkTextChange(value); },
+              onTextureToggle: () => { this.onTextureToggle(); },
             })
           }
           CopyPosterHistorySection({

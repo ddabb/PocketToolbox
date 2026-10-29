@@ -112,7 +112,7 @@ export class CoverTemplates {
       ],
       [CoverFont.XIAO_WEI, CoverFont.WENKAI, CoverFont.HANI_SANS, CoverFont.ROUND, CoverFont.HUANG_YOU],
       '',
-      { 'title': '人生是旷野', 'subtitle': '不是轨道', 'author': '解语珠玑' }));
+      { 'title': '人生是旷野', 'subtitle': '不是轨道', 'author': '随身工具宝' }));
 
     list.push(CoverTemplate.of('A3', $r('app.string.tmpl_name_neon_night'), CoverSeries.SIMPLE, 'a3_neon',
       ['title', 'subtitle', 'author'], $r('app.string.cover_slot_title'),
@@ -125,7 +125,7 @@ export class CoverTemplates {
       ],
       [CoverFont.HANI_SANS, CoverFont.SMILEY, CoverFont.HUANG_YOU, CoverFont.WENKAI, CoverFont.ROUND],
       '',
-      { 'title': '未来已来', 'subtitle': 'THE FUTURE IS NOW', 'author': '解语珠玑' }));
+      { 'title': '未来已来', 'subtitle': 'THE FUTURE IS NOW', 'author': '随身工具宝' }));
 
     // ---------- B 系列 · 文化内容 ----------
     list.push(CoverTemplate.of('B1', $r('app.string.tmpl_name_poetic'), CoverSeries.CULTURE, 'b1_poem_vertical',
@@ -215,7 +215,7 @@ export class CoverTemplates {
       ],
       [CoverFont.HANI_SANS, CoverFont.XIAO_WEI, CoverFont.SMILEY, CoverFont.WENKAI, CoverFont.ROUND],
       '',
-      { 'issue': '42', 'title': '产品沉思录', 'author': '解语珠玑' }));
+      { 'issue': '42', 'title': '产品沉思录', 'author': '随身工具宝' }));
 
     list.push(CoverTemplate.of('C3', $r('app.string.tmpl_name_question'), CoverSeries.BIG, 'c3_question',
       ['title', 'author'], $r('app.string.tmpl_slot_question_title'),
@@ -227,7 +227,7 @@ export class CoverTemplates {
       ],
       [CoverFont.LONG_CANG, CoverFont.ZHI_MANG, CoverFont.MA_SHAN, CoverFont.WENKAI, CoverFont.MAO_CAO],
       '',
-      { 'title': '为什么你总是焦虑', 'author': '解语珠玑' }));
+      { 'title': '为什么你总是焦虑', 'author': '随身工具宝' }));
 
     // ---------- D 系列 · 杂志设计 ----------
     list.push(CoverTemplate.of('D1', $r('app.string.tmpl_name_geoblock'), CoverSeries.MAGAZINE, 'd1_geoblock',
@@ -241,7 +241,7 @@ export class CoverTemplates {
       ],
       [CoverFont.HANI_SANS, CoverFont.XIAO_WEI, CoverFont.WENKAI, CoverFont.ROUND, CoverFont.FEI_BAI],
       '',
-      { 'title': '城市漫游指南', 'subtitle': 'VOL.07', 'author': '解语珠玑' }));
+      { 'title': '城市漫游指南', 'subtitle': 'VOL.07', 'author': '随身工具宝' }));
 
     list.push(CoverTemplate.of('D2', $r('app.string.tmpl_name_twocolumn'), CoverSeries.MAGAZINE, 'd2_twocolumn',
       ['title', 'subtitle', 'author', 'issue'], $r('app.string.cover_slot_title'),
@@ -278,7 +278,7 @@ export class CoverTemplates {
       ],
       [CoverFont.WENKAI, CoverFont.MA_SHAN, CoverFont.SERIF, CoverFont.ZHI_MANG, CoverFont.LONG_CANG],
       '',
-      { 'title': '且听风吟', 'author': '解语珠玑' }));
+      { 'title': '且听风吟', 'author': '随身工具宝' }));
 
     return list;
   }

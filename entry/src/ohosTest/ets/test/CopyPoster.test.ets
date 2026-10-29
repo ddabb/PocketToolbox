@@ -29,7 +29,7 @@ export default function copyPosterTest() {
       c.boardTitle = 'INFO BOARD';
       c.avatarUri = '/data/app/el2/100/base/com.ddabb.toolbox/files/poster_avatar/test.png';
       c.watermarkOn = true;
-      c.watermarkText = '@解语珠玑';
+      c.watermarkText = '@随身工具宝';
       let back: CopyPosterContent = CopyPosterContent.fromJson(c.toJson());
       expect(back.body).assertEqual(c.body);
       expect(back.sign).assertEqual(c.sign);
@@ -201,6 +201,37 @@ export default function copyPosterTest() {
       expect(back.length).assertEqual(5);
       expect(back[0]).assertEqual('T3');
       expect(back[4]).assertEqual('T4');
+    });
+
+    /** tc10: 1.5.1 B2 纹理开关契约 —— T11/T14/T15 声明 hasTexture 且全注册表仅此 3 个；textureOn 序列化回环 + 旧 JSON 缺省 true（A/B 零变化） */
+    it('tc10_textureContract', 0, () => {
+      // 声明一致性：全注册表仅 T11/T14/T15 带 hasTexture
+      let all = CopyPosterTemplates.all();
+      let textureIds: string[] = [];
+      for (let i = 0; i < all.length; i++) {
+        if (all[i].hasTexture) {
+          textureIds.push(all[i].id);
+        }
+      }
+      expect(textureIds.length).assertEqual(3);
+      expect(textureIds[0]).assertEqual('T11');
+      expect(textureIds[1]).assertEqual('T14');
+      expect(textureIds[2]).assertEqual('T15');
+      // 序列化回环：toJson→fromJson textureOn 双向保真
+      let c: CopyPosterContent = new CopyPosterContent();
+      c.textureOn = false;
+      let back: CopyPosterContent = CopyPosterContent.fromJson(c.toJson());
+      expect(back.textureOn).assertFalse();
+      c.textureOn = true;
+      back = CopyPosterContent.fromJson(c.toJson());
+      expect(back.textureOn).assertTrue();
+      // 旧 JSON 兼容：1.5.1 前历史记录无 textureOn 键，缺省回退 true（=原渲染逐像素一致）
+      let legacy: string = JSON.stringify({ 'body': '世界很大', 'sign': '记者 木木', 'tag': '随身日报' });
+      let legacyBack: CopyPosterContent = CopyPosterContent.fromJson(legacy);
+      expect(legacyBack.textureOn).assertTrue();
+      // 显式 false 精确保真（新记录关闭状态经历史恢复还原）
+      let off: string = JSON.stringify({ 'body': '世界很大', 'textureOn': false });
+      expect(CopyPosterContent.fromJson(off).textureOn).assertFalse();
     });
   });
 }

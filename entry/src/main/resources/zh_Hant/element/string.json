@@ -6,7 +6,7 @@
     },
     {
       "name": "EntryFormAbility_desc",
-      "value": "解語珠璣每日一詩桌面卡片"
+      "value": "隨身工具寶每日一詩桌面卡片"
     },
     {
       "name": "daily_poem_widget_name",
@@ -14,7 +14,7 @@
     },
     {
       "name": "daily_poem_widget_desc",
-      "value": "每天一首詩，點擊卡片進入解語珠璣"
+      "value": "每天一首詩，點擊卡片進入隨身工具寶"
     },
     {
       "name": "checkin_widget_name",
@@ -26,15 +26,15 @@
     },
     {
       "name": "module_desc",
-      "value": "解語珠璣主模塊"
+      "value": "隨身工具寶主模塊"
     },
     {
       "name": "EntryAbility_desc",
-      "value": "解語珠璣應用入口"
+      "value": "隨身工具寶應用入口"
     },
     {
       "name": "EntryAbility_label",
-      "value": "解語珠璣"
+      "value": "隨身工具寶"
     },
     {
       "name": "page_poetry_query",
@@ -94,7 +94,7 @@
     },
     {
       "name": "reading_session_artist",
-      "value": "解語珠璣 · 朗讀清單"
+      "value": "隨身工具寶 · 朗讀清單"
     },
     {
       "name": "added_to_list",
@@ -238,7 +238,7 @@
     },
     {
       "name": "widget_footer",
-      "value": "解語珠璣 · 每日一詩"
+      "value": "隨身工具寶 · 每日一詩"
     },
     {
       "name": "tab_home",
@@ -474,7 +474,7 @@
     },
     {
       "name": "feedback_subject",
-      "value": "解語珠璣意見反饋"
+      "value": "隨身工具寶意見反饋"
     },
     {
       "name": "feedback_no_mail_app",
@@ -1906,7 +1906,7 @@
     },
     {
       "name": "poster_watermark_default",
-      "value": "@解語珠璣"
+      "value": "@隨身工具寶"
     },
     {
       "name": "achpage_unlocked",
@@ -1966,7 +1966,7 @@
     },
     {
       "name": "about_copyright",
-      "value": "© 2026 解語珠璣"
+      "value": "© 2026 隨身工具寶"
     },
     {
       "name": "unitcat_title",
@@ -4386,6 +4386,18 @@
     },
     {
       "name": "poster_pinyin_off",
+      "value": "關"
+    },
+    {
+      "name": "poster_texture_label",
+      "value": "紋理"
+    },
+    {
+      "name": "poster_texture_on",
+      "value": "開"
+    },
+    {
+      "name": "poster_texture_off",
       "value": "關"
     },
     {

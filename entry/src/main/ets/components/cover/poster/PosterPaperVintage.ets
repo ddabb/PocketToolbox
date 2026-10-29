@@ -354,7 +354,7 @@ function NewsFiller(c: PosterRenderCtx) {
   .margin({ top: c.f(35) })
 }
 
-/** T11 装饰件：页脚栏（POCKET PRESS / EDITOR · JIEYU ZHUJI / PAGE 04 固定丝印 + 顶栏线） */
+/** T11 装饰件：页脚栏（POCKET PRESS / EDITOR · SUISHEN GONGJUBAO / PAGE 04 固定丝印 + 顶栏线） */
 @Builder
 function NewsFooterBar(c: PosterRenderCtx) {
   Row() {
@@ -362,7 +362,7 @@ function NewsFooterBar(c: PosterRenderCtx) {
       .fontSize(c.f(15))
       .fontColor(c.pal().sub)
       .letterSpacing(c.f(3.2))
-    Text('EDITOR · JIEYU ZHUJI')
+    Text('EDITOR · SUISHEN GONGJUBAO')
       .fontSize(c.f(15))
       .fontColor(c.pal().sub)
       .letterSpacing(c.f(3.2))
@@ -443,7 +443,10 @@ function NewsVignette(c: PosterRenderCtx) {
 @Builder
 export function VintageNews(c: PosterRenderCtx) {
   Stack() {
-    NewsPaperTint(c)
+    // 1.5.1 B2 纹理开关：做旧黄渍随 textureOn 条件渲染（旧历史缺省 true=原渲染逐像素一致）
+    if (c.content.textureOn) {
+      NewsPaperTint(c)
+    }
 
     Column() {
       NewsHeaderBar(c)
@@ -459,7 +462,9 @@ export function VintageNews(c: PosterRenderCtx) {
     .padding({ left: c.f(68), right: c.f(68), top: c.f(48), bottom: c.f(42) })
 
     NewsExtraStamp(c)
-    NewsCoffeeStain(c)
+    if (c.content.textureOn) {
+      NewsCoffeeStain(c)
+    }
     NewsEdgeShade(c)
     NewsVignette(c)
   }
@@ -521,12 +526,15 @@ function corkBodyLines(c: PosterRenderCtx): number {
 /** T15 装饰件：软木板（木纹贴图平铺 + 内外双描边框） */
 @Builder
 function CorkBoard(c: PosterRenderCtx) {
-  Column()
-    .width('100%')
-    .height('100%')
-    .backgroundImage($r('app.media.poster_cork_grain'), ImageRepeat.XY)
-    .backgroundImageSize({ width: c.f(46), height: c.f(46) })
-    .hitTestBehavior(HitTestMode.None)
+  // 1.5.1 B2 纹理开关：仅木纹贴图层随 textureOn 条件渲染，关后露出门面 BgLayer 底色；双描边框保留（结构非纹理）
+  if (c.content.textureOn) {
+    Column()
+      .width('100%')
+      .height('100%')
+      .backgroundImage($r('app.media.poster_cork_grain'), ImageRepeat.XY)
+      .backgroundImageSize({ width: c.f(46), height: c.f(46) })
+      .hitTestBehavior(HitTestMode.None)
+  }
 
   Column()
     .width('100%')
