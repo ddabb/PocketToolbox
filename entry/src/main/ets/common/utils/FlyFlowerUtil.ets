@@ -96,11 +96,17 @@ export class FlyFlowerUtil {
     if (lines === undefined) {
       return null;
     }
+    let contained: FlyFlowerLine | null = null;
     for (let i = 0; i < lines.length; i++) {
       if (lines[i].l === normalized) {
         return lines[i];
       }
+      if (normalized.length > lines[i].l.length && normalized.indexOf(lines[i].l) >= 0) {
+        if (contained === null || lines[i].l.length > contained.l.length) {
+          contained = lines[i];
+        }
+      }
     }
-    return null;
+    return contained;
   }
 }

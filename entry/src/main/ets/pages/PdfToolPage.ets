@@ -19,6 +19,7 @@ import { systemShare } from '@kit.ShareKit';
 import { uniformTypeDescriptor as utd } from '@kit.ArkData';
 import { BusinessError } from '@kit.BasicServicesKit';
 import { ToastUtil } from '../common/utils/ToastUtil';
+import { PdfModeChip } from '../components/PdfModeChip';
 import { PdfComposer, PdfPageMode, PdfMarginMode, PdfOrientation, ComposeImage, ComposeResult }
   from '../core/pdf/PdfComposer';
 import { PdfSplitter, PdfThumb, SplitFormat } from '../core/pdf/PdfSplitter';
@@ -574,20 +575,6 @@ struct PdfToolPanel {
     .border({ width: { bottom: 1 }, color: $r('app.color.editor_line') })
   }
 
-  /** 通用 chip：选中蓝底白字，未选灰底 */
-  @Builder
-  ModeChip(text: ResourceStr, selected: boolean, action: () => void) {
-    Text(text)
-      .fontSize(13)
-      .fontColor(selected ? Color.White : $r('app.color.editor_chip_text'))
-      .padding({ left: 14, right: 14, top: 7, bottom: 7 })
-      .backgroundColor(selected ? $r('app.color.brand_blue') : $r('app.color.editor_chip_bg'))
-      .borderRadius(14)
-      .onClick(() => {
-        action();
-      })
-  }
-
   @Builder
   FieldLabel(text: ResourceStr) {
     Text(text)
@@ -710,11 +697,13 @@ struct PdfToolPanel {
         Column({ space: 8 }) {
           this.FieldLabel($r('app.string.pdf_compose_mode'))
           Row({ space: 8 }) {
-            this.ModeChip($r('app.string.pdf_compose_fit'), this.pageMode === PdfPageMode.FIT, () => {
-              this.pageMode = PdfPageMode.FIT;
+            PdfModeChip({
+              text: $r('app.string.pdf_compose_fit'), selected: this.pageMode === PdfPageMode.FIT,
+              onAction: () => { this.pageMode = PdfPageMode.FIT; }
             })
-            this.ModeChip($r('app.string.pdf_compose_a4'), this.pageMode === PdfPageMode.A4, () => {
-              this.pageMode = PdfPageMode.A4;
+            PdfModeChip({
+              text: $r('app.string.pdf_compose_a4'), selected: this.pageMode === PdfPageMode.A4,
+              onAction: () => { this.pageMode = PdfPageMode.A4; }
             })
           }
         }
@@ -725,14 +714,17 @@ struct PdfToolPanel {
           Column({ space: 8 }) {
             this.FieldLabel($r('app.string.pdf_compose_margin'))
             Row({ space: 8 }) {
-              this.ModeChip($r('app.string.pdf_margin_none'), this.marginMode === PdfMarginMode.NONE, () => {
-                this.marginMode = PdfMarginMode.NONE;
+              PdfModeChip({
+                text: $r('app.string.pdf_margin_none'), selected: this.marginMode === PdfMarginMode.NONE,
+                onAction: () => { this.marginMode = PdfMarginMode.NONE; }
               })
-              this.ModeChip($r('app.string.pdf_margin_narrow'), this.marginMode === PdfMarginMode.NARROW, () => {
-                this.marginMode = PdfMarginMode.NARROW;
+              PdfModeChip({
+                text: $r('app.string.pdf_margin_narrow'), selected: this.marginMode === PdfMarginMode.NARROW,
+                onAction: () => { this.marginMode = PdfMarginMode.NARROW; }
               })
-              this.ModeChip($r('app.string.pdf_margin_normal'), this.marginMode === PdfMarginMode.NORMAL, () => {
-                this.marginMode = PdfMarginMode.NORMAL;
+              PdfModeChip({
+                text: $r('app.string.pdf_margin_normal'), selected: this.marginMode === PdfMarginMode.NORMAL,
+                onAction: () => { this.marginMode = PdfMarginMode.NORMAL; }
               })
             }
           }
@@ -742,11 +734,13 @@ struct PdfToolPanel {
           Column({ space: 8 }) {
             this.FieldLabel($r('app.string.pdf_compose_orient'))
             Row({ space: 8 }) {
-              this.ModeChip($r('app.string.pdf_orient_auto'), this.orientMode === PdfOrientation.AUTO, () => {
-                this.orientMode = PdfOrientation.AUTO;
+              PdfModeChip({
+                text: $r('app.string.pdf_orient_auto'), selected: this.orientMode === PdfOrientation.AUTO,
+                onAction: () => { this.orientMode = PdfOrientation.AUTO; }
               })
-              this.ModeChip($r('app.string.pdf_orient_portrait'), this.orientMode === PdfOrientation.PORTRAIT, () => {
-                this.orientMode = PdfOrientation.PORTRAIT;
+              PdfModeChip({
+                text: $r('app.string.pdf_orient_portrait'), selected: this.orientMode === PdfOrientation.PORTRAIT,
+                onAction: () => { this.orientMode = PdfOrientation.PORTRAIT; }
               })
             }
           }
@@ -1062,11 +1056,13 @@ struct PdfToolPanel {
           Column({ space: 8 }) {
             this.FieldLabel($r('app.string.pdf_split_format'))
             Row({ space: 8 }) {
-              this.ModeChip($r('app.string.pdf_format_jpeg'), this.splitFormat === SplitFormat.JPEG, () => {
-                this.splitFormat = SplitFormat.JPEG;
+              PdfModeChip({
+                text: $r('app.string.pdf_format_jpeg'), selected: this.splitFormat === SplitFormat.JPEG,
+                onAction: () => { this.splitFormat = SplitFormat.JPEG; }
               })
-              this.ModeChip($r('app.string.pdf_format_png'), this.splitFormat === SplitFormat.PNG, () => {
-                this.splitFormat = SplitFormat.PNG;
+              PdfModeChip({
+                text: $r('app.string.pdf_format_png'), selected: this.splitFormat === SplitFormat.PNG,
+                onAction: () => { this.splitFormat = SplitFormat.PNG; }
               })
             }
           }

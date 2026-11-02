@@ -3990,7 +3990,7 @@
     },
     {
       "name": "ff_input_hint",
-      "value": "Enter a verse containing \"%1$s\""
+      "value": "Enter a verse containing \"%1$s\" (full couplets OK)"
     },
     {
       "name": "ff_submit",

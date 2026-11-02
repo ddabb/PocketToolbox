@@ -70,13 +70,13 @@ struct FlyFlowerContent {
       ToastUtil.show(this.uiContext, $r('app.string.ff_miss_char', this.currentChar), 1500);
       return;
     }
-    if (this.usedLines.has(normalized)) {
-      ToastUtil.show(this.uiContext, $r('app.string.ff_used'), 1500);
-      return;
-    }
     let matched: FlyFlowerLine | null = FlyFlowerUtil.matchLine(idx, this.currentChar, normalized);
     if (matched === null) {
       ToastUtil.show(this.uiContext, $r('app.string.ff_not_found'), 1500);
+      return;
+    }
+    if (this.usedLines.has(matched.l)) {
+      ToastUtil.show(this.uiContext, $r('app.string.ff_used'), 1500);
       return;
     }
     VibrateUtil.tap();

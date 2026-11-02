@@ -3990,7 +3990,7 @@
     },
     {
       "name": "ff_input_hint",
-      "value": "輸入含「%1$s」的詩句"
+      "value": "輸入含「%1$s」的詩句，可連上下句"
     },
     {
       "name": "ff_submit",

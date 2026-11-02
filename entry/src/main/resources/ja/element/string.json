@@ -3990,7 +3990,7 @@
     },
     {
       "name": "ff_input_hint",
-      "value": "「%1$s」を含む詩句を入力"
+      "value": "「%1$s」を含む詩句を入力（対句も可）"
     },
     {
       "name": "ff_submit",
