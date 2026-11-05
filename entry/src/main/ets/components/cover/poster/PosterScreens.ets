@@ -216,6 +216,22 @@ function lcdAngle(c: PosterRenderCtx): number {
   return c.ratioKind === CopyPosterRatio.PORTRAIT ? -5 : -3;
 }
 
+/**
+ * T5 暗角色：亮台面（如 warm_desk）改用棕色轻晕，避免重黑晕影在亮底上四角发脏；
+ * 深色台面保持原重黑渐变，视觉不变（模板配色与对齐优化 2026-11）。
+ */
+function lcdVignetteColors(c: PosterRenderCtx): Array<[ResourceColor, number]> {
+  let hex: string = c.pal().bg;
+  let r: number = parseInt(hex.substring(1, 3), 16) / 255;
+  let g: number = parseInt(hex.substring(3, 5), 16) / 255;
+  let b: number = parseInt(hex.substring(5, 7), 16) / 255;
+  let lum: number = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  let mid: string = lum > 0.35 ? '#003A3226' : '#00000000';
+  let edge: string = lum > 0.35 ? '#663A3226' : '#CC000000';
+  let colors: Array<[ResourceColor, number]> = [[mid, 0], [mid, 0.42], [edge, 1]];
+  return colors;
+}
+
 /** T5 装饰层·面板暗角（径向渐变，压在内容之上） */
 @Builder
 function LcdVignette(c: PosterRenderCtx) {
@@ -225,7 +241,7 @@ function LcdVignette(c: PosterRenderCtx) {
     .radialGradient({
       center: ['50%', '50%'],
       radius: '85%',
-      colors: [['#00000000', 0], ['#00000000', 0.42], ['#CC000000', 1]],
+      colors: lcdVignetteColors(c),
     })
     .hitTestBehavior(HitTestMode.None)
 }
@@ -365,6 +381,16 @@ function CrtScanlines(c: PosterRenderCtx) {
     .hitTestBehavior(HitTestMode.None)
 }
 
+/** T6 丝印色：随壳体（block）亮度派生——深壳浅印、浅壳深印（模板配色与对齐优化 2026-11） */
+function crtSilkColor(c: PosterRenderCtx): string {
+  let hex: string = c.pal().block;
+  let r: number = parseInt(hex.substring(1, 3), 16) / 255;
+  let g: number = parseInt(hex.substring(3, 5), 16) / 255;
+  let b: number = parseInt(hex.substring(5, 7), 16) / 255;
+  let lum: number = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  return lum > 0.5 ? '#5E564A' : '#B8B2A4';
+}
+
 /** T6 装饰层·机身下控制条：电源灯 + PHOSPHOR·80C 丝印 + 双旋钮 */
 @Builder
 function CrtBottomBar(c: PosterRenderCtx) {
@@ -375,7 +401,7 @@ function CrtBottomBar(c: PosterRenderCtx) {
     Text('PHOSPHOR · 80C')
       .fontSize(c.f(16))
       .letterSpacing(c.f(5))
-      .fontColor('#8D8471')
+      .fontColor(crtSilkColor(c))
       .layoutWeight(1)
       .textAlign(TextAlign.Center)
     Row({ space: c.f(10) }) {

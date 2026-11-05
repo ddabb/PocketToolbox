@@ -523,6 +523,16 @@ function corkBodyLines(c: PosterRenderCtx): number {
   return Math.max(3, Math.floor(avail / 66));
 }
 
+/** T15 木纹透明度：深色板面（如黑板配色）降至 0.35 与底色融合，浅色软木板保持原样（模板配色与对齐优化 2026-11） */
+function corkTextureOpacity(c: PosterRenderCtx): number {
+  let hex: string = c.pal().bg;
+  let r: number = parseInt(hex.substring(1, 3), 16) / 255;
+  let g: number = parseInt(hex.substring(3, 5), 16) / 255;
+  let b: number = parseInt(hex.substring(5, 7), 16) / 255;
+  let lum: number = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  return lum < 0.35 ? 0.35 : 1;
+}
+
 /** T15 装饰件：软木板（木纹贴图平铺 + 内外双描边框） */
 @Builder
 function CorkBoard(c: PosterRenderCtx) {
@@ -533,6 +543,7 @@ function CorkBoard(c: PosterRenderCtx) {
       .height('100%')
       .backgroundImage($r('app.media.poster_cork_grain'), ImageRepeat.XY)
       .backgroundImageSize({ width: c.f(46), height: c.f(46) })
+      .opacity(corkTextureOpacity(c))
       .hitTestBehavior(HitTestMode.None)
   }
 

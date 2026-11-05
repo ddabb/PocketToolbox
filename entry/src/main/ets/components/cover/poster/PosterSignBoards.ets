@@ -286,6 +286,8 @@ function FlapHeader(c: PosterRenderCtx) {
       .fontColor(c.pal().accent)
       .fontWeight(FontWeight.Bold)
       .maxLines(1)
+      .textOverflow({ overflow: TextOverflow.Ellipsis })
+      .layoutWeight(1)
     Row({ space: c.f(6) }) {
       FlapLed(c, 9, FLAP_LED_GREEN, FLAP_LED_GREEN_GLOW, 5)
       FlapLed(c, 9, FLAP_LED_RED, FLAP_LED_RED_GLOW, 5)

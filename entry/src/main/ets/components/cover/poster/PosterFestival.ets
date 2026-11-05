@@ -110,7 +110,8 @@ function SolarTermContent(c: PosterRenderCtx) {
           .fontSize(vertTermSize(c))
           .lineHeight(vertTermSize(c) * 1.3)
           .fontWeight(FontWeight.Bold)
-          .fontColor(c.pal().block)
+          // 固定浅色：4/5 配色下 pal().block 与印章底色相近几乎不可读（模板配色与对齐优化 2026-11）
+          .fontColor('#F6EFDE')
           .fontFamily(c.font())
           .textAlign(TextAlign.Center)
       }

@@ -15,7 +15,7 @@ import { PosterTypeset, PosterVerticalLayout } from '../../../core/cover/PosterT
 function ImpactDecor(c: PosterRenderCtx) {
   Circle({ width: c.f(420), height: c.f(420) })
     .fill(c.pal().block)
-    .opacity(0.35)
+    .opacity(0.2)
     .position({ x: c.previewWidth - c.posX(260), y: c.h() - c.posY(300) })
 }
 
