@@ -91,6 +91,11 @@
       "buildFunction": "PrimeFactorPageBuilder"
     },
     {
+      "name": "DateDiffPage",
+      "pageSourceFile": "src/main/ets/pages/DateDiffPage.ets",
+      "buildFunction": "DateDiffPageBuilder"
+    },
+    {
       "name": "SudokuSolverPage",
       "pageSourceFile": "src/main/ets/pages/SudokuSolverPage.ets",
       "buildFunction": "SudokuSolverPageBuilder"

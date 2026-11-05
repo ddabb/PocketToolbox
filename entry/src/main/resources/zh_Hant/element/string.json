@@ -505,6 +505,102 @@
       "value": "分解合數為質數乘積"
     },
     {
+      "name": "tool_date_diff_title",
+      "value": "日期差計算"
+    },
+    {
+      "name": "tool_date_diff_sub",
+      "value": "兩日期間隔天數與工作日統計"
+    },
+    {
+      "name": "date_diff_start_label",
+      "value": "開始日期"
+    },
+    {
+      "name": "date_diff_end_label",
+      "value": "結束日期"
+    },
+    {
+      "name": "date_diff_edit",
+      "value": "修改"
+    },
+    {
+      "name": "date_diff_today",
+      "value": "今天"
+    },
+    {
+      "name": "date_diff_until_today",
+      "value": "至今"
+    },
+    {
+      "name": "date_diff_swap",
+      "value": "交換"
+    },
+    {
+      "name": "date_diff_total_label",
+      "value": "相差"
+    },
+    {
+      "name": "date_diff_same_day",
+      "value": "兩個日期相同"
+    },
+    {
+      "name": "date_diff_day_short",
+      "value": "天"
+    },
+    {
+      "name": "date_diff_unit_day",
+      "value": "%d天"
+    },
+    {
+      "name": "date_diff_unit_week",
+      "value": "%d週"
+    },
+    {
+      "name": "date_diff_unit_month",
+      "value": "%d個月"
+    },
+    {
+      "name": "date_diff_unit_year",
+      "value": "%d年"
+    },
+    {
+      "name": "date_diff_stat_weeks",
+      "value": "週數"
+    },
+    {
+      "name": "date_diff_stat_workdays",
+      "value": "工作日"
+    },
+    {
+      "name": "date_diff_stat_workdays_note",
+      "value": "不含週末"
+    },
+    {
+      "name": "date_diff_stat_hours",
+      "value": "總小時"
+    },
+    {
+      "name": "date_diff_stat_minutes",
+      "value": "總分鐘"
+    },
+    {
+      "name": "date_diff_history_title",
+      "value": "最近計算"
+    },
+    {
+      "name": "date_diff_history_clear",
+      "value": "清空"
+    },
+    {
+      "name": "date_diff_history_empty",
+      "value": "暫無計算記錄"
+    },
+    {
+      "name": "date_diff_cleared",
+      "value": "已清空記錄"
+    },
+    {
       "name": "tool_base_sub",
       "value": "二進制/八進制/十六進制/Base64"
     },

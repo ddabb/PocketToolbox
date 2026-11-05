@@ -505,6 +505,102 @@
       "value": "Factor composite numbers into primes"
     },
     {
+      "name": "tool_date_diff_title",
+      "value": "Date Difference"
+    },
+    {
+      "name": "tool_date_diff_sub",
+      "value": "Days between two dates, with saved history"
+    },
+    {
+      "name": "date_diff_start_label",
+      "value": "Start date"
+    },
+    {
+      "name": "date_diff_end_label",
+      "value": "End date"
+    },
+    {
+      "name": "date_diff_edit",
+      "value": "Change"
+    },
+    {
+      "name": "date_diff_today",
+      "value": "Today"
+    },
+    {
+      "name": "date_diff_until_today",
+      "value": "Until today"
+    },
+    {
+      "name": "date_diff_swap",
+      "value": "Swap"
+    },
+    {
+      "name": "date_diff_total_label",
+      "value": "Difference"
+    },
+    {
+      "name": "date_diff_same_day",
+      "value": "The two dates are the same"
+    },
+    {
+      "name": "date_diff_day_short",
+      "value": "days"
+    },
+    {
+      "name": "date_diff_unit_day",
+      "value": "%dd"
+    },
+    {
+      "name": "date_diff_unit_week",
+      "value": "%dw"
+    },
+    {
+      "name": "date_diff_unit_month",
+      "value": "%dmo"
+    },
+    {
+      "name": "date_diff_unit_year",
+      "value": "%dy"
+    },
+    {
+      "name": "date_diff_stat_weeks",
+      "value": "Weeks"
+    },
+    {
+      "name": "date_diff_stat_workdays",
+      "value": "Workdays"
+    },
+    {
+      "name": "date_diff_stat_workdays_note",
+      "value": "Mon–Fri"
+    },
+    {
+      "name": "date_diff_stat_hours",
+      "value": "Hours"
+    },
+    {
+      "name": "date_diff_stat_minutes",
+      "value": "Minutes"
+    },
+    {
+      "name": "date_diff_history_title",
+      "value": "Recent calculations"
+    },
+    {
+      "name": "date_diff_history_clear",
+      "value": "Clear"
+    },
+    {
+      "name": "date_diff_history_empty",
+      "value": "No calculations yet"
+    },
+    {
+      "name": "date_diff_cleared",
+      "value": "History cleared"
+    },
+    {
       "name": "tool_base_sub",
       "value": "Binary/Octal/Hex/Base64"
     },

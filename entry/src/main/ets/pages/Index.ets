@@ -22,6 +22,7 @@ import { CharCardPageBuilder } from './CharCardPage';
 import { CopyPosterPageBuilder } from './CopyPosterPage';
 import { GcdLcmPageBuilder } from './GcdLcmPage';
 import { PrimeFactorPageBuilder } from './PrimeFactorPage';
+import { DateDiffPageBuilder } from './DateDiffPage';
 import { FlyFlowerPageBuilder } from './FlyFlowerPage';
 import { DataBackupPageBuilder } from './DataBackupPage';
 import { DictationPageBuilder } from './DictationPage';
@@ -191,7 +192,8 @@ struct Index {
   private buildToolItems(): void {
     this.mathTools = [
       new ToolItem('gcd_lcm', $r('app.string.tool_gcd_lcm_title'), $r('app.string.tool_gcd_lcm_sub'), 'unit_gcd_lcm', '#e74c3c', 'GcdLcmPage'),
-      new ToolItem('prime_factor', $r('app.string.tool_prime_title'), $r('app.string.tool_prime_sub'), 'unit_prime_factor', '#9b59b6', 'PrimeFactorPage')
+      new ToolItem('prime_factor', $r('app.string.tool_prime_title'), $r('app.string.tool_prime_sub'), 'unit_prime_factor', '#9b59b6', 'PrimeFactorPage'),
+      new ToolItem('date_diff', $r('app.string.tool_date_diff_title'), $r('app.string.tool_date_diff_sub'), 'unit_date_diff', '#06b6d4', 'DateDiffPage')
     ];
 
     let unitTools: ToolItem[] = [];
@@ -236,9 +238,7 @@ struct Index {
 
   private findToolById(id: string): ToolItem | null {
     for (let i = 0; i < this.allTools.length; i++) {
-      if (this.allTools[i].id === id) {
-        return this.allTools[i];
-      }
+      if (this.allTools[i].id === id) { return this.allTools[i]; }
     }
     return null;
   }
@@ -247,18 +247,14 @@ struct Index {
     let items: ToolItem[] = [];
     for (let i = 0; i < this.recentToolIds.length && items.length < 4; i++) {
       let t: ToolItem | null = this.findToolById(this.recentToolIds[i]);
-      if (t !== null) {
-        items.push(t);
-      }
+      if (t !== null) { items.push(t); }
     }
     return items;
   }
 
   private filteredTools(): ToolItem[] {
     let kw: string = this.toolSearchText.trim();
-    if (!kw) {
-      return [];
-    }
+    if (!kw) { return []; }
     let ctx: Context = this.getUIContext().getHostContext() as Context;
     let kwLower: string = kw.toLowerCase();
     let result: ToolItem[] = [];
@@ -749,6 +745,8 @@ struct Index {
       GcdLcmPageBuilder()
     } else if (name === 'PrimeFactorPage') {
       PrimeFactorPageBuilder()
+    } else if (name === 'DateDiffPage') {
+      DateDiffPageBuilder()
     } else if (name === 'SudokuSolverPage') {
       SudokuSolverPageBuilder()
     } else if (name === 'GifMakerPage') {
