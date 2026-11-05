@@ -1,5 +1,5 @@
 /**
- * 文案海报页面：预览 + 比例(1:1/3:4/9:16长图) + 模板分类选择(T1-T21) + 文字/样式编辑(含注音开关) + 换一句灵感 + 导出 + 历史
+ * 文案海报页面：预览 + 模板分类选择(T1-T21) + 文字/模板/比例/样式四页签(比例已提升为独立页签) + 换一句灵感 + 导出 + 历史
  * 需求文档：docs/文案海报生成器需求文档.md；1.4.4 计划：docs/1.4.4开发计划.md
  * 分类导航与模板优化：docs/文案海报优化计划.md（1.4.5）
  * 布局改版（1.4.7 A+B）：预览与三页签（文字/模板/样式）固定在面板 Scroll 之外，编辑面板独立滚动，预览常驻可见
@@ -24,6 +24,7 @@ import { PosterAvatarStore } from '../core/cover/PosterAvatarStore';
 import { CoverContentUtil } from '../core/cover/CoverContentUtil';
 import { CoverHistoryStore } from '../core/cover/CoverHistoryStore';
 import { CopyPosterPreview } from '../components/cover/CopyPosterPreview';
+import { CopyPosterRatioCard } from '../components/cover/CopyPosterRatioCard';
 import { CopyPosterStyleEditor } from '../components/cover/CopyPosterStyleEditor';
 import { CopyPosterAvatarRow } from '../components/cover/CopyPosterAvatarRow';
 import { CopyPosterHistorySection } from '../components/cover/CopyPosterHistorySection';
@@ -76,11 +77,6 @@ struct CopyPosterEditor {
    * 切模板时未编辑（或已清空）的槽位跟随新模板默认值，已编辑且非空的槽位保留用户内容。
    */
   private editedSlots: Set<string> = new Set<string>();
-  private ratioOptions: ChipOption[] = [
-    ChipOption.of(CopyPosterRatio.SQUARE, CopyPosterRatio.label(CopyPosterRatio.SQUARE)),
-    ChipOption.of(CopyPosterRatio.PORTRAIT, CopyPosterRatio.label(CopyPosterRatio.PORTRAIT)),
-    ChipOption.of(CopyPosterRatio.LONG, CopyPosterRatio.label(CopyPosterRatio.LONG)),
-  ];
   /** 分类 chips 选项（每项带该分类模板数，便于用户预判） */
   private categoryOptions: ChipOption[] = [];
   /** 收藏模板 id（1.4.9 A2：star 角标切换，分类内置前） */
@@ -111,9 +107,7 @@ struct CopyPosterEditor {
     let lastCat: string = CopyPosterCategoryUtil.loadLastCategory(this.context());
     this.categoryId = lastCat !== '' ? lastCat : CopyPosterCategories.SIMPLE;
     this.selectTemplate(CopyPosterTemplates.getById('T1'));
-    if (CopyPosterCategories.categoryOfTemplate(this.currentTemplateId) !== this.categoryId) {
-      this.categoryId = CopyPosterCategories.categoryOfTemplate(this.currentTemplateId);
-    }
+    if (CopyPosterCategories.categoryOfTemplate(this.currentTemplateId) !== this.categoryId) { this.categoryId = CopyPosterCategories.categoryOfTemplate(this.currentTemplateId); }
     this.historyRecords = CoverHistoryStore.loadRecords(this.context(), CoverHistoryStore.DIR_POSTER);
     this.showClipHint = ClipboardFillUtil.hasClipboardText();
     this.favoriteIds = CopyPosterTemplatePrefsUtil.loadFavoriteIds(this.context());
@@ -296,9 +290,7 @@ struct CopyPosterEditor {
     let c: CopyPosterContent = this.content.copy();
     c.avatarUri = path;
     this.content = c;
-    if (old !== '') {
-      PosterAvatarStore.remove(old);
-    }
+    if (old !== '') { PosterAvatarStore.remove(old); }
   }
 
   /** T12 头像：移除（删文件 + 清字段） */
@@ -343,9 +335,7 @@ struct CopyPosterEditor {
   }
 
   private randomInspiration(context: common.UIAbilityContext): string {
-    if (this.usedInspiration.size >= INSPIRATION_COUNT) {
-      this.usedInspiration.clear();
-    }
+    if (this.usedInspiration.size >= INSPIRATION_COUNT) { this.usedInspiration.clear(); }
     for (let tries = 0; tries < INSPIRATION_COUNT + 10; tries++) {
       let idx: number = Math.floor(Math.random() * INSPIRATION_COUNT) + 1;
       let text: string = '';
@@ -462,25 +452,15 @@ struct CopyPosterEditor {
 
   // ---------- 主题色 ----------
 
-  private inputBg(): ResourceColor {
-    return $r('app.color.editor_input_bg');
-  }
+  private inputBg(): ResourceColor { return $r('app.color.editor_input_bg'); }
 
-  private labelColor(): ResourceColor {
-    return $r('app.color.editor_label_text');
-  }
+  private labelColor(): ResourceColor { return $r('app.color.editor_label_text'); }
 
-  private chipBg(): ResourceColor {
-    return $r('app.color.editor_chip_bg');
-  }
+  private chipBg(): ResourceColor { return $r('app.color.editor_chip_bg'); }
 
-  private chipText(): ResourceColor {
-    return $r('app.color.editor_chip_text');
-  }
+  private chipText(): ResourceColor { return $r('app.color.editor_chip_text'); }
 
-  private lineColor(): ResourceColor {
-    return $r('app.color.editor_line');
-  }
+  private lineColor(): ResourceColor { return $r('app.color.editor_line'); }
 
   // ---------- UI ----------
 
@@ -501,8 +481,9 @@ struct CopyPosterEditor {
             }
             this.TextEditor()
           } else if (this.editorTab === 1) {
-            this.RatioChips()
             this.TemplateScroller()
+          } else if (this.editorTab === 2) {
+            this.RatioSection()
           } else {
             CopyPosterStyleEditor({
               palettes: this.currentTemplate().palettes,
@@ -572,25 +553,33 @@ struct CopyPosterEditor {
     .padding({ left: 16, right: 16, top: 12, bottom: 8 })
   }
 
+  /** 比例切换：补偿面板滚动，锚定下方内容视线不跳变（原 1.4.9 B5 行为随比例页签化迁移至此） */
+  private onRatioSelect(kind: string): void {
+    if (kind === this.ratioKind) { return; }
+    let oldH: number = this.previewW() * CopyPosterRatio.designHeight(this.ratioKind) / 900;
+    this.ratioKind = kind;
+    this.panelScroller.scrollTo({ xOffset: 0,
+      yOffset: this.panelScroller.currentOffset().yOffset + this.previewW() * CopyPosterRatio.designHeight(this.ratioKind) / 900 - oldH });
+  }
+
+  /** 比例页签（比例自模板页签 chips 提升为独立页签）：三个比例以可选卡片呈现（CopyPosterRatioCard） */
   @Builder
-  RatioChips() {
-    ChipRow({
-      label: StrUtil.text(this.context(), $r('app.string.poster_label_ratio')),
-      labelColor: this.labelColor(),
-      options: this.ratioOptions,
-      selected: this.ratioKind,
-      accent: $r('app.color.brand_blue'),
-      chipBg: this.chipBg(),
-      chipText: this.chipText(),
-      onSelect: (value: string) => {
-        if (value === this.ratioKind) { return; }
-        let oldH: number = this.previewW() * CopyPosterRatio.designHeight(this.ratioKind) / 900;
-        this.ratioKind = value;
-        let newH: number = this.previewW() * CopyPosterRatio.designHeight(this.ratioKind) / 900;
-        this.panelScroller.scrollTo({ xOffset: 0,
-          yOffset: this.panelScroller.currentOffset().yOffset + newH - oldH });
-      },
-    })
+  RatioSection() {
+    Column({ space: 12 }) {
+      Text($r('app.string.poster_label_ratio'))
+        .fontSize(12)
+        .fontColor(this.labelColor())
+        .width('100%')
+        .textAlign(TextAlign.Start)
+      Row({ space: 10 }) {
+        ForEach(CopyPosterRatio.all(), (kind: string) => {
+          CopyPosterRatioCard({ kind: kind, selected: this.ratioKind === kind, onSelect: (k: string) => { this.onRatioSelect(k); } })
+        }, (kind: string) => kind)
+      }
+      .width('100%')
+    }
+    .width('100%')
+    .padding({ top: 12 })
   }
 
   /**
@@ -731,7 +720,7 @@ struct CopyPosterEditor {
   @Builder
   EditorTabs() {
     Row({ space: 0 }) {
-      ForEach([0, 1, 2], (idx: number) => {
+      ForEach([0, 1, 2, 3], (idx: number) => {
         Text(this.tabLabel(idx))
           .fontSize(14)
           .fontWeight(this.editorTab === idx ? FontWeight.Bold : FontWeight.Normal)
@@ -741,13 +730,15 @@ struct CopyPosterEditor {
       }, (idx: number) => idx.toString())
     }
     .width('100%')
+    .justifyContent(FlexAlign.SpaceEvenly)
     .border({ width: { bottom: 1 }, color: this.lineColor() })
   }
 
-  /** 页签文案：0 文字 / 1 模板 / 2 样式（1.4.7 三页签改版） */
+  /** 页签文案：0 文字 / 1 模板 / 2 比例 / 3 样式（比例自模板页签提升为独立页签） */
   private tabLabel(idx: number): ResourceStr {
     if (idx === 0) { return $r('app.string.cover_tab_text'); }
     if (idx === 1) { return $r('app.string.cover_tab_template'); }
+    if (idx === 2) { return $r('app.string.poster_label_ratio'); }
     return $r('app.string.cover_tab_style');
   }
 
